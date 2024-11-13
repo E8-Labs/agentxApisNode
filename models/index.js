@@ -3,6 +3,7 @@ import User from "./user/userModel.js";
 import AreaOfFocus from "./user/areaOfFocus.js";
 import AgentService from "./user/agentService.js";
 import AgentModel from "./user/agentModel.js";
+import { KycExampleModel, KycModel } from "./user/kycModel.js";
 
 import Sequelize from "sequelize";
 
@@ -55,6 +56,12 @@ await createAgentDefaultRoles(db);
 
 db.AgentModel = AgentModel(sequelize, Sequelize);
 models["AgentModel"] = db.AgentModel;
+
+db.KycModel = KycModel(sequelize, Sequelize);
+models["KycModel"] = db.KycModel;
+
+db.KycExampleModel = KycExampleModel(sequelize, Sequelize);
+models["KycExampleModel"] = db.KycExampleModel;
 
 // db.AgentModelSynthflow = AgentModelSynthflow(sequelize, Sequelize);
 // models["AgentModelSynthflow"] = db.AgentModelSynthflow;

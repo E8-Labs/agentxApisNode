@@ -45,18 +45,20 @@ const SignUser = async (user) => {
 export const LoginUser = async (req, res) => {
   // res.send("Hello Login")
   //////console.log("Login " + req.body.email);
-  const email = req.body.email;
-  const password = req.body.password;
+  // const email = req.body.email;
+  // const password = req.body.password;
 
-  const salt = await bcrypt.genSalt(10);
-  const hashed = await bcrypt.hash(password, salt);
+  const phone = req.body.phone;
+
+  // const salt = await bcrypt.genSalt(10);
+  // const hashed = await bcrypt.hash(password, salt);
   const user = await User.findOne({
     where: {
-      email: email,
+      phone: phone,
     },
   });
 
-  const count = await User.count();
+  // const count = await User.count();
   //////console.log("Count " + count);
   if (!user) {
     return res.send({
@@ -65,19 +67,19 @@ export const LoginUser = async (req, res) => {
       data: null,
     });
   } else {
-    bcrypt.compare(password, user.password, async function (err, result) {
-      // result == true
-      if (result) {
-        const result = await SignUser(user);
-        return res.send({
-          status: true,
-          message: "User logged in",
-          data: result,
-        });
-      } else {
-        res.send({ status: false, message: "Invalid password", data: null });
-      }
+    // bcrypt.compare(password, user.password, async function (err, result) {
+    // result == true
+    // if (result) {
+    const result = await SignUser(user);
+    return res.send({
+      status: true,
+      message: "User logged in",
+      data: result,
     });
+    // } else {
+    //   res.send({ status: false, message: "Invalid password", data: null });
+    // }
+    // });
   }
 };
 

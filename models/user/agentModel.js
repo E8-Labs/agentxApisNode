@@ -79,10 +79,29 @@ const AgentModel = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
-    type: {
+    // type: {
+    //   type: Sequelize.STRING,
+    //   allowNull: false,
+    //   defaultValue: "outbound", // inbound and outbound
+    // },
+    phoneNumber: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      defaultValue: "",
+    },
+    phoneSid: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      defaultValue: "",
+    },
+    phoneStatus: {
       type: Sequelize.STRING,
       allowNull: false,
-      defaultValue: "outbound", // inbound and outbound
+      defaultValue: "active", // inactive if payment fails
+    },
+    phonePurchasedAt: {
+      type: Sequelize.DATE,
+      allowNull: true,
     },
     voiceId: {
       //Address. Google map picker

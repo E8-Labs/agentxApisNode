@@ -5,9 +5,15 @@ import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
 import {
   CreateAssistantSynthflow,
   BuildAgent,
+  GetVoices,
+  AddKyc,
+  GetKyc,
 } from "../controllers/synthflowController.js";
 
-import { ListAvailableNumbers } from "./twilioController.js";
+import {
+  ListAvailableNumbers,
+  PurchasePhoneNumber,
+} from "../controllers/twilioController.js";
 
 const uploadFiles = multer().fields([
   { name: "media", maxCount: 1 },
@@ -29,6 +35,18 @@ AgentRouter.get(
   uploadFiles,
   ListAvailableNumbers
 );
+AgentRouter.get("/voices", uploadFiles, GetVoices);
+AgentRouter.post(
+  "/purchasePhone",
+  verifyJwtToken,
+  uploadFiles,
+  PurchasePhoneNumber
+);
+
+//Kycs
+AgentRouter.get("/getKycs", verifyJwtToken, uploadFiles, GetKyc);
+//Add Kyc
+AgentRouter.post("/addKyc", verifyJwtToken, uploadFiles, AddKyc);
 // UserRouter.post("/register", verifyJwtToken, uploadFiles, RegisterUser);
 
 // UserRouter.post("/updateProfile", verifyJwtToken, uploadFiles, UpdateProfile);

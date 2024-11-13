@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "apis": [
+    {
+      "identifier": "synthflow",
+      "source": "@synthflow/v2.0#5cb1nn11m0jyt4aj",
+      "integrity": "sha512-OwOmuOH7Xk6PpW/Idn9BKJ+6QFrTmIx4c1bHoELez36y6G1btTva6kB7icRBmtnjcwOsXyLumpNPALJM/bUAHA==",
+      "installerVersion": "6.1.2"
+    }
+  ]
+}

@@ -6,8 +6,44 @@ import path from "path";
 import { fileURLToPath } from "url";
 // import { CreateAndAttachAction } from "../controllers/action.controller.js";
 import UserProfileFullResource from "../resources/userprofilefullresource.js";
+import KycResource from "../resources/kycResource.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+export async function GetVoices(req, res) {
+  try {
+    let synthKey = process.env.SynthFlowApiKey;
+    console.log("Synth key is ", synthKey);
+
+    const options = {
+      method: "POST",
+      url: "https://fine-tuner.ai/api/1.1/wf/v2_voice_agent_voices",
+      headers: {
+        accept: "application/json",
+        "content-type": "application/json",
+        Authorization: `Bearer ${synthKey}`,
+      },
+      data: { workspace: "1711297163700x954223200313016300" },
+    };
+
+    axios
+      .request(options)
+      .then((resp) => {
+        let voicesData = resp.data;
+
+        // Check if voicesData.data is a string and needs parsing
+
+        res.send({
+          data: voicesData,
+          status: true,
+          message: "List",
+        });
+      })
+      .catch((err) => console.error(err));
+  } catch (error) {
+    console.error("Error fetching voices:", error);
+  }
+}
 
 export const BuildAgent = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -68,6 +104,75 @@ export const BuildAgent = async (req, res) => {
           error: error,
         });
       }
+    }
+  });
+};
+
+export const GetKyc = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let kycs = await db.KycModel.findAll({
+        where: {
+          userId: user.id,
+        },
+      });
+      let qs = await KycResource(kycs);
+      return res.send({
+        status: true,
+        message: "Kycs obtained",
+        data: qs,
+      });
+    }
+  });
+};
+
+export const AddKyc = async (req, res) => {
+  let { kycQuestions } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let kycs = [];
+
+      if (user) {
+        for (let i = 0; i < kycQuestions.length; i++) {
+          let kyc = kycQuestions[i];
+          let created = await db.KycModel.create({
+            userId: user.id,
+            question: kyc.question,
+            category: kyc.category, //Needs, Motivation, Urgency etc
+            type: kyc.type, //seller or buyer
+          });
+
+          let kycExamples = [];
+          if (created) {
+            for (let j = 0; j < kyc.examples.length; j++) {
+              let ex = kyc.examples[j];
+              let createdEx = await db.KycExampleModel.create({
+                kycId: created.id,
+                example: ex,
+              });
+              kycExamples.push(createdEx);
+            }
+          }
+          let res = await KycResource(created);
+          kycs.push(res);
+        }
+      }
+
+      return res.send({ status: true, message: "kyc added", data: kycs });
+    } else {
     }
   });
 };
