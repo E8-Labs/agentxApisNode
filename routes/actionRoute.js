@@ -10,7 +10,7 @@ import {
   GetKb,
   AddCalendar,
   ScheduleEvent,
-} from "../controllers/action.controller.js";
+} from "../controllers/actionController.js";
 
 let actionRouter = express.Router();
 

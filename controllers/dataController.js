@@ -11,7 +11,7 @@ import moment from "moment-timezone";
 import axios from "axios";
 import chalk from "chalk";
 import nodemailer from "nodemailer";
-import UserProfileFullResource from "../resources/userprofilefullresource.js";
+import UserProfileFullResource from "../resources/userProfileFullResource.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');

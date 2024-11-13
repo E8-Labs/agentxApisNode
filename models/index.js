@@ -1,9 +1,9 @@
-import dbConfig from "../config/dbconfig.js";
-import User from "./user/usermodel.js";
-import AreaOfFocus from "./user/areaoffocus.js";
-import AgentService from "./user/agentservice.js";
-import AgentModel from "./user/agentmodel.js";
-import { KycExampleModel, KycModel } from "./user/kycmodel.js";
+import dbConfig from "../config/dbConfig.js";
+import User from "./user/userModel.js";
+import AreaOfFocus from "./user/areaOfFocus.js";
+import AgentService from "./user/agentService.js";
+import AgentModel from "./user/agentModel.js";
+import { KycExampleModel, KycModel } from "./user/kycModel.js";
 
 import Sequelize from "sequelize";
 
@@ -11,9 +11,9 @@ import {
   createAreaOfFocusValues,
   createAgentServices,
   createAgentDefaultRoles,
-} from "../utils/createpredefineddata.js";
-import AgentRole from "./user/agentrole.js";
-import AgentModelSynthflow from "./user/agentmodelsynthflow.js";
+} from "../utils/createPredefinedData.js";
+import AgentRole from "./user/agentRole.js";
+import AgentModelSynthflow from "./user/agentModelSynthflow.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,

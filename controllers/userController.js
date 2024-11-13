@@ -12,7 +12,7 @@ import chalk from "chalk";
 import nodemailer from "nodemailer";
 console.log(import.meta.url);
 
-import UserProfileFullResource from "../resources/userprofilefullresource.js";
+import UserProfileFullResource from "../resources/userProfileFullResource.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
