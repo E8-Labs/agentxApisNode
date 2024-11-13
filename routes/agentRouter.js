@@ -8,12 +8,12 @@ import {
   GetVoices,
   AddKyc,
   GetKyc,
-} from "../controllers/synthflowController.js";
+} from "../controllers/synthflowcontroller.js";
 
 import {
   ListAvailableNumbers,
   PurchasePhoneNumber,
-} from "../controllers/twilioController.js";
+} from "../controllers/twiliocontroller.js";
 
 const uploadFiles = multer().fields([
   { name: "media", maxCount: 1 },
