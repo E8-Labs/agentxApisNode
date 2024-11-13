@@ -10,6 +10,8 @@ import moment from "moment-timezone";
 import axios from "axios";
 import chalk from "chalk";
 import nodemailer from "nodemailer";
+console.log(import.meta.url);
+
 import UserProfileFullResource from "../resources/userprofilefullresource.js";
 
 // lib/firebase-admin.js
