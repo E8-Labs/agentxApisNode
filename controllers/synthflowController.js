@@ -6,7 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 // import { CreateAndAttachAction } from "../controllers/action.controller.js";
 import UserProfileFullResource from "../resources/userprofilefullresource.js";
-import KycResource from "../resources/kycResource.js";
+import KycResource from "../resources/kycresource.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
