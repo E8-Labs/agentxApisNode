@@ -6,9 +6,9 @@ import path from "path";
 import { fileURLToPath } from "url";
 import db from "./models/index.js";
 
-import UserRouter from "./routes/userroute.js";
-import DataRouter from "./routes/dataroute.js";
-import AgentRouter from "./routes/agentrouter.js";
+import UserRouter from "./routes/userRoute.js";
+import DataRouter from "./routes/dataRoute.js";
+import AgentRouter from "./routes/agentRouter.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
