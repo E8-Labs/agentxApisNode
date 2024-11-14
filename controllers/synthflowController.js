@@ -7,6 +7,11 @@ import { fileURLToPath } from "url";
 // import { CreateAndAttachAction } from "../controllers/action.controller.js";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import KycResource from "../resources/kycResource.js";
+import {
+  CreateAndAttachInfoExtractor,
+  GetInfoExtractorApiData,
+} from "./actionController.js";
+import AgentResource from "../resources/AgentResource.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -63,6 +68,16 @@ export const BuildAgent = async (req, res) => {
       const address = req.body.address;
       const agentObjectiveDescription = req.body.agentObjectiveDescription;
 
+      let mainAgent = await db.MainAgentModel.create({
+        name: name,
+        userId: user.id,
+      });
+
+      if (!mainAgent) {
+        console.log("Error creating main agent ");
+        return;
+      }
+
       try {
         if (agentType == "both") {
           //create Agent Sythflow
@@ -75,6 +90,7 @@ export const BuildAgent = async (req, res) => {
             status,
             agentObjectiveDescription,
             address,
+            mainAgentId: mainAgent.id,
           };
           let createdInbound = CreateAssistantSynthflow(data, "inbound");
           let createdOutbound = CreateAssistantSynthflow(data, "outbound");
@@ -88,13 +104,16 @@ export const BuildAgent = async (req, res) => {
             status,
             agentObjectiveDescription,
             address,
+            mainAgentId: mainAgent.id,
           };
           let createdAgent = CreateAssistantSynthflow(data, agentType);
         }
+
+        let agentRes = await AgentResource(mainAgent);
         res.send({
           status: true,
           message: "Agent Created",
-          data: await UserProfileFullResource(user),
+          data: agentRes,
         });
       } catch (error) {
         res.send({
@@ -133,7 +152,7 @@ export const GetKyc = async (req, res) => {
 };
 
 export const AddKyc = async (req, res) => {
-  let { kycQuestions } = req.body;
+  let { kycQuestions, mainAgentId } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -153,6 +172,7 @@ export const AddKyc = async (req, res) => {
             question: kyc.question,
             category: kyc.category, //Needs, Motivation, Urgency etc
             type: kyc.type, //seller or buyer
+            mainAgentId: mainAgentId,
           });
 
           let kycExamples = [];
@@ -166,6 +186,11 @@ export const AddKyc = async (req, res) => {
               kycExamples.push(createdEx);
             }
           }
+          // created.actionId =
+          let infoExtractor = await CreateAndAttachInfoExtractor(
+            mainAgentId,
+            kyc
+          );
           let res = await KycResource(created);
           kycs.push(res);
         }
@@ -237,37 +262,18 @@ export async function CreateAssistantSynthflow(agentData, type = "outbound") {
     return null;
   }
 }
-async function UpdateAssistantSynthflow(
-  user,
-  name,
-  prompt,
-  greeting,
-  voice_id,
-  assistantId
-) {
+export async function UpdateAssistantSynthflow(agent, data) {
   let synthKey = process.env.SynthFlowApiKey;
-  console.log("Inside 1");
+  console.log("Inside Update Assistant ", data);
   const options = {
     method: "PUT",
-    url: `https://api.synthflow.ai/v2/assistants/${assistantId}`,
+    url: `https://api.synthflow.ai/v2/assistants/${agent.modelId}`,
     headers: {
       accept: "application/json",
       "content-type": "application/json",
       Authorization: `Bearer ${synthKey}`,
     },
-    data: {
-      type: "outbound",
-      name: name,
-      external_webhook_url: process.env.WebHookForSynthflow,
-      agent: {
-        llm: "gpt-4o",
-        language: "en-US",
-        prompt: prompt,
-        greeting_message: greeting,
-        voice_id: "wefw5e68456wef",
-      },
-      is_recording: true,
-    },
+    data: data,
   };
   console.log("Inside 2");
   try {
@@ -293,46 +299,46 @@ async function UpdateAssistantSynthflow(
   }
 }
 
-export const CreateOrUpdateAssistant = async (user) => {
-  try {
-    let assistant = await db.Assistant.findOne({
-      where: {
-        userId: user.id,
-      },
-    });
-    let userAi = await db.UserAi.findOne({
-      where: {
-        userId: user.id,
-      },
-    });
-    let masterPrompt = await GetMasterPrompt(user);
-    if (assistant && assistant.modelId != null) {
-      // assistant.WebHookForSynthflow;
-      console.log("Already present");
-      let createdAssiatant = await UpdateAssistantSynthflow(
-        user,
-        userAi.name,
-        masterPrompt,
-        userAi.greeting,
-        "", //voice id
+// export const CreateOrUpdateAssistant = async (user) => {
+//   try {
+//     let assistant = await db.Assistant.findOne({
+//       where: {
+//         userId: user.id,
+//       },
+//     });
+//     let userAi = await db.UserAi.findOne({
+//       where: {
+//         userId: user.id,
+//       },
+//     });
+//     let masterPrompt = await GetMasterPrompt(user);
+//     if (assistant && assistant.modelId != null) {
+//       // assistant.WebHookForSynthflow;
+//       console.log("Already present");
+//       let createdAssiatant = await UpdateAssistantSynthflow(
+//         user,
+//         userAi.name,
+//         masterPrompt,
+//         userAi.greeting,
+//         "", //voice id
 
-        assistant.modelId
-      );
-      assistant.prompt = masterPrompt;
-      let saved = await assistant.save();
-      //update
-    } else {
-      console.log("Creating new");
-      // create assistant in synthflow
-      let createdAssiatant = await CreateAssistantSynthflow(
-        user,
-        userAi.name,
-        masterPrompt,
-        userAi.greeting,
-        ""
-      );
-    }
-  } catch (error) {
-    console.log("Error 1 ", error);
-  }
-};
+//         assistant.modelId
+//       );
+//       assistant.prompt = masterPrompt;
+//       let saved = await assistant.save();
+//       //update
+//     } else {
+//       console.log("Creating new");
+//       // create assistant in synthflow
+//       let createdAssiatant = await CreateAssistantSynthflow(
+//         user,
+//         userAi.name,
+//         masterPrompt,
+//         userAi.greeting,
+//         ""
+//       );
+//     }
+//   } catch (error) {
+//     console.log("Error 1 ", error);
+//   }
+// };

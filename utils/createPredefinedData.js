@@ -140,3 +140,68 @@ export async function createAgentDefaultRoles(db) {
     await db.AgentRole.bulkCreate(data);
   } catch (err) {}
 }
+
+export async function addDefaultStages(db) {
+  let data = [
+    {
+      id: 1,
+      title: "New Lead",
+      description: "New Lead",
+      defaultColor: "red",
+      order: 10,
+    },
+    {
+      id: 2,
+      title: "Follow Up",
+      description: "Follow Up",
+      defaultColor: "Orange",
+      order: 20,
+    },
+    {
+      id: 3,
+      title: "New Lead",
+      description: "New Lead",
+      defaultColor: "red",
+      order: 30,
+    },
+    {
+      id: 4,
+      title: "Hot Lead",
+      description: "Hot Lead",
+      defaultColor: "yellow",
+      order: 40,
+    },
+    {
+      id: 5,
+      title: "Booked",
+      description: "Booked",
+      defaultColor: "green",
+      order: 50,
+    },
+    {
+      id: 6,
+      title: "No Show",
+      description: "No Show",
+      defaultColor: "red",
+      order: 60,
+    },
+    {
+      id: 7,
+      title: "Not Interested",
+      description: "Not Interested",
+      defaultColor: "purple",
+      order: 70,
+    },
+    {
+      id: 8,
+      title: "Unresponsive",
+      description: "Unresponsive",
+      defaultColor: "magenta",
+      order: 80,
+    },
+  ];
+
+  try {
+    await db.Stages.bulkCreate(data);
+  } catch (err) {}
+}

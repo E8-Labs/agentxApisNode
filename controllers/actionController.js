@@ -402,7 +402,7 @@ async function CreateCustomAction(user, assistant, type = "kb") {
   }
 }
 
-async function AttachActionToModel(actionId, modelId) {
+export async function AttachActionToModel(actionId, modelId) {
   try {
     const response = await axios.post(
       API_URL_Synthflow_Actions + "/attach",
@@ -562,6 +562,80 @@ export async function CreateAndAttachAction(user, type = "kb") {
     } else {
       return false;
     }
+  } else {
+    console.log("Could not create action");
+    return false;
+  }
+}
+
+//#######################    Info Extractors     ##########################
+export async function CreateInfoExtractor(kyc) {
+  try {
+    const response = await axios.post(
+      API_URL_Synthflow_Actions,
+      {
+        INFORMATION_EXTRACTOR: GetInfoExtractorApiData(kyc),
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.SynthFlowApiKey}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return response.data;
+    console.log("Info Extractor response:", response.data);
+  } catch (error) {
+    console.error(
+      "Error Info Extractor:",
+      error.response ? error.response.data : error.message
+    );
+    return null;
+  }
+}
+export function GetInfoExtractorApiData(kyc) {
+  return {
+    OPEN_QUESTION: {
+      identifier: kyc.question,
+      description: kyc.question,
+      examples: kyc.examples,
+    },
+  };
+}
+
+export async function CreateAndAttachInfoExtractor(mainAgentId, kyc) {
+  let assistants = await db.AgentModel.findAll({
+    where: {
+      mainAgentId: mainAgentId,
+    },
+  });
+  let action = await CreateInfoExtractor(kyc);
+  if (action && action.status == "success") {
+    let actionId = action.response.action_id;
+    // created.actionId = actionId;
+    // let createdAction = await db.CustomAction.create({
+    //   userId: user.id,
+    //   type: "infoExtractor",
+    //   actionId: actionId,
+    // });
+    // let saved = await created.save();
+
+    for (let i = 0; i < assistants.length; i++) {
+      let assistant = assistants[i];
+      let attached = await AttachActionToModel(actionId, assistant.modelId);
+      console.log(
+        `Action for infoExtractor Create Response User ${assistant.id} created = `,
+        attached
+      );
+    }
+    return true;
+    // if (attached.status == "success") {
+    //   console.log("Action attached");
+    //   return true;
+    // } else {
+    //   return false;
+    // }
   } else {
     console.log("Could not create action");
     return false;

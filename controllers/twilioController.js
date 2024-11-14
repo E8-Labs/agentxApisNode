@@ -1,6 +1,7 @@
 import twilio from "twilio";
 import JWT from "jsonwebtoken";
 import db from "../models/index.js";
+import { UpdateAssistantSynthflow } from "./synthflowController.js";
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -75,7 +76,7 @@ export const ListAvailableNumbers = async (req, res) => {
 
 // API to purchase a phone number
 export const PurchasePhoneNumber = async (req, res) => {
-  const { phoneNumber } = req.body;
+  const { phoneNumber, mainAgentId } = req.body;
 
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -104,7 +105,7 @@ export const PurchasePhoneNumber = async (req, res) => {
           // let phoneNumber = purchasedNumber.phoneNumber;//uncomment for live
 
           console.log('"Updating webhook"');
-          //Update Webhook for phone
+          //Update Webhook for phone on twilio
           const updatedPhoneNumber = await client
             .incomingPhoneNumbers(sid)
             .update({
@@ -114,6 +115,28 @@ export const PurchasePhoneNumber = async (req, res) => {
               // smsMethod: 'POST', // HTTP method for the webhook (optional)
             });
           console.log('"Updated webhook"');
+
+          //Update Synthflow assitant to use this phone Number
+          let assistants = await db.AgentModel.findAll({
+            where: {
+              mainAgentId: mainAgentId,
+            },
+          });
+          if (assistants) {
+            for (let i = 0; i < assistants.length; i++) {
+              let assistant = assistants[i];
+              let updated = await UpdateAssistantSynthflow(assistant, {
+                phone_number: phoneNumber,
+              });
+            }
+          }
+
+          let condition = {
+            where: {
+              mainAgentId: mainAgentId,
+            },
+          };
+
           let updatedModel = await db.AgentModel.update(
             {
               phoneNumber: phoneNumber,
@@ -122,9 +145,7 @@ export const PurchasePhoneNumber = async (req, res) => {
               phonePurchasedAt: new Date(),
             },
             {
-              where: {
-                userId: user.id,
-              },
+              ...condition,
             }
           );
           console.log('"Updated Local model"');

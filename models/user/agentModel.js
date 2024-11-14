@@ -28,6 +28,14 @@ const AgentModel = (sequelize, Sequelize) => {
     //   },
     // },
 
+    mainAgentId: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      references: {
+        model: "MainAgentModels",
+        key: "id",
+      },
+    },
     userId: {
       type: Sequelize.INTEGER,
       allowNull: false,
@@ -41,11 +49,7 @@ const AgentModel = (sequelize, Sequelize) => {
       values: ["inbound", "outbound"],
       defaultValue: "outbound",
     },
-    agentRole: {
-      //Ex: Senior Property Acquisition Specialist
-      type: Sequelize.STRING,
-      defaultValue: "",
-    },
+
     agentObjective: {
       //Community Update
       type: Sequelize.STRING,

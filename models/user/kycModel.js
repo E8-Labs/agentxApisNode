@@ -21,6 +21,18 @@ export const KycModel = (sequelize, Sequelize) => {
         key: "id",
       },
     },
+    mainAgentId: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      references: {
+        model: "MainAgentModels", //
+        key: "id",
+      },
+    },
+    actionId: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return KycModel;

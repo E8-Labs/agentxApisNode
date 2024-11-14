@@ -3,6 +3,7 @@ import User from "./user/userModel.js";
 import AreaOfFocus from "./user/areaOfFocus.js";
 import AgentService from "./user/agentService.js";
 import AgentModel from "./user/agentModel.js";
+import MainAgentModel from "./user/mainAgentModel.js";
 import { KycExampleModel, KycModel } from "./user/kycModel.js";
 
 import Sequelize from "sequelize";
@@ -11,9 +12,11 @@ import {
   createAreaOfFocusValues,
   createAgentServices,
   createAgentDefaultRoles,
+  addDefaultStages,
 } from "../utils/createPredefinedData.js";
 import AgentRole from "./user/agentRole.js";
-import AgentModelSynthflow from "./user/agentModelSynthflow.js";
+import AgentModelSynthflow from "./user/mainAgentModel.js";
+import Stages from "./pipeline/stages.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -54,6 +57,9 @@ db.AgentRole = AgentRole(sequelize, Sequelize);
 models["AgentRole"] = db.AgentRole;
 await createAgentDefaultRoles(db);
 
+db.MainAgentModel = MainAgentModel(sequelize, Sequelize);
+models["MainAgentModel"] = db.MainAgentModel;
+
 db.AgentModel = AgentModel(sequelize, Sequelize);
 models["AgentModel"] = db.AgentModel;
 
@@ -62,6 +68,11 @@ models["KycModel"] = db.KycModel;
 
 db.KycExampleModel = KycExampleModel(sequelize, Sequelize);
 models["KycExampleModel"] = db.KycExampleModel;
+
+//Pipeline
+db.Stages = Stages(sequelize, Sequelize);
+models["Stages"] = db.Stages;
+addDefaultStages(db);
 
 // db.AgentModelSynthflow = AgentModelSynthflow(sequelize, Sequelize);
 // models["AgentModelSynthflow"] = db.AgentModelSynthflow;
