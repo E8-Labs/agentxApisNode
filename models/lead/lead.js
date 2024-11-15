@@ -41,7 +41,6 @@ const LeadModel = (sequelize, Sequelize) => {
     extraColumns: {
       // JSON Text here
       type: Sequelize.TEXT("medium"),
-      defaultValue: "",
     },
     columnMappings: {
       //Community Update
