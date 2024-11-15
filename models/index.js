@@ -17,6 +17,16 @@ import {
 import AgentRole from "./user/agentRole.js";
 import AgentModelSynthflow from "./user/mainAgentModel.js";
 import Stages from "./pipeline/stages.js";
+import LeadModel from "./lead/lead.js";
+import { se } from "date-fns/locale";
+import Pipeline from "./pipeline/pipeline.js";
+// import PipelineAssignedAgent from "./pipeline/pipelineAssignedAgent.js";
+import PipelineCadence from "./pipeline/pipelineCadence.js";
+import LeadCadence from "./pipeline/LeadsCadence.js";
+import CadenceCalls from "./pipeline/cadenceCalls.js";
+import PipelineStages from "./pipeline/pipelineStages.js";
+import LeadSheetModel from "./lead/leadSheet.js";
+// import AgentStages from "./pipeline/agentStages.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -73,6 +83,33 @@ models["KycExampleModel"] = db.KycExampleModel;
 db.Stages = Stages(sequelize, Sequelize);
 models["Stages"] = db.Stages;
 addDefaultStages(db);
+
+db.LeadSheetModel = LeadSheetModel(sequelize, Sequelize);
+models["LeadSheetModel"] = db.LeadSheetModel;
+
+db.LeadModel = LeadModel(sequelize, Sequelize);
+models["LeadModel"] = db.LeadModel;
+
+db.Pipeline = Pipeline(sequelize, Sequelize);
+models["Pipeline"] = db.Pipeline;
+
+db.PipelineStages = PipelineStages(sequelize, Sequelize);
+models["PipelineStages"] = db.PipelineStages;
+
+// db.AgentStages = AgentStages(sequelize, Sequelize);
+// models["AgentStages"] = db.AgentStages;
+
+// db.PipelineAssignedAgent = PipelineAssignedAgent(sequelize, Sequelize);
+// models["PipelineAssignedAgent"] = db.PipelineAssignedAgent;
+
+db.PipelineCadence = PipelineCadence(sequelize, Sequelize);
+models["PipelineCadence"] = db.PipelineCadence;
+
+db.CadenceCalls = CadenceCalls(sequelize, Sequelize);
+models["CadenceCalls"] = db.CadenceCalls;
+
+// db.LeadCadence = LeadCadence(sequelize, Sequelize);
+// models["LeadCadence"] = db.LeadCadence;
 
 // db.AgentModelSynthflow = AgentModelSynthflow(sequelize, Sequelize);
 // models["AgentModelSynthflow"] = db.AgentModelSynthflow;

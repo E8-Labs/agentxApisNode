@@ -9,11 +9,11 @@ const Pipeline = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       defaultValue: "",
     },
-    mainAgentId: {
+    userId: {
       type: Sequelize.INTEGER,
       allowNull: false,
       references: {
-        model: "MainAgentModels",
+        model: "Users",
         key: "id",
       },
     },

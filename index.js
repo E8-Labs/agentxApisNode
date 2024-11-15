@@ -9,6 +9,8 @@ import db from "./models/index.js";
 import UserRouter from "./routes/userRoute.js";
 import DataRouter from "./routes/dataRoute.js";
 import AgentRouter from "./routes/agentRouter.js";
+import PipelineRouter from "./routes/pipelineRoute.js";
+import LeadRouter from "./routes/leadRoute.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -61,6 +63,8 @@ db.sequelize.sync({ alter: true });
 app.use("/api/user", UserRouter);
 app.use("/api/data", DataRouter);
 app.use("/api/agent", AgentRouter);
+app.use("/api/pipeline", PipelineRouter);
+app.use("/api/leads", LeadRouter);
 // app.use("/api/review", ReviewRouter);
 // app.use("/api/admin", AdminRouter);
 

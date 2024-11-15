@@ -23,6 +23,60 @@ const getPhoneNumberPricing = async (countryCode) => {
   }
 };
 
+export const ListUsersAvailablePhoneNumbers = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      console.log("User", user);
+      if (user) {
+        try {
+          const phoneNumbers = await db.AgentModel.findAll({
+            attributes: [
+              [
+                db.Sequelize.fn("DISTINCT", db.Sequelize.col("phoneNumber")),
+                "phoneNumber",
+              ],
+            ],
+            where: {
+              userId: userId, // Filter by userId
+            },
+            raw: true, // Return plain data instead of Sequelize objects
+          });
+
+          let phoneNumbersObtained = phoneNumbers.map((row) => row.phoneNumber); // Extract only the phone numbers
+          return res.status(200).send({
+            status: true,
+            message: "Phone Numbers",
+            data: phoneNumbersObtained,
+          });
+        } catch (error) {
+          console.error("Error fetching unique phone numbers:", error);
+          return res.status(200).send({
+            status: false,
+            message: error.message,
+            error: error,
+          });
+        }
+      } else {
+        return res.status(200).send({
+          status: false,
+          message: "Unauthenticated number",
+        });
+      }
+    } else {
+      return res.status(200).send({
+        status: false,
+        message: "Unauthenticated number",
+      });
+    }
+  });
+};
+
 export const ListAvailableNumbers = async (req, res) => {
   console.log("ACCOUNT SSID ", process.env.TWILIO_ACCOUNT_SID);
   const { countryCode, areaCode, contains } = req.query;
@@ -76,7 +130,8 @@ export const ListAvailableNumbers = async (req, res) => {
 
 // API to purchase a phone number
 export const PurchasePhoneNumber = async (req, res) => {
-  const { phoneNumber, mainAgentId } = req.body;
+  const { phoneNumber, mainAgentId, callbackNumber, liveTransferNumber } =
+    req.body;
 
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -95,25 +150,40 @@ export const PurchasePhoneNumber = async (req, res) => {
         }
 
         try {
-          //I will check for recurring charges, if possible.
-          //charge user for phone number first then allocate phone number
-          // const purchasedNumber = await client.incomingPhoneNumbers.create({ //uncomment for live
-          //   phoneNumber,
-          // });
+          let sid = process.env.PlatformPhoneNumberSID; //"PNcb5317f39066253bd8dee7dfbdc7f8e4";
+          if (phoneNumber === process.env.PlatformPhoneNumber) {
+            console.log("This is platform phone Number");
+          } else {
+            // console.log("Custom Phone", process.env.PlatformPhoneNumber);
+            //I will check for recurring charges, if possible.
+            //charge user for phone number(1.15 => process.env.TWILIO_PHONE_NUMBER_PRICE) first then allocate phone number
 
-          let sid = "PNcb5317f39066253bd8dee7dfbdc7f8e4"; //purchasedNumber.sid; //uncomment for live
+            if (process.env.Environment === "Sandbox") {
+              return res.send({
+                status: false,
+                message: "Only available in live mode",
+              });
+            }
+
+            const purchasedNumber = await client.incomingPhoneNumbers.create({
+              //uncomment for live
+              phoneNumber,
+            });
+            sid = purchasedNumber.sid; //uncomment for live
+          }
+
           // let phoneNumber = purchasedNumber.phoneNumber;//uncomment for live
 
           console.log('"Updating webhook"');
           //Update Webhook for phone on twilio
-          const updatedPhoneNumber = await client
-            .incomingPhoneNumbers(sid)
-            .update({
-              voiceUrl: "https://www.blindcircle.com/agenx/voice/webhook", // Webhook for incoming calls
-              // ...(smsUrl && { smsUrl }), // Webhook for incoming SMS
-              voiceMethod: "POST", // HTTP method for the webhook (optional)
-              // smsMethod: 'POST', // HTTP method for the webhook (optional)
-            });
+          // const updatedPhoneNumber = await client
+          //   .incomingPhoneNumbers(sid)
+          //   .update({
+          //     voiceUrl: "https://www.blindcircle.com/agenx/voice/webhook", // Webhook for incoming calls
+          //     // ...(smsUrl && { smsUrl }), // Webhook for incoming SMS
+          //     voiceMethod: "POST", // HTTP method for the webhook (optional)
+          //     // smsMethod: 'POST', // HTTP method for the webhook (optional)
+          //   });
           console.log('"Updated webhook"');
 
           //Update Synthflow assitant to use this phone Number
@@ -125,6 +195,10 @@ export const PurchasePhoneNumber = async (req, res) => {
           if (assistants) {
             for (let i = 0; i < assistants.length; i++) {
               let assistant = assistants[i];
+              assistant.liveTransferNumber = liveTransferNumber;
+              assistant.callbackNumber = callbackNumber;
+              let updatedAgent = await assistant.save();
+              console.log("Callback and LiveTransfer Numbers saved");
               let updated = await UpdateAssistantSynthflow(assistant, {
                 phone_number: phoneNumber,
               });

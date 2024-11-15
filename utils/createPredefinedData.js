@@ -157,13 +157,7 @@ export async function addDefaultStages(db) {
       defaultColor: "Orange",
       order: 20,
     },
-    {
-      id: 3,
-      title: "New Lead",
-      description: "New Lead",
-      defaultColor: "red",
-      order: 30,
-    },
+
     {
       id: 4,
       title: "Hot Lead",
@@ -196,6 +190,13 @@ export async function addDefaultStages(db) {
       id: 8,
       title: "Unresponsive",
       description: "Unresponsive",
+      defaultColor: "magenta",
+      order: 80,
+    },
+    {
+      id: 9,
+      title: "No Stage",
+      description: "No Stage",
       defaultColor: "magenta",
       order: 80,
     },

@@ -5,6 +5,7 @@ import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
 import {
   CreateAssistantSynthflow,
   BuildAgent,
+  UpdateAgent,
   GetVoices,
   AddKyc,
   GetKyc,
@@ -13,6 +14,7 @@ import {
 import {
   ListAvailableNumbers,
   PurchasePhoneNumber,
+  ListUsersAvailablePhoneNumbers,
 } from "../controllers/twilioController.js";
 
 const uploadFiles = multer().fields([
@@ -28,12 +30,19 @@ const uploadMedia = multer().fields([
 let AgentRouter = express.Router();
 
 AgentRouter.post("/buildAgent", verifyJwtToken, uploadFiles, BuildAgent);
+AgentRouter.post("/updateAgent", verifyJwtToken, uploadFiles, UpdateAgent);
 
 AgentRouter.get(
   "/findPhoneNumbers",
   verifyJwtToken,
   uploadFiles,
   ListAvailableNumbers
+);
+AgentRouter.get(
+  "/listUsersAvailablePhoneNumbers",
+  verifyJwtToken,
+  uploadFiles,
+  ListUsersAvailablePhoneNumbers
 );
 AgentRouter.get("/voices", uploadFiles, GetVoices);
 AgentRouter.post(
@@ -47,6 +56,7 @@ AgentRouter.post(
 AgentRouter.get("/getKycs", verifyJwtToken, uploadFiles, GetKyc);
 //Add Kyc
 AgentRouter.post("/addKyc", verifyJwtToken, uploadFiles, AddKyc);
+
 // UserRouter.post("/register", verifyJwtToken, uploadFiles, RegisterUser);
 
 // UserRouter.post("/updateProfile", verifyJwtToken, uploadFiles, UpdateProfile);

@@ -127,7 +127,7 @@ export const BuildAgent = async (req, res) => {
   });
 };
 
-export const GetKyc = async (req, res) => {
+export const UpdateAgent = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -136,9 +136,84 @@ export const GetKyc = async (req, res) => {
           id: userId,
         },
       });
+
+      let mainAgentId = req.body.mainAgentId;
+      let agent = await db.MainAgentModel.findByPk(mainAgentId);
+      if (!agent) {
+        return res.send({
+          status: false,
+          message: "No such agent",
+          data: null,
+        });
+      }
+
+      let agents = await db.AgentModel.findAll({
+        where: {
+          mainAgentId: mainAgentId,
+        },
+      });
+
+      if (req.body.voiceId) {
+        let updated = await db.AgentModel.update(
+          {
+            voiceId: req.body.voiceId,
+          },
+          {
+            where: {
+              mainAgentId: mainAgentId,
+            },
+          }
+        );
+
+        if (agents) {
+          for (let i = 0; i < agents.length; i++) {
+            let a = agents[i];
+            let updatedSynthflow = await UpdateAssistantSynthflow(a, {
+              agent: {
+                voice_id: req.body.voiceId,
+              },
+            });
+            console.log("Voice updated to agent on synthflow", a.modelId);
+          }
+        }
+      }
+
+      if (req.body.prompt) {
+        for (let i = 0; i < agents.length; i++) {
+          let a = agents[i];
+          a.prompt = req.body.prompt;
+          let saved = await a.save();
+          console.log("Prompt updated to agent");
+        }
+      }
+      return res.send({
+        status: true,
+        message: `Agent ${agent.name} updated`,
+        data: agent,
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "Unauthenticated user",
+        data: null,
+      });
+    }
+  });
+};
+
+export const GetKyc = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let mainAgentId = req.body.mainAgentId;
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
       let kycs = await db.KycModel.findAll({
         where: {
-          userId: user.id,
+          mainAgentId: mainAgentId,
         },
       });
       let qs = await KycResource(kycs);

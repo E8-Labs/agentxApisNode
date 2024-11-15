@@ -78,6 +78,11 @@ const AgentModel = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    prompt: {
+      //Address. Google map picker
+      type: Sequelize.TEXT("long"),
+      allowNull: true,
+    },
     modelId: {
       //synthflow Model Id
       type: Sequelize.STRING,
@@ -93,19 +98,36 @@ const AgentModel = (sequelize, Sequelize) => {
       allowNull: true,
       defaultValue: "",
     },
+
     phoneSid: {
       type: Sequelize.STRING,
       allowNull: true,
       defaultValue: "",
     },
+
     phoneStatus: {
       type: Sequelize.STRING,
       allowNull: false,
       defaultValue: "active", // inactive if payment fails
     },
+    phoneNumberPrice: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: "2",
+    },
     phonePurchasedAt: {
       type: Sequelize.DATE,
       allowNull: true,
+    },
+    callbackNumber: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      defaultValue: "",
+    },
+    liveTransferNumber: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      defaultValue: "",
     },
     voiceId: {
       //Address. Google map picker
