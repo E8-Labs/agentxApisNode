@@ -54,8 +54,7 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       // we may use it. If user have a limit on the number of calls then we have to update it.
       //We may not use it
       type: Sequelize.DATE,
-      allowNull: false,
-      defaultValue: 0,
+      allowNull: true,
     },
     synthflowCallId: {
       // synthflowCallId
