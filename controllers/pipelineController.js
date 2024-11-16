@@ -15,6 +15,7 @@ console.log(import.meta.url);
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import { create } from "domain";
 import PipelineCadenceResource from "../resources/PipelineCadenceResource.js";
+import PipelineResource from "../resources/PipelineResource.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -54,13 +55,38 @@ export const CreatePipeline = async (req, res) => {
       return res.send({
         status: true,
         message: "Pipeline created",
-        data: created,
+        data: await PipelineResource(created),
       });
     } else {
       return res.send({
         status: false,
         message: "Pipeline creation failed",
         data: null,
+      });
+    }
+  });
+};
+
+export const GetPipelines = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let pipelines = await db.Pipeline.findAll({
+        where: {
+          userId: user.id,
+        },
+      });
+
+      return res.send({
+        status: true,
+        data: await PipelineResource(pipelines),
+        message: "Pipeline obtained",
       });
     }
   });
@@ -135,6 +161,55 @@ export const CreatePipelineCadence = async (req, res) => {
         status: false,
         message: "Pipeline creation failed",
         data: null,
+      });
+    }
+  });
+};
+
+//Start Calling
+export const AssignLeadsToPipelineAndAgents = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    let { pipelineId, mainAgentIds, leadIds } = req.body;
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      //Get New Lead Stage of the Pipeline
+      let stage = await db.PipelineStages.findOne({
+        where: {
+          stageTitle: "New Lead",
+        },
+        order: [["createdAt", "ASC"]],
+      });
+
+      let pipeline = await db.Pipeline.findByPk(pipelineId);
+      for (let i = 0; i < leadIds.length; i++) {
+        let leadId = leadIds[i];
+        for (let j = 0; j < mainAgentIds.length; j++) {
+          let agentId = mainAgentIds[j];
+
+          let leadCadence = await db.LeadCadence.create({
+            leadId: leadId,
+            mainAgentId: agentId,
+            pipelineId: pipelineId,
+            stage: stage.id, //New Lead stage
+          });
+
+          //Update the status of the Lead to New Lead
+          // await db.LeadModel.update({
+          //   stage:
+          // })
+        }
+      }
+
+      return res.send({
+        status: true,
+        data: await PipelineResource(pipeline),
+        message: "New Leads Assigned to pipeline",
       });
     }
   });

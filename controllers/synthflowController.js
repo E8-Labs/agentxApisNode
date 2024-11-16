@@ -12,8 +12,282 @@ import {
   GetInfoExtractorApiData,
 } from "./actionController.js";
 import AgentResource from "../resources/AgentResource.js";
+import LeadCadence from "../models/pipeline/LeadsCadence.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+export const MakeACall = async (lead, mainAgentModel, leadCadence) => {
+  // setLoading(true);
+  let PhoneNumber = lead.phone;
+  let Name = lead.firstName;
+  let LastName = lead.lastName || "";
+  // let Email = req.body.email;
+  // let model = req.body.model || "tate";
+  // let modelId = assistant.modelId;
+
+  let assistant = await db.AgentModel.findOne({
+    where: {
+      mainAgentId: mainAgentModel.id,
+      outbound: "outbound",
+    },
+  });
+
+  if (!assistant) {
+    console.log("No Assistant found");
+    return res.send({
+      status: false,
+      message: "No such assistant",
+      // data: modelId,
+      reason: "no_such_assistant",
+    });
+  }
+
+  console.log("Calling assistant", assistant.name);
+  console.log("Model ", assistant.modelId);
+  try {
+    let basePrompt = assistant.prompt || "";
+    basePrompt = basePrompt.replace(/{prospect_name}/g, Name);
+    basePrompt = basePrompt.replace(/{phone}/g, PhoneNumber);
+    basePrompt = basePrompt.replace(/{email}/g, Email);
+    // kbPrompt = kbPrompt.replace(/{username}/g, user.username);
+    //find if any previous calls exist
+    console.log("#############################################\n");
+    console.log("Base prompt being sent ", basePrompt);
+    console.log("#############################################\n");
+
+    let data = JSON.stringify({
+      name: Name,
+      phone: PhoneNumber,
+      model: assistant.modelId, //"1722652829145x214249543190325760",
+      prompt: basePrompt,
+    });
+    let synthKey = process.env.SynthFlowApiKey;
+
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "https://fine-tuner.ai/api/1.1/wf/v2_voice_agent_call",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${synthKey}`,
+      },
+      data: data,
+    };
+
+    axios
+      .request(config)
+      .then(async (response) => {
+        let json = response.data;
+        console.log(json);
+        if (json.status === "ok" || json.status === "success") {
+          let callId = json.response.call_id;
+          // let savedToGhl = await PushDataToGhl(
+          //   Name,
+          //   LastName,
+          //   Email,
+          //   PhoneNumber,
+          //   callId
+          // );
+          let saved = await db.LeadCallsSent.create({
+            leadCadenceId: leadCadence.id,
+            synthflowCallId: callId,
+            leadId: lead.id,
+            transcript: "",
+            summary: "",
+            duration: "",
+            status: "",
+            // model: assistant.name,
+            mainAgentId: mainAgentModel.id,
+          });
+          console.log("Saved ", saved);
+          res.send({ status: true, message: "call is initiated ", data: json });
+        } else {
+          let html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error Notification</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+    }
+    .content {
+      font-size: 16px;
+      color: #333;
+      line-height: 1.5;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #888;
+    }
+    .error {
+      color: #D8000C;
+      background-color: #FFD2D2;
+      border: 1px solid #D8000C;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Error Notification</h2>
+    </div>
+    <div class="content">
+      <p>Dear Team,</p>
+      <p>An error occurred while attempting to start a voice call. Below are the details:</p>
+      <div class="error">
+        <p><strong>Status:</strong> Error</p>
+        <p><strong>Message:</strong> ${json.response.answer}.</p>
+        <p><strong>Model ID:</strong> ${assistant.modelId}</p>
+      </div>
+      <p>Please review the issue and take appropriate action.</p>
+      <p>Best regards,</p>
+      <p>Your Automated Notification System</p>
+    </div>
+    <div class="footer">
+      <p>&copy; 2024 Your Company. All Rights Reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+          let sent = SendMail(
+            "noahdeveloperr@gmail.com",
+            "Call Failed",
+            "",
+            html
+          );
+          let sentSalman = SendMail(
+            "salman@e8-labs.com",
+            "Call Failed",
+            "",
+            html
+          );
+          console.log("Emails sent ", sentSalman);
+          res.send({
+            status: false,
+            message: "call is not initiated",
+            data: json,
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+
+        ///check and send email
+        let html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Error Notification</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+    }
+    .content {
+      font-size: 16px;
+      color: #333;
+      line-height: 1.5;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 14px;
+      color: #888;
+    }
+    .error {
+      color: #D8000C;
+      background-color: #FFD2D2;
+      border: 1px solid #D8000C;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Error Notification</h2>
+    </div>
+    <div class="content">
+      <p>Dear Team,</p>
+      <p>An error occurred while attempting to start a voice call. Below are the details:</p>
+      <div class="error">
+        <p><strong>Status:</strong> Error</p>
+        <p><strong>Message:</strong> ${error.response.answer}.</p>
+        <p><strong>Model ID:</strong> ${assistant.modelId}</p>
+      </div>
+      <p>Please review the issue and take appropriate action.</p>
+      <p>Best regards,</p>
+      <p>Your Automated Notification System</p>
+    </div>
+    <div class="footer">
+      <p>&copy; 2024 Your Company. All Rights Reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+        let sent = SendMail(
+          "noahdeveloperr@gmail.com",
+          "Call Failed",
+          "",
+          html
+        );
+        let sentSalman = SendMail(
+          "salman@e8-labs.com",
+          "Call Failed",
+          "",
+          html
+        );
+        console.log("Emails sent ", sentSalman);
+        res.send({
+          status: false,
+          message: "call is not initiated",
+          data: null,
+        });
+      });
+  } catch (error) {
+    console.error("Error occured is :", error);
+    res.send({ status: false, message: "call is not initiated", data: null });
+  }
+};
 
 export async function GetVoices(req, res) {
   try {
@@ -373,47 +647,3 @@ export async function UpdateAssistantSynthflow(agent, data) {
     return null;
   }
 }
-
-// export const CreateOrUpdateAssistant = async (user) => {
-//   try {
-//     let assistant = await db.Assistant.findOne({
-//       where: {
-//         userId: user.id,
-//       },
-//     });
-//     let userAi = await db.UserAi.findOne({
-//       where: {
-//         userId: user.id,
-//       },
-//     });
-//     let masterPrompt = await GetMasterPrompt(user);
-//     if (assistant && assistant.modelId != null) {
-//       // assistant.WebHookForSynthflow;
-//       console.log("Already present");
-//       let createdAssiatant = await UpdateAssistantSynthflow(
-//         user,
-//         userAi.name,
-//         masterPrompt,
-//         userAi.greeting,
-//         "", //voice id
-
-//         assistant.modelId
-//       );
-//       assistant.prompt = masterPrompt;
-//       let saved = await assistant.save();
-//       //update
-//     } else {
-//       console.log("Creating new");
-//       // create assistant in synthflow
-//       let createdAssiatant = await CreateAssistantSynthflow(
-//         user,
-//         userAi.name,
-//         masterPrompt,
-//         userAi.greeting,
-//         ""
-//       );
-//     }
-//   } catch (error) {
-//     console.log("Error 1 ", error);
-//   }
-// };

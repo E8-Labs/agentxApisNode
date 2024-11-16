@@ -5,6 +5,8 @@ import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
 import {
   CreatePipeline,
   CreatePipelineCadence,
+  GetPipelines,
+  AssignLeadsToPipelineAndAgents,
 } from "../controllers/pipelineController.js";
 
 const uploadFiles = multer().fields([
@@ -21,9 +23,16 @@ let PipelineRouter = express.Router();
 
 PipelineRouter.post("/createPipeline", verifyJwtToken, CreatePipeline);
 PipelineRouter.post(
+  "/assignLeadsToPipeline",
+  verifyJwtToken,
+  AssignLeadsToPipelineAndAgents
+);
+PipelineRouter.post(
   "/createPipelineCadence",
   verifyJwtToken,
   CreatePipelineCadence
 );
+
+PipelineRouter.get("/getPipelines", verifyJwtToken, GetPipelines);
 
 export default PipelineRouter;

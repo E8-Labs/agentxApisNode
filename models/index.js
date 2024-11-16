@@ -26,6 +26,7 @@ import LeadCadence from "./pipeline/LeadsCadence.js";
 import CadenceCalls from "./pipeline/cadenceCalls.js";
 import PipelineStages from "./pipeline/pipelineStages.js";
 import LeadSheetModel from "./lead/leadSheet.js";
+import LeadCallsSent from "./pipeline/LeadCallsSent.js";
 // import AgentStages from "./pipeline/agentStages.js";
 
 const sequelize = new Sequelize(
@@ -108,8 +109,11 @@ models["PipelineCadence"] = db.PipelineCadence;
 db.CadenceCalls = CadenceCalls(sequelize, Sequelize);
 models["CadenceCalls"] = db.CadenceCalls;
 
-// db.LeadCadence = LeadCadence(sequelize, Sequelize);
-// models["LeadCadence"] = db.LeadCadence;
+db.LeadCadence = LeadCadence(sequelize, Sequelize);
+models["LeadCadence"] = db.LeadCadence;
+
+db.LeadCallsSent = LeadCallsSent(sequelize, Sequelize);
+models["LeadCallsSent"] = db.LeadCallsSent;
 
 // db.AgentModelSynthflow = AgentModelSynthflow(sequelize, Sequelize);
 // models["AgentModelSynthflow"] = db.AgentModelSynthflow;

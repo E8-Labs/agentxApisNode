@@ -144,6 +144,22 @@ export const RegisterUser = async (req, res) => {
   //   userId: user.id,
   // });
 
+  let created = await db.Pipeline.create({
+    title: "Default Pipeline",
+    userId: user.id,
+  });
+
+  let stages = await db.Stages.findAll();
+  for (let i = 0; i < stages.length; i++) {
+    let st = stages[i];
+    let createdStage = await db.PipelineStages.create({
+      stageTitle: st.title,
+      order: i + 1,
+      defaultColor: st.defaultColor,
+      stageId: st.id,
+      pipelineId: created.id,
+    });
+  }
   const result = await SignUser(user);
   return res.send({ status: true, message: "User registered", data: result });
 };
