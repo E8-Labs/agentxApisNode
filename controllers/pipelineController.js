@@ -103,13 +103,14 @@ export const CreatePipelineCadence = async (req, res) => {
         },
       });
 
+      let pipeline = null;
       if (!pipelineId) {
         // //check If default pipeline
         // let pipeline = await db.Pipeline.findOne({
         //   where: {}
         // })
 
-        let pipeline = await db.Pipeline.create({
+        pipeline = await db.Pipeline.create({
           title: "Default Pipeline",
           userId: userId,
         });
@@ -154,7 +155,7 @@ export const CreatePipelineCadence = async (req, res) => {
       return res.send({
         status: true,
         message: "Pipeline cadence created",
-        data: null,
+        data: pipeline ? await PipelineResource(pipeline) : null,
       });
     } else {
       return res.send({
