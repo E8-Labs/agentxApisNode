@@ -149,6 +149,54 @@ export const PurchasePhoneNumber = async (req, res) => {
           });
         }
 
+        //check phone number already bought. If yes then just assign and go back.
+        let mainAgents = await db.MainAgentModel.findAll({
+          where: {
+            userId: user.id,
+          },
+        });
+
+        let alreadyPurchased = false;
+        for (let i = 0; i < mainAgents.length; i++) {
+          let ma = mainAgents[i];
+          let agent = await db.AgentModel.findOne({
+            where: {
+              mainAgentId: ma.id,
+              phoneNumber: phoneNumber,
+            },
+          });
+          if (agent) {
+            alreadyPurchased = true;
+          }
+        }
+        if (alreadyPurchased) {
+          let assistants = await db.AgentModel.findAll({
+            where: {
+              mainAgentId: mainAgentId,
+            },
+          });
+          if (assistants) {
+            for (let i = 0; i < assistants.length; i++) {
+              let assistant = assistants[i];
+              assistant.liveTransferNumber = liveTransferNumber;
+              assistant.callbackNumber = callbackNumber;
+              assistant.phoneNumber = phoneNumber;
+              let updatedAgent = await assistant.save();
+              console.log("Callback and LiveTransfer Numbers saved");
+              let updated = await UpdateAssistantSynthflow(assistant, {
+                phone_number: phoneNumber,
+              });
+            }
+          }
+          return res.send({
+            status: true,
+            message: "Phone number assiged to agent",
+            alreadyPurchased: alreadyPurchased
+              ? "Already purchased"
+              : "New number",
+          });
+        }
+
         try {
           let sid = process.env.PlatformPhoneNumberSID; //"PNcb5317f39066253bd8dee7dfbdc7f8e4";
           if (phoneNumber === process.env.PlatformPhoneNumber) {

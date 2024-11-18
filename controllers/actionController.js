@@ -598,7 +598,7 @@ export function GetInfoExtractorApiData(kyc) {
   return {
     OPEN_QUESTION: {
       identifier: kyc.question,
-      description: kyc.question,
+      description: kyc.description || kyc.question,
       examples: kyc.examples,
     },
   };

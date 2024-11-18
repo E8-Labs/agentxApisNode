@@ -9,10 +9,12 @@ import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import KycResource from "../resources/kycResource.js";
 import {
   CreateAndAttachInfoExtractor,
+  CreateInfoExtractor,
   GetInfoExtractorApiData,
 } from "./actionController.js";
 import AgentResource from "../resources/AgentResource.js";
 import LeadCadence from "../models/pipeline/LeadsCadence.js";
+import { InfoExtractors } from "../config/defaultInfoExtractors.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -366,8 +368,16 @@ export const BuildAgent = async (req, res) => {
             address,
             mainAgentId: mainAgent.id,
           };
-          let createdInbound = CreateAssistantSynthflow(data, "inbound");
-          let createdOutbound = CreateAssistantSynthflow(data, "outbound");
+          let createdInbound = CreateAssistantSynthflow(
+            data,
+            "inbound",
+            mainAgent
+          );
+          let createdOutbound = CreateAssistantSynthflow(
+            data,
+            "outbound",
+            mainAgent
+          );
         } else {
           let data = {
             userId: user.id,
@@ -380,7 +390,11 @@ export const BuildAgent = async (req, res) => {
             address,
             mainAgentId: mainAgent.id,
           };
-          let createdAgent = CreateAssistantSynthflow(data, agentType);
+          let createdAgent = CreateAssistantSynthflow(
+            data,
+            agentType,
+            mainAgent
+          );
         }
 
         let agentRes = await AgentResource(mainAgent);
@@ -478,7 +492,7 @@ export const UpdateAgent = async (req, res) => {
 export const GetKyc = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
-      let mainAgentId = req.body.mainAgentId;
+      let mainAgentId = req.query.mainAgentId;
       let userId = authData.user.id;
       let user = await db.User.findOne({
         where: {
@@ -551,7 +565,11 @@ export const AddKyc = async (req, res) => {
   });
 };
 
-export async function CreateAssistantSynthflow(agentData, type = "outbound") {
+export async function CreateAssistantSynthflow(
+  agentData,
+  type = "outbound",
+  mainAgent
+) {
   let synthKey = process.env.SynthFlowApiKey;
   console.log("Inside 1");
   const options = {
@@ -588,11 +606,19 @@ export async function CreateAssistantSynthflow(agentData, type = "outbound") {
         modelId: result.data?.response?.model_id || null,
       });
       if (assistant) {
-        // try {
-        //   let createdAction = await CreateAndAttachAction(user, "kb");
-        // } catch (error) {
-        //   console.log("Error creating action kb ", error);
-        // }
+        try {
+          let extractors = InfoExtractors;
+          for (let i = 0; i < extractors.length; i++) {
+            let extr = extractors[i];
+            let created = await CreateAndAttachInfoExtractor(
+              mainAgent.id,
+              extr
+            );
+          }
+          // let createdAction = await CreateAndAttachAction(user, "kb");
+        } catch (error) {
+          console.log("Error creating action kb ", error);
+        }
         // try {
         //   let createdAction = await CreateAndAttachAction(user, "booking");
         // } catch (error) {
@@ -647,3 +673,74 @@ export async function UpdateAssistantSynthflow(agent, data) {
     return null;
   }
 }
+
+//Webhook
+export const WebhookSynthflow = async (req, res) => {
+  // console.log("Request headers:", req.headers);
+  // console.log("Request body:", req.body);
+  // console.log("Request raw data:", req);
+
+  let data = req.body;
+  console.log("Webhook data is ", data);
+
+  let dataString = JSON.stringify(data);
+
+  let callId = data.call.call_id;
+  let status = data.call.status;
+  let duration = data.call.duration;
+  let transcript = data.call.transcript;
+  let recordingUrl = data.call.recording_url;
+  let actions = data.executed_actions;
+
+  let dbCall = await db.LeadCallsSent.findOne({
+    where: {
+      synthflowCallId: callId,
+    },
+  });
+  if (!dbCall) {
+    return res.send({
+      status: true,
+      message: "Webhook received. No such call exists",
+    });
+  }
+
+  // //Get Transcript and save
+  // let caller = await db.User.findByPk(dbCall.userId);
+  // let model = await db.User.findByPk(dbCall.modelId);
+  // let assistant = await db.Assistant.findOne({
+  //   where: {
+  //     userId: dbCall.modelId,
+  //   },
+  // });
+
+  // if (data && data.lead) {
+  //   data.lead.email = caller.email;
+  // }
+
+  //only generate summary if the call status is empty or null otherwise don't
+  console.log(`DB Call status${dbCall.status}`);
+  if (dbCall.status == "" || dbCall.status == null) {
+    dbCall.status = status;
+    dbCall.duration = duration;
+    dbCall.transcript = transcript;
+    dbCall.recordingUrl = recordingUrl;
+    dbCall.callData = dataString;
+    let saved = await dbCall.save();
+    // let charged = await chargeUser(caller, dbCall, assistant);
+    //(dbCall.transcript != "" && dbCall.transcript != null) {
+  } else {
+    console.log("Alread obtained all data");
+    dbCall.status = status;
+    dbCall.duration = duration;
+    dbCall.transcript = transcript;
+    dbCall.recordingUrl = recordingUrl;
+    dbCall.callData = dataString;
+    let saved = await dbCall.save();
+  }
+
+  //Check the infoExtractors here.
+  //Update the logic here and test by sending dummy webhooks
+
+  //process the data here
+  return res.send({ status: true, message: "Webhook received" });
+};

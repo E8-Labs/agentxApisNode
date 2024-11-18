@@ -160,6 +160,7 @@ export const RegisterUser = async (req, res) => {
       pipelineId: created.id,
     });
   }
+
   const result = await SignUser(user);
   return res.send({ status: true, message: "User registered", data: result });
 };
