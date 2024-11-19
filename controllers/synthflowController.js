@@ -739,6 +739,8 @@ export const WebhookSynthflow = async (req, res) => {
       },
     });
     leadCadence.stage = hotLeadStage.id;
+    leadCadence.dnd = json.dnd;
+    leadCadence.notinterested = json.notinterested;
     let saved = await leadCadence.save();
     console.log(
       `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
@@ -746,6 +748,22 @@ export const WebhookSynthflow = async (req, res) => {
   }
   if (json.meetingscheduled) {
     // meeting scheduled
+  }
+  if (json.callmeback) {
+    let followUpStage = await db.PipelineStages.findOne({
+      where: {
+        identifier: "follow_up",
+      },
+    });
+    if (leadCadence.stage < followUpStage.id) {
+      leadCadence.stage = followUpStage.id;
+      let saved = await leadCadence.save();
+      console.log(
+        `Lead ${lead.firstName} move from ${leadCadence.stage} to ${followUpStage.stageTitle}`
+      );
+    } else {
+      console.log("User asked to call back but already on a further stage");
+    }
   }
 
   // //Get Transcript and save

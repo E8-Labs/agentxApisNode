@@ -53,6 +53,22 @@ const LeadCadence = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: CadenceStatus.Pending,
     },
+    dnd: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    notinterested: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    hotlead: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    callmeback: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
   });
 
   return LeadCadence;
