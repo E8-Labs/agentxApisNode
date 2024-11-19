@@ -368,12 +368,12 @@ export const BuildAgent = async (req, res) => {
             address,
             mainAgentId: mainAgent.id,
           };
-          let createdInbound = CreateAssistantSynthflow(
+          let createdInbound = await CreateAssistantSynthflow(
             data,
             "inbound",
             mainAgent
           );
-          let createdOutbound = CreateAssistantSynthflow(
+          let createdOutbound = await CreateAssistantSynthflow(
             data,
             "outbound",
             mainAgent
@@ -390,7 +390,7 @@ export const BuildAgent = async (req, res) => {
             address,
             mainAgentId: mainAgent.id,
           };
-          let createdAgent = CreateAssistantSynthflow(
+          let createdAgent = await CreateAssistantSynthflow(
             data,
             agentType,
             mainAgent
@@ -691,6 +691,7 @@ export const WebhookSynthflow = async (req, res) => {
   let transcript = data.call.transcript;
   let recordingUrl = data.call.recording_url;
   let actions = data.executed_actions;
+  console.log("Actions ", actions);
 
   let dbCall = await db.LeadCallsSent.findOne({
     where: {

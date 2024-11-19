@@ -1,12 +1,12 @@
 export const InfoExtractorTypes = {
-  MeetingScheduled: "meetingscheduled",
-  CallBack: "callmeback",
-  NotInterested: "notinterested",
-  HumanCalldrop: "humancalldrop",
-  Dnd: "dnd",
-  Voicemail: "voicemail",
-  LiveTransfer: "livetransfer",
-  Hotlead: "hotlead",
+  MeetingScheduled: "info_extractor_meetingscheduled",
+  CallBack: "info_extractor_callmeback",
+  NotInterested: "info_extractor_notinterested",
+  HumanCalldrop: "info_extractor_humancalldrop",
+  Dnd: "info_extractor_dnd",
+  Voicemail: "info_extractor_voicemail",
+  LiveTransfer: "info_extractor_livetransfer",
+  Hotlead: "info_extractor_hotlead",
 };
 
 export const InfoExtractors = [
