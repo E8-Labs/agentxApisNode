@@ -714,11 +714,11 @@ export const WebhookSynthflow = async (req, res) => {
 
   let leadCadenceId = dbCall.leadCadenceId;
   let leadCadence = await db.LeadCadence.findByPk(leadCadenceId);
-  if (json.hotlead) {
-    console.log("Hot lead ");
-    let lead = await db.LeadModel.findByPk(leadCadence.leadId);
+  // console.log("Hot lead ");
+  let lead = await db.LeadModel.findByPk(leadCadence.leadId);
 
-    let pipeline = await db.Pipeline.findByPk(leadCadence.pipelineId);
+  let pipeline = await db.Pipeline.findByPk(leadCadence.pipelineId);
+  if (json.hotlead) {
     let hotLeadStage = await db.PipelineStages.findOne({
       where: {
         identifier: "hot_lead",
@@ -733,6 +733,16 @@ export const WebhookSynthflow = async (req, res) => {
   }
   if (json.notinterested || json.dnd) {
     // move the lead to the notinterested stage immediately
+    let hotLeadStage = await db.PipelineStages.findOne({
+      where: {
+        identifier: "not_interested",
+      },
+    });
+    leadCadence.stage = hotLeadStage.id;
+    let saved = await leadCadence.save();
+    console.log(
+      `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
+    );
   }
   if (json.meetingscheduled) {
     // meeting scheduled
