@@ -25,6 +25,10 @@ const PipelineStages = (sequelize, Sequelize) => {
         key: "id",
       },
     },
+    identifier: {
+      type: Sequelize.STRING,
+      defaultValue: "",
+    },
     stageId: {
       type: Sequelize.INTEGER,
       allowNull: true,

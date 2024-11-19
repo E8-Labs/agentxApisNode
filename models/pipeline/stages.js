@@ -17,6 +17,10 @@ const Stages = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       defaultValue: "red",
     },
+    identifier: {
+      type: Sequelize.STRING,
+      defaultValue: "",
+    },
     userId: {
       type: Sequelize.INTEGER,
       allowNull: true,

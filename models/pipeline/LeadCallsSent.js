@@ -63,7 +63,7 @@ const LeadCallsSent = (sequelize, Sequelize) => {
     },
     transcript: {
       // synthflowCallId
-      type: Sequelize.STRING,
+      type: Sequelize.TEXT("long"),
       allowNull: true,
     },
     summary: {
@@ -83,8 +83,8 @@ const LeadCallsSent = (sequelize, Sequelize) => {
     },
 
     recordingUrl: {
-      type: Sequelize.STRING,
-      defaultValue: "",
+      type: Sequelize.TEXT("medium"),
+      // defaultValue: "",
       allowNull: true,
     },
     mainAgentId: {

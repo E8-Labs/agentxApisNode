@@ -11,6 +11,7 @@ export const InfoExtractorTypes = {
 
 export const InfoExtractors = [
   {
+    identifier: "info_extractor_meetingscheduled",
     question: "meetingscheduled",
     description:
       "Was the lead successful in booking an appointment during the call? Was this time and date blocked in our Calendar?",
@@ -19,12 +20,14 @@ export const InfoExtractors = [
     ],
   },
   {
+    identifier: "info_extractor_callmeback",
     question: "callmeback",
     description: "Was the lead busy and asked for a callback?",
     examples: ["callmeback"],
   },
 
   {
+    identifier: "info_extractor_notinterested",
     question: "notinterested",
     description:
       "Did the prospect say that they are not interested in our service offerings?",
@@ -33,29 +36,34 @@ export const InfoExtractors = [
     ],
   },
   {
+    identifier: "info_extractor_humancalldrop",
     question: "humancalldrop",
     description:
       "Did the call with the prospect disconnect without any apparent reason?",
     examples: ["humancalldrop"],
   },
   {
+    identifier: "info_extractor_dnd",
     question: "dnd",
     description:
       "Did the prospect ask us to take them off our list, or stop calling them?",
     examples: ["dnd"],
   },
   {
+    identifier: "info_extractor_voicemail",
     question: "voicemail",
     description: "Was the call directed to the prospect's voicemail?",
     examples: ["voicemail"],
   },
   {
+    identifier: "info_extractor_livetransfer",
     question: "livetransfer",
     description:
       "When the prospect requested to be connected to an actual human from our team, were we successful in transferring their call? ",
     examples: ["livetransfer"],
   },
   {
+    identifier: "info_extractor_hotlead",
     question: "hotlead",
     description:
       "Based on the conversation, did the prospect show engagement or interest in our offerings or in learning more, indicating they could be warm or hot lead?",

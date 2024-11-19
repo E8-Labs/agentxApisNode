@@ -685,7 +685,7 @@ export const WebhookSynthflow = async (req, res) => {
   // console.log("Request raw data:", req);
 
   let data = req.body;
-  console.log("Webhook data is ", data);
+  // console.log("Webhook data is ", data);
 
   let dataString = JSON.stringify(data);
 
@@ -695,8 +695,11 @@ export const WebhookSynthflow = async (req, res) => {
   let transcript = data.call.transcript;
   let recordingUrl = data.call.recording_url;
   let actions = data.executed_actions;
-  console.log("Actions ", actions);
+  // console.log("Actions ", actions);
 
+  let json = extractInfo(data, InfoExtractors);
+  console.log("Extracted info ", json);
+  // return;
   let dbCall = await db.LeadCallsSent.findOne({
     where: {
       synthflowCallId: callId,
@@ -707,6 +710,32 @@ export const WebhookSynthflow = async (req, res) => {
       status: true,
       message: "Webhook received. No such call exists",
     });
+  }
+
+  let leadCadenceId = dbCall.leadCadenceId;
+  let leadCadence = await db.LeadCadence.findByPk(leadCadenceId);
+  if (json.hotlead) {
+    console.log("Hot lead ");
+    let lead = await db.LeadModel.findByPk(leadCadence.leadId);
+
+    let pipeline = await db.Pipeline.findByPk(leadCadence.pipelineId);
+    let hotLeadStage = await db.PipelineStages.findOne({
+      where: {
+        identifier: "hot_lead",
+      },
+    });
+    leadCadence.stage = hotLeadStage.id;
+    let saved = await leadCadence.save();
+    console.log(
+      `Lead ${lead.firstName} move from ${leadCadence.stage} to Hot Lead`
+    );
+    // move the lead to the hotlead stage immediately
+  }
+  if (json.notinterested || json.dnd) {
+    // move the lead to the notinterested stage immediately
+  }
+  if (json.meetingscheduled) {
+    // meeting scheduled
   }
 
   // //Get Transcript and save
@@ -749,3 +778,20 @@ export const WebhookSynthflow = async (req, res) => {
   //process the data here
   return res.send({ status: true, message: "Webhook received" });
 };
+
+// Function to extract the values
+function extractInfo(data, extractors) {
+  const result = {};
+
+  extractors.forEach((extractor) => {
+    const action = data.executed_actions[extractor.identifier];
+    if (action && action.return_value) {
+      const key = Object.keys(action.return_value)[0];
+      result[extractor.question] = action.return_value[key];
+    } else {
+      result[extractor.question] = null; // If the action or value is not found
+    }
+  });
+
+  return result;
+}
