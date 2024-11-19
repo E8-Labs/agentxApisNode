@@ -477,10 +477,11 @@ export const UpdateAgent = async (req, res) => {
           console.log("Prompt updated to agent");
         }
       }
+      let agentRes = await AgentResource(agent);
       return res.send({
         status: true,
         message: `Agent ${agent.name} updated`,
-        data: agent,
+        data: agentRes,
       });
     } else {
       return res.send({
