@@ -6,6 +6,7 @@ import {
   AddLeads,
   GetSheets,
   GetLeads,
+  GetUniqueColumns,
 } from "../controllers/LeadsController.js";
 
 const uploadFiles = multer().fields([
@@ -23,5 +24,11 @@ let LeadRouter = express.Router();
 LeadRouter.post("/addLeads", verifyJwtToken, AddLeads);
 LeadRouter.get("/getLeads", verifyJwtToken, uploadFiles, GetLeads);
 LeadRouter.get("/getSheets", verifyJwtToken, uploadFiles, GetSheets);
+LeadRouter.get(
+  "/getUniqueColumns",
+  verifyJwtToken,
+  uploadFiles,
+  GetUniqueColumns
+);
 
 export default LeadRouter;

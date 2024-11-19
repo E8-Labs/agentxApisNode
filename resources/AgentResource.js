@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import PipelineStages from "../models/pipeline/pipelineStages.js";
 // import {
 //   getTotalYapScore,
 //   getTotalReviews,
@@ -42,9 +43,32 @@ async function getUserData(mainAgent, currentUser = null) {
       mainAgentId: mainAgent.id,
     },
   });
+
+  let pipelineCadences = await db.PipelineCadence.findAll({
+    where: {
+      mainAgentId: mainAgent.id,
+    },
+  });
+
+  let stages = [];
+  if (pipelineCadences && pipelineCadences.length > 0) {
+    for (let i = 0; i < pipelineCadences.length; i++) {
+      let pc = pipelineCadences[i];
+      let st = await db.PipelineStages.findOne({
+        where: {
+          id: pc.stage,
+        },
+      });
+      if (st) {
+        stages.push(st);
+      }
+    }
+  }
+
   const AgentResource = {
     ...mainAgent.get(),
     agents: agents,
+    stages: stages,
   };
 
   return AgentResource;

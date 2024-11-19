@@ -10,6 +10,7 @@ import {
   AddKyc,
   GetKyc,
   WebhookSynthflow,
+  GetAgents,
 } from "../controllers/synthflowController.js";
 
 import {
@@ -32,6 +33,7 @@ let AgentRouter = express.Router();
 
 AgentRouter.post("/buildAgent", verifyJwtToken, uploadFiles, BuildAgent);
 AgentRouter.post("/updateAgent", verifyJwtToken, uploadFiles, UpdateAgent);
+AgentRouter.get("/getAgents", verifyJwtToken, uploadFiles, GetAgents);
 
 AgentRouter.get(
   "/findPhoneNumbers",

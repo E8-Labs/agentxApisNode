@@ -493,6 +493,33 @@ export const UpdateAgent = async (req, res) => {
   });
 };
 
+export const GetAgents = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let agents = await db.MainAgentModel.findAll({
+        where: {
+          userId: user.id,
+        },
+      });
+
+      return res.send({
+        status: true,
+        data: await AgentResource(agents),
+        message: "Agent List",
+      });
+    } else {
+    }
+  });
+};
+
 export const GetKyc = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {

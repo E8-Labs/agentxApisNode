@@ -121,11 +121,52 @@ export const GetLeads = async (req, res) => {
           sheetId: sheetId,
         },
       });
+      let leadsRes = await LeadResource(leads);
+      return res.send({
+        status: true,
+        data: leadsRes,
+        message: "Leads list",
+      });
+    } else {
+    }
+  });
+};
+
+export const GetUniqueColumns = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let sheetId = req.body.sheetId;
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let leads = await db.LeadModel.findAll({
+        where: {
+          sheetId: sheetId,
+        },
+      });
+
+      let keys = [];
+      leads.map((lead) => {
+        let extraColumns = lead.extraColumns;
+        let json = JSON.parse(extraColumns);
+        const leadKeys = Object.keys(json);
+
+        leadKeys.forEach((key) => {
+          if (!keys.includes(key)) {
+            keys.push(key);
+          }
+        });
+      });
 
       return res.send({
         status: true,
-        data: leads,
-        message: "Leads list",
+        data: keys,
+        message: "Key columns list",
       });
     } else {
     }
