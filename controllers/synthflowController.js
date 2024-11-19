@@ -339,6 +339,7 @@ export const BuildAgent = async (req, res) => {
       const name = req.body.name;
       const agentRole = req.body.agentRole || "";
       const agentObjective = req.body.agentObjective;
+      const agentObjectiveId = req.body.agentObjectiveId;
       const agentType = req.body.agentType; //inbound, outbound, both
       const status = req.body.status;
       const address = req.body.address;
@@ -367,6 +368,7 @@ export const BuildAgent = async (req, res) => {
             agentObjectiveDescription,
             address,
             mainAgentId: mainAgent.id,
+            agentObjectiveId: agentObjectiveId,
           };
           let createdInbound = await CreateAssistantSynthflow(
             data,
@@ -389,6 +391,7 @@ export const BuildAgent = async (req, res) => {
             agentObjectiveDescription,
             address,
             mainAgentId: mainAgent.id,
+            agentObjectiveId: agentObjectiveId,
           };
           let createdAgent = await CreateAssistantSynthflow(
             data,

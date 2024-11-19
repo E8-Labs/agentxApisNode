@@ -50,6 +50,13 @@ const AgentModel = (sequelize, Sequelize) => {
       defaultValue: "outbound",
     },
 
+    agentObjectiveId: {
+      //Community Update
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      // defaultValue:
+    },
+
     agentObjective: {
       //Community Update
       type: Sequelize.STRING,
