@@ -59,7 +59,7 @@ const LeadModel = (sequelize, Sequelize) => {
     stage: {
       type: Sequelize.INTEGER,
       allowNull: true,
-      defaultValue: 9, // 9 is the id of the "No Stage" stage
+      // defaultValue: , // 9 is the id of the "No Stage" stage
       references: {
         model: "Stages",
         key: "id",

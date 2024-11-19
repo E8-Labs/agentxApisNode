@@ -11,6 +11,7 @@ import axios from "axios";
 import chalk from "chalk";
 import nodemailer from "nodemailer";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
+import LeadResource from "../resources/LeadResource.js";
 
 export const AddLeads = async (req, res) => {
   let { sheetName, columnMappings, leads } = req.body; // mainAgentId is the mainAgent id
@@ -48,6 +49,7 @@ export const AddLeads = async (req, res) => {
         });
       }
 
+      let dbLeads = [];
       for (let i = 0; i < leads.length; i++) {
         let lead = leads[i];
         let extraColumns = lead.extraColumns;
@@ -58,10 +60,13 @@ export const AddLeads = async (req, res) => {
           userId: userId,
           sheetId: sheet.id,
         });
+        dbLeads.push(createdLead);
       }
+      let leadsRes = await LeadResource(dbLeads);
       res.send({
         status: true,
         message: `${leads.length} new Leads added`,
+        data: leadsRes,
       });
     } else {
       res.send({

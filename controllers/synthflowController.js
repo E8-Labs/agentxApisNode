@@ -712,6 +712,8 @@ export const WebhookSynthflow = async (req, res) => {
     });
   }
 
+  //Check the infoExtractors here.
+  //Update the logic here and test by sending dummy webhooks
   let leadCadenceId = dbCall.leadCadenceId;
   let leadCadence = await db.LeadCadence.findByPk(leadCadenceId);
   // console.log("Hot lead ");
@@ -749,7 +751,8 @@ export const WebhookSynthflow = async (req, res) => {
   if (json.meetingscheduled) {
     // meeting scheduled
   }
-  if (json.callmeback) {
+  //We may check if this was the last call or not
+  if (json.callmeback || json.humancalldrop || json.voicemail) {
     let followUpStage = await db.PipelineStages.findOne({
       where: {
         identifier: "follow_up",
@@ -799,9 +802,6 @@ export const WebhookSynthflow = async (req, res) => {
     dbCall.callData = dataString;
     let saved = await dbCall.save();
   }
-
-  //Check the infoExtractors here.
-  //Update the logic here and test by sending dummy webhooks
 
   //process the data here
   return res.send({ status: true, message: "Webhook received" });
