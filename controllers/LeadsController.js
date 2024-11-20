@@ -137,18 +137,16 @@ export const GetLeads = async (req, res) => {
             [db.Sequelize.Op.between]: [new Date(fromDate), new Date(toDate)],
           };
         }
+        if (stageIds) {
+          leadFilters.stage = {
+            [db.Sequelize.Op.in]: stageIds.split(",").map(Number), // Filter by provided stageIds
+          };
+        }
 
         // Fetch leads based on filters
         const leads = await db.LeadModel.findAll({
           where: leadFilters,
-          attributes: [
-            "id",
-            "firstName",
-            "lastName",
-            "email",
-            "phone",
-            "stage",
-          ], // Adjust attributes as needed
+          // attributes: ["id", "firstName", "lastName", "email", "phone", "stage"], // Adjust attributes as needed
           raw: true, // Return plain objects
         });
 
@@ -170,7 +168,7 @@ export const GetLeads = async (req, res) => {
         };
         if (stageIds) {
           cadenceFilters.stage = {
-            [db.Sequelize.Op.in]: stageIds.split(",").map(Number), // Ensure array of numbers
+            [db.Sequelize.Op.in]: stageIds.split(",").map(Number), // Filter by provided stageIds
           };
         }
 
