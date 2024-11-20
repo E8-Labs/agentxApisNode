@@ -49,6 +49,15 @@ async function getUserData(mainAgent, currentUser = null) {
       mainAgentId: mainAgent.id,
     },
   });
+  let pipeline = null;
+  if (pipelineCadences && pipelineCadences.length > 0) {
+    let pc = pipelineCadences[0];
+    pipeline = await db.Pipeline.findOne({
+      where: {
+        id: pc.pipelineId,
+      },
+    });
+  }
 
   let stages = [];
   if (pipelineCadences && pipelineCadences.length > 0) {
@@ -69,6 +78,7 @@ async function getUserData(mainAgent, currentUser = null) {
     ...mainAgent.get(),
     agents: agents,
     stages: stages,
+    pipeline: pipeline,
   };
 
   return AgentResource;
