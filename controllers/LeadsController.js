@@ -130,23 +130,25 @@ export const GetLeads = async (req, res) => {
           });
         }
 
-        // Build the filters dynamically for leads
+        // Build filters for leads based on query params
         const leadFilters = { sheetId };
         if (fromDate && toDate) {
           leadFilters.createdAt = {
             [db.Sequelize.Op.between]: [new Date(fromDate), new Date(toDate)],
           };
         }
-        if (stageIds) {
-          leadFilters.stage = {
-            [db.Sequelize.Op.in]: stageIds.split(",").map(Number), // Filter by provided stageIds
-          };
-        }
 
-        // Fetch leads based on filters
+        // Fetch leads first based on general filters
         const leads = await db.LeadModel.findAll({
           where: leadFilters,
-          // attributes: ["id", "firstName", "lastName", "email", "phone", "stage"], // Adjust attributes as needed
+          // attributes: [
+          //   "id",
+          //   "firstName",
+          //   "lastName",
+          //   "email",
+          //   "phone",
+          //   "stage",
+          // ], // Adjust attributes as needed
           raw: true, // Return plain objects
         });
 
@@ -161,23 +163,33 @@ export const GetLeads = async (req, res) => {
         // Extract lead IDs
         const leadIds = leads.map((lead) => lead.id);
 
-        // Build filters for LeadCadence
-        const cadenceFilters = {
-          leadId: { [db.Sequelize.Op.in]: leadIds },
-          status: CadenceStatus.Started, // Only active cadences
-        };
+        let cadences = [];
         if (stageIds) {
-          cadenceFilters.stage = {
-            [db.Sequelize.Op.in]: stageIds.split(",").map(Number), // Filter by provided stageIds
+          // If stageIds are provided, filter LeadCadence by stageIds and leadIds
+          const cadenceFilters = {
+            leadId: { [db.Sequelize.Op.in]: leadIds },
+            status: CadenceStatus.Started, // Only active cadences
+            stage: { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) },
           };
-        }
 
-        // Fetch cadences using foreign key connection
-        const cadences = await db.LeadCadence.findAll({
-          where: cadenceFilters,
-          attributes: ["leadId", "stage", "status"], // Adjust attributes as needed
-          raw: true, // Return plain objects
-        });
+          cadences = await db.LeadCadence.findAll({
+            where: cadenceFilters,
+            attributes: ["leadId", "stage", "status"], // Adjust attributes as needed
+            raw: true, // Return plain objects
+          });
+        } else {
+          // If no stageIds are provided, fetch all cadences for the given leads
+          const cadenceFilters = {
+            leadId: { [db.Sequelize.Op.in]: leadIds },
+            status: CadenceStatus.Started, // Only active cadences
+          };
+
+          cadences = await db.LeadCadence.findAll({
+            where: cadenceFilters,
+            attributes: ["leadId", "stage", "status"], // Adjust attributes as needed
+            raw: true, // Return plain objects
+          });
+        }
 
         // Create a map for cadences keyed by leadId
         const cadenceMap = cadences.reduce((acc, cadence) => {
