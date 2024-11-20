@@ -77,7 +77,7 @@ const LeadCadence = (sequelize, Sequelize) => {
 export const CadenceStatus = {
   Pending: "Pending",
   Started: "Started",
-  // Cancelled: "Cancelled",
+  Paused: "Paused",
   Booked: "Booked", // the rest of the cadence for that
 };
 
