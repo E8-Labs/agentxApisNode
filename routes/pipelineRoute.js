@@ -7,6 +7,7 @@ import {
   CreatePipelineCadence,
   GetPipelines,
   AssignLeadsToPipelineAndAgents,
+  UpdatePipeline,
 } from "../controllers/pipelineController.js";
 
 const uploadFiles = multer().fields([
@@ -22,6 +23,7 @@ const uploadMedia = multer().fields([
 let PipelineRouter = express.Router();
 
 PipelineRouter.post("/createPipeline", verifyJwtToken, CreatePipeline);
+PipelineRouter.post("/updatePipeline", verifyJwtToken, UpdatePipeline);
 PipelineRouter.post(
   "/assignLeadsToPipeline",
   verifyJwtToken,

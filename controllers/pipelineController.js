@@ -67,6 +67,41 @@ export const CreatePipeline = async (req, res) => {
     }
   });
 };
+export const UpdatePipeline = async (req, res) => {
+  let { title } = req.body; // mainAgentId is the mainAgent id
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let pipelineId = req.body.pipelineId;
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let pipeline = await db.Pipeline.findByPk(pipelineId);
+
+      if (pipeline) {
+        if (req.body.title) {
+          pipeline.title = req.body.title;
+        }
+      }
+
+      let saved = await pipeline.save();
+
+      return res.send({
+        status: true,
+        message: "Pipeline saved",
+        data: await PipelineResource(pipeline),
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "Pipeline creation failed",
+        data: null,
+      });
+    }
+  });
+};
 
 export const GetPipelines = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
