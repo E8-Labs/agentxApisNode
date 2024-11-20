@@ -136,28 +136,20 @@ export const GetLeads = async (req, res) => {
           leadFilters.createdAt = {
             [db.Sequelize.Op.between]: [new Date(fromDate), new Date(toDate)],
           };
-          // const parsedFromDate = fromDate
-          //   ? moment(fromDate, "MM-DD-YYYY").toISOString()
-          //   : null;
-          // const parsedToDate = toDate
-          //   ? moment(toDate, "MM-DD-YYYY").toISOString()
-          //   : null;
-          // console.log(`Filtering ${parsedFromDate} - ${parsedToDate}`);
-          // const leadFilters = { sheetId };
-          // if (parsedFromDate && parsedToDate) {
-          //   leadFilters.createdAt = {
-          //     [db.Sequelize.Op.between]: [
-          //       new Date(parsedFromDate),
-          //       new Date(parsedToDate),
-          //     ],
-          //   };
-          // }
         }
 
         // Fetch leads based on filters
         const leads = await db.LeadModel.findAll({
           where: leadFilters,
-          // attributes: ["id", "firstName", "lastName", "email", "phone"], // Adjust attributes as needed
+          attributes: [
+            "id",
+            "firstName",
+            "lastName",
+            "email",
+            "phone",
+            "stage",
+          ], // Adjust attributes as needed
+          raw: true, // Return plain objects
         });
 
         if (!leads.length) {
@@ -186,27 +178,24 @@ export const GetLeads = async (req, res) => {
         const cadences = await db.LeadCadence.findAll({
           where: cadenceFilters,
           attributes: ["leadId", "stage", "status"], // Adjust attributes as needed
+          raw: true, // Return plain objects
         });
 
-        if (!cadences.length) {
-          return res.send({
-            status: true,
-            data: [],
-            message: "No active cadences found for the given filters",
-          });
-        }
-
-        // Map leads with active cadences
-        const leadMap = leads.reduce((acc, lead) => {
-          acc[lead.id] = lead;
+        // Create a map for cadences keyed by leadId
+        const cadenceMap = cadences.reduce((acc, cadence) => {
+          acc[cadence.leadId] = cadence;
           return acc;
         }, {});
 
-        const leadsWithCadence = cadences.map((cadence) => ({
-          ...leadMap[cadence.leadId].toJSON(),
-          stage: cadence.stage,
-          cadenceStatus: cadence.status,
-        }));
+        // Combine leads with cadences
+        const leadsWithCadence = leads.map((lead) => {
+          const cadence = cadenceMap[lead.id];
+          return {
+            ...lead,
+            stage: cadence ? cadence.stage : lead.stage, // Use LeadCadence stage if available, else LeadModel stage
+            cadenceStatus: cadence ? cadence.status : null, // Cadence status or null
+          };
+        });
 
         return res.send({
           status: true,
