@@ -130,7 +130,7 @@ export const GetLeads = async (req, res) => {
           });
         }
 
-        // Build filters for leads based on query params
+        // Build filters for leads
         const leadFilters = { sheetId };
         if (fromDate && toDate) {
           leadFilters.createdAt = {
@@ -138,17 +138,48 @@ export const GetLeads = async (req, res) => {
           };
         }
 
-        // Fetch leads first based on general filters
+        let filteredLeadIds = [];
+        if (stageIds) {
+          // Filter LeadCadence by stageIds
+          const cadenceFilters = {
+            stage: { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) }, // Filter by provided stageIds
+            status: CadenceStatus.Started, // Only active cadences
+          };
+
+          const cadences = await db.LeadCadence.findAll({
+            where: cadenceFilters,
+            attributes: ["leadId"], // Only fetch lead IDs
+            raw: true, // Return plain objects
+          });
+
+          filteredLeadIds = cadences.map((cadence) => cadence.leadId);
+
+          // If no leads match the stageIds, return an empty response
+          if (!filteredLeadIds.length) {
+            return res.send({
+              status: true,
+              data: [],
+              message: "No leads found for the given stage filters",
+            });
+          }
+        }
+
+        // Add leadId filter if stageIds were applied
+        if (filteredLeadIds.length) {
+          leadFilters.id = { [db.Sequelize.Op.in]: filteredLeadIds };
+        }
+
+        // Fetch leads based on combined filters
         const leads = await db.LeadModel.findAll({
           where: leadFilters,
-          // attributes: [
-          //   "id",
-          //   "firstName",
-          //   "lastName",
-          //   "email",
-          //   "phone",
-          //   "stage",
-          // ], // Adjust attributes as needed
+          attributes: [
+            "id",
+            "firstName",
+            "lastName",
+            "email",
+            "phone",
+            "stage",
+          ], // Adjust attributes as needed
           raw: true, // Return plain objects
         });
 
@@ -160,50 +191,12 @@ export const GetLeads = async (req, res) => {
           });
         }
 
-        // Extract lead IDs
-        const leadIds = leads.map((lead) => lead.id);
-
-        let cadences = [];
-        if (stageIds) {
-          // If stageIds are provided, filter LeadCadence by stageIds and leadIds
-          const cadenceFilters = {
-            leadId: { [db.Sequelize.Op.in]: leadIds },
-            status: CadenceStatus.Started, // Only active cadences
-            stage: { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) },
-          };
-
-          cadences = await db.LeadCadence.findAll({
-            where: cadenceFilters,
-            attributes: ["leadId", "stage", "status"], // Adjust attributes as needed
-            raw: true, // Return plain objects
-          });
-        } else {
-          // If no stageIds are provided, fetch all cadences for the given leads
-          const cadenceFilters = {
-            leadId: { [db.Sequelize.Op.in]: leadIds },
-            status: CadenceStatus.Started, // Only active cadences
-          };
-
-          cadences = await db.LeadCadence.findAll({
-            where: cadenceFilters,
-            attributes: ["leadId", "stage", "status"], // Adjust attributes as needed
-            raw: true, // Return plain objects
-          });
-        }
-
-        // Create a map for cadences keyed by leadId
-        const cadenceMap = cadences.reduce((acc, cadence) => {
-          acc[cadence.leadId] = cadence;
-          return acc;
-        }, {});
-
-        // Combine leads with cadences
+        // Combine leads with their cadence data if applicable
         const leadsWithCadence = leads.map((lead) => {
-          const cadence = cadenceMap[lead.id];
           return {
             ...lead,
-            stage: cadence ? cadence.stage : lead.stage, // Use LeadCadence stage if available, else LeadModel stage
-            cadenceStatus: cadence ? cadence.status : null, // Cadence status or null
+            stage: lead.stage, // Use stage from LeadModel if no cadence stage filter is applied
+            cadenceStatus: null, // Default cadence status if not explicitly provided
           };
         });
 
