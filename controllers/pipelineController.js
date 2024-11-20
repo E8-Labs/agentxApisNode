@@ -16,6 +16,7 @@ import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import { create } from "domain";
 import PipelineCadenceResource from "../resources/PipelineCadenceResource.js";
 import PipelineResource from "../resources/PipelineResource.js";
+import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -226,6 +227,18 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       let pipeline = await db.Pipeline.findByPk(pipelineId);
       for (let i = 0; i < leadIds.length; i++) {
         let leadId = leadIds[i];
+
+        //Update all others to paused
+        await db.LeadCadence.update(
+          { status: CadenceStatus.Paused }, // Set status to 'Paused'
+          {
+            where: {
+              status: {
+                [db.Sequelize.Op.ne]: CadenceStatus.Paused, // Status not equal to 'Paused'
+              },
+            },
+          }
+        );
         for (let j = 0; j < mainAgentIds.length; j++) {
           let agentId = mainAgentIds[j];
 

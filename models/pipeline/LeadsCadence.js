@@ -51,7 +51,7 @@ const LeadCadence = (sequelize, Sequelize) => {
     status: {
       type: Sequelize.STRING,
       allowNull: false,
-      defaultValue: CadenceStatus.Pending,
+      defaultValue: CadenceStatus.Pending, // when user assigns that lead to another pipeline then that cadence status changes to Paused
     },
     dnd: {
       type: Sequelize.BOOLEAN,
