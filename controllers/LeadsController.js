@@ -107,7 +107,7 @@ export const GetSheets = async (req, res) => {
 export const GetLeads = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
-      let sheetId = req.body.sheetId;
+      let sheetId = req.query.sheetId;
       let userId = authData.user.id;
       //   if(userId == null)
       let user = await db.User.findOne({
