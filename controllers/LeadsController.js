@@ -138,48 +138,10 @@ export const GetLeads = async (req, res) => {
           };
         }
 
-        let filteredLeadIds = [];
-        if (stageIds) {
-          // Filter LeadCadence by stageIds
-          const cadenceFilters = {
-            stage: { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) }, // Filter by provided stageIds
-            status: CadenceStatus.Started, // Only active cadences
-          };
-
-          const cadences = await db.LeadCadence.findAll({
-            where: cadenceFilters,
-            attributes: ["leadId"], // Only fetch lead IDs
-            raw: true, // Return plain objects
-          });
-
-          filteredLeadIds = cadences.map((cadence) => cadence.leadId);
-
-          // If no leads match the stageIds, return an empty response
-          if (!filteredLeadIds.length) {
-            return res.send({
-              status: true,
-              data: [],
-              message: "No leads found for the given stage filters",
-            });
-          }
-        }
-
-        // Add leadId filter if stageIds were applied
-        if (filteredLeadIds.length) {
-          leadFilters.id = { [db.Sequelize.Op.in]: filteredLeadIds };
-        }
-
-        // Fetch leads based on combined filters
+        // Fetch leads first based on general filters
         const leads = await db.LeadModel.findAll({
           where: leadFilters,
-          // attributes: [
-          //   "id",
-          //   "firstName",
-          //   "lastName",
-          //   "email",
-          //   "phone",
-          //   "stage",
-          // ], // Adjust attributes as needed
+          // attributes: ["id", "firstName", "lastName", "email", "phone", "stage"], // Adjust attributes as needed
           raw: true, // Return plain objects
         });
 
@@ -191,14 +153,73 @@ export const GetLeads = async (req, res) => {
           });
         }
 
-        // Combine leads with their cadence data if applicable
-        const leadsWithCadence = leads.map((lead) => {
-          return {
-            ...lead,
-            stage: lead.stage, // Use stage from LeadModel if no cadence stage filter is applied
-            cadenceStatus: null, // Default cadence status if not explicitly provided
+        // Extract lead IDs
+        const leadIds = leads.map((lead) => lead.id);
+
+        // Fetch cadences if stageIds are provided or not
+        let cadences = [];
+        if (stageIds) {
+          // Filter LeadCadence by stageIds and leadIds
+          const cadenceFilters = {
+            leadId: { [db.Sequelize.Op.in]: leadIds },
+            status: CadenceStatus.Started, // Only active cadences
+            stage: { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) },
           };
-        });
+
+          cadences = await db.LeadCadence.findAll({
+            where: cadenceFilters,
+            attributes: ["leadId", "stage", "status"], // Adjust attributes as needed
+            raw: true, // Return plain objects
+          });
+        } else {
+          // Fetch all cadences for the given leads if stageIds are not provided
+          const cadenceFilters = {
+            leadId: { [db.Sequelize.Op.in]: leadIds },
+            status: CadenceStatus.Started, // Only active cadences
+          };
+
+          cadences = await db.LeadCadence.findAll({
+            where: cadenceFilters,
+            attributes: ["leadId", "stage", "status"], // Adjust attributes as needed
+            raw: true, // Return plain objects
+          });
+        }
+
+        // Create a map for cadences keyed by leadId
+        const cadenceMap = cadences.reduce((acc, cadence) => {
+          acc[cadence.leadId] = cadence;
+          return acc;
+        }, {});
+
+        // Combine leads with cadences
+        let leadsWithCadence = [];
+        for (let i = 0; i < leads.length; i++) {
+          let lead = leads[i];
+          const cadence = cadenceMap[lead.id];
+          let stage = await db.PipelineStages.findOne({
+            where: {
+              id: cadence ? cadence.stage : lead.stage,
+            },
+          });
+          leadsWithCadence.push({
+            ...lead,
+            stage: stage, // Use LeadCadence stage if available, else LeadModel stage
+            cadenceStatus: cadence ? cadence.status : null, // Cadence status or null
+          });
+        }
+        // leadsWithCadence = leads.map(async (lead) => {
+        //   const cadence = cadenceMap[lead.id];
+        //   let stage = await db.PipelineStages.findOne({
+        //     where: {
+        //       id: cadence ? cadence.stage : lead.stage,
+        //     },
+        //   });
+        //   return {
+        //     ...lead,
+        //     stage: stage, // Use LeadCadence stage if available, else LeadModel stage
+        //     cadenceStatus: cadence ? cadence.status : null, // Cadence status or null
+        //   };
+        // });
 
         return res.send({
           status: true,
