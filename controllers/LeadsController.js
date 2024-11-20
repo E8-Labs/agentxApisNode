@@ -172,14 +172,14 @@ export const GetLeads = async (req, res) => {
         // Fetch leads based on combined filters
         const leads = await db.LeadModel.findAll({
           where: leadFilters,
-          attributes: [
-            "id",
-            "firstName",
-            "lastName",
-            "email",
-            "phone",
-            "stage",
-          ], // Adjust attributes as needed
+          // attributes: [
+          //   "id",
+          //   "firstName",
+          //   "lastName",
+          //   "email",
+          //   "phone",
+          //   "stage",
+          // ], // Adjust attributes as needed
           raw: true, // Return plain objects
         });
 
