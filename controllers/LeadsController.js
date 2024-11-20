@@ -41,6 +41,7 @@ export const AddLeads = async (req, res) => {
       let sheet = await db.LeadSheetModel.findOne({
         where: {
           sheetName: sheetName,
+          userId: user.id,
         },
       });
       if (!sheet) {
