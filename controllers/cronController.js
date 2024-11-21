@@ -12,6 +12,9 @@ import chalk from "chalk";
 import nodemailer from "nodemailer";
 console.log(import.meta.url);
 import nodeCron from "node-cron";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
