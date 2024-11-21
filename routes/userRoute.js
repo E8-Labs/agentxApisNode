@@ -2,7 +2,11 @@ import express from "express";
 import multer from "multer";
 
 import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
-import { LoginUser, RegisterUser } from "../controllers/userController.js";
+import {
+  LoginUser,
+  RegisterUser,
+  CheckPhoneExists,
+} from "../controllers/userController.js";
 
 const uploadFiles = multer().fields([
   { name: "media", maxCount: 1 },
@@ -20,7 +24,7 @@ UserRouter.post("/login", LoginUser);
 UserRouter.post("/register", uploadFiles, RegisterUser);
 
 // UserRouter.post("/updateProfile", verifyJwtToken, uploadFiles, UpdateProfile);
-// UserRouter.post("/checkPhoneNumber", CheckPhoneExists);
+UserRouter.post("/checkPhoneNumber", CheckPhoneExists);
 // UserRouter.post("/checkUsernameExists", CheckUsernameExists);
 // UserRouter.get("/getProfileFromUsername", GetProfileWithUsername);
 // UserRouter.post("/checkEmailExists", CheckEmailExists);
