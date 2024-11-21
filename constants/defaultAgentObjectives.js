@@ -1,6 +1,6 @@
 //Will add prompts here
 
-import { Prompts } from "./prompts";
+import { Prompts } from "./prompts.js";
 
 export const AgentObjectives = [
   {
