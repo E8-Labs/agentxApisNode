@@ -26,7 +26,7 @@ import { calculateDifferenceInMinutes } from "./utils/dateutil.js";
 export const CronRunCadenceCallsFirstBatch = async () => {
   //Find Cadences to run for leads in the initial State (New Lead)
   //Step-1 Find all leadCadences which are not completed. All leads which are pending should be pushed
-
+  console.log("Running cron CronRunCadenceCallsFirstBatch");
   //Verify batch size limit is not reached
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0); // Set to start of the day
@@ -159,6 +159,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 };
 
 export const CronRunCadenceCallsSubsequentStages = async () => {
+  console.log("Running cron CronRunCadenceCallsSubsequentStages");
   //Find Cadences to run for leads in the initial State (New Lead)
   //Step-1 Find all leadCadences which are not completed. All leads which are Started should be pushed
 
