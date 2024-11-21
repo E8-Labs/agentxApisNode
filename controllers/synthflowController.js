@@ -15,6 +15,7 @@ import {
 import AgentResource from "../resources/AgentResource.js";
 import LeadCadence from "../models/pipeline/LeadsCadence.js";
 import { InfoExtractors } from "../config/defaultInfoExtractors.js";
+import { AgentObjectives } from "../constants/defaultAgentObjectives.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -345,6 +346,16 @@ export const BuildAgent = async (req, res) => {
       const address = req.body.address;
       const agentObjectiveDescription = req.body.agentObjectiveDescription;
 
+      let selectedObjective = null;
+      for (let i = 0; i < AgentObjectives.length; i++) {
+        if (
+          AgentObjectives[i].id == agentObjectiveId ||
+          AgentObjectives[i].title == agentObjective
+        ) {
+          selectedObjective = AgentObjectives[i];
+        }
+      }
+
       let mainAgent = await db.MainAgentModel.create({
         name: name,
         userId: user.id,
@@ -369,6 +380,7 @@ export const BuildAgent = async (req, res) => {
             address,
             mainAgentId: mainAgent.id,
             agentObjectiveId: agentObjectiveId,
+            prompt: selectedObjective.prompt,
           };
           let createdInbound = await CreateAssistantSynthflow(
             data,
@@ -392,6 +404,7 @@ export const BuildAgent = async (req, res) => {
             address,
             mainAgentId: mainAgent.id,
             agentObjectiveId: agentObjectiveId,
+            prompt: selectedObjective.prompt,
           };
           let createdAgent = await CreateAssistantSynthflow(
             data,
