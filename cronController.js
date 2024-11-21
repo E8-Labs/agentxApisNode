@@ -1,4 +1,4 @@
-import db from "../models/index.js";
+import db from "./models/index.js";
 // import S3 from "aws-sdk/clients/s3.js";
 import JWT from "jsonwebtoken";
 import bcrypt from "bcryptjs";
@@ -16,10 +16,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-import UserProfileFullResource from "../resources/userProfileFullResource.js";
-import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
-import Pipeline from "../models/pipeline/pipeline.js";
-import { calculateDifferenceInMinutes } from "../utils/dateutil.js";
+import UserProfileFullResource from "./resources/userProfileFullResource.js";
+import { CadenceStatus } from "./models/pipeline/LeadsCadence.js";
+import Pipeline from "./models/pipeline/pipeline.js";
+import { calculateDifferenceInMinutes } from "./utils/dateutil.js";
 
 //This will push 100 leads into the cadence every day. If 100 leads are pushed, it will not psuh any more
 //Runs every 30 sec
