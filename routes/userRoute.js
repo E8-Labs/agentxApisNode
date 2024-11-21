@@ -6,6 +6,7 @@ import {
   LoginUser,
   RegisterUser,
   CheckPhoneExists,
+  CheckEmailExists,
 } from "../controllers/userController.js";
 
 const uploadFiles = multer().fields([
@@ -27,7 +28,7 @@ UserRouter.post("/register", uploadFiles, RegisterUser);
 UserRouter.post("/checkPhoneNumber", CheckPhoneExists);
 // UserRouter.post("/checkUsernameExists", CheckUsernameExists);
 // UserRouter.get("/getProfileFromUsername", GetProfileWithUsername);
-// UserRouter.post("/checkEmailExists", CheckEmailExists);
+UserRouter.post("/checkEmailExists", CheckEmailExists);
 // UserRouter.post("/sendVerificationCode", SendPhoneVerificationCode);
 // UserRouter.post("/verifyCode", VerifyPhoneCode);
 
