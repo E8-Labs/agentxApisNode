@@ -27,6 +27,9 @@ import CadenceCalls from "./pipeline/cadenceCalls.js";
 import PipelineStages from "./pipeline/pipelineStages.js";
 import LeadSheetModel from "./lead/leadSheet.js";
 import LeadCallsSent from "./pipeline/LeadCallsSent.js";
+import UserFocusModel from "./user/userFocusModel.js";
+import UserServicesModel from "./user/userServicesModel.js";
+import UserPhoneNumbers from "./user/userPhoneModel.js";
 // import AgentStages from "./pipeline/agentStages.js";
 
 const sequelize = new Sequelize(
@@ -53,9 +56,6 @@ let models = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
-db.User = User(sequelize, Sequelize);
-models["User"] = db.User;
-
 db.AreaOfFocus = AreaOfFocus(sequelize, Sequelize);
 models["AreaOfFocus"] = db.AreaOfFocus;
 await createAreaOfFocusValues(db);
@@ -63,6 +63,18 @@ await createAreaOfFocusValues(db);
 db.AgentService = AgentService(sequelize, Sequelize);
 models["AgentService"] = db.AgentService;
 await createAgentServices(db);
+
+db.User = User(sequelize, Sequelize);
+models["User"] = db.User;
+
+db.UserFocusModel = UserFocusModel(sequelize, Sequelize);
+models["UserFocusModel"] = db.UserFocusModel;
+
+db.UserServicesModel = UserServicesModel(sequelize, Sequelize);
+models["UserServicesModel"] = db.UserServicesModel;
+
+db.UserPhoneNumbers = UserPhoneNumbers(sequelize, Sequelize);
+models["UserPhoneNumbers"] = db.UserPhoneNumbers;
 
 db.AgentRole = AgentRole(sequelize, Sequelize);
 models["AgentRole"] = db.AgentRole;

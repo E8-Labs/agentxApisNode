@@ -35,20 +35,18 @@ export const ListUsersAvailablePhoneNumbers = async (req, res) => {
       console.log("User", user);
       if (user) {
         try {
-          const phoneNumbers = await db.AgentModel.findAll({
+          const phoneNumbers = await db.UserPhoneNumbers.findAll({
             attributes: [
-              [
-                db.Sequelize.fn("DISTINCT", db.Sequelize.col("phoneNumber")),
-                "phoneNumber",
-              ],
+              [db.Sequelize.fn("DISTINCT", db.Sequelize.col("phone")), "phone"],
             ],
             where: {
               userId: userId, // Filter by userId
+              status: "active", // only active phone numbers
             },
             raw: true, // Return plain data instead of Sequelize objects
           });
 
-          let phoneNumbersObtained = phoneNumbers.map((row) => row.phoneNumber); // Extract only the phone numbers
+          let phoneNumbersObtained = phoneNumbers.map((row) => row.phone); // Extract only the phone numbers
           return res.status(200).send({
             status: true,
             message: "Phone Numbers",
@@ -107,7 +105,7 @@ export const ListAvailableNumbers = async (req, res) => {
             friendlyName: number.friendlyName,
             region: number.region,
             locality: number.locality,
-            price: price || "Pricing unavailable",
+            price: `${process.env.TWILIO_PHONE_NUMBER_PRICE}`,
           })),
         });
       } catch (error) {
@@ -128,8 +126,83 @@ export const ListAvailableNumbers = async (req, res) => {
   });
 };
 
-// API to purchase a phone number
 export const PurchasePhoneNumber = async (req, res) => {
+  const { phoneNumber, mainAgentId } = req.body;
+
+  // Verify JWT Token
+  jwt.verify(req.token, process.env.SECRET_JWT_KEY, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    try {
+      const userId = authData.user.id;
+
+      // Retrieve user from the database
+      const user = await db.User.findOne({ where: { id: userId } });
+      if (!user) {
+        return res.status(404).send({
+          status: false,
+          message: "User not found.",
+        });
+      }
+
+      // Check if the environment is live
+      if (process.env.ENVIRONMENT === "Sandbox") {
+        return res.send({
+          status: false,
+          message: "This operation is only available in live mode.",
+        });
+      }
+
+      // Attempt to purchase the phone number via Twilio API
+      let sid = process.env.PLATFORM_PHONE_NUMBER_SID;
+      const purchasedNumber = await client.incomingPhoneNumbers.create({
+        phoneNumber,
+      });
+
+      if (purchasedNumber && purchasedNumber.sid) {
+        sid = purchasedNumber.sid;
+      } else {
+        return res.status(500).send({
+          status: false,
+          message: "Failed to purchase phone number.",
+        });
+      }
+
+      // Save the purchased phone number in the database
+      const phoneCreated = await db.UserPhoneNumbers.create({
+        phone: phoneNumber,
+        phoneSid: sid,
+        phoneStatus: "active",
+        userId: user.id,
+      });
+
+      // Respond with success
+      return res.send({
+        status: true,
+        message: "Phone number purchased successfully.",
+        data: {
+          sid: sid,
+          phoneNumber: phoneNumber,
+        },
+      });
+    } catch (error) {
+      // Catch any errors and respond with an error message
+      return res.status(500).send({
+        status: false,
+        message: "An error occurred while purchasing the phone number.",
+        error: error.message,
+      });
+    }
+  });
+};
+
+// API to purchase a phone number
+export const AssignPhoneNumber = async (req, res) => {
   const { phoneNumber, mainAgentId, callbackNumber, liveTransferNumber } =
     req.body;
 
@@ -150,6 +223,12 @@ export const PurchasePhoneNumber = async (req, res) => {
         }
 
         //check phone number already bought. If yes then just assign and go back.
+        let phoneNumber = await db.UserPhoneNumbers.findOne({
+          where: {
+            phone: phoneNumber,
+            userId: user.id,
+          },
+        });
         let mainAgents = await db.MainAgentModel.findAll({
           where: {
             userId: user.id,
@@ -157,19 +236,26 @@ export const PurchasePhoneNumber = async (req, res) => {
         });
 
         let alreadyPurchased = false;
-        for (let i = 0; i < mainAgents.length; i++) {
-          let ma = mainAgents[i];
-          let agent = await db.AgentModel.findOne({
-            where: {
-              mainAgentId: ma.id,
-              phoneNumber: phoneNumber,
-            },
-          });
-          if (agent) {
-            alreadyPurchased = true;
-          }
+        if (phoneNumber && phoneNumber.phone) {
+          alreadyPurchased = false;
         }
-        if (alreadyPurchased) {
+        // for (let i = 0; i < mainAgents.length; i++) {
+        //   let ma = mainAgents[i];
+        //   let agent = await db.AgentModel.findOne({
+        //     where: {
+        //       mainAgentId: ma.id,
+        //       phoneNumber: phoneNumber,
+        //     },
+        //   });
+        //   if (agent) {
+        //     alreadyPurchased = true;
+        //   }
+        // }
+        //if the phone number is purchased already or it is a platform number then let them assign.
+        if (
+          alreadyPurchased ||
+          phoneNumber === process.env.PlatformPhoneNumber
+        ) {
           let assistants = await db.AgentModel.findAll({
             where: {
               mainAgentId: mainAgentId,
@@ -191,100 +277,11 @@ export const PurchasePhoneNumber = async (req, res) => {
           return res.send({
             status: true,
             message: "Phone number assiged to agent",
-            alreadyPurchased: alreadyPurchased
-              ? "Already purchased"
-              : "New number",
           });
-        }
-
-        try {
-          let sid = process.env.PlatformPhoneNumberSID; //"PNcb5317f39066253bd8dee7dfbdc7f8e4";
-          if (phoneNumber === process.env.PlatformPhoneNumber) {
-            console.log("This is platform phone Number");
-          } else {
-            // console.log("Custom Phone", process.env.PlatformPhoneNumber);
-            //I will check for recurring charges, if possible.
-            //charge user for phone number(1.15 => process.env.TWILIO_PHONE_NUMBER_PRICE) first then allocate phone number
-
-            if (process.env.Environment === "Sandbox") {
-              return res.send({
-                status: false,
-                message: "Only available in live mode",
-              });
-            }
-
-            const purchasedNumber = await client.incomingPhoneNumbers.create({
-              //uncomment for live
-              phoneNumber,
-            });
-            sid = purchasedNumber.sid; //uncomment for live
-          }
-
-          // let phoneNumber = purchasedNumber.phoneNumber;//uncomment for live
-
-          console.log('"Updating webhook"');
-          //Update Webhook for phone on twilio
-          // const updatedPhoneNumber = await client
-          //   .incomingPhoneNumbers(sid)
-          //   .update({
-          //     voiceUrl: "https://www.blindcircle.com/agenx/voice/webhook", // Webhook for incoming calls
-          //     // ...(smsUrl && { smsUrl }), // Webhook for incoming SMS
-          //     voiceMethod: "POST", // HTTP method for the webhook (optional)
-          //     // smsMethod: 'POST', // HTTP method for the webhook (optional)
-          //   });
-          console.log('"Updated webhook"');
-
-          //Update Synthflow assitant to use this phone Number
-          let assistants = await db.AgentModel.findAll({
-            where: {
-              mainAgentId: mainAgentId,
-            },
-          });
-          if (assistants) {
-            for (let i = 0; i < assistants.length; i++) {
-              let assistant = assistants[i];
-              assistant.liveTransferNumber = liveTransferNumber;
-              assistant.callbackNumber = callbackNumber;
-              let updatedAgent = await assistant.save();
-              console.log("Callback and LiveTransfer Numbers saved");
-              let updated = await UpdateAssistantSynthflow(assistant, {
-                phone_number: phoneNumber,
-              });
-            }
-          }
-
-          let condition = {
-            where: {
-              mainAgentId: mainAgentId,
-            },
-          };
-
-          let updatedModel = await db.AgentModel.update(
-            {
-              phoneNumber: phoneNumber,
-              phoneSid: sid,
-              phoneStatus: "active",
-              phonePurchasedAt: new Date(),
-            },
-            {
-              ...condition,
-            }
-          );
-          console.log('"Updated Local model"');
-          res.send({
-            status: true,
-            message: "Phone number purchased successfully",
-            data: {
-              sid: sid,
-              phoneNumber: phoneNumber,
-              // friendlyName: purchasedNumber.friendlyName,
-            },
-          });
-        } catch (error) {
-          res.status(500).send({
+        } else {
+          return res.send({
             status: false,
-            message: "Error purchasing phone number",
-            error: error.message,
+            message: `Phone number ${phoneNumber} has to be purchased`,
           });
         }
       } else {

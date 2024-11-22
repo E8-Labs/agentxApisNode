@@ -16,23 +16,23 @@ const User = (sequelize, Sequelize) => {
     // password: {
     //   type: Sequelize.STRING,
     // },
-    agentService: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      references: {
-        model: "AgentServices",
-        key: "id",
-      },
-    },
+    // agentService: {
+    //   type: Sequelize.INTEGER,
+    //   allowNull: true,
+    //   references: {
+    //     model: "AgentServices",
+    //     key: "id",
+    //   },
+    // },
 
-    areaOfFocus: {
-      type: Sequelize.INTEGER,
-      allowNull: false,
-      references: {
-        model: "AreaOfFocus",
-        key: "id",
-      },
-    },
+    // areaOfFocus: {
+    //   type: Sequelize.INTEGER,
+    //   allowNull: true,
+    //   references: {
+    //     model: "AreaOfFocus",
+    //     key: "id",
+    //   },
+    // },
     farm: {
       type: Sequelize.STRING, //"customer", "business", "admin"
       defaultValue: "",

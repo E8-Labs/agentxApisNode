@@ -133,10 +133,29 @@ export const RegisterUser = async (req, res) => {
     phone: phone,
     averageTransactionPerYear: averageTransactionPerYear,
     brokerage: brokerage,
-    agentService: agentService[0],
-    areaOfFocus: areaOfFocus[0],
+    // agentService: agentService[0],
+    // areaOfFocus: areaOfFocus[0],
     farm: farm,
   });
+
+  if (agentService && agentService.length > 0) {
+    for (let i = 0; i < agentService.length; i++) {
+      let service = agentService[i];
+      let created = await db.UserServicesModel.create({
+        userId: user.id,
+        agentService: service,
+      });
+    }
+  }
+  if (areaOfFocus && areaOfFocus.length > 0) {
+    for (let i = 0; i < areaOfFocus.length; i++) {
+      let service = areaOfFocus[i];
+      let created = await db.UserFocusModel.create({
+        userId: user.id,
+        areaOfFocus: service,
+      });
+    }
+  }
 
   // let agentModel = await db.AgentModel.create({
   //   areaOfFocus: areaOfFocus,
