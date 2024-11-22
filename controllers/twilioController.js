@@ -41,7 +41,7 @@ export const ListUsersAvailablePhoneNumbers = async (req, res) => {
             ],
             where: {
               userId: userId, // Filter by userId
-              status: "active", // only active phone numbers
+              phoneStatus: "active", // only active phone numbers
             },
             raw: true, // Return plain data instead of Sequelize objects
           });
