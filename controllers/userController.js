@@ -133,8 +133,8 @@ export const RegisterUser = async (req, res) => {
     phone: phone,
     averageTransactionPerYear: averageTransactionPerYear,
     brokerage: brokerage,
-    agentService: agentService,
-    areaOfFocus: areaOfFocus,
+    agentService: agentService[0],
+    areaOfFocus: areaOfFocus[0],
     farm: farm,
   });
 
@@ -158,6 +158,7 @@ export const RegisterUser = async (req, res) => {
       defaultColor: st.defaultColor,
       stageId: st.id,
       pipelineId: created.id,
+      identifier: st.identifier,
     });
   }
 
