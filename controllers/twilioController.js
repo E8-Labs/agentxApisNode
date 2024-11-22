@@ -223,7 +223,7 @@ export const AssignPhoneNumber = async (req, res) => {
         }
 
         //check phone number already bought. If yes then just assign and go back.
-        let phoneNumber = await db.UserPhoneNumbers.findOne({
+        let phoneNumberDB = await db.UserPhoneNumbers.findOne({
           where: {
             phone: phoneNumber,
             userId: user.id,
@@ -236,7 +236,7 @@ export const AssignPhoneNumber = async (req, res) => {
         });
 
         let alreadyPurchased = false;
-        if (phoneNumber && phoneNumber.phone) {
+        if (phoneNumberDB && phoneNumberDB.phone) {
           alreadyPurchased = false;
         }
         // for (let i = 0; i < mainAgents.length; i++) {
