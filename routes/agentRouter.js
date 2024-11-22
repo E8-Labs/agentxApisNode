@@ -17,6 +17,7 @@ import {
   ListAvailableNumbers,
   PurchasePhoneNumber,
   ListUsersAvailablePhoneNumbers,
+  AssignPhoneNumber,
 } from "../controllers/twilioController.js";
 
 const uploadFiles = multer().fields([
@@ -53,6 +54,12 @@ AgentRouter.post(
   verifyJwtToken,
   uploadFiles,
   PurchasePhoneNumber
+);
+AgentRouter.post(
+  "/assignPhoneNumber",
+  verifyJwtToken,
+  uploadFiles,
+  AssignPhoneNumber
 );
 
 //Kycs
