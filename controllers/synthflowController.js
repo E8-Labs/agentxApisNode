@@ -432,7 +432,7 @@ export const BuildAgent = async (req, res) => {
             address,
             mainAgentId: mainAgent.id,
             agentObjectiveId: agentObjectiveId,
-            prompt: selectedObjective.prompt,
+            // prompt: selectedObjective.prompt,
           };
           let createdAgent = await CreateAssistantSynthflow(
             data,
