@@ -141,6 +141,7 @@ export const RegisterUser = async (req, res) => {
   if (agentService && agentService.length > 0) {
     for (let i = 0; i < agentService.length; i++) {
       let service = agentService[i];
+      console.log("Adding Service", service);
       let created = await db.UserServicesModel.create({
         userId: user.id,
         agentService: service,
@@ -150,6 +151,7 @@ export const RegisterUser = async (req, res) => {
   if (areaOfFocus && areaOfFocus.length > 0) {
     for (let i = 0; i < areaOfFocus.length; i++) {
       let service = areaOfFocus[i];
+      console.log("Adding Focus", service);
       let created = await db.UserFocusModel.create({
         userId: user.id,
         areaOfFocus: service,
