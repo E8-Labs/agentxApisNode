@@ -86,7 +86,7 @@ async function getUserData(pipeline, currentUser = null) {
     stages: await PipelineStageResource(stages),
     cadences: await PipelineCadenceResource(cadences),
     leads: leads,
-    leadsCountInStage,
+    leadsCountInStage: stageLeads,
   };
 
   return PipelineResource;
