@@ -252,8 +252,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         );
         let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
         console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
-        if (diff > 60 * 24) {
-          // greater than total minutes in a day
+        if (diff > 5) {
+          //60 * 24
+          // greater than total minutes in a day = 60 * 24
           //move to next stage for now
           console.log(
             "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
