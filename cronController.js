@@ -203,7 +203,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
     });
     if (!cadence) {
       console.log(
-        "CronRunCadenceCallsSubsequentStages: Cadence have no active leads"
+        `CronRunCadenceCallsSubsequentStages: Cadence have no active leads ${leadCad.mainAgentId} | ${leadCad.stage} | ${leadCad.pipelineId}`
       );
       return;
     }
