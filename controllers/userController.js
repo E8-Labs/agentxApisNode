@@ -139,6 +139,7 @@ export const RegisterUser = async (req, res) => {
   });
 
   if (agentService && agentService.length > 0) {
+    agentService = JSON.parse(agentService);
     for (let i = 0; i < agentService.length; i++) {
       let service = agentService[i];
       console.log("Adding Service", service);
@@ -149,6 +150,7 @@ export const RegisterUser = async (req, res) => {
     }
   }
   if (areaOfFocus && areaOfFocus.length > 0) {
+    areaOfFocus = JSON.parse(areaOfFocus);
     for (let i = 0; i < areaOfFocus.length; i++) {
       let service = areaOfFocus[i];
       console.log("Adding Focus", service);
