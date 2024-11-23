@@ -265,55 +265,56 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
           );
         }
-        return;
-      }
-      //Get the next call from callCadence to be sent
-      console.log(
-        "CronRunCadenceCallsSubsequentStages: Next call to be sent is ",
-        calls.length + 1
-      );
-
-      let nextCadenceCall = callCadence[calls.length];
-
-      let waitTime =
-        Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
-        Number(nextCadenceCall.waitTimeHours) * 60 +
-        Number(nextCadenceCall.waitTimeMinutes);
-      console.log(
-        `CronRunCadenceCallsSubsequentStages: Total wait time for next call  ${waitTime} min`
-      );
-
-      let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
-      console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
-      if (diff > waitTime) {
+        // return;
+      } else {
+        //Get the next call from callCadence to be sent
         console.log(
-          "CronRunCadenceCallsSubsequentStages: Next call should be placed"
+          "CronRunCadenceCallsSubsequentStages: Next call to be sent is ",
+          calls.length + 1
         );
-        let sent = await db.LeadCallsSent.create({
-          leadId: leadCad.leadId,
-          leadCadenceId: leadCad.id,
-          callTriggerTime: new Date(),
-          synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
-          stage: leadCad.stage,
-          status: "",
-        });
-        //+ 1 because one new call is sent just now
-        if (calls.length + 1 == callCadence.length) {
-          // we will not move the lead to new stage after we setup webhook from synthflow.
-          //There we will add this logic. This is just for testing now.
+
+        let nextCadenceCall = callCadence[calls.length];
+
+        let waitTime =
+          Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
+          Number(nextCadenceCall.waitTimeHours) * 60 +
+          Number(nextCadenceCall.waitTimeMinutes);
+        console.log(
+          `CronRunCadenceCallsSubsequentStages: Total wait time for next call  ${waitTime} min`
+        );
+
+        let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
+        console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
+        if (diff > waitTime) {
           console.log(
-            "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
+            "CronRunCadenceCallsSubsequentStages: Next call should be placed"
           );
-          leadCad.stage = cadence.moveToStage;
-          let saved = await leadCad.save();
+          let sent = await db.LeadCallsSent.create({
+            leadId: leadCad.leadId,
+            leadCadenceId: leadCad.id,
+            callTriggerTime: new Date(),
+            synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
+            stage: leadCad.stage,
+            status: "",
+          });
+          //+ 1 because one new call is sent just now
+          if (calls.length + 1 == callCadence.length) {
+            // we will not move the lead to new stage after we setup webhook from synthflow.
+            //There we will add this logic. This is just for testing now.
+            console.log(
+              "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
+            );
+            leadCad.stage = cadence.moveToStage;
+            let saved = await leadCad.save();
+            console.log(
+              "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
+            );
+          }
+        } else {
           console.log(
-            "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
+            "CronRunCadenceCallsSubsequentStages: Difference is small so next call can not be placed"
           );
         }
-      } else {
-        console.log(
-          "CronRunCadenceCallsSubsequentStages: Difference is small so next call can not be placed"
-        );
       }
     } else {
       //This will never be satisfied for this cron
