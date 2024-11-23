@@ -132,6 +132,11 @@ export const GetPipelines = async (req, res) => {
 export const CreatePipelineCadence = async (req, res) => {
   let { pipelineId, cadence, mainAgentId } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    console.log("DataCreatePipelineCadence", {
+      pipelineId,
+      cadence,
+      mainAgentId,
+    });
     if (authData) {
       let userId = authData.user.id;
       let user = await db.User.findOne({
