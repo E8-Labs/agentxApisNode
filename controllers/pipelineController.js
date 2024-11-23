@@ -225,7 +225,8 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       //Get New Lead Stage of the Pipeline
       let stage = await db.PipelineStages.findOne({
         where: {
-          stageTitle: "New Lead",
+          identifier: "new_lead",
+          pipelineId: pipelineId,
         },
         order: [["createdAt", "ASC"]],
       });
