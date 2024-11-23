@@ -434,11 +434,11 @@ export const BuildAgent = async (req, res) => {
             agentObjectiveId: agentObjectiveId,
             prompt: selectedObjective.prompt,
           };
-          // let createdAgent = await CreateAssistantSynthflow(
-          //   data,
-          //   agentType,
-          //   mainAgent
-          // );
+          let createdAgent = await CreateAssistantSynthflow(
+            data,
+            agentType,
+            mainAgent
+          );
         }
 
         let agentRes = await AgentResource(mainAgent);
