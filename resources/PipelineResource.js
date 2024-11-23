@@ -45,12 +45,6 @@ async function getUserData(pipeline, currentUser = null) {
   //     },
   //   });
 
-  let stages = await db.PipelineStages.findAll({
-    where: {
-      pipelineId: pipeline.id,
-    },
-  });
-
   //Find Leads assigned to this pipeline
   let leadCadences = await db.LeadCadence.findAll({
     where: {
@@ -69,6 +63,12 @@ async function getUserData(pipeline, currentUser = null) {
     // }
   }
 
+  let stages = await db.PipelineStages.findAll({
+    where: {
+      pipelineId: pipeline.id,
+    },
+  });
+  let stageLeads = {};
   for (let i = 0; i < stages.length; i++) {
     let st = stages[i];
     //count total leads in this stage
@@ -78,7 +78,7 @@ async function getUserData(pipeline, currentUser = null) {
         count += 1;
       }
     });
-    stages[i].totalLeads = count;
+    stageLeads[st.id] = count;
   }
 
   const PipelineResource = {
@@ -86,6 +86,7 @@ async function getUserData(pipeline, currentUser = null) {
     stages: await PipelineStageResource(stages),
     cadences: await PipelineCadenceResource(cadences),
     leads: leads,
+    leadsCountInStage,
   };
 
   return PipelineResource;
