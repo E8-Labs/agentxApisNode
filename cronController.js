@@ -348,11 +348,11 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
 
 // CronRunCadenceCallsSubsequentStages();
 
-// const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
-//   "*/1 * * * *",
-//   CronRunCadenceCallsFirstBatch
-// );
-// CronRunCadenceCallsFirstBatchCron.start();
+const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
+  "*/1 * * * *",
+  CronRunCadenceCallsFirstBatch
+);
+CronRunCadenceCallsFirstBatchCron.start();
 
 const CronRunCadenceCallsSubsequentStagesCron = nodeCron.schedule(
   "*/1 * * * *",
