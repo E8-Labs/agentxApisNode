@@ -239,6 +239,7 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
             status: {
               [db.Sequelize.Op.ne]: CadenceStatus.Paused, // Status not equal to 'Paused'
             },
+            leadId: { [db.Sequelize.Op.in]: leadIds },
             pipelineId: pipelineId,
           },
         }
