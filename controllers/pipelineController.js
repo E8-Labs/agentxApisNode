@@ -213,6 +213,7 @@ export const CreatePipelineCadence = async (req, res) => {
 export const AssignLeadsToPipelineAndAgents = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     let { pipelineId, mainAgentIds, leadIds } = req.body;
+    console.log("Data in assign leads", { pipelineId, mainAgentIds, leadIds });
     if (authData) {
       let userId = authData.user.id;
       let user = await db.User.findOne({
