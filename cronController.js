@@ -236,6 +236,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       },
       order: [["createdAt", "ASC"]],
     });
+    let lastCall = calls[calls.length - 1];
     if (calls && calls.length > 0) {
       console.log(
         "CronRunCadenceCallsSubsequentStages: Calls sent to this lead ",
@@ -243,9 +244,26 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       );
       if (calls.length == callCadence.length) {
         //Don't send calls
+        //All calls are sent to this lead already so we have to determine whether we push it to the next stage or do what?
+        //We can either move the lead cadence to the next stage or leave it to the outcome of the call.
+        //If we want the outcome to be determined based on call log first then wait for call log else
         console.log(
           "CronRunCadenceCallsSubsequentStages: Don't send calls. Already sent calls for this lead cadence"
         );
+        let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
+        console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
+        if (diff > 60 * 24) {
+          // greater than total minutes in a day
+          //move to next stage for now
+          console.log(
+            "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
+          );
+          leadCad.stage = cadence.moveToStage;
+          let saved = await leadCad.save();
+          console.log(
+            "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
+          );
+        }
         return;
       }
       //Get the next call from callCadence to be sent
@@ -253,7 +271,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         "CronRunCadenceCallsSubsequentStages: Next call to be sent is ",
         calls.length + 1
       );
-      let lastCall = calls[calls.length - 1];
+
       let nextCadenceCall = callCadence[calls.length];
 
       let waitTime =
