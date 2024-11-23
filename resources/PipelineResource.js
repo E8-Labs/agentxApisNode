@@ -69,6 +69,18 @@ async function getUserData(pipeline, currentUser = null) {
     // }
   }
 
+  for (let i = 0; i < stages.length; i++) {
+    let st = stages[i];
+    //count total leads in this stage
+    let count = 0;
+    leads.map((item) => {
+      if (item.stage == st.id) {
+        count += 1;
+      }
+    });
+    stages[i].totalLeads = count;
+  }
+
   const PipelineResource = {
     ...pipeline.get(),
     stages: await PipelineStageResource(stages),
