@@ -7,6 +7,8 @@ const UserFocusModel = (sequelize, Sequelize) => {
         model: "AreaOfFocus",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     userId: {
       type: Sequelize.INTEGER,
@@ -15,6 +17,8 @@ const UserFocusModel = (sequelize, Sequelize) => {
         model: "Users",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
   });
 

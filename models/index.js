@@ -4,23 +4,21 @@ import AreaOfFocus from "./user/areaOfFocus.js";
 import AgentService from "./user/agentService.js";
 import AgentModel from "./user/agentModel.js";
 import MainAgentModel from "./user/mainAgentModel.js";
+import AgentPromptModel from "./user/agentPromptModel.js";
 import { KycExampleModel, KycModel } from "./user/kycModel.js";
 
 import Sequelize from "sequelize";
-
 import {
   createAreaOfFocusValues,
   createAgentServices,
   createAgentDefaultRoles,
   addDefaultStages,
 } from "../utils/createPredefinedData.js";
+
 import AgentRole from "./user/agentRole.js";
-import AgentModelSynthflow from "./user/mainAgentModel.js";
 import Stages from "./pipeline/stages.js";
 import LeadModel from "./lead/lead.js";
-import { se } from "date-fns/locale";
 import Pipeline from "./pipeline/pipeline.js";
-// import PipelineAssignedAgent from "./pipeline/pipelineAssignedAgent.js";
 import PipelineCadence from "./pipeline/pipelineCadence.js";
 import LeadCadence from "./pipeline/LeadsCadence.js";
 import CadenceCalls from "./pipeline/cadenceCalls.js";
@@ -30,7 +28,6 @@ import LeadCallsSent from "./pipeline/LeadCallsSent.js";
 import UserFocusModel from "./user/userFocusModel.js";
 import UserServicesModel from "./user/userServicesModel.js";
 import UserPhoneNumbers from "./user/userPhoneModel.js";
-// import AgentStages from "./pipeline/agentStages.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -56,80 +53,42 @@ let models = {};
 db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
+// Define models
 db.AreaOfFocus = AreaOfFocus(sequelize, Sequelize);
+db.AgentService = AgentService(sequelize, Sequelize);
+db.User = User(sequelize, Sequelize);
+db.UserFocusModel = UserFocusModel(sequelize, Sequelize);
+db.UserServicesModel = UserServicesModel(sequelize, Sequelize);
+db.UserPhoneNumbers = UserPhoneNumbers(sequelize, Sequelize);
+db.AgentRole = AgentRole(sequelize, Sequelize);
+db.MainAgentModel = MainAgentModel(sequelize, Sequelize);
+db.AgentPromptModel = AgentPromptModel(sequelize, Sequelize);
+db.AgentModel = AgentModel(sequelize, Sequelize);
+db.KycModel = KycModel(sequelize, Sequelize);
+db.KycExampleModel = KycExampleModel(sequelize, Sequelize);
+
+// Pipeline models
+db.Stages = Stages(sequelize, Sequelize);
+db.LeadSheetModel = LeadSheetModel(sequelize, Sequelize);
+db.LeadModel = LeadModel(sequelize, Sequelize);
+db.Pipeline = Pipeline(sequelize, Sequelize);
+db.PipelineStages = PipelineStages(sequelize, Sequelize);
+db.PipelineCadence = PipelineCadence(sequelize, Sequelize);
+db.CadenceCalls = CadenceCalls(sequelize, Sequelize);
+db.LeadCadence = LeadCadence(sequelize, Sequelize);
+db.LeadCallsSent = LeadCallsSent(sequelize, Sequelize);
+
+// Run predefined setup
 models["AreaOfFocus"] = db.AreaOfFocus;
 await createAreaOfFocusValues(db);
-
-db.AgentService = AgentService(sequelize, Sequelize);
 models["AgentService"] = db.AgentService;
 await createAgentServices(db);
-
-db.User = User(sequelize, Sequelize);
-models["User"] = db.User;
-
-db.UserFocusModel = UserFocusModel(sequelize, Sequelize);
-models["UserFocusModel"] = db.UserFocusModel;
-
-db.UserServicesModel = UserServicesModel(sequelize, Sequelize);
-models["UserServicesModel"] = db.UserServicesModel;
-
-db.UserPhoneNumbers = UserPhoneNumbers(sequelize, Sequelize);
-models["UserPhoneNumbers"] = db.UserPhoneNumbers;
-
-db.AgentRole = AgentRole(sequelize, Sequelize);
 models["AgentRole"] = db.AgentRole;
 await createAgentDefaultRoles(db);
-
-db.MainAgentModel = MainAgentModel(sequelize, Sequelize);
-models["MainAgentModel"] = db.MainAgentModel;
-
-db.AgentModel = AgentModel(sequelize, Sequelize);
-models["AgentModel"] = db.AgentModel;
-
-db.KycModel = KycModel(sequelize, Sequelize);
-models["KycModel"] = db.KycModel;
-
-db.KycExampleModel = KycExampleModel(sequelize, Sequelize);
-models["KycExampleModel"] = db.KycExampleModel;
-
-//Pipeline
-db.Stages = Stages(sequelize, Sequelize);
 models["Stages"] = db.Stages;
-addDefaultStages(db);
+await addDefaultStages(db);
 
-db.LeadSheetModel = LeadSheetModel(sequelize, Sequelize);
-models["LeadSheetModel"] = db.LeadSheetModel;
-
-db.LeadModel = LeadModel(sequelize, Sequelize);
-models["LeadModel"] = db.LeadModel;
-
-db.Pipeline = Pipeline(sequelize, Sequelize);
-models["Pipeline"] = db.Pipeline;
-
-db.PipelineStages = PipelineStages(sequelize, Sequelize);
-models["PipelineStages"] = db.PipelineStages;
-
-// db.AgentStages = AgentStages(sequelize, Sequelize);
-// models["AgentStages"] = db.AgentStages;
-
-// db.PipelineAssignedAgent = PipelineAssignedAgent(sequelize, Sequelize);
-// models["PipelineAssignedAgent"] = db.PipelineAssignedAgent;
-
-db.PipelineCadence = PipelineCadence(sequelize, Sequelize);
-models["PipelineCadence"] = db.PipelineCadence;
-
-db.CadenceCalls = CadenceCalls(sequelize, Sequelize);
-models["CadenceCalls"] = db.CadenceCalls;
-
-db.LeadCadence = LeadCadence(sequelize, Sequelize);
-models["LeadCadence"] = db.LeadCadence;
-
-db.LeadCallsSent = LeadCallsSent(sequelize, Sequelize);
-models["LeadCallsSent"] = db.LeadCallsSent;
-
-// db.AgentModelSynthflow = AgentModelSynthflow(sequelize, Sequelize);
-// models["AgentModelSynthflow"] = db.AgentModelSynthflow;
-
+// Model associations
 Object.keys(models).forEach((modelName) => {
   if (models[modelName].associate) {
     models[modelName].associate(models);

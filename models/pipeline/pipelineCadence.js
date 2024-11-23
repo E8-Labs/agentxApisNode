@@ -27,6 +27,8 @@ const PipelineCadence = (sequelize, Sequelize) => {
         model: "Pipelines",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     moveToStage: {
       type: Sequelize.INTEGER,

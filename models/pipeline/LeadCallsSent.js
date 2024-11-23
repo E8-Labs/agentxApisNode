@@ -28,6 +28,8 @@ const LeadCallsSent = (sequelize, Sequelize) => {
         model: "LeadModels",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     leadCadenceId: {
       type: Sequelize.INTEGER,
@@ -36,6 +38,8 @@ const LeadCallsSent = (sequelize, Sequelize) => {
         model: "LeadCadences",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     stage: {
       type: Sequelize.INTEGER,
@@ -94,6 +98,8 @@ const LeadCallsSent = (sequelize, Sequelize) => {
         model: "MainAgentModels", // Table name (plural form)
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
   });
 

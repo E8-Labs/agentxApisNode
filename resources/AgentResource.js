@@ -74,11 +74,19 @@ async function getUserData(mainAgent, currentUser = null) {
     }
   }
 
+  let prompt = await db.AgentPromptModel.findOne({
+    where: {
+      mainAgentId: mainAgent.id,
+    },
+  });
+
   const AgentResource = {
     ...mainAgent.get(),
     agents: agents,
     stages: stages,
     pipeline: pipeline,
+    greeting: prompt?.greeting || "",
+    callScript: prompt?.callScript || "",
   };
 
   return AgentResource;

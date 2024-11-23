@@ -35,6 +35,8 @@ const AgentModel = (sequelize, Sequelize) => {
         model: "MainAgentModels",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     userId: {
       type: Sequelize.INTEGER,
@@ -43,6 +45,8 @@ const AgentModel = (sequelize, Sequelize) => {
         model: "Users",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     agentType: {
       type: Sequelize.ENUM,

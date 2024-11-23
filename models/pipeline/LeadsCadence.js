@@ -15,6 +15,8 @@ const LeadCadence = (sequelize, Sequelize) => {
         model: "Pipelines",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
 
     mainAgentId: {
@@ -24,6 +26,8 @@ const LeadCadence = (sequelize, Sequelize) => {
         model: "MainAgentModels",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     leadId: {
       type: Sequelize.INTEGER,
@@ -32,6 +36,8 @@ const LeadCadence = (sequelize, Sequelize) => {
         model: "LeadModels",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     stage: {
       type: Sequelize.INTEGER,

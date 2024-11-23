@@ -367,6 +367,33 @@ export const BuildAgent = async (req, res) => {
       }
 
       try {
+        //Create Prompt
+        let greeting = selectedObjective.prompt.greeting;
+        greeting = greeting.replace(/{agent_name}/g, name);
+        greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
+
+        let callScript = selectedObjective.prompt.callScript;
+        callScript = callScript.replace(/{agent_name}/g, name);
+        callScript = callScript.replace(/{brokerage_name}/g, user.brokerage);
+
+        if (selectedObjective.prompt) {
+          let prompt = await db.AgentPromptModel.create({
+            mainAgentId: mainAgent.id,
+            objective: selectedObjective.prompt.objective,
+            companyAgentInfo: selectedObjective.prompt.companyAgentInfo,
+            personalCharacteristics:
+              selectedObjective.prompt.personalCharacteristics,
+            //
+            communication: selectedObjective.prompt.communication,
+            callScript: callScript,
+            booking: selectedObjective.prompt.booking,
+            getTools: selectedObjective.prompt.getTools,
+            greeting: greeting,
+            guardRails: selectedObjective.prompt.guardRails,
+            objectionHandling: selectedObjective.prompt.objectionHandling,
+            streetAddress: selectedObjective.prompt.streetAddress,
+          });
+        }
         if (agentType == "both") {
           //create Agent Sythflow
           let data = {
@@ -380,8 +407,9 @@ export const BuildAgent = async (req, res) => {
             address,
             mainAgentId: mainAgent.id,
             agentObjectiveId: agentObjectiveId,
-            prompt: selectedObjective.prompt,
+            // prompt: selectedObjective.prompt,
           };
+
           let createdInbound = await CreateAssistantSynthflow(
             data,
             "inbound",
@@ -406,11 +434,11 @@ export const BuildAgent = async (req, res) => {
             agentObjectiveId: agentObjectiveId,
             prompt: selectedObjective.prompt,
           };
-          let createdAgent = await CreateAssistantSynthflow(
-            data,
-            agentType,
-            mainAgent
-          );
+          // let createdAgent = await CreateAssistantSynthflow(
+          //   data,
+          //   agentType,
+          //   mainAgent
+          // );
         }
 
         let agentRes = await AgentResource(mainAgent);
@@ -420,6 +448,7 @@ export const BuildAgent = async (req, res) => {
           data: agentRes,
         });
       } catch (error) {
+        console.log(error);
         res.send({
           status: false,
           message: error.message,

@@ -23,6 +23,8 @@ const CadenceCalls = (sequelize, Sequelize) => {
         model: "PipelineCadences",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
 
     waitTimeMinutes: {

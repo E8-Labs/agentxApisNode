@@ -161,7 +161,7 @@ export async function addDefaultStages(db) {
     },
 
     {
-      id: 4,
+      id: 3,
       title: "Hot Lead",
       identifier: "hot_lead",
       description: "Hot Lead",
@@ -169,7 +169,7 @@ export async function addDefaultStages(db) {
       order: 40,
     },
     {
-      id: 5,
+      id: 4,
       title: "Booked",
       identifier: "booked",
       description: "Booked",
@@ -177,7 +177,7 @@ export async function addDefaultStages(db) {
       order: 50,
     },
     {
-      id: 6,
+      id: 5,
       title: "No Show",
       identifier: "no_show",
       description: "No Show",
@@ -185,7 +185,7 @@ export async function addDefaultStages(db) {
       order: 60,
     },
     {
-      id: 7,
+      id: 6,
       title: "Not Interested",
       identifier: "not_interested",
       description: "Not Interested",
@@ -193,7 +193,7 @@ export async function addDefaultStages(db) {
       order: 70,
     },
     {
-      id: 8,
+      id: 7,
       title: "Unresponsive",
       identifier: "unresponsive",
       description: "Unresponsive",
@@ -201,7 +201,7 @@ export async function addDefaultStages(db) {
       order: 80,
     },
     {
-      id: 9,
+      id: 8,
       title: "No Stage",
       identifier: "no_stage",
       description: "No Stage",

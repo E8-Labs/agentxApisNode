@@ -24,6 +24,8 @@ const PipelineStages = (sequelize, Sequelize) => {
         model: "Pipelines",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     identifier: {
       type: Sequelize.STRING,
