@@ -205,104 +205,58 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       console.log(
         `CronRunCadenceCallsSubsequentStages: Cadence have no active leads ${leadCad.mainAgentId} | ${leadCad.stage} | ${leadCad.pipelineId}`
       );
-      return;
-    }
+      // return;
+    } else {
+      // console.log(
+      //   `Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${leadCad.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
+      // );
 
-    // console.log(
-    //   `Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${leadCad.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
-    // );
+      //Get Call Schedule for the lead Stage
+      let callCadence = await db.CadenceCalls.findAll({
+        where: {
+          pipelineCadenceId: cadence.id,
+        },
+      });
 
-    //Get Call Schedule for the lead Stage
-    let callCadence = await db.CadenceCalls.findAll({
-      where: {
-        pipelineCadenceId: cadence.id,
-      },
-    });
-
-    console.log(
-      "CronRunCadenceCallsSubsequentStages: Found schedule",
-      callCadence.length
-    );
-
-    //decide should we send call or not?
-    //If initial call then check when the leadCadence was created and find the difference between lead cadence creation & Now.
-    //If the distance is greater than the next call duration then make that call.
-
-    //Checking number of calls sent to this lead
-    let calls = await db.LeadCallsSent.findAll({
-      where: {
-        leadCadenceId: leadCad.id,
-        stage: leadCad.stage,
-      },
-      order: [["createdAt", "ASC"]],
-    });
-    let lastCall = calls[calls.length - 1];
-    if (calls && calls.length > 0) {
       console.log(
-        "CronRunCadenceCallsSubsequentStages: Calls sent to this lead ",
-        calls.length
+        "CronRunCadenceCallsSubsequentStages: Found schedule",
+        callCadence.length
       );
-      if (calls.length == callCadence.length) {
-        //Don't send calls
-        //All calls are sent to this lead already so we have to determine whether we push it to the next stage or do what?
-        //We can either move the lead cadence to the next stage or leave it to the outcome of the call.
-        //If we want the outcome to be determined based on call log first then wait for call log else
-        console.log(
-          "CronRunCadenceCallsSubsequentStages: Don't send calls. Already sent calls for this lead cadence"
-        );
-        let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
-        console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
-        if (diff > 5) {
-          //60 * 24
-          // greater than total minutes in a day = 60 * 24
-          //move to next stage for now
-          console.log(
-            "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
-          );
-          leadCad.stage = cadence.moveToStage;
-          let saved = await leadCad.save();
-          console.log(
-            "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
-          );
-        }
-        // return;
-      } else {
-        //Get the next call from callCadence to be sent
-        console.log(
-          "CronRunCadenceCallsSubsequentStages: Next call to be sent is ",
-          calls.length + 1
-        );
 
-        let nextCadenceCall = callCadence[calls.length];
+      //decide should we send call or not?
+      //If initial call then check when the leadCadence was created and find the difference between lead cadence creation & Now.
+      //If the distance is greater than the next call duration then make that call.
 
-        let waitTime =
-          Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
-          Number(nextCadenceCall.waitTimeHours) * 60 +
-          Number(nextCadenceCall.waitTimeMinutes);
+      //Checking number of calls sent to this lead
+      let calls = await db.LeadCallsSent.findAll({
+        where: {
+          leadCadenceId: leadCad.id,
+          stage: leadCad.stage,
+        },
+        order: [["createdAt", "ASC"]],
+      });
+      let lastCall = calls[calls.length - 1];
+      if (calls && calls.length > 0) {
         console.log(
-          `CronRunCadenceCallsSubsequentStages: Total wait time for next call  ${waitTime} min`
+          "CronRunCadenceCallsSubsequentStages: Calls sent to this lead ",
+          calls.length
         );
-
-        let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
-        console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
-        if (diff > waitTime) {
+        if (calls.length == callCadence.length) {
+          //Don't send calls
+          //All calls are sent to this lead already so we have to determine whether we push it to the next stage or do what?
+          //We can either move the lead cadence to the next stage or leave it to the outcome of the call.
+          //If we want the outcome to be determined based on call log first then wait for call log else
           console.log(
-            "CronRunCadenceCallsSubsequentStages: Next call should be placed"
+            "CronRunCadenceCallsSubsequentStages: Don't send calls. Already sent calls for this lead cadence"
           );
-          let sent = await db.LeadCallsSent.create({
-            leadId: leadCad.leadId,
-            leadCadenceId: leadCad.id,
-            callTriggerTime: new Date(),
-            synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
-            stage: leadCad.stage,
-            status: "",
-          });
-          //+ 1 because one new call is sent just now
-          if (calls.length + 1 == callCadence.length) {
-            // we will not move the lead to new stage after we setup webhook from synthflow.
-            //There we will add this logic. This is just for testing now.
+          let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
+          console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
+          if (diff > 5) {
+            //60 * 24
+            // greater than total minutes in a day = 60 * 24
+            //move to next stage for now
             console.log(
-              "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
+              "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
             );
             leadCad.stage = cadence.moveToStage;
             let saved = await leadCad.save();
@@ -310,35 +264,81 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
             );
           }
+          // return;
         } else {
+          //Get the next call from callCadence to be sent
           console.log(
-            "CronRunCadenceCallsSubsequentStages: Difference is small so next call can not be placed"
+            "CronRunCadenceCallsSubsequentStages: Next call to be sent is ",
+            calls.length + 1
           );
+
+          let nextCadenceCall = callCadence[calls.length];
+
+          let waitTime =
+            Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
+            Number(nextCadenceCall.waitTimeHours) * 60 +
+            Number(nextCadenceCall.waitTimeMinutes);
+          console.log(
+            `CronRunCadenceCallsSubsequentStages: Total wait time for next call  ${waitTime} min`
+          );
+
+          let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
+          console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
+          if (diff > waitTime) {
+            console.log(
+              "CronRunCadenceCallsSubsequentStages: Next call should be placed"
+            );
+            let sent = await db.LeadCallsSent.create({
+              leadId: leadCad.leadId,
+              leadCadenceId: leadCad.id,
+              callTriggerTime: new Date(),
+              synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
+              stage: leadCad.stage,
+              status: "",
+            });
+            //+ 1 because one new call is sent just now
+            if (calls.length + 1 == callCadence.length) {
+              // we will not move the lead to new stage after we setup webhook from synthflow.
+              //There we will add this logic. This is just for testing now.
+              console.log(
+                "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
+              );
+              leadCad.stage = cadence.moveToStage;
+              let saved = await leadCad.save();
+              console.log(
+                "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
+              );
+            }
+          } else {
+            console.log(
+              "CronRunCadenceCallsSubsequentStages: Difference is small so next call can not be placed"
+            );
+          }
         }
-      }
-    } else {
-      //This will never be satisfied for this cron
-      console.log(
-        "CronRunCadenceCallsSubsequentStages: Started: No call already sent"
-      );
+      } else {
+        //This will never be satisfied for this cron
+        console.log(
+          "CronRunCadenceCallsSubsequentStages: Started: No call already sent"
+        );
 
-      //send call after checking whether the first call wait time is already passed
-      //calculate time with initial leadCadence creation and now.
-      let sent = await db.LeadCallsSent.create({
-        leadId: leadCad.leadId,
-        leadCadenceId: leadCad.id,
-        callTriggerTime: new Date(),
-        synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
-        stage: leadCad.stage,
-        status: "",
-      });
+        //send call after checking whether the first call wait time is already passed
+        //calculate time with initial leadCadence creation and now.
+        let sent = await db.LeadCallsSent.create({
+          leadId: leadCad.leadId,
+          leadCadenceId: leadCad.id,
+          callTriggerTime: new Date(),
+          synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
+          stage: leadCad.stage,
+          status: "",
+        });
 
-      if (sent) {
-        //set the lead cadence status to Started so that next time it don't get pushed to the funnel
-        leadCad.callTriggerTime = new Date();
-        leadCad.status = CadenceStatus.Started;
-        let saved = await leadCad.save();
-        console.log("CronRunCadenceCallsSubsequentStages: CallSent now");
+        if (sent) {
+          //set the lead cadence status to Started so that next time it don't get pushed to the funnel
+          leadCad.callTriggerTime = new Date();
+          leadCad.status = CadenceStatus.Started;
+          let saved = await leadCad.save();
+          console.log("CronRunCadenceCallsSubsequentStages: CallSent now");
+        }
       }
     }
   }
