@@ -128,7 +128,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           leadId: leadCad.leadId,
           leadCadenceId: leadCad.id,
           callTriggerTime: new Date(),
-          synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}`,
+          synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
           stage: leadCad.stage,
         });
       } else {
@@ -143,7 +143,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         leadId: leadCad.leadId,
         leadCadenceId: leadCad.id,
         callTriggerTime: new Date(),
-        synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}`,
+        synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
         stage: leadCad.stage,
         status: "",
       });
@@ -293,7 +293,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           leadId: leadCad.leadId,
           leadCadenceId: leadCad.id,
           callTriggerTime: new Date(),
-          synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}`,
+          synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
           stage: leadCad.stage,
           status: "",
         });
@@ -327,7 +327,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         leadId: leadCad.leadId,
         leadCadenceId: leadCad.id,
         callTriggerTime: new Date(),
-        synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}`,
+        synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
         stage: leadCad.stage,
         status: "",
       });
