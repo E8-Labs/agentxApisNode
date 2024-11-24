@@ -148,7 +148,7 @@ export async function addDefaultStages(db) {
       title: "New Lead",
       identifier: "new_lead",
       description: "New Lead",
-      defaultColor: "red",
+      defaultColor: "#15151510",
       order: 10,
     },
     {
@@ -156,7 +156,7 @@ export async function addDefaultStages(db) {
       title: "Follow Up",
       identifier: "follow_up",
       description: "Follow Up",
-      defaultColor: "Orange",
+      defaultColor: "#FF6600",
       order: 20,
     },
 
@@ -165,7 +165,7 @@ export async function addDefaultStages(db) {
       title: "Hot Lead",
       identifier: "hot_lead",
       description: "Hot Lead",
-      defaultColor: "yellow",
+      defaultColor: "#E53935",
       order: 40,
     },
     {
@@ -173,7 +173,7 @@ export async function addDefaultStages(db) {
       title: "Booked",
       identifier: "booked",
       description: "Booked",
-      defaultColor: "green",
+      defaultColor: "#00D335",
       order: 50,
     },
     {
@@ -181,7 +181,7 @@ export async function addDefaultStages(db) {
       title: "No Show",
       identifier: "no_show",
       description: "No Show",
-      defaultColor: "red",
+      defaultColor: "#8E24AA",
       order: 60,
     },
     {
@@ -189,7 +189,7 @@ export async function addDefaultStages(db) {
       title: "Not Interested",
       identifier: "not_interested",
       description: "Not Interested",
-      defaultColor: "purple",
+      defaultColor: "#00D335",
       order: 70,
     },
     {
@@ -197,7 +197,7 @@ export async function addDefaultStages(db) {
       title: "Unresponsive",
       identifier: "unresponsive",
       description: "Unresponsive",
-      defaultColor: "magenta",
+      defaultColor: "#F27C7C",
       order: 80,
     },
     {
@@ -205,7 +205,7 @@ export async function addDefaultStages(db) {
       title: "No Stage",
       identifier: "no_stage",
       description: "No Stage",
-      defaultColor: "magenta",
+      defaultColor: "#E53935",
       order: 80,
     },
   ];

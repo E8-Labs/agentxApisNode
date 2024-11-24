@@ -41,9 +41,39 @@ app.use((req, res, next) => {
 });
 
 //http://localhost:3000
+// app.use(
+//   cors({
+//     origin: process.env.AppHost, //https://voiceai-ruby.vercel.app
+//     methods: ["GET", "POST"],
+//     allowedHeaders: ["Content-Type", "Authorization"],
+//     credentials: true,
+//   })
+// );
+
+// app.options("*", (req, res) => {
+//   res.header("Access-Control-Allow-Origin", process.env.AppHost);
+//   res.header("Access-Control-Allow-Methods", "GET, POST");
+//   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//   res.header("Access-Control-Allow-Credentials", "true");
+//   res.sendStatus(200);
+// });
+
+const allowedOrigins = [
+  "https://agentx-umber.vercel.app",
+  "http://localhost:3000",
+  "https://yet-another-allowed-origin.com",
+];
+
 app.use(
   cors({
-    origin: process.env.AppHost, //https://voiceai-ruby.vercel.app
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        // Allow requests with no origin (like mobile apps or curl requests) or if the origin is in the list
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,
@@ -51,7 +81,7 @@ app.use(
 );
 
 app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Origin", process.env.AppHost);
+  res.header("Access-Control-Allow-Origin", req.header("Origin")); // Dynamically set based on request origin
   res.header("Access-Control-Allow-Methods", "GET, POST");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.header("Access-Control-Allow-Credentials", "true");
