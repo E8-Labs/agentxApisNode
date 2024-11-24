@@ -16,6 +16,7 @@ import AgentResource from "../resources/AgentResource.js";
 import LeadCadence from "../models/pipeline/LeadsCadence.js";
 import { InfoExtractors } from "../config/defaultInfoExtractors.js";
 import { AgentObjectives } from "../constants/defaultAgentObjectives.js";
+import AgentPromptModel from "../models/user/agentPromptModel.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -512,12 +513,26 @@ export const UpdateAgent = async (req, res) => {
       }
 
       if (req.body.prompt) {
-        for (let i = 0; i < agents.length; i++) {
-          let a = agents[i];
-          a.prompt = req.body.prompt;
-          let saved = await a.save();
-          console.log("Prompt updated to agent");
+        let updated = await AgentPromptModel.update(
+          {
+            callScript: req.body.prompt,
+            greeting: req.body.greeting,
+          },
+          {
+            where: {
+              mainAgentId: mainAgentId,
+            },
+          }
+        );
+        if (updated) {
+          console.log("Prompt updated");
         }
+        // for (let i = 0; i < agents.length; i++) {
+        //   let a = agents[i];
+        //   a.prompt = req.body.prompt;
+        //   let saved = await a.save();
+        //   console.log("Prompt updated to agent");
+        // }
       }
       let agentRes = await AgentResource(agent);
       return res.send({
