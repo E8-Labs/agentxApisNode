@@ -513,7 +513,7 @@ export const UpdateAgent = async (req, res) => {
       }
 
       if (req.body.prompt) {
-        let updated = await AgentPromptModel.update(
+        let updated = await db.AgentPromptModel.update(
           {
             callScript: req.body.prompt,
             greeting: req.body.greeting,
