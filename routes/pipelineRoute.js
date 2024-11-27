@@ -8,6 +8,8 @@ import {
   GetPipelines,
   AssignLeadsToPipelineAndAgents,
   UpdatePipeline,
+  PausePipelineCadenceForAnAgent,
+  GetScheduledCalls,
 } from "../controllers/pipelineController.js";
 
 const uploadFiles = multer().fields([
@@ -25,6 +27,11 @@ let PipelineRouter = express.Router();
 PipelineRouter.post("/createPipeline", verifyJwtToken, CreatePipeline);
 PipelineRouter.post("/updatePipeline", verifyJwtToken, UpdatePipeline);
 PipelineRouter.post(
+  "/pauseAgentCadence",
+  verifyJwtToken,
+  PausePipelineCadenceForAnAgent
+);
+PipelineRouter.post(
   "/assignLeadsToPipeline",
   verifyJwtToken,
   AssignLeadsToPipelineAndAgents
@@ -34,6 +41,7 @@ PipelineRouter.post(
   verifyJwtToken,
   CreatePipelineCadence
 );
+PipelineRouter.get("/getScheduledCalls", verifyJwtToken, GetScheduledCalls);
 
 PipelineRouter.get("/getPipelines", verifyJwtToken, GetPipelines);
 

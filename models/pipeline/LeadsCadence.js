@@ -63,6 +63,14 @@ const LeadCadence = (sequelize, Sequelize) => {
       type: Sequelize.BOOLEAN,
       allowNull: true,
     },
+    nodecisionmaker: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    wrongnumber: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
     notinterested: {
       type: Sequelize.BOOLEAN,
       allowNull: true,
@@ -76,6 +84,18 @@ const LeadCadence = (sequelize, Sequelize) => {
       allowNull: true,
     },
   });
+
+  LeadCadence.associate = (models) => {
+    LeadCadence.hasMany(models.LeadCallsSent, {
+      foreignKey: "leadCadenceId",
+      as: "LeadCalls",
+    });
+
+    LeadCadence.belongsTo(models.LeadModel, {
+      foreignKey: "leadId",
+      as: "Lead",
+    });
+  };
 
   return LeadCadence;
 };

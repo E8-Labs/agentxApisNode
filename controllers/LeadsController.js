@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import { Op } from "sequelize";
 // import S3 from "aws-sdk/clients/s3.js";
 import JWT from "jsonwebtoken";
 import bcrypt from "bcryptjs";
@@ -273,6 +274,95 @@ export const GetUniqueColumns = async (req, res) => {
         status: true,
         data: keys,
         message: "Key columns list",
+      });
+    } else {
+    }
+  });
+};
+
+export const GetCallLogs = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      try {
+        const { name, duration, status } = req.query; //duration in seconds
+
+        // Define filters
+        const filters = {};
+
+        if (name) {
+          filters[Op.or] = [
+            { "$LeadModel.firstName$": { [Op.like]: `%${name}%` } },
+            { "$LeadModel.lastName$": { [Op.like]: `%${name}%` } },
+          ];
+        }
+
+        if (duration) {
+          const [minDuration, maxDuration] = duration.split("-");
+          filters.duration = {
+            [Op.gte]: parseFloat(minDuration) || 0,
+            [Op.lte]: parseFloat(maxDuration) || Number.MAX_SAFE_INTEGER,
+          };
+        }
+
+        if (status) {
+          filters.status = { [Op.like]: `%${status}%` };
+        }
+
+        // Query to fetch call logs
+        const callLogs = await db.LeadCallsSent.findAll({
+          where: filters,
+          include: [
+            {
+              model: db.LeadModel,
+              as: "LeadModel",
+              // attributes: ["firstName", "lastName", "email", "phone"],
+            },
+            {
+              model: db.PipelineStages,
+              as: "PipelineStages",
+              // attributes: ["stageTitle"],
+            },
+          ],
+          // attributes: [
+          //   "duration",
+          //   "createdAt",
+          //   [db.sequelize.literal("duration / 60"), "callDurationMinutes"],
+          // ],
+        });
+
+        // Map and format the data
+        const formattedCalls = callLogs.map((call) => {
+          const minutes = Math.floor(call.duration / 60);
+          const seconds = call.duration % 60;
+          const formattedDuration = `${String(minutes).padStart(
+            2,
+            "0"
+          )}:${String(seconds).padStart(2, "0")}`;
+
+          return {
+            ...call.dataValues, // Include existing call data
+            durationFormatted: formattedDuration,
+          };
+        });
+
+        return res.status(200).json({ success: true, data: formattedCalls });
+      } catch (error) {
+        console.error("Error fetching call logs:", error);
+        return res.status(500).json({ success: false, error: "Server error" });
+      }
+
+      return res.send({
+        status: true,
+        data: leadSheets,
+        message: "Lead Sheets List",
       });
     } else {
     }

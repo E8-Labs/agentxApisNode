@@ -127,6 +127,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         let sent = await db.LeadCallsSent.create({
           leadId: leadCad.leadId,
           leadCadenceId: leadCad.id,
+          mainAgentId: leadCad.mainAgentId,
           callTriggerTime: new Date(),
           synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
           stage: leadCad.stage,
@@ -142,6 +143,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       let sent = await db.LeadCallsSent.create({
         leadId: leadCad.leadId,
         leadCadenceId: leadCad.id,
+        mainAgentId: leadCad.mainAgentId,
         callTriggerTime: new Date(),
         synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
         stage: leadCad.stage,
@@ -291,6 +293,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             let sent = await db.LeadCallsSent.create({
               leadId: leadCad.leadId,
               leadCadenceId: leadCad.id,
+              mainAgentId: leadCad.mainAgentId,
               callTriggerTime: new Date(),
               synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
               stage: leadCad.stage,
@@ -326,6 +329,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         let sent = await db.LeadCallsSent.create({
           leadId: leadCad.leadId,
           leadCadenceId: leadCad.id,
+          mainAgentId: leadCad.mainAgentId,
           callTriggerTime: new Date(),
           synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
           stage: leadCad.stage,

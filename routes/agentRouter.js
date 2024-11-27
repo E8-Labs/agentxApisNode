@@ -11,6 +11,7 @@ import {
   GetKyc,
   WebhookSynthflow,
   GetAgents,
+  GetAgentCallActivity,
 } from "../controllers/synthflowController.js";
 
 import {
@@ -19,6 +20,7 @@ import {
   ListUsersAvailablePhoneNumbers,
   AssignPhoneNumber,
 } from "../controllers/twilioController.js";
+// import { verify } from "jsonwebtoken";
 
 const uploadFiles = multer().fields([
   { name: "media", maxCount: 1 },
@@ -34,7 +36,9 @@ let AgentRouter = express.Router();
 
 AgentRouter.post("/buildAgent", verifyJwtToken, uploadFiles, BuildAgent);
 AgentRouter.post("/updateAgent", verifyJwtToken, uploadFiles, UpdateAgent);
+
 AgentRouter.get("/getAgents", verifyJwtToken, uploadFiles, GetAgents);
+AgentRouter.get("/getAgentCallActivity", verifyJwtToken, GetAgentCallActivity);
 
 AgentRouter.get(
   "/findPhoneNumbers",

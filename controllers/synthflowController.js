@@ -551,6 +551,7 @@ export const UpdateAgent = async (req, res) => {
 };
 
 export const GetAgents = async (req, res) => {
+  let { agentType } = req.query;
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -571,6 +572,68 @@ export const GetAgents = async (req, res) => {
         status: true,
         data: await AgentResource(agents),
         message: "Agent List",
+      });
+    } else {
+    }
+  });
+};
+
+export const GetAgentCallActivity = async (req, res) => {
+  let { mainAgentId } = req.query;
+  console.log("Finding main agent calls ", mainAgentId);
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      const calls = await db.LeadCallsSent.findAll({
+        include: [
+          {
+            model: db.LeadModel,
+            as: "LeadModel", // Alias defined in the association
+            // attributes: ["firstName", "lastName", "email", "phone"],
+          },
+          {
+            model: db.PipelineStages,
+            as: "PipelineStages", // Alias defined in the association
+            // attributes: ["name"],
+          },
+          {
+            model: db.LeadCadence,
+            as: "LeadCadence", // Alias defined in the association
+            attributes: [], // Only using LeadCadence to filter
+            where: { mainAgentId: mainAgentId },
+          },
+        ],
+        attributes: [
+          "duration",
+          "createdAt",
+          [db.sequelize.literal("duration / 60"), "callDurationMinutes"], // Converts seconds to minutes
+        ],
+      });
+
+      const formattedCalls = calls.map((call) => {
+        const minutes = Math.floor(call.duration / 60);
+        const seconds = call.duration % 60;
+        const formattedDuration = `${String(minutes).padStart(2, "0")}:${String(
+          seconds
+        ).padStart(2, "0")}`;
+
+        return {
+          ...call.dataValues, // Include existing call data
+          durationFormatted: formattedDuration,
+        };
+      });
+
+      return res.send({
+        status: true,
+        data: formattedCalls,
+        message: "Agent's Call List",
       });
     } else {
     }
@@ -781,7 +844,7 @@ export const WebhookSynthflow = async (req, res) => {
   let actions = data.executed_actions;
   // console.log("Actions ", actions);
 
-  let json = extractInfo(data, InfoExtractors);
+  let json = extractInfo(data);
   console.log("Extracted info ", json);
   // return;
   let dbCall = await db.LeadCallsSent.findOne({
@@ -804,55 +867,12 @@ export const WebhookSynthflow = async (req, res) => {
   let lead = await db.LeadModel.findByPk(leadCadence.leadId);
 
   let pipeline = await db.Pipeline.findByPk(leadCadence.pipelineId);
-  if (json.hotlead) {
-    let hotLeadStage = await db.PipelineStages.findOne({
-      where: {
-        identifier: "hot_lead",
-      },
-    });
-    leadCadence.stage = hotLeadStage.id;
-    let saved = await leadCadence.save();
-    console.log(
-      `Lead ${lead.firstName} move from ${leadCadence.stage} to Hot Lead`
-    );
-    // move the lead to the hotlead stage immediately
-  }
-  if (json.notinterested || json.dnd) {
-    // move the lead to the notinterested stage immediately
-    let hotLeadStage = await db.PipelineStages.findOne({
-      where: {
-        identifier: "not_interested",
-      },
-    });
-    leadCadence.stage = hotLeadStage.id;
-    leadCadence.dnd = json.dnd;
-    leadCadence.notinterested = json.notinterested;
-    let saved = await leadCadence.save();
-    console.log(
-      `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
-    );
-  }
-  if (json.meetingscheduled) {
-    // meeting scheduled
-  }
-  //We may check if this was the last call or not
-  if (json.callmeback || json.humancalldrop || json.voicemail) {
-    let followUpStage = await db.PipelineStages.findOne({
-      where: {
-        identifier: "follow_up",
-      },
-    });
-    if (leadCadence.stage < followUpStage.id) {
-      leadCadence.stage = followUpStage.id;
-      let saved = await leadCadence.save();
-      console.log(
-        `Lead ${lead.firstName} move from ${leadCadence.stage} to ${followUpStage.stageTitle}`
-      );
-    } else {
-      console.log("User asked to call back but already on a further stage");
-    }
-  }
 
+  try {
+    await handleInfoExtractorValues(json, leadCadence, lead, pipeline);
+  } catch (error) {
+    console.log("Error handling IE details ", error);
+  }
   // //Get Transcript and save
   // let caller = await db.User.findByPk(dbCall.userId);
   // let model = await db.User.findByPk(dbCall.modelId);
@@ -892,18 +912,95 @@ export const WebhookSynthflow = async (req, res) => {
 };
 
 // Function to extract the values
-function extractInfo(data, extractors) {
+function extractInfo(data) {
   const result = {};
 
-  extractors.forEach((extractor) => {
+  InfoExtractors.forEach((extractor) => {
     const action = data.executed_actions[extractor.identifier];
     if (action && action.return_value) {
       const key = Object.keys(action.return_value)[0];
-      result[extractor.question] = action.return_value[key];
+      result[InfoExtractors.question] = action.return_value[key];
     } else {
-      result[extractor.question] = null; // If the action or value is not found
+      result[InfoExtractors.question] = null; // If the action or value is not found
     }
   });
 
+  //will handle kyc here
+
   return result;
+}
+
+async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
+  if (json.hotlead || json.callbackrequested) {
+    let hotLeadStage = await db.PipelineStages.findOne({
+      where: {
+        identifier: "hot_lead",
+        pipelineId: pipeline.id,
+      },
+    });
+    leadCadence.stage = hotLeadStage.id;
+    let saved = await leadCadence.save();
+    console.log(
+      `Lead ${lead.firstName} move from ${leadCadence.stage} to Hot Lead`
+    );
+    // move the lead to the hotlead stage immediately
+  }
+  if (json.notinterested || json.dnd || json.wrongnumber) {
+    // move the lead to the notinterested stage immediately
+    let hotLeadStage = await db.PipelineStages.findOne({
+      where: {
+        identifier: "not_interested",
+        pipelineId: pipeline.id,
+      },
+    });
+    leadCadence.stage = hotLeadStage.id;
+    leadCadence.dnd = json.dnd;
+    leadCadence.notinterested = json.notinterested;
+    leadCadence.wrongnumber = json.wrongnumber;
+    let saved = await leadCadence.save();
+    console.log(
+      `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
+    );
+  }
+  if (json.meetingscheduled) {
+    // meeting scheduled
+    let hotLeadStage = await db.PipelineStages.findOne({
+      where: {
+        identifier: "booked",
+        pipelineId: pipeline.id,
+      },
+    });
+    leadCadence.stage = hotLeadStage.id;
+    // leadCadence.dnd = json.dnd;
+    // leadCadence.notinterested = json.notinterested;
+    let saved = await leadCadence.save();
+    console.log(
+      `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
+    );
+  }
+  //We may check if this was the last call or not
+  if (
+    json.callmeback ||
+    json.humancalldrop ||
+    json.voicemail ||
+    json.Busycallback ||
+    json.nodecisionmaker
+  ) {
+    let followUpStage = await db.PipelineStages.findOne({
+      where: {
+        identifier: "follow_up",
+        pipelineId: pipeline.id,
+      },
+    });
+    if (leadCadence.stage < followUpStage.id) {
+      leadCadence.stage = followUpStage.id;
+      leadCadence.nodecisionmaker = json.nodecisionmaker;
+      let saved = await leadCadence.save();
+      console.log(
+        `Lead ${lead.firstName} move from ${leadCadence.stage} to ${followUpStage.stageTitle}`
+      );
+    } else {
+      console.log("User asked to call back but already on a further stage");
+    }
+  }
 }

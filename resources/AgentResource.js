@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 import PipelineStages from "../models/pipeline/pipelineStages.js";
 // import {
 //   getTotalYapScore,
@@ -80,6 +81,15 @@ async function getUserData(mainAgent, currentUser = null) {
     },
   });
 
+  let leadsAssigned = await db.LeadCadence.findAll({
+    where: {
+      mainAgentId: mainAgent.id,
+      status: {
+        [db.Sequelize.Op.in]: [CadenceStatus.Pending, CadenceStatus.Started],
+      },
+    },
+  });
+
   const AgentResource = {
     ...mainAgent.get(),
     agents: agents,
@@ -87,6 +97,7 @@ async function getUserData(mainAgent, currentUser = null) {
     pipeline: pipeline,
     greeting: prompt?.greeting || "",
     callScript: prompt?.callScript || "",
+    leadsAssigned: leadsAssigned?.length || 0,
   };
 
   return AgentResource;

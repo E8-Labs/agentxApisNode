@@ -102,6 +102,22 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       onUpdate: "CASCADE",
     },
   });
+  LeadCallsSent.associate = (models) => {
+    LeadCallsSent.belongsTo(models.LeadModel, {
+      foreignKey: "leadId",
+      as: "LeadModel",
+    });
+
+    LeadCallsSent.belongsTo(models.LeadCadence, {
+      foreignKey: "leadCadenceId",
+      as: "LeadCadence",
+    });
+
+    LeadCallsSent.belongsTo(models.PipelineStages, {
+      foreignKey: "stage",
+      as: "PipelineStages",
+    });
+  };
 
   return LeadCallsSent;
 };

@@ -41,6 +41,13 @@ const PipelineStages = (sequelize, Sequelize) => {
     },
   });
 
+  PipelineStages.associate = (models) => {
+    PipelineStages.hasMany(models.LeadCallsSent, {
+      foreignKey: "stage",
+      as: "Calls",
+    });
+  };
+
   return PipelineStages;
 };
 

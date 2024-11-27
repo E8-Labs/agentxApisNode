@@ -66,6 +66,16 @@ const LeadModel = (sequelize, Sequelize) => {
       },
     },
   });
+  LeadModel.associate = (models) => {
+    LeadModel.hasMany(models.LeadCallsSent, {
+      foreignKey: "leadId",
+      as: "LeadCalls",
+    });
+    LeadModel.hasMany(models.LeadCadence, {
+      foreignKey: "leadId",
+      as: "LeadCadence",
+    });
+  };
 
   return LeadModel;
 };

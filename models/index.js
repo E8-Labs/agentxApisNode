@@ -71,12 +71,16 @@ db.KycExampleModel = KycExampleModel(sequelize, Sequelize);
 db.Stages = Stages(sequelize, Sequelize);
 db.LeadSheetModel = LeadSheetModel(sequelize, Sequelize);
 db.LeadModel = LeadModel(sequelize, Sequelize);
+models["LeadModel"] = db.LeadModel;
 db.Pipeline = Pipeline(sequelize, Sequelize);
 db.PipelineStages = PipelineStages(sequelize, Sequelize);
+models["PipelineStages"] = db.PipelineStages;
 db.PipelineCadence = PipelineCadence(sequelize, Sequelize);
 db.CadenceCalls = CadenceCalls(sequelize, Sequelize);
 db.LeadCadence = LeadCadence(sequelize, Sequelize);
+models["LeadCadence"] = db.LeadCadence;
 db.LeadCallsSent = LeadCallsSent(sequelize, Sequelize);
+models["LeadCallsSent"] = db.LeadCallsSent;
 
 // Run predefined setup
 models["AreaOfFocus"] = db.AreaOfFocus;
@@ -94,5 +98,7 @@ Object.keys(models).forEach((modelName) => {
     models[modelName].associate(models);
   }
 });
+
+console.log("Association ", db.LeadCallsSent.associations);
 
 export default db;
