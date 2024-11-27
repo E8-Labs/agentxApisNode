@@ -326,6 +326,7 @@ export const PausePipelineCadenceForAnAgent = async (req, res) => {
 
 //Scheduled calls
 export const GetScheduledCalls = async (req, res) => {
+  const { name } = req.query;
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -370,6 +371,14 @@ export const GetScheduledCalls = async (req, res) => {
                 "phone",
                 "createdAt",
               ],
+              where: {
+                ...(name && {
+                  [db.Sequelize.Op.or]: [
+                    { firstName: { [db.Sequelize.Op.like]: `%${name}%` } },
+                    { lastName: { [db.Sequelize.Op.like]: `%${name}%` } },
+                  ],
+                }),
+              },
             },
           ],
         });

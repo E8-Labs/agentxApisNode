@@ -13,9 +13,10 @@ export const InfoExtractorTypes = {
 
 export const InfoExtractors = [
   {
+    actionId: "1732717527256x812317125806893300",
     identifier: "info_extractor_meetingscheduled",
     question: "meetingscheduled",
-    type: "yes_no",
+    actiontype: "yes_no",
     description: `Based on the transcript provided, determine whether the Human successfully scheduled an appointment during the conversation with the bot. This includes confirmation of a specific date and time for the meeting. Return True only if the Human explicitly agrees to a scheduled date and time and the calendar entry is created. Exclude cases where the Human shows interest but does not confirm a specific time or if the calendar entry was not finalized.
     Conditions for True:
     Confirmed Appointment:
@@ -41,9 +42,10 @@ export const InfoExtractors = [
     ],
   },
   {
+    actionId: "1732717530783x646681770155969700",
     identifier: "info_extractor_callbackrequested",
     question: "callbackrequested",
-    type: "yes_no",
+    actiontype: "yes_no",
     description: `Based on the transcript provided, determine whether the Human explicitly requested a follow-up call, demonstrating genuine intent to re-engage. This should return True only if the Human’s request includes clear indicators of intent, such as specifying a time, reason, or next steps. Exclude cases where the request is vague, non-committal, or used as a way to disengage from the conversation.
 Conditions for True:
 Specificity in Timing:
@@ -79,9 +81,10 @@ Examples:
     ],
   },
   {
+    actionId: "1732717537538x592590477493776500",
     identifier: "info_extractor_notinterested",
     question: "notinterested",
-    type: "yes_no",
+    actiontype: "yes_no",
     description: `Based on the transcript provided, determine whether the Human explicitly stated or strongly implied that they are not interested in the service or offering presented by the bot during the conversation. This includes phrases, sentences, or sentiments indicating disinterest, lack of need, or refusal, either directly or through inferred context (e.g., "I'm not interested," "No thanks," or "I'm not looking to sell"). Exclude neutral responses or exploratory inquiries that do not clearly convey disinterest.
 `,
     examples: [
@@ -89,9 +92,10 @@ Examples:
     ],
   },
   {
+    actionId: "1732717543450x233184560963558100",
     identifier: "info_extractor_humancalldrop",
     question: "humancalldrop",
-    type: "yes_no",
+    actiontype: "yes_no",
     description: `Based on the transcript provided, determine whether the Human immediately disconnected the call after the bot explained the purpose of the call or shortly after a conversation abruptly. This includes scenarios where the Human abruptly ended the conversation without engaging further or providing any meaningful response. Exclude cases where the Human provided a response (e.g., "I'm not interested") before disconnecting.
 Conditions for True:
 Immediate Disconnection: The Human disconnected the call immediately after the bot explained the purpose, without offering any meaningful verbal response.
@@ -111,16 +115,18 @@ Technical or Connection Issues: The call drops due to reasons outside the Human�
     ],
   },
   {
+    actionId: "1732717554695x394641726784252350",
     identifier: "info_extractor_dnd",
     question: "dnd",
-    type: "yes_no",
+    actiontype: "yes_no",
     description: `Based on the transcript provided, determine whether the Human explicitly requested to be removed from the call list or asked for the calls to stop. This includes direct requests (e.g., "Take me off your list," "Stop calling me," or "Don't contact me again") and implied requests indicating a desire to end further communication. Exclude responses that express disinterest but do not explicitly or implicitly request removal from the list.`,
     examples: ["dnd"],
   },
   {
+    actionId: "1732717559911x199103606423482340",
     identifier: "info_extractor_voicemail",
     question: "voicemail",
-    type: "yes_no",
+    actiontype: "yes_no",
     description: `Based on the transcript provided, determine whether the call was directed to the Human’s voicemail system. This includes cases where the bot identifies an automated message indicating voicemail or hears a beep signaling the start of a voicemail recording. Exclude cases where the Human answers the call, even briefly, or if the call disconnects before voicemail engagement.
 Conditions for True:
 Automated Voicemail Message Detected:
@@ -135,9 +141,10 @@ The Human does not answer the call, and the call transitions directly to voicema
     ],
   },
   {
+    actionId: "1732717565007x511094582191643260",
     identifier: "info_extractor_livetransfer",
     question: "livetransfer",
-    type: "yes_no",
+    actiontype: "yes_no",
     description: `Based on the transcript provided, determine whether the Human requested to be connected to a live representative from the team, and if the bot successfully transferred the call. Return True only if the transfer was explicitly requested by the humans. Exclude cases where the transfer was attempted but failed or where no explicit transfer request was made.
 Conditions for True:
 Explicit Transfer Request:
@@ -166,9 +173,10 @@ The Human hangs up before the transfer is completed.
     ],
   },
   {
+    actionId: "1732717569444x659418793814362800",
     identifier: "info_extractor_Busycallback",
     question: "Busycallback",
-    type: "yes_no",
+    actiontype: "yes_no",
     description: `Based on the transcript provided, determine whether the Human requested a callback explicitly because they were busy or unavailable at the time of the conversation. This should return True only if the Human directly indicates they are unable to engage at the current time and requests to be contacted later. Exclude cases where the Human declines further contact or provides vague responses without specifying a need for a callback.
 Conditions for True:
 Explicit Unavailability:
@@ -194,9 +202,10 @@ Examples:
     ],
   },
   {
+    actionId: "1732717572227x362425835582710600",
     identifier: "info_extractor_hotlead",
     question: "hotlead",
-    type: "yes_no",
+    actiontype: "yes_no",
     description: `Based on the transcript provided, determine whether the Human explicitly expressed interest in listing their home for sale, exploring available listings or receiving property details or learning more about the bot’s offerings or demonstrated a strong positive reaction during the conversation. This includes actions such as asking follow-up questions, requesting additional information, curiosity about the listing process, or interest in market updates scheduling a meeting, or showing intent to act. Return True if the Human’s responses indicate genuine curiosity or readiness to engage further, suggesting they could be categorized as a warm or hot lead. Exclude cases where the Human’s interest is vague, passive, or non-committal.
 
 Conditions for True:
@@ -256,8 +265,9 @@ Examples:
     ],
   },
   {
+    actionId: "1732717576264x671934592010438300",
     question: "nodecisionmaker",
-    type: "yes_no",
+    actiontype: "yes_no",
     description: `Based on the transcript provided, determine whether the Human mentioned that the decision maker is unavailable. This includes explicit statements indicating the decision maker is not present, cannot be reached, or is otherwise unavailable to make a decision. Exclude cases where the Human does not reference the decision maker or implies decision-making authority themselves.
 Conditions for True:
 Explicit Mention of Unavailability:
@@ -289,8 +299,9 @@ Examples:
     ],
   },
   {
+    actionId: "1732717584750x447300494692059140",
     question: "wrongnumber",
-    type: "yes_no",
+    actiontype: "yes_no",
     description: `Based on the transcript provided, determine whether the Human explicitly stated that the bot has called the wrong number. This includes direct statements indicating the number does not belong to the intended recipient. Exclude cases where the Human does not explicitly confirm it is the wrong number or expresses uncertainty.
 Conditions for True:
 Explicit Statement:
@@ -309,8 +320,9 @@ Examples:
     examples: ["This isn’t [Name]’s number.", "You’ve got the wrong number."],
   },
   {
+    actionId: "1732717589161x718498803365874800",
     question: "emailprovided",
-    type: "yes_no",
+    actiontype: "yes_no",
     description: `Based on the transcript provided, determine whether the Human explicitly provided an email address during the call. This includes instances where the Human verbally shares their email address, either in response to a request or voluntarily. Exclude cases where the Human references an email address but does not explicitly state it (e.g., “You should already have my email” or “I’ll email you later”).
 Conditions for True:
 Email Address Verbally Provided:
@@ -339,5 +351,85 @@ Examples:
       `Bot: "Can I have your email address?"
        Human: "Sure, it’s example@email.com.`,
     ],
+  },
+];
+
+export const OpenQuestionInfoExtractors = [
+  {
+    actionId: "1732739636328x867266691998337400",
+    identifier: "reasonforselling",
+    question: "Why have you decided to sell your home?", //
+    actiontype: "open_question",
+    description: ``,
+    examples: [
+      "I'm relocating for work.",
+      "My home has become too small for my family.",
+      "We're downsizing because the kids moved out.",
+      "We want to move closer to our family.",
+      "Not Provided",
+    ],
+  },
+
+  {
+    actionId: "1732739837643x603166474261863200",
+    identifier: "significantlifechanges", //
+    question:
+      "Are there any significant life changes prompting this decision, such as job relocation or changes in the family?",
+    actiontype: "open_question",
+    description: ``,
+    examples: [],
+  },
+  {
+    actionId: "1732740060964x163742504279039230",
+    identifier: "primarymotivationforselling", //
+    question:
+      "What's your primary motivation for selling now rather than waiting?",
+    actiontype: "open_question",
+    description: ``,
+    examples: [],
+  },
+  {
+    actionId: "1732740176054x207236689539598270",
+    identifier: "pricevspeedpriority", //
+    question:
+      "How important is the selling price to you versus the speed of the sale?",
+    actiontype: "open_question",
+    description: ``,
+    examples: [],
+  },
+  {
+    actionId: "1732740268481x868230161844916200",
+    identifier: "offeracceptancereasons", //
+    question:
+      "Are there any specific factors that would influence your decision to accept an offer or reject it?",
+    actiontype: "open_question",
+    description: ``,
+    examples: [],
+  },
+  {
+    actionId: "1732740373084x698066888693417000",
+    identifier: "When do you hope to have your home sold?", //
+    question: "saletimeline",
+    actiontype: "open_question",
+    description: ``,
+    examples: [],
+  },
+  {
+    actionId: "1732740511522x605213153134152100",
+    identifier: "timelinespecificevents", //
+    question:
+      "Are there any specific events or dates driving this timeline (e.g., starting a new job, school for kids, purchasing another property)?",
+    actiontype: "open_question",
+    description: ``,
+    examples: [],
+  },
+  {
+    actionId: "1732740656337x196927377181481900",
+    identifier: "delaysimpact", //How would it impact you if the sale took longer than anticipated?
+    question:
+      "How would it impact you if the sale took longer than anticipated?", //
+    actiontype: "open_question",
+    description: ``,
+    examples: [],
   },
 ];

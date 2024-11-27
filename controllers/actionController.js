@@ -408,7 +408,7 @@ export async function AttachActionToModel(actionId, modelId) {
       API_URL_Synthflow_Actions + "/attach",
       {
         model_id: modelId,
-        actions: [actionId],
+        actions: Array.isArray(actionId) ? actionId : [actionId],
       },
       {
         headers: {
@@ -584,8 +584,8 @@ export async function CreateInfoExtractor(kyc) {
         },
       }
     );
-    return response.data;
     console.log("Info Extractor response:", response.data);
+    return response.data;
   } catch (error) {
     console.error(
       "Error Info Extractor:",
@@ -595,13 +595,31 @@ export async function CreateInfoExtractor(kyc) {
   }
 }
 export function GetInfoExtractorApiData(kyc) {
-  return {
-    OPEN_QUESTION: {
-      identifier: kyc.question,
-      description: kyc.description || kyc.question,
-      examples: kyc.examples,
-    },
-  };
+  if (kyc.actiontype && kyc.actiontype == "open_question") {
+    return {
+      OPEN_QUESTION: {
+        identifier: kyc.question,
+        description: kyc.description || kyc.question,
+        examples: kyc.examples,
+      },
+    };
+  } else if (kyc.actiontype && kyc.actiontype == "yes_no") {
+    return {
+      YES_NO: {
+        identifier: kyc.question,
+        description: kyc.description || kyc.question,
+        examples: kyc.examples,
+      },
+    };
+  } else {
+    return {
+      OPEN_QUESTION: {
+        identifier: kyc.question,
+        description: kyc.description || kyc.question,
+        examples: kyc.examples,
+      },
+    };
+  }
 }
 
 export async function CreateAndAttachInfoExtractor(mainAgentId, kyc) {
@@ -629,7 +647,7 @@ export async function CreateAndAttachInfoExtractor(mainAgentId, kyc) {
         attached
       );
     }
-    return true;
+    return action.response;
     // if (attached.status == "success") {
     //   console.log("Action attached");
     //   return true;
@@ -640,4 +658,22 @@ export async function CreateAndAttachInfoExtractor(mainAgentId, kyc) {
     console.log("Could not create action");
     return false;
   }
+}
+
+export async function AttachInfoExtractor(mainAgentId, actionIds) {
+  let assistants = await db.AgentModel.findAll({
+    where: {
+      mainAgentId: mainAgentId,
+    },
+  });
+
+  for (let i = 0; i < assistants.length; i++) {
+    let assistant = assistants[i];
+    let attached = await AttachActionToModel(actionIds, assistant.modelId);
+    console.log(
+      `Action for infoExtractor Create Response User ${assistant.id} created = `,
+      attached
+    );
+  }
+  return true;
 }

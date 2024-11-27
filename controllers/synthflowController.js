@@ -8,13 +8,17 @@ import { fileURLToPath } from "url";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import KycResource from "../resources/kycResource.js";
 import {
+  AttachInfoExtractor,
   CreateAndAttachInfoExtractor,
   CreateInfoExtractor,
   GetInfoExtractorApiData,
 } from "./actionController.js";
 import AgentResource from "../resources/AgentResource.js";
 import LeadCadence from "../models/pipeline/LeadsCadence.js";
-import { InfoExtractors } from "../config/defaultInfoExtractors.js";
+import {
+  InfoExtractors,
+  OpenQuestionInfoExtractors,
+} from "../config/defaultInfoExtractors.js";
 import { AgentObjectives } from "../constants/defaultAgentObjectives.js";
 import AgentPromptModel from "../models/user/agentPromptModel.js";
 const __filename = fileURLToPath(import.meta.url);
@@ -681,6 +685,7 @@ export const AddKyc = async (req, res) => {
       if (user) {
         for (let i = 0; i < kycQuestions.length; i++) {
           let kyc = kycQuestions[i];
+          kyc.actiontype = "open_question";
           let created = await db.KycModel.create({
             userId: user.id,
             question: kyc.question,
@@ -700,11 +705,37 @@ export const AddKyc = async (req, res) => {
               kycExamples.push(createdEx);
             }
           }
+          let found = null;
+          let OpenQuestions = OpenQuestionInfoExtractors;
+          OpenQuestions.map((item) => {
+            // console.log(`Comp ${item.question} = ${kyc.question}`);
+            if (item.question == kyc.question) {
+              found = item;
+            }
+          });
+          if (found) {
+            console.log("have predefined info extractor");
+            let attached = await AttachInfoExtractor(
+              mainAgentId,
+              found.actionId
+            );
+          } else {
+            console.log("don't have predefined info extractor");
+            let infoExtractor = await CreateAndAttachInfoExtractor(
+              mainAgentId,
+              kyc
+            );
+          }
           // created.actionId =
-          let infoExtractor = await CreateAndAttachInfoExtractor(
-            mainAgentId,
-            kyc
-          );
+
+          // if (infoExtractor) {
+          //   await db.InfoExtractorModel.create({
+          //     actionId: infoExtractor.action_id,
+          //     actionType: infoExtractor.action_type,
+          //     mainAgentId: mainAgentId,
+          //     data: JSON.stringify(infoExtractor),
+          //   });
+          // }
           let res = await KycResource(created);
           kycs.push(res);
         }
@@ -759,13 +790,31 @@ export async function CreateAssistantSynthflow(
       if (assistant) {
         try {
           let extractors = InfoExtractors;
-          for (let i = 0; i < extractors.length; i++) {
-            let extr = extractors[i];
-            let created = await CreateAndAttachInfoExtractor(
-              mainAgent.id,
-              extr
-            );
-          }
+          let IEIds = extractors.map((item) => {
+            return item.actionId;
+          });
+
+          let created = await AttachInfoExtractor(
+            mainAgent.id,
+            IEIds
+            // extr.actionId
+          );
+
+          // for (let i = 0; i < extractors.length; i++) {
+          //   let extr = extractors[i];
+          //   let created = await AttachInfoExtractor(
+          //     mainAgent.id,
+          //     extr.actionId
+          //   );
+          //   // if (created) {
+          //   //   await db.InfoExtractorModel.create({
+          //   //     actionId: created.action_id,
+          //   //     actionType: created.action_type,
+          //   //     mainAgentId: mainAgent.id,
+          //   //     data: JSON.stringify(created),
+          //   //   });
+          //   // }
+          // }
           // let createdAction = await CreateAndAttachAction(user, "kb");
         } catch (error) {
           console.log("Error creating action kb ", error);

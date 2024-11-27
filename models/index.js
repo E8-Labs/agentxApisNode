@@ -28,6 +28,7 @@ import LeadCallsSent from "./pipeline/LeadCallsSent.js";
 import UserFocusModel from "./user/userFocusModel.js";
 import UserServicesModel from "./user/userServicesModel.js";
 import UserPhoneNumbers from "./user/userPhoneModel.js";
+import InfoExtractorModel from "./user/infoExtractorModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -66,6 +67,7 @@ db.AgentPromptModel = AgentPromptModel(sequelize, Sequelize);
 db.AgentModel = AgentModel(sequelize, Sequelize);
 db.KycModel = KycModel(sequelize, Sequelize);
 db.KycExampleModel = KycExampleModel(sequelize, Sequelize);
+db.InfoExtractorModel = InfoExtractorModel(sequelize, Sequelize);
 
 // Pipeline models
 db.Stages = Stages(sequelize, Sequelize);
