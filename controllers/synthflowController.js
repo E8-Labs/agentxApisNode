@@ -366,12 +366,42 @@ export const BuildAgent = async (req, res) => {
         userId: user.id,
       });
 
+      let agentCreated = await db.AgentModel.create({
+        mainAgentId: mainAgent.id,
+        userId: user.id,
+      });
+
       if (!mainAgent) {
         console.log("Error creating main agent ");
         return;
       }
 
+      let agents = await db.AgentModel.findAll({
+        where: {
+          mainAgentId: mainAgent.id,
+        },
+      });
+
       try {
+        let kycTextSeller = ``;
+        let kycTextBuyer = ``;
+        let qs = await db.KycModel.findAll({
+          where: {
+            mainAgentId: mainAgent.id,
+            // type: "seller",
+          },
+        });
+
+        for (const kyc of qs) {
+          if (kyc.type == "seller") {
+            kycTextSeller = `${kycTextSeller}\n${kyc.question}`;
+          } else {
+            kycTextBuyer = `${kycTextBuyer}\n${kyc.question}`;
+          }
+        }
+        let CUStatus = agents[0].status,
+          CUAddress = agents[0].address;
+
         //Create Prompt
         let greeting = selectedObjective.prompt.greeting;
         greeting = greeting.replace(/{agent_name}/g, name);
@@ -380,6 +410,12 @@ export const BuildAgent = async (req, res) => {
         let callScript = selectedObjective.prompt.callScript;
         callScript = callScript.replace(/{agent_name}/g, name);
         callScript = callScript.replace(/{brokerage_name}/g, user.brokerage);
+
+        callScript = callScript.replace(/{seller_kyc}/g, kycTextSeller);
+        callScript = callScript.replace(/{buyer_kyc}/g, kycTextBuyer);
+
+        callScript = callScript.replace(/{CU_status}/g, CUStatus);
+        callScript = callScript.replace(/{CU_address}/g, CUAddress);
 
         if (selectedObjective.prompt) {
           let prompt = await db.AgentPromptModel.create({

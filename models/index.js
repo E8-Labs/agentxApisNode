@@ -29,6 +29,7 @@ import UserFocusModel from "./user/userFocusModel.js";
 import UserServicesModel from "./user/userServicesModel.js";
 import UserPhoneNumbers from "./user/userPhoneModel.js";
 import InfoExtractorModel from "./user/infoExtractorModel.js";
+import LeadSheetColumnModel from "./lead/sheetColumnModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -72,6 +73,7 @@ db.InfoExtractorModel = InfoExtractorModel(sequelize, Sequelize);
 // Pipeline models
 db.Stages = Stages(sequelize, Sequelize);
 db.LeadSheetModel = LeadSheetModel(sequelize, Sequelize);
+db.LeadSheetColumnModel = LeadSheetColumnModel(sequelize, Sequelize);
 db.LeadModel = LeadModel(sequelize, Sequelize);
 models["LeadModel"] = db.LeadModel;
 db.Pipeline = Pipeline(sequelize, Sequelize);

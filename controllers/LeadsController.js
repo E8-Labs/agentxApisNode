@@ -80,6 +80,46 @@ export const AddLeads = async (req, res) => {
   });
 };
 
+//Or sheet
+export const AddSmartList = async (req, res) => {
+  let { sheetName, columns } = req.body; // mainAgentId is the mainAgent id
+
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let sheet = await db.LeadSheetModel.create({
+        sheetName: sheetName,
+        userId: userId,
+      });
+
+      for (const column of columns) {
+        let created = await db.LeadSheetColumnModel.create({
+          columnName: column,
+          sheetId: sheet.id,
+        });
+      }
+
+      res.send({
+        status: true,
+        message: `Sheet added`,
+        data: sheet,
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+};
+
 export const GetSheets = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -269,6 +309,18 @@ export const GetUniqueColumns = async (req, res) => {
           }
         });
       });
+      let sheetColumns = await db.LeadSheetColumnModel.findAll({
+        where: {
+          sheetId: sheetId,
+        },
+      });
+      if (sheetColumns) {
+        sheetColumns.map((column) => {
+          if (!keys.includes(column.columnName)) {
+            keys.push(column.columnName);
+          }
+        });
+      }
 
       return res.send({
         status: true,

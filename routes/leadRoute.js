@@ -5,6 +5,7 @@ import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
 import {
   AddLeads,
   GetSheets,
+  AddSmartList,
   GetLeads,
   GetUniqueColumns,
   GetCallLogs,
@@ -23,6 +24,7 @@ const uploadMedia = multer().fields([
 let LeadRouter = express.Router();
 
 LeadRouter.post("/addLeads", verifyJwtToken, AddLeads);
+LeadRouter.post("/addSmartList", verifyJwtToken, AddSmartList);
 LeadRouter.get("/getLeads", verifyJwtToken, uploadFiles, GetLeads);
 LeadRouter.get("/getSheets", verifyJwtToken, uploadFiles, GetSheets);
 LeadRouter.get("/callLogs", verifyJwtToken, GetCallLogs);
