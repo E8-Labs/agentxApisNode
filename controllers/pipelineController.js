@@ -299,7 +299,7 @@ export const PausePipelineCadenceForAnAgent = async (req, res) => {
         {
           where: {
             status: {
-              [db.sequelize.Op.in]: [
+              [db.Sequelize.Op.in]: [
                 CadenceStatus.Pending,
                 CadenceStatus.Started,
               ],
