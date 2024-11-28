@@ -32,7 +32,7 @@ const PipelineCadence = (sequelize, Sequelize) => {
     },
     moveToStage: {
       type: Sequelize.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: "PipelineStages",
         key: "id",
