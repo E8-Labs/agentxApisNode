@@ -433,11 +433,13 @@ export const GetScheduledCalls = async (req, res) => {
         }
 
         // Process leads with no previous calls
-        console.log("Cadence ", cadence);
-        const leadsWithoutCalls = leadsWithCadence.filter(
-          (cadence) =>
-            !lastCalls.some((call) => call.leadId === cadence.LeadModel.id)
-        );
+
+        const leadsWithoutCalls = leadsWithCadence.filter((cadence) => {
+          console.log("Cadence ", cadence);
+          return !lastCalls.some(
+            (call) => call.leadId === cadence.LeadModel.id
+          );
+        });
         // console.log("Lead without calls", leadsWithoutCalls);
 
         for (const lead of leadsWithoutCalls) {
