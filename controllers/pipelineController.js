@@ -419,6 +419,8 @@ export const GetScheduledCalls = async (req, res) => {
         //   "---------------------------------------------------------------------------\n\n\n\n"
         // );
         const futureCalls = [];
+        let uniqueAgentIds = [];
+        let AgentsWithActiveCadence = [];
 
         // Process leads with previous calls
         for (const lastCall of lastCalls) {
@@ -443,11 +445,20 @@ export const GetScheduledCalls = async (req, res) => {
               );
 
               if (nextCallTime > new Date()) {
+                let mainAgent = await db.MainAgentModel.findByPk(
+                  leadData?.mainAgentId
+                );
+
+                if (!uniqueAgentIds.includes(leadData.mainAgentId)) {
+                  uniqueAgentIds.push(leadData?.mainAgentId);
+                  AgentsWithActiveCadence.push(mainAgent);
+                }
                 futureCalls.push({
                   leadId: leadData.LeadModel.id,
                   stage: cadenceCall.pipelineCadenceId, // The stage from CadenceCalls
                   leadDetails: leadData.LeadModel,
                   scheduledAt: nextCallTime,
+                  agent: await AgentResource(mainAgent),
                 });
               }
             }
@@ -497,16 +508,20 @@ export const GetScheduledCalls = async (req, res) => {
                 let mainAgent = await db.MainAgentModel.findByPk(
                   lead.mainAgentId
                 );
-                // if (nextCallTime > new Date()) {
-                futureCalls.push({
-                  leadId: lead.Lead.id,
-                  stage: lead.stage, // The stage from LeadCadence
-                  leadDetails: lead.Lead,
-                  createdAt: lead.createdAt,
-                  agent: await AgentResource(mainAgent),
-                  scheduledAt: nextCallTime,
-                });
-                // }
+                if (nextCallTime > new Date()) {
+                  if (!uniqueAgentIds.includes(lead.mainAgentId)) {
+                    uniqueAgentIds.push(lead?.mainAgentId);
+                    AgentsWithActiveCadence.push(mainAgent);
+                  }
+                  futureCalls.push({
+                    leadId: lead.Lead.id,
+                    stage: lead.stage, // The stage from LeadCadence
+                    leadDetails: lead.Lead,
+                    createdAt: lead.createdAt,
+                    agent: await AgentResource(mainAgent),
+                    scheduledAt: nextCallTime,
+                  });
+                }
                 // }
               }
             }
@@ -515,7 +530,11 @@ export const GetScheduledCalls = async (req, res) => {
 
         // Map and format the data
 
-        return res.status(200).json({ success: true, data: futureCalls });
+        return res.status(200).json({
+          success: true,
+          data: futureCalls,
+          agents: await AgentResource(AgentsWithActiveCadence),
+        });
       } catch (error) {
         console.error("Error fetching call logs:", error);
         return res.status(500).json({ success: false, error: "Server error" });

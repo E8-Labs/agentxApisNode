@@ -30,6 +30,11 @@ const PipelineCadence = (sequelize, Sequelize) => {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+    status: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: PipelineCadenceStatus.Active, // when user assigns that lead to another pipeline then that cadence status changes to Paused
+    },
     moveToStage: {
       type: Sequelize.INTEGER,
       allowNull: true,
@@ -41,6 +46,13 @@ const PipelineCadence = (sequelize, Sequelize) => {
   });
 
   return PipelineCadence;
+};
+
+export const PipelineCadenceStatus = {
+  // Pending: "Pending",
+  Active: "Active",
+  Paused: "Paused",
+  // Booked: "Booked", // the rest of the cadence for that
 };
 
 export default PipelineCadence;
