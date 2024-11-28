@@ -326,7 +326,8 @@ export const PausePipelineCadenceForAnAgent = async (req, res) => {
 
 //Scheduled calls
 export const GetScheduledCalls = async (req, res) => {
-  const { name } = req.query;
+  const { mainAgentId } = req.query;
+
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -343,6 +344,13 @@ export const GetScheduledCalls = async (req, res) => {
           userId: user.id,
         },
       });
+      if (mainAgentId) {
+        agents = await db.MainAgentModel.findAll({
+          where: {
+            id: mainAgentId,
+          },
+        });
+      }
 
       agents.map((item) => {
         agentIds.push(item.id);
@@ -371,19 +379,25 @@ export const GetScheduledCalls = async (req, res) => {
                 "phone",
                 "createdAt",
               ],
-              where: {
-                ...(name && {
-                  [db.Sequelize.Op.or]: [
-                    { firstName: { [db.Sequelize.Op.like]: `%${name}%` } },
-                    { lastName: { [db.Sequelize.Op.like]: `%${name}%` } },
-                  ],
-                }),
-              },
+              // where: {
+              //   ...(name && {
+              //     [db.Sequelize.Op.or]: [
+              //       { firstName: { [db.Sequelize.Op.like]: `%${name}%` } },
+              //       { lastName: { [db.Sequelize.Op.like]: `%${name}%` } },
+              //     ],
+              //   }),
+              // },
             },
           ],
         });
 
+        // console.log(
+        //   "---------------------------------------------------------------------------"
+        // );
         // console.log("Lead with cadence", leadsWithCadence);
+        // console.log(
+        //   "---------------------------------------------------------------------------\n\n\n\n"
+        // );
 
         // Fetch all relevant last calls
         const lastCalls = await db.LeadCallsSent.findAll({
@@ -396,38 +410,46 @@ export const GetScheduledCalls = async (req, res) => {
             },
           },
         });
+        // console.log(
+        //   "---------------------------------------------------------------------------"
+        // );
 
         // console.log("Last calls ", lastCalls);
-
+        // console.log(
+        //   "---------------------------------------------------------------------------\n\n\n\n"
+        // );
         const futureCalls = [];
 
         // Process leads with previous calls
         for (const lastCall of lastCalls) {
-          const cadenceCall = await db.CadenceCalls.findOne({
+          const cadenceCalls = await db.CadenceCalls.findAll({
             where: { pipelineCadenceId: lastCall.leadCadenceId },
           });
 
+          console.log("cadenceCall last calls", cadenceCalls);
           const leadData = leadsWithCadence.find(
             (cadence) => cadence.id === lastCall.leadCadenceId
           );
+          if (leadData) {
+            for (const cadenceCall of cadenceCalls) {
+              const delayInMilliseconds =
+                cadenceCall.waitTimeDays * 24 * 60 * 60 * 1000 +
+                cadenceCall.waitTimeHours * 60 * 60 * 1000 +
+                cadenceCall.waitTimeMinutes * 60 * 1000;
 
-          if (cadenceCall && leadData) {
-            const delayInMilliseconds =
-              cadenceCall.waitTimeDays * 24 * 60 * 60 * 1000 +
-              cadenceCall.waitTimeHours * 60 * 60 * 1000 +
-              cadenceCall.waitTimeMinutes * 60 * 1000;
+              const nextCallTime = new Date(
+                new Date(lastCall.callTriggerTime).getTime() +
+                  delayInMilliseconds
+              );
 
-            const nextCallTime = new Date(
-              new Date(lastCall.callTriggerTime).getTime() + delayInMilliseconds
-            );
-
-            if (nextCallTime > new Date()) {
-              futureCalls.push({
-                leadId: leadData.LeadModel.id,
-                stage: cadenceCall.pipelineCadenceId, // The stage from CadenceCalls
-                leadDetails: leadData.LeadModel,
-                scheduledAt: nextCallTime,
-              });
+              if (nextCallTime > new Date()) {
+                futureCalls.push({
+                  leadId: leadData.LeadModel.id,
+                  stage: cadenceCall.pipelineCadenceId, // The stage from CadenceCalls
+                  leadDetails: leadData.LeadModel,
+                  scheduledAt: nextCallTime,
+                });
+              }
             }
           }
         }
@@ -435,10 +457,10 @@ export const GetScheduledCalls = async (req, res) => {
         // Process leads with no previous calls
 
         const leadsWithoutCalls = leadsWithCadence.filter((cadence) => {
-          console.log("Cadence ", cadence);
+          // console.log("Cadence ", cadence);
           return !lastCalls.some((call) => call.leadId === cadence.Lead.id);
         });
-        // console.log("Lead without calls", leadsWithoutCalls);
+        console.log("Lead without calls", leadsWithoutCalls);
 
         for (const lead of leadsWithoutCalls) {
           let pipelineCadence = await db.PipelineCadence.findOne({
@@ -457,6 +479,8 @@ export const GetScheduledCalls = async (req, res) => {
             const cadenceCalls = await db.CadenceCalls.findAll({
               where: { pipelineCadenceId: pipelineCadence.id }, // Use stage from LeadCadence
             });
+            console.log(`CadenceCalls for ${pipelineCadence.id}`);
+            console.log("Total ", cadenceCalls.length);
             if (cadenceCalls && cadenceCalls.length > 0) {
               for (const cadenceCall of cadenceCalls) {
                 // if (cadenceCall) {
