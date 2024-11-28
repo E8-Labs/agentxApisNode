@@ -169,7 +169,7 @@ export const CreatePipelineCadence = async (req, res) => {
         let cad = cadence[i];
         let calls = cad.calls;
         let cadStage = cad.stage; // for which stage do we apply this
-        let moveToStage = cad.moveToStage;
+        let moveToStage = cad.moveToStage || null;
 
         // let agentStageCreated = await db.AgentStages.create({
         //   stageId: cadStage,
