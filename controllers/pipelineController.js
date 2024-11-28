@@ -436,9 +436,7 @@ export const GetScheduledCalls = async (req, res) => {
 
         const leadsWithoutCalls = leadsWithCadence.filter((cadence) => {
           console.log("Cadence ", cadence);
-          return !lastCalls.some(
-            (call) => call.leadId === cadence.LeadModel.id
-          );
+          return !lastCalls.some((call) => call.leadId === cadence.Lead.id);
         });
         // console.log("Lead without calls", leadsWithoutCalls);
 
