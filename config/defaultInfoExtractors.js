@@ -432,4 +432,13 @@ export const OpenQuestionInfoExtractors = [
     description: ``,
     examples: [],
   },
+  {
+    actionId: "1732810365209x388994348989563100",
+    identifier: "areaofinterest", //How would it impact you if the sale took longer than anticipated?
+    question:
+      "How would it impact you if the sale took longer than anticipated?", //
+    actiontype: "open_question",
+    description: ``,
+    examples: [],
+  },
 ];

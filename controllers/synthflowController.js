@@ -686,6 +686,7 @@ export const AddKyc = async (req, res) => {
         for (let i = 0; i < kycQuestions.length; i++) {
           let kyc = kycQuestions[i];
           kyc.actiontype = "open_question";
+          kyc.description = `Based on the transcript provided, identify what the Human said when asked ${kyc.question}. If no clear answer is provided, output Not Provided.`;
           let created = await db.KycModel.create({
             userId: user.id,
             question: kyc.question,
