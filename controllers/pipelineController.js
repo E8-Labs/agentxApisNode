@@ -448,6 +448,7 @@ export const GetScheduledCalls = async (req, res) => {
                 "lastName",
                 "email",
                 "phone",
+                "address",
                 "createdAt",
               ],
               // where: {
