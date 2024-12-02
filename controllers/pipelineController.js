@@ -525,9 +525,9 @@ export const GetScheduledCalls = async (req, res) => {
                   AgentsWithActiveCadence.push(mainAgent);
                 }
                 futureCalls.push({
-                  leadId: leadData.LeadModel.id,
+                  leadId: leadData?.LeadModel?.id,
                   stage: cadenceCall.pipelineCadenceId, // The stage from CadenceCalls
-                  leadDetails: leadData.LeadModel,
+                  leadDetails: leadData?.LeadModel,
                   scheduledAt: nextCallTime,
                   agent: await AgentResource(mainAgent),
                 });
