@@ -670,6 +670,50 @@ export const GetAgents = async (req, res) => {
   });
 };
 
+//Objection & Guardrails
+export const AddObjectionOrGuardrail = async (req, res) => {
+  let { title, description, type, mainAgentId } = req.body; // mainAgentId is the mainAgent id
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let mainAgent = await db.MainAgentModel.findOne({
+        where: {
+          id: mainAgentId,
+        },
+      });
+      if (!mainAgent) {
+        return res.send({
+          status: false,
+          message: "Agent doesn't exist",
+        });
+      }
+      let created = await db.ObjectionAndGuradrails.create({
+        title: title,
+        description: description,
+        type: type,
+        mainAgentId: mainAgentId,
+      });
+      res.send({
+        status: true,
+        message: `${type} created`,
+        data: created,
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+};
+
 export const GetAgentCallActivity = async (req, res) => {
   let { mainAgentId } = req.query;
   console.log("Finding main agent calls ", mainAgentId);

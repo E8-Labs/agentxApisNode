@@ -31,6 +31,8 @@ import UserPhoneNumbers from "./user/userPhoneModel.js";
 import InfoExtractorModel from "./user/infoExtractorModel.js";
 import LeadSheetColumnModel from "./lead/sheetColumnModel.js";
 
+import ObjectionAndGuradrails from "./user/objectAndGaurdrailsModel.js";
+
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
   dbConfig.MYSQL_DB_USER,
@@ -85,6 +87,9 @@ db.LeadCadence = LeadCadence(sequelize, Sequelize);
 models["LeadCadence"] = db.LeadCadence;
 db.LeadCallsSent = LeadCallsSent(sequelize, Sequelize);
 models["LeadCallsSent"] = db.LeadCallsSent;
+
+db.ObjectionAndGuradrails = ObjectionAndGuradrails(sequelize, Sequelize);
+models["ObjectionAndGuradrails"] = db.ObjectionAndGuradrails;
 
 // Run predefined setup
 models["AreaOfFocus"] = db.AreaOfFocus;

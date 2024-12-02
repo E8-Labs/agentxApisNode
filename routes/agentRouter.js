@@ -12,6 +12,7 @@ import {
   WebhookSynthflow,
   GetAgents,
   GetAgentCallActivity,
+  AddObjectionOrGuardrail,
 } from "../controllers/synthflowController.js";
 
 import {
@@ -70,6 +71,14 @@ AgentRouter.post(
 AgentRouter.get("/getKycs", verifyJwtToken, uploadFiles, GetKyc);
 //Add Kyc
 AgentRouter.post("/addKyc", verifyJwtToken, uploadFiles, AddKyc);
+
+AgentRouter.post(
+  "/addObjectionGuardRail",
+  verifyJwtToken,
+  uploadFiles,
+  AddObjectionOrGuardrail
+);
+
 AgentRouter.post("/webhook_synthflow", WebhookSynthflow);
 
 // UserRouter.post("/register", verifyJwtToken, uploadFiles, RegisterUser);

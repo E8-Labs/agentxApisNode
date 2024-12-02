@@ -97,6 +97,19 @@ async function getUserData(mainAgent, currentUser = null) {
     },
   });
 
+  let guardrails = await db.ObjectionAndGuradrails.findAll({
+    where: {
+      mainAgentId: mainAgent.id,
+      type: "guardrail",
+    },
+  });
+  let objections = await db.ObjectionAndGuradrails.findAll({
+    where: {
+      mainAgentId: mainAgent.id,
+      type: "objection",
+    },
+  });
+
   const AgentResource = {
     ...mainAgent.get(),
     agents: agents,
@@ -107,6 +120,8 @@ async function getUserData(mainAgent, currentUser = null) {
     leadsAssigned: leadsAssigned?.length || 0,
     inboundScript: promptInbound?.callScript || "",
     inboundGreeting: promptInbound?.greeting || "",
+    guardrails,
+    objections,
   };
 
   return AgentResource;

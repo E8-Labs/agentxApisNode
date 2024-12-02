@@ -17,18 +17,6 @@ import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 
 export const AddLeads = async (req, res) => {
   let { sheetName, columnMappings, leads } = req.body; // mainAgentId is the mainAgent id
-
-  /* 
-  
-  lead: {
-    extraColumns,
-    firstName,
-    lastName,
-    email,
-    phone,
-    address,
-  }
-  */
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
