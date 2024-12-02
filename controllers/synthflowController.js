@@ -703,7 +703,7 @@ export const AddObjectionOrGuardrail = async (req, res) => {
       res.send({
         status: true,
         message: `${type} created`,
-        data: created,
+        data: await AgentResource(mainAgent),
       });
     } else {
       res.send({
