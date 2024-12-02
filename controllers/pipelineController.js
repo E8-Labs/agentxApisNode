@@ -69,6 +69,77 @@ export const CreatePipeline = async (req, res) => {
     }
   });
 };
+export const CreatePipelineStage = async (req, res) => {
+  let { pipelineId, stageTitle, color } = req.body; // mainAgentId is the mainAgent id
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      if (!color) {
+        color = process.env.DefaultPipelineColor;
+      }
+      let pipeline = await db.Pipeline.findByPk(pipelineId);
+
+      let stage = await db.PipelineStages.create({
+        pipelineId: pipelineId,
+        stageTitle: stageTitle,
+        defaultColor: color,
+        stageId: null,
+        identifier: stageTitle.toLowerCase(),
+      });
+
+      return res.send({
+        status: true,
+        message: "Stage created",
+        data: await PipelineResource(pipeline),
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "Stage creation failed",
+        data: null,
+      });
+    }
+  });
+};
+export const DeletePipelineStage = async (req, res) => {
+  let { pipelineId, stageId } = req.body; // mainAgentId is the mainAgent id
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let pipeline = await db.Pipeline.findByPk(pipelineId);
+
+      let deleted = await db.PipelineStages.destroy({
+        where: {
+          id: stageId,
+        },
+      });
+
+      return res.send({
+        status: true,
+        message: "Stage deleted",
+        data: await PipelineResource(pipeline),
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "Stage deletion failed",
+        data: null,
+      });
+    }
+  });
+};
 export const UpdatePipeline = async (req, res) => {
   let { title } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {

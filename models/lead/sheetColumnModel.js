@@ -1,5 +1,5 @@
 const LeadSheetColumnModel = (sequelize, Sequelize) => {
-  const LeadSheetModel = sequelize.define("LeadSheetColumnModel", {
+  const LeadSheetColumnModel = sequelize.define("LeadSheetColumnModel", {
     columnName: {
       type: Sequelize.STRING,
       allowNull: false,

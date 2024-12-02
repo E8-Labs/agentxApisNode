@@ -98,7 +98,7 @@ export const AddSmartList = async (req, res) => {
         sheetName: sheetName,
         userId: userId,
       });
-
+      console.log("Typeof ", typeof db.LeadSheetColumnModel);
       for (const column of columns) {
         let created = await db.LeadSheetColumnModel.create({
           columnName: column,

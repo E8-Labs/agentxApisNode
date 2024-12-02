@@ -11,7 +11,20 @@ const UserPhoneNumbers = (sequelize, Sequelize) => {
     phoneStatus: {
       type: Sequelize.STRING,
       allowNull: false,
-      defaultValue: "active",
+      defaultValue: "active", //pending, released
+    },
+    nextBillingDate: {
+      type: Sequelize.DATE,
+      allowNull: true,
+    },
+    lastChargeAttempt: {
+      type: Sequelize.DATE,
+      allowNull: true,
+    },
+    chargeStatus: {
+      type: Sequelize.ENUM,
+      values: ["pending", "success", "failed"],
+      defaultValue: "success",
     },
     userId: {
       type: Sequelize.INTEGER,

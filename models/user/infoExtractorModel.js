@@ -9,12 +9,12 @@ const InfoExtractorModel = (sequelize, Sequelize) => {
       allowNull: true,
     },
     actionType: {
-      type: Sequelize.STRING,
+      type: Sequelize.STRING, //defaultIE, liveTransferIE,
       allowNull: true,
     },
     mainAgentId: {
       type: Sequelize.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: "MainAgentModels",
         key: "id",

@@ -140,6 +140,16 @@ const AgentModel = (sequelize, Sequelize) => {
       allowNull: true,
       defaultValue: "",
     },
+    liveTransfer: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    liveTransferActionId: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      // defaultValue: false,
+    },
     voiceId: {
       //Address. Google map picker
       type: Sequelize.STRING,

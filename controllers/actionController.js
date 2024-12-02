@@ -573,9 +573,7 @@ export async function CreateInfoExtractor(kyc) {
   try {
     const response = await axios.post(
       API_URL_Synthflow_Actions,
-      {
-        INFORMATION_EXTRACTOR: GetInfoExtractorApiData(kyc),
-      },
+      GetInfoExtractorApiData(kyc),
       {
         headers: {
           Authorization: `Bearer ${process.env.SynthFlowApiKey}`,
@@ -595,28 +593,42 @@ export async function CreateInfoExtractor(kyc) {
   }
 }
 export function GetInfoExtractorApiData(kyc) {
-  if (kyc.actiontype && kyc.actiontype == "open_question") {
+  if (kyc.actionType == "live_transfer") {
     return {
-      OPEN_QUESTION: {
-        identifier: kyc.question,
-        description: kyc.description || kyc.question,
-        examples: kyc.examples,
+      LIVE_TRANSFER: {
+        phone: kyc.phone,
+        instructions: kyc.instructions || "",
+        timeout: 30,
+      },
+    };
+  } else if (kyc.actiontype && kyc.actiontype == "open_question") {
+    return {
+      INFORMATION_EXTRACTOR: {
+        OPEN_QUESTION: {
+          identifier: kyc.question,
+          description: kyc.description || kyc.question,
+          examples: kyc.examples,
+        },
       },
     };
   } else if (kyc.actiontype && kyc.actiontype == "yes_no") {
     return {
-      YES_NO: {
-        identifier: kyc.question,
-        description: kyc.description || kyc.question,
-        examples: kyc.examples,
+      INFORMATION_EXTRACTOR: {
+        YES_NO: {
+          identifier: kyc.question,
+          description: kyc.description || kyc.question,
+          examples: kyc.examples,
+        },
       },
     };
   } else {
     return {
-      OPEN_QUESTION: {
-        identifier: kyc.question,
-        description: kyc.description || kyc.question,
-        examples: kyc.examples,
+      INFORMATION_EXTRACTOR: {
+        OPEN_QUESTION: {
+          identifier: kyc.question,
+          description: kyc.description || kyc.question,
+          examples: kyc.examples,
+        },
       },
     };
   }

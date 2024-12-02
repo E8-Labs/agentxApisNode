@@ -2,6 +2,10 @@ import twilio from "twilio";
 import JWT from "jsonwebtoken";
 import db from "../models/index.js";
 import { UpdateAssistantSynthflow } from "./synthflowController.js";
+import {
+  CreateAndAttachAction,
+  CreateAndAttachInfoExtractor,
+} from "./actionController.js";
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -130,7 +134,7 @@ export const PurchasePhoneNumber = async (req, res) => {
   const { phoneNumber, mainAgentId } = req.body;
 
   // Verify JWT Token
-  jwt.verify(req.token, process.env.SECRET_JWT_KEY, async (error, authData) => {
+  JWT.verify(req.token, process.env.SECRET_JWT_KEY, async (error, authData) => {
     if (error) {
       return res.status(401).send({
         status: false,
@@ -203,8 +207,13 @@ export const PurchasePhoneNumber = async (req, res) => {
 
 // API to purchase a phone number
 export const AssignPhoneNumber = async (req, res) => {
-  const { phoneNumber, mainAgentId, callbackNumber, liveTransferNumber } =
-    req.body;
+  const {
+    phoneNumber,
+    mainAgentId,
+    callbackNumber,
+    liveTransferNumber,
+    liveTransfer,
+  } = req.body;
 
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -261,12 +270,27 @@ export const AssignPhoneNumber = async (req, res) => {
               mainAgentId: mainAgentId,
             },
           });
-          if (assistants) {
+          if (assistants && assistants.length > 0) {
+            let action = null;
+            if (liveTransferNumber && liveTransfer) {
+              if (!assistants[0].liveTransferActionId) {
+                action = await CreateAndAttachInfoExtractor(mainAgentId, {
+                  actionType: "live_transfer",
+                  phone: liveTransferNumber,
+                  instructions: "Transfer the call",
+                });
+              } else {
+                //update IE
+                console.log("Update IE not implemented");
+              }
+            }
             for (let i = 0; i < assistants.length; i++) {
               let assistant = assistants[i];
               assistant.liveTransferNumber = liveTransferNumber;
+              assistant.liveTransfer = liveTransfer || false;
               assistant.callbackNumber = callbackNumber;
               assistant.phoneNumber = phoneNumber;
+              assistant.liveTransferActionId = action?.action_id;
               let updatedAgent = await assistant.save();
               console.log("Callback and LiveTransfer Numbers saved");
               let updated = await UpdateAssistantSynthflow(assistant, {
