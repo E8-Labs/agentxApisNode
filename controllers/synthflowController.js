@@ -332,6 +332,56 @@ export async function GetVoices(req, res) {
   }
 }
 
+async function CreatePromptForAgent(
+  user,
+  mainAgent,
+  name,
+  CUStatus,
+  CUAddress,
+  buyer_kyc,
+  seller_kyc,
+  type = "outbound",
+  selectedObjective
+) {
+  let p = selectedObjective.prompt;
+  if (type == "inbound") {
+    p = selectedObjective.promptInbound;
+  }
+  let greeting = p.greeting;
+  greeting = greeting.replace(/{agent_name}/g, name);
+  greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
+
+  let callScript = p.callScript;
+  callScript = callScript.replace(/{agent_name}/g, name);
+  callScript = callScript.replace(/{brokerage_name}/g, user.brokerage);
+
+  callScript = callScript.replace(/{seller_kyc}/g, seller_kyc);
+  callScript = callScript.replace(/{buyer_kyc}/g, buyer_kyc);
+
+  callScript = callScript.replace(/{CU_status}/g, CUStatus);
+  callScript = callScript.replace(/{CU_address}/g, CUAddress);
+
+  if (selectedObjective.prompt) {
+    let prompt = await db.AgentPromptModel.create({
+      mainAgentId: mainAgent.id,
+      objective: p.objective,
+      companyAgentInfo: p.companyAgentInfo,
+      personalCharacteristics: p.personalCharacteristics,
+      //
+      communication: p.communication,
+      callScript: callScript,
+      booking: p.booking,
+      getTools: p.getTools,
+      greeting: greeting,
+      guardRails: p.guardRails,
+      objectionHandling: p.objectionHandling,
+      streetAddress: p.streetAddress,
+      type: type,
+    });
+  } else {
+  }
+}
+
 export const BuildAgent = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -403,38 +453,8 @@ export const BuildAgent = async (req, res) => {
           CUAddress = agents[0].address;
 
         //Create Prompt
-        let greeting = selectedObjective.prompt.greeting;
-        greeting = greeting.replace(/{agent_name}/g, name);
-        greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
+        let selectedPrompt = selectedObjective.prompt;
 
-        let callScript = selectedObjective.prompt.callScript;
-        callScript = callScript.replace(/{agent_name}/g, name);
-        callScript = callScript.replace(/{brokerage_name}/g, user.brokerage);
-
-        callScript = callScript.replace(/{seller_kyc}/g, kycTextSeller);
-        callScript = callScript.replace(/{buyer_kyc}/g, kycTextBuyer);
-
-        callScript = callScript.replace(/{CU_status}/g, CUStatus);
-        callScript = callScript.replace(/{CU_address}/g, CUAddress);
-
-        if (selectedObjective.prompt) {
-          let prompt = await db.AgentPromptModel.create({
-            mainAgentId: mainAgent.id,
-            objective: selectedObjective.prompt.objective,
-            companyAgentInfo: selectedObjective.prompt.companyAgentInfo,
-            personalCharacteristics:
-              selectedObjective.prompt.personalCharacteristics,
-            //
-            communication: selectedObjective.prompt.communication,
-            callScript: callScript,
-            booking: selectedObjective.prompt.booking,
-            getTools: selectedObjective.prompt.getTools,
-            greeting: greeting,
-            guardRails: selectedObjective.prompt.guardRails,
-            objectionHandling: selectedObjective.prompt.objectionHandling,
-            streetAddress: selectedObjective.prompt.streetAddress,
-          });
-        }
         if (agentType == "both") {
           //create Agent Sythflow
           let data = {
@@ -450,7 +470,28 @@ export const BuildAgent = async (req, res) => {
             agentObjectiveId: agentObjectiveId,
             // prompt: selectedObjective.prompt,
           };
-
+          let createdOutboundPrompt = await CreatePromptForAgent(
+            user,
+            mainAgent,
+            name,
+            CUStatus,
+            CUAddress,
+            kycTextBuyer,
+            kycTextSeller,
+            "outbound",
+            selectedObjective
+          );
+          let createdInboundPrompt = await CreatePromptForAgent(
+            user,
+            mainAgent,
+            name,
+            CUStatus,
+            CUAddress,
+            kycTextBuyer,
+            kycTextSeller,
+            "inbound",
+            selectedObjective
+          );
           let createdInbound = await CreateAssistantSynthflow(
             data,
             "inbound",
@@ -475,6 +516,17 @@ export const BuildAgent = async (req, res) => {
             agentObjectiveId: agentObjectiveId,
             // prompt: selectedObjective.prompt,
           };
+          let created = await CreatePromptForAgent(
+            user,
+            mainAgent,
+            name,
+            CUStatus,
+            CUAddress,
+            kycTextBuyer,
+            kycTextSeller,
+            agentType,
+            selectedObjective
+          );
           let createdAgent = await CreateAssistantSynthflow(
             data,
             agentType,

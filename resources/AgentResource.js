@@ -78,6 +78,13 @@ async function getUserData(mainAgent, currentUser = null) {
   let prompt = await db.AgentPromptModel.findOne({
     where: {
       mainAgentId: mainAgent.id,
+      type: "outbound",
+    },
+  });
+  let promptInbound = await db.AgentPromptModel.findOne({
+    where: {
+      mainAgentId: mainAgent.id,
+      type: "inbound",
     },
   });
 
@@ -98,6 +105,8 @@ async function getUserData(mainAgent, currentUser = null) {
     greeting: prompt?.greeting || "",
     callScript: prompt?.callScript || "",
     leadsAssigned: leadsAssigned?.length || 0,
+    inboundScript: promptInbound?.callScript || "",
+    inboundGreeting: promptInbound?.greeting || "",
   };
 
   return AgentResource;

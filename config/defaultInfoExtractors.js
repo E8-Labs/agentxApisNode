@@ -435,8 +435,7 @@ export const OpenQuestionInfoExtractors = [
   {
     actionId: "1732810365209x388994348989563100",
     identifier: "areaofinterest", //How would it impact you if the sale took longer than anticipated?
-    question:
-      "How would it impact you if the sale took longer than anticipated?", //
+    question: "What area are you looking in?", //
     actiontype: "open_question",
     description: ``,
     examples: [],
@@ -445,7 +444,7 @@ export const OpenQuestionInfoExtractors = [
     actionId: "1733115374584x230842876789919550",
     identifier: "typeofhome", //How would it impact you if the sale took longer than anticipated?
     question:
-      "How would it impact you if the sale took longer than anticipated?", //
+      "What type of home are you looking for? Single family, townhouse, condo, apartment, etc", //
     actiontype: "open_question",
     description: ``,
     examples: [],
@@ -453,16 +452,7 @@ export const OpenQuestionInfoExtractors = [
   {
     actionId: "1733115489937x904072870493430300",
     identifier: "firsttimebuyer", //How would it impact you if the sale took longer than anticipated?
-    question: `Based on the transcript provided, determine whether the Human mentioned if they are a first-time homebuyer. Extract the specific statement regarding their homebuying experience. If no mention is made of their experience, output Not Provided.
-Key Conditions:
-If the Lead Mentions Their Homebuying Experience:
-Extract the specific statement the Human provided about whether they are a first-time homebuyer.
-Examples:
-Human: "This is my first time buying a home."
-Human: "I’ve bought two houses before; this is my third."
-      
-If No Mention of Homebuying Experience:
-If the Human does not specify what type of home buyer they are, output Not Provided.`, //
+    question: `Are you a first time home buyer?`, //
     actiontype: "open_question",
     description: ``,
     examples: [
@@ -476,18 +466,7 @@ If the Human does not specify what type of home buyer they are, output Not Provi
   {
     actionId: "1733118137282x556915827562454850",
     identifier: "righttimetobuy", //How would it impact you if the sale took longer than anticipated?
-    question: `Based on the transcript provided, determine why the Human feels that now is the right time to buy a home. Extract the specific reasoning they provided. If no reason is mentioned, output Not Provided.
-Key Conditions:
-If the Lead Mentions Why It’s the Right Time:
-Extract the specific reason the Human feels that now is a good time to buy.
-Examples:
-Human: "Interest rates are lower than they’ve been in years, so I think it’s a good time."
-    
-Human: "I’m tired of renting, and I want to start building equity."
-
-
-If No Reason is Mentioned:
-If the Human does not explain why now is the right time to buy, output Not Provided.`, //
+    question: `Why is now the right time?`, //
     actiontype: "open_question",
     description: `Based on the transcript provided, determine why the Human feels that now is the right time to buy a home. Extract the specific reasoning they provided. If no reason is mentioned, output Not Provided.
 Key Conditions:
@@ -506,8 +485,7 @@ If the Human does not explain why now is the right time to buy, output Not Provi
   {
     actionId: "1733118238897x692775687893301800",
     identifier: "resizingneeds", //How would it impact you if the sale took longer than anticipated?
-    question:
-      "How would it impact you if the sale took longer than anticipated?", //
+    question: "Are you looking to downsize or upsize?", //
     actiontype: "open_question",
     description: ``,
     examples: [],
@@ -515,8 +493,7 @@ If the Human does not explain why now is the right time to buy, output Not Provi
   {
     actionId: "1733118322496x226356903221363260",
     identifier: "workrelocation", //How would it impact you if the sale took longer than anticipated?
-    question:
-      "How would it impact you if the sale took longer than anticipated?", //
+    question: "Are you relocating for work?", //
     actiontype: "open_question",
     description: ``,
     examples: [],
@@ -524,8 +501,7 @@ If the Human does not explain why now is the right time to buy, output Not Provi
   {
     actionId: "1733118423841x612427909624138800",
     identifier: "moveintimeline", //How would it impact you if the sale took longer than anticipated?
-    question:
-      "How would it impact you if the sale took longer than anticipated?", //
+    question: "When do you expect to move into your new place?", //
     actiontype: "open_question",
     description: ``,
     examples: [],
@@ -533,17 +509,16 @@ If the Human does not explain why now is the right time to buy, output Not Provi
   {
     actionId: "1733118506912x723782518456135300",
     identifier: "buyingtimeline", //How would it impact you if the sale took longer than anticipated?
-    question:
-      "How would it impact you if the sale took longer than anticipated?", //
+    question: "When do you plan on buying a home?", //
     actiontype: "open_question",
     description: ``,
     examples: [],
   },
   {
     actionId: "1733118647042x586587666282441000",
-    identifier: "moveimingeason", //How would it impact you if the sale took longer than anticipated?
+    identifier: "movetimingreason", //How would it impact you if the sale took longer than anticipated?
     question:
-      "How would it impact you if the sale took longer than anticipated?", //
+      "Is there a specific reason you need to move by a certain date? (school year, work, etc.)", //
     actiontype: "open_question",
     description: ``,
     examples: [],

@@ -10,6 +10,11 @@ const AgentPromptModel = (sequelize, Sequelize) => {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+    type: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: "outbound", //inbound
+    },
     objective: {
       type: Sequelize.TEXT("medium"),
       allowNull: true,

@@ -26,6 +26,7 @@ export const AgentObjectives = [
     details:
       "Provide local homeowners with relevant updates on a property like just listed, just sold, in escrow or something else. ",
     prompt: Prompts.CommunityUpdate,
+    promptInbound: Prompts.CommunityUpdateInbound,
   },
   {
     id: 4,
