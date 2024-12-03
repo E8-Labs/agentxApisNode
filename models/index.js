@@ -32,6 +32,7 @@ import InfoExtractorModel from "./user/infoExtractorModel.js";
 import LeadSheetColumnModel from "./lead/sheetColumnModel.js";
 
 import ObjectionAndGuradrails from "./user/objectAndGaurdrailsModel.js";
+import ApiKeysModel from "./user/apikeysModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -90,6 +91,9 @@ models["LeadCallsSent"] = db.LeadCallsSent;
 
 db.ObjectionAndGuradrails = ObjectionAndGuradrails(sequelize, Sequelize);
 models["ObjectionAndGuradrails"] = db.ObjectionAndGuradrails;
+
+db.ApiKeysModel = ApiKeysModel(sequelize, Sequelize);
+models["ApiKeysModel"] = db.ApiKeysModel;
 
 // Run predefined setup
 models["AreaOfFocus"] = db.AreaOfFocus;

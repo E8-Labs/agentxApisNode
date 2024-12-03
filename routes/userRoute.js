@@ -9,6 +9,8 @@ import {
   CheckEmailExists,
 } from "../controllers/userController.js";
 
+import { GenerateApiKey, GetMyApiKeys } from "../controllers/apiController.js";
+
 const uploadFiles = multer().fields([
   { name: "media", maxCount: 1 },
   { name: "driver_license", maxCount: 1 },
@@ -23,6 +25,9 @@ let UserRouter = express.Router();
 
 UserRouter.post("/login", LoginUser);
 UserRouter.post("/register", uploadFiles, RegisterUser);
+
+UserRouter.post("/generateApiKey", verifyJwtToken, GenerateApiKey);
+UserRouter.get("/apiKeys", verifyJwtToken, GetMyApiKeys);
 
 // UserRouter.post("/updateProfile", verifyJwtToken, uploadFiles, UpdateProfile);
 UserRouter.post("/checkPhoneNumber", CheckPhoneExists);
