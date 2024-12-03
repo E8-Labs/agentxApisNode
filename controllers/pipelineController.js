@@ -84,12 +84,23 @@ export const CreatePipelineStage = async (req, res) => {
         color = process.env.DefaultPipelineColor;
       }
       let pipeline = await db.Pipeline.findByPk(pipelineId);
-
+      let lastStageByOrder = await db.PipelineStages.findOne({
+        where: {
+          pipelineId: pipeline.id,
+        },
+        order: [["order", "DESC"]],
+        limit: 1,
+      });
+      let order = 10;
+      if (lastStageByOrder) {
+        order = lastStageByOrder.order + 10;
+      }
       let stage = await db.PipelineStages.create({
         pipelineId: pipelineId,
         stageTitle: stageTitle,
         defaultColor: color,
         stageId: null,
+        order: order,
         identifier: stageTitle.toLowerCase(),
       });
 
@@ -107,6 +118,55 @@ export const CreatePipelineStage = async (req, res) => {
     }
   });
 };
+
+export const ReorderPipelineStages = async (req, res) => {
+  const { pipelineId, reorderedStages } = req.body;
+  // `reorderedStages` should be an array of stage objects with `id` and new `order` values
+
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      try {
+        // Validate pipeline existence
+        const pipeline = await db.Pipeline.findByPk(pipelineId);
+        if (!pipeline) {
+          return res.status(404).send({
+            status: false,
+            message: "Pipeline not found",
+          });
+        }
+
+        // Update order of each stage
+        for (const stage of reorderedStages) {
+          await db.PipelineStages.update(
+            { order: stage.order },
+            { where: { id: stage.id, pipelineId: pipelineId } }
+          );
+        }
+
+        // Fetch updated pipeline data (optional)
+        const updatedPipeline = await PipelineResource(pipeline);
+
+        return res.send({
+          status: true,
+          message: "Stages reordered successfully",
+          data: updatedPipeline,
+        });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).send({
+          status: false,
+          message: "An error occurred while reordering stages",
+        });
+      }
+    } else {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized",
+      });
+    }
+  });
+};
+
 export const DeletePipelineStage = async (req, res) => {
   let { pipelineId, stageId } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {

@@ -11,6 +11,7 @@ import {
   PausePipelineCadenceForAnAgent,
   GetScheduledCalls,
   CreatePipelineStage,
+  ReorderPipelineStages,
 } from "../controllers/pipelineController.js";
 
 const uploadFiles = multer().fields([
@@ -28,6 +29,7 @@ let PipelineRouter = express.Router();
 PipelineRouter.post("/createPipeline", verifyJwtToken, CreatePipeline);
 PipelineRouter.post("/updatePipeline", verifyJwtToken, UpdatePipeline);
 PipelineRouter.post("/createStage", verifyJwtToken, CreatePipelineStage);
+PipelineRouter.post("/reorderStages", verifyJwtToken, ReorderPipelineStages);
 PipelineRouter.post(
   "/pauseAgentCadence",
   verifyJwtToken,
