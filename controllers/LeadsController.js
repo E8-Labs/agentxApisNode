@@ -88,10 +88,21 @@ export const AddSmartList = async (req, res) => {
       });
       console.log("Typeof ", typeof db.LeadSheetColumnModel);
       for (const column of columns) {
-        let created = await db.LeadSheetColumnModel.create({
-          columnName: column,
-          sheetId: sheet.id,
+        let found = await db.LeadSheetColumnModel.findOne({
+          where: {
+            columnName: column,
+            sheetId: sheet.id,
+          },
         });
+        if (!found) {
+          console.log("column not found create one");
+          let created = await db.LeadSheetColumnModel.create({
+            columnName: column,
+            sheetId: sheet.id,
+          });
+        } else {
+          console.log("column found already");
+        }
       }
 
       res.send({
@@ -267,10 +278,51 @@ export const GetLeads = async (req, res) => {
   });
 };
 
+export async function GetColumnsInSheet(sheetId) {
+  let leads = await db.LeadModel.findAll({
+    where: {
+      sheetId: sheetId,
+    },
+  });
+
+  let keys = [];
+  leads.map((lead) => {
+    let extraColumns = lead.extraColumns;
+    let json = JSON.parse(extraColumns);
+    const leadKeys = Object.keys(json);
+
+    leadKeys.forEach((key) => {
+      if (!keys.includes(key)) {
+        keys.push(key);
+      }
+    });
+  });
+  let sheetColumns = await db.LeadSheetColumnModel.findAll({
+    where: {
+      sheetId: sheetId,
+    },
+  });
+  if (sheetColumns) {
+    sheetColumns.map((column) => {
+      if (!keys.includes(column.columnName)) {
+        keys.push(column.columnName);
+      }
+    });
+  }
+
+  return keys;
+}
 export const GetUniqueColumns = async (req, res) => {
+  function mergeAndRemoveDuplicates(array1, array2) {
+    // Filter out elements from array2 that already exist in array1
+    const uniqueArray2 = array2.filter((item) => !array1.includes(item));
+
+    // Concatenate array1 and unique elements of array2
+    return array1.concat(uniqueArray2);
+  }
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
-      let sheetId = req.body.sheetId;
+      let sheetId = req.body.sheetId || null;
       let userId = authData.user.id;
       //   if(userId == null)
       let user = await db.User.findOne({
@@ -278,36 +330,22 @@ export const GetUniqueColumns = async (req, res) => {
           id: userId,
         },
       });
-
-      let leads = await db.LeadModel.findAll({
-        where: {
-          sheetId: sheetId,
-        },
-      });
-
       let keys = [];
-      leads.map((lead) => {
-        let extraColumns = lead.extraColumns;
-        let json = JSON.parse(extraColumns);
-        const leadKeys = Object.keys(json);
-
-        leadKeys.forEach((key) => {
-          if (!keys.includes(key)) {
-            keys.push(key);
-          }
+      if (sheetId) {
+        keys = await GetColumnsInSheet(sheetId);
+      } else {
+        // let sheetIds = []
+        let sheets = await db.LeadSheetModel.findAll({
+          where: {
+            userId: user.id,
+          },
         });
-      });
-      let sheetColumns = await db.LeadSheetColumnModel.findAll({
-        where: {
-          sheetId: sheetId,
-        },
-      });
-      if (sheetColumns) {
-        sheetColumns.map((column) => {
-          if (!keys.includes(column.columnName)) {
-            keys.push(column.columnName);
+        if (sheets && sheets.length > 0) {
+          for (const sheet of sheets) {
+            let sheetKeys = await GetColumnsInSheet(sheet.id);
+            keys = mergeAndRemoveDuplicates(keys, sheetKeys);
           }
-        });
+        }
       }
 
       return res.send({

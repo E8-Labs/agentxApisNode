@@ -67,6 +67,7 @@ async function getUserData(pipeline, currentUser = null) {
     where: {
       pipelineId: pipeline.id,
     },
+    order: [["order", "ASC"]],
   });
   let stageLeads = {};
   for (let i = 0; i < stages.length; i++) {
