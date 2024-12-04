@@ -618,18 +618,30 @@ export const UpdateAgent = async (req, res) => {
           {
             where: {
               mainAgentId: mainAgentId,
+              type: "outbound",
             },
           }
         );
         if (updated) {
           console.log("Prompt updated");
         }
-        // for (let i = 0; i < agents.length; i++) {
-        //   let a = agents[i];
-        //   a.prompt = req.body.prompt;
-        //   let saved = await a.save();
-        //   console.log("Prompt updated to agent");
-        // }
+      }
+      if (req.body.inboundPrompt) {
+        let updated = await db.AgentPromptModel.update(
+          {
+            callScript: req.body.inboundPrompt,
+            greeting: req.body.inboundGreeting,
+          },
+          {
+            where: {
+              mainAgentId: mainAgentId,
+              type: "inbound",
+            },
+          }
+        );
+        if (updated) {
+          console.log("Prompt updated");
+        }
       }
       let agentRes = await AgentResource(agent);
       return res.send({
