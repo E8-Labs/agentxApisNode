@@ -6,6 +6,7 @@ import {
   CreateAndAttachAction,
   CreateAndAttachInfoExtractor,
 } from "./actionController.js";
+import AvailablePhoneResource from "../resources/AvailablePhoneResource.js";
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -51,10 +52,15 @@ export const ListUsersAvailablePhoneNumbers = async (req, res) => {
           });
 
           let phoneNumbersObtained = phoneNumbers.map((row) => row.phone); // Extract only the phone numbers
+
+          let phoneRes = await AvailablePhoneResource(
+            phoneNumbersObtained,
+            user
+          );
           return res.status(200).send({
             status: true,
-            message: "Phone Numbers",
-            data: phoneNumbersObtained,
+            message: "Phone Numbers" + user.id,
+            data: phoneRes,
           });
         } catch (error) {
           console.error("Error fetching unique phone numbers:", error);
@@ -62,6 +68,56 @@ export const ListUsersAvailablePhoneNumbers = async (req, res) => {
             status: false,
             message: error.message,
             error: error,
+          });
+        }
+      } else {
+        return res.status(200).send({
+          status: false,
+          message: "Unauthenticated number",
+        });
+      }
+    } else {
+      return res.status(200).send({
+        status: false,
+        message: "Unauthenticated number",
+      });
+    }
+  });
+};
+
+export const ReleasePhoneNumber = async (req, res) => {
+  let inboundAgentId = req.body.agentId;
+  let phoneNumber = req.body.phoneNumber;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      console.log("User", user);
+
+      if (user) {
+        let agent = await db.AgentModel.findOne({
+          where: {
+            phoneNumber: phoneNumber,
+            id: inboundAgentId,
+          },
+        });
+        if (agent) {
+          agent.phoneNumber = "";
+          let saved = await agent.save();
+          return res.status(200).send({
+            status: true,
+            message: "Phone Number Released",
+            data: agent,
+          });
+        } else {
+          return res.status(200).send({
+            status: false,
+            message: "No such agent",
+            data: agent,
           });
         }
       } else {

@@ -20,6 +20,7 @@ import {
   PurchasePhoneNumber,
   ListUsersAvailablePhoneNumbers,
   AssignPhoneNumber,
+  ReleasePhoneNumber,
 } from "../controllers/twilioController.js";
 // import { verify } from "jsonwebtoken";
 
@@ -65,6 +66,13 @@ AgentRouter.post(
   verifyJwtToken,
   uploadFiles,
   AssignPhoneNumber
+);
+
+AgentRouter.post(
+  "/releasePhoneNumber",
+  verifyJwtToken,
+  uploadFiles,
+  ReleasePhoneNumber
 );
 
 //Kycs
