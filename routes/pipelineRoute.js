@@ -12,6 +12,7 @@ import {
   GetScheduledCalls,
   CreatePipelineStage,
   ReorderPipelineStages,
+  DeletePipelineStage,
 } from "../controllers/pipelineController.js";
 
 const uploadFiles = multer().fields([
@@ -30,6 +31,11 @@ PipelineRouter.post("/createPipeline", verifyJwtToken, CreatePipeline);
 PipelineRouter.post("/updatePipeline", verifyJwtToken, UpdatePipeline);
 PipelineRouter.post("/createStage", verifyJwtToken, CreatePipelineStage);
 PipelineRouter.post("/reorderStages", verifyJwtToken, ReorderPipelineStages);
+PipelineRouter.post(
+  "/deletePipelineStage",
+  verifyJwtToken,
+  DeletePipelineStage
+);
 PipelineRouter.post(
   "/pauseAgentCadence",
   verifyJwtToken,

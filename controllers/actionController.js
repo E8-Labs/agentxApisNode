@@ -336,25 +336,25 @@ function getTomorrowDate() {
   return tomorrow.toISOString().split("T")[0];
 }
 
-async function CreateRealTimeBookingAction(
-  event_id,
-  email = "salman@e8-labs.com"
-) {
+export async function CreateRealTimeBookingAction(calendar_id, mainAgentName) {
   try {
+    let bookingData = {
+      first_appt_date: getTomorrowDate(), // Set to tomorrow's date
+      max_time_slots: 2,
+      min_hours_diff: 3,
+      no_of_days: 2,
+      timezone: "America/New_York",
+      GHL: {
+        calendar_id: calendar_id,
+        autoconfirm: "confirmed",
+        booking_title: `${mainAgentName}'s `,
+      },
+    };
     const response = await axios.post(
       API_URL_Synthflow_Actions,
       {
         REAL_TIME_BOOKING: {
-          first_appt_date: getTomorrowDate(), // Set to tomorrow's date
-          max_time_slots: 2,
-          min_hours_diff: 3,
-          no_of_days: 2,
-          timezone: "America/New_York",
-          CALCOM: {
-            event_id: event_id,
-            integration: "GMeet",
-            user_email: email,
-          },
+          bookingData,
         },
       },
       {

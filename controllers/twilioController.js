@@ -215,6 +215,10 @@ export const AssignPhoneNumber = async (req, res) => {
     liveTransfer,
   } = req.body;
 
+  let defaultInstructionsForTransfer =
+    "Make the transfer if the user asks to speak to one of our team member or a live agent.";
+  let instructions = req.body.instructions || defaultInstructionsForTransfer;
+
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -277,7 +281,7 @@ export const AssignPhoneNumber = async (req, res) => {
                 action = await CreateAndAttachInfoExtractor(mainAgentId, {
                   actionType: "live_transfer",
                   phone: liveTransferNumber,
-                  instructions: "Transfer the call",
+                  instructions: instructions,
                 });
               } else {
                 //update IE
@@ -289,13 +293,50 @@ export const AssignPhoneNumber = async (req, res) => {
               assistant.liveTransferNumber = liveTransferNumber;
               assistant.liveTransfer = liveTransfer || false;
               assistant.callbackNumber = callbackNumber;
-              assistant.phoneNumber = phoneNumber;
+
               assistant.liveTransferActionId = action?.action_id;
+              //if user have purchases this number && this is not a global number then assign to inbound agent as well
+              // else assign to out bound agent only
+              //only assign to inbound agent if the number is purchases by the user.
+              if (alreadyPurchased && assistant.agentType == "inbound") {
+                //check if the number is already assigned to another inbound agent or not
+                //if assigned then don't assign to this inbound agent. Otherwise assign
+                assistant.phoneNumber = phoneNumber;
+                let agentsWithPhoneNumberAssigned = await db.AgentModel.findAll(
+                  {
+                    where: {
+                      phoneNumber: phoneNumber,
+                      agentType: "inbound",
+                    },
+                  }
+                );
+                if (
+                  agentsWithPhoneNumberAssigned &&
+                  agentsWithPhoneNumberAssigned.length > 0
+                ) {
+                  console.log(
+                    "This number is already assigned to another inbound agent"
+                  );
+                } else {
+                  let updated = await UpdateAssistantSynthflow(assistant, {
+                    phone_number: phoneNumber,
+                  });
+                }
+              } else if (assistant.agentType == "outbound") {
+                console.log(
+                  `This number ${phoneNumber} assigned to outbound models `
+                );
+                assistant.phoneNumber = phoneNumber;
+                let updated = await UpdateAssistantSynthflow(assistant, {
+                  phone_number: phoneNumber,
+                });
+              } else {
+                console.log(
+                  `This number ${phoneNumber} can not be assigned to inbound models `
+                );
+              }
               let updatedAgent = await assistant.save();
               console.log("Callback and LiveTransfer Numbers saved");
-              let updated = await UpdateAssistantSynthflow(assistant, {
-                phone_number: phoneNumber,
-              });
             }
           }
           return res.send({

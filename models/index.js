@@ -33,6 +33,7 @@ import LeadSheetColumnModel from "./lead/sheetColumnModel.js";
 
 import ObjectionAndGuradrails from "./user/objectAndGaurdrailsModel.js";
 import ApiKeysModel from "./user/apikeysModel.js";
+import GhlCalendarModel from "./user/ghlCalendarModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -94,6 +95,9 @@ models["ObjectionAndGuradrails"] = db.ObjectionAndGuradrails;
 
 db.ApiKeysModel = ApiKeysModel(sequelize, Sequelize);
 models["ApiKeysModel"] = db.ApiKeysModel;
+
+db.GhlCalendarModel = GhlCalendarModel(sequelize, Sequelize);
+models["GhlCalendarModel"] = db.GhlCalendarModel;
 
 // Run predefined setup
 models["AreaOfFocus"] = db.AreaOfFocus;

@@ -355,8 +355,9 @@ async function CreatePromptForAgent(
   callScript = callScript.replace(/{agent_name}/g, name);
   callScript = callScript.replace(/{brokerage_name}/g, user.brokerage);
 
-  callScript = callScript.replace(/{seller_kyc}/g, seller_kyc);
-  callScript = callScript.replace(/{buyer_kyc}/g, buyer_kyc);
+  // When an agent is created, the kycs are not available. They are created at a later stage.
+  // callScript = callScript.replace(/{seller_kyc}/g, seller_kyc);
+  // callScript = callScript.replace(/{buyer_kyc}/g, buyer_kyc);
 
   callScript = callScript.replace(/{CU_status}/g, CUStatus);
   callScript = callScript.replace(/{CU_address}/g, CUAddress);
@@ -416,21 +417,21 @@ export const BuildAgent = async (req, res) => {
         userId: user.id,
       });
 
-      let agentCreated = await db.AgentModel.create({
-        mainAgentId: mainAgent.id,
-        userId: user.id,
-      });
+      // let agentCreated = await db.AgentModel.create({
+      //   mainAgentId: mainAgent.id,
+      //   userId: user.id,
+      // });
 
       if (!mainAgent) {
         console.log("Error creating main agent ");
         return;
       }
 
-      let agents = await db.AgentModel.findAll({
-        where: {
-          mainAgentId: mainAgent.id,
-        },
-      });
+      // let agents = await db.AgentModel.findAll({
+      //   where: {
+      //     mainAgentId: mainAgent.id,
+      //   },
+      // });
 
       try {
         let kycTextSeller = ``;
@@ -449,12 +450,14 @@ export const BuildAgent = async (req, res) => {
             kycTextBuyer = `${kycTextBuyer}\n${kyc.question}`;
           }
         }
-        let CUStatus = agents[0].status,
-          CUAddress = agents[0].address;
+        let CUStatus = status,
+          CUAddress = address;
 
         //Create Prompt
         let selectedPrompt = selectedObjective.prompt;
 
+        // console.log("Kyc ", kycTextSeller);
+        // return;
         if (agentType == "both") {
           //create Agent Sythflow
           let data = {
@@ -492,11 +495,13 @@ export const BuildAgent = async (req, res) => {
             "inbound",
             selectedObjective
           );
+          data.agentType = "inbound";
           let createdInbound = await CreateAssistantSynthflow(
             data,
             "inbound",
             mainAgent
           );
+          data.agentType = "outbound";
           let createdOutbound = await CreateAssistantSynthflow(
             data,
             "outbound",
@@ -812,6 +817,27 @@ export const AddKyc = async (req, res) => {
         },
       });
 
+      let prompts = await db.AgentPromptModel.findAll({
+        where: {
+          mainAgentId: mainAgentId,
+        },
+      });
+      let kycSellerBefore = await db.KycModel.findAll({
+        where: {
+          mainAgentId: mainAgentId,
+          type: "seller",
+        },
+      });
+
+      let kycBuyerBefore = await db.KycModel.findAll({
+        where: {
+          mainAgentId: mainAgentId,
+          type: "buyer",
+        },
+      });
+
+      let kycSellerText = "";
+      let kycBuyerText = "";
       let kycs = [];
 
       if (user) {
@@ -828,7 +854,16 @@ export const AddKyc = async (req, res) => {
           });
 
           let kycExamples = [];
+          let newSellerKycCount = 0,
+            newBuyerKycCount = 0;
           if (created) {
+            if (kyc.type == "seller") {
+              newSellerKycCount += 1;
+              kycSellerText = `${kycSellerText}\n${kyc.question}`;
+            } else {
+              newBuyerKycCount += 1;
+              kycBuyerText = `${kycBuyerText}\n${kyc.question}`;
+            }
             for (let j = 0; j < kyc.examples.length; j++) {
               let ex = kyc.examples[j];
               let createdEx = await db.KycExampleModel.create({
@@ -836,6 +871,42 @@ export const AddKyc = async (req, res) => {
                 example: ex,
               });
               kycExamples.push(createdEx);
+            }
+          }
+          if (prompts && prompts.length > 0) {
+            if (
+              kycBuyerBefore &&
+              kycBuyerBefore.length == 0 &&
+              newBuyerKycCount > 0
+            ) {
+              console.log(
+                "No Buyer kyc already added replacing buyer",
+                kycBuyerText
+              );
+              for (let p of prompts) {
+                let callScript = p.callScript;
+                // callScript = callScript.replace(/{seller_kyc}/g, seller_kyc);
+                callScript = callScript.replace(/{buyer_kyc}/g, kycBuyerText);
+                p.callScript = callScript;
+                await p.save();
+              }
+            }
+            if (
+              kycSellerBefore &&
+              kycSellerBefore.length == 0 &&
+              newSellerKycCount > 0
+            ) {
+              console.log(
+                "No seller kyc already added replacing seller",
+                kycSellerText
+              );
+              for (let p of prompts) {
+                let callScript = p.callScript;
+                callScript = callScript.replace(/{seller_kyc}/g, kycSellerText);
+                // callScript = callScript.replace(/{buyer_kyc}/g, buyer_kyc);
+                p.callScript = callScript;
+                await p.save();
+              }
             }
           }
           let found = null;

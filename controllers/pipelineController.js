@@ -180,6 +180,8 @@ export const DeletePipelineStage = async (req, res) => {
 
       let pipeline = await db.Pipeline.findByPk(pipelineId);
 
+      //Check whether this stage have active cadence or assigned agents.
+      //Then use the logics accordingly.
       let deleted = await db.PipelineStages.destroy({
         where: {
           id: stageId,
