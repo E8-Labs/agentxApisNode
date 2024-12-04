@@ -321,10 +321,7 @@ export const AssignPhoneNumber = async (req, res) => {
         //   }
         // }
         //if the phone number is purchased already or it is a platform number then let them assign.
-        if (
-          alreadyPurchased ||
-          phoneNumber === process.env.PlatformPhoneNumber
-        ) {
+        if (alreadyPurchased || phoneNumber === process.env.GlobalPhoneNumber) {
           let assistants = await db.AgentModel.findAll({
             where: {
               mainAgentId: mainAgentId,

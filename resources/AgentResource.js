@@ -110,6 +110,13 @@ async function getUserData(mainAgent, currentUser = null) {
     },
   });
 
+  let alreadyUsedGlobalNumber = await db.AgentModel.findAll({
+    where: {
+      phoneNumber: process.env.GlobalPhoneNumber,
+      userId: mainAgent.userId,
+    },
+  });
+
   const AgentResource = {
     ...mainAgent.get(),
     agents: agents,
@@ -122,6 +129,8 @@ async function getUserData(mainAgent, currentUser = null) {
     inboundGreeting: promptInbound?.greeting || "",
     guardrails,
     objections,
+    alreadyAssignedGlobal:
+      alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
   };
 
   return AgentResource;

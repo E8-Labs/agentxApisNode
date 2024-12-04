@@ -38,8 +38,16 @@ async function getUserData(user, currentUser = null) {
 
   //   const subscriptionDetails = await getSubscriptionDetails(user);
 
+  let alreadyUsedGlobalNumber = await db.AgentModel.findAll({
+    where: {
+      phoneNumber: process.env.GlobalPhoneNumber,
+      userId: user.id,
+    },
+  });
   const UserFullResource = {
     ...user.get(),
+    alreadyAssignedGlobal:
+      alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
   };
 
   return UserFullResource;
