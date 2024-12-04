@@ -45,6 +45,15 @@ export const AddLeads = async (req, res) => {
         let lead = leads[i];
         let extraColumns = lead.extraColumns;
         lead.extraColumns = null;
+        if (typeof lead.fullName !== "undefined" && lead.fullName !== null) {
+          if (!lead.firstName && !lead.lastName) {
+            let nameParts = lead.fullName.trim().split(" ");
+            lead.firstName = nameParts[0];
+            lead.lastName =
+              nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
+          }
+        }
+
         let createdLead = await db.LeadModel.create({
           ...lead,
           extraColumns: JSON.stringify(extraColumns),
