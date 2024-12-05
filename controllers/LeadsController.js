@@ -294,10 +294,20 @@ export const GetLeads = async (req, res) => {
           );
           keys = mergeAndRemoveDuplicates(keys, dynamicKeysWithNonNullValues);
         }
-        keys = mergeAndRemoveDuplicates(
-          ["Name", "Phone", "Stage", "Date"],
-          keys
-        );
+        keys = mergeAndRemoveDuplicates(keys);
+        let AllColumns = [
+          { title: "Name", isDefault: true },
+          { title: "Phone", isDefault: true },
+          { title: "Stage", isDefault: true },
+          { title: "Date", isDefault: true },
+        ];
+        for (const key in keys) {
+          AllColumns.push({
+            title: key,
+            isDefault: false,
+          });
+        }
+
         // leadsWithCadence = leads.map(async (lead) => {
         //   const cadence = cadenceMap[lead.id];
         //   let stage = await db.PipelineStages.findOne({
@@ -315,7 +325,7 @@ export const GetLeads = async (req, res) => {
         return res.send({
           status: true,
           data: leadsWithCadence,
-          columns: keys,
+          columns: AllColumns,
           message: "Leads list with applied filters",
         });
       } catch (err) {
