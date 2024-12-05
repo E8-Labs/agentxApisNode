@@ -20,6 +20,7 @@ import UserProfileFullResource from "./resources/userProfileFullResource.js";
 import { CadenceStatus } from "./models/pipeline/LeadsCadence.js";
 import Pipeline from "./models/pipeline/pipeline.js";
 import { calculateDifferenceInMinutes } from "./utils/dateutil.js";
+import { MakeACall } from "./controllers/synthflowController.js";
 
 //This will push 100 leads into the cadence every day. If 100 leads are pushed, it will not psuh any more
 //Runs every 30 sec
@@ -130,15 +131,22 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       });
       if (diff > waitTime) {
         console.log("Next call should be placed");
-        let sent = await db.LeadCallsSent.create({
-          leadId: leadCad.leadId,
-          leadCadenceId: leadCad.id,
-          mainAgentId: leadCad.mainAgentId,
-          agentId: agent?.id,
-          callTriggerTime: new Date(),
-          synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
-          stage: leadCad.stage,
-        });
+        try {
+          let called = await MakeACall(leadCad);
+          //if you want to simulate
+          //let called = await MakeACall(leadCad, true, calls);
+        } catch (error) {
+          console.log("Error Sending Call ", error);
+        }
+        // let sent = await db.LeadCallsSent.create({
+        //   leadId: leadCad.leadId,
+        //   leadCadenceId: leadCad.id,
+        //   mainAgentId: leadCad.mainAgentId,
+        //   agentId: agent?.id,
+        //   callTriggerTime: new Date(),
+        //   synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
+        //   stage: leadCad.stage,
+        // });
       } else {
         console.log("Difference is small so next call can not be placed");
       }
@@ -153,16 +161,23 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           agentType: "outbound",
         },
       });
-      let sent = await db.LeadCallsSent.create({
-        leadId: leadCad.leadId,
-        leadCadenceId: leadCad.id,
-        mainAgentId: leadCad.mainAgentId,
-        agentId: agent?.id,
-        callTriggerTime: new Date(),
-        synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
-        stage: leadCad.stage,
-        status: "",
-      });
+      try {
+        let called = await MakeACall(leadCad);
+        //if you want to simulate
+        //let called = await MakeACall(leadCad, true, calls);
+      } catch (error) {
+        console.log("Error Sending Call ", error);
+      }
+      // let sent = await db.LeadCallsSent.create({
+      //   leadId: leadCad.leadId,
+      //   leadCadenceId: leadCad.id,
+      //   mainAgentId: leadCad.mainAgentId,
+      //   agentId: agent?.id,
+      //   callTriggerTime: new Date(),
+      //   synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
+      //   stage: leadCad.stage,
+      //   status: "",
+      // });
 
       if (sent) {
         //set the lead cadence status to Started so that next time it don't get pushed to the funnel
@@ -310,16 +325,23 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
                 agentType: "outbound",
               },
             });
-            let sent = await db.LeadCallsSent.create({
-              leadId: leadCad.leadId,
-              leadCadenceId: leadCad.id,
-              mainAgentId: leadCad.mainAgentId,
-              callTriggerTime: new Date(),
-              agentId: agent?.id,
-              synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
-              stage: leadCad.stage,
-              status: "",
-            });
+            try {
+              let called = await MakeACall(leadCad);
+              //if you want to simulate
+              //let called = await MakeACall(leadCad, true, calls);
+            } catch (error) {
+              console.log("Error Sending Call ", error);
+            }
+            // let sent = await db.LeadCallsSent.create({
+            //   leadId: leadCad.leadId,
+            //   leadCadenceId: leadCad.id,
+            //   mainAgentId: leadCad.mainAgentId,
+            //   callTriggerTime: new Date(),
+            //   agentId: agent?.id,
+            //   synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
+            //   stage: leadCad.stage,
+            //   status: "",
+            // });
             //+ 1 because one new call is sent just now
             if (calls.length + 1 == callCadence.length) {
               // we will not move the lead to new stage after we setup webhook from synthflow.
@@ -353,16 +375,24 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             agentType: "outbound",
           },
         });
-        let sent = await db.LeadCallsSent.create({
-          leadId: leadCad.leadId,
-          leadCadenceId: leadCad.id,
-          mainAgentId: leadCad.mainAgentId,
-          agentId: agent?.id,
-          callTriggerTime: new Date(),
-          synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
-          stage: leadCad.stage,
-          status: "",
-        });
+        try {
+          let called = await MakeACall(leadCad);
+          //if you want to simulate
+          //let called = await MakeACall(leadCad, true, calls);
+        } catch (error) {
+          console.log("Error Sending Call ", error);
+        }
+
+        // let sent = await db.LeadCallsSent.create({
+        //   leadId: leadCad.leadId,
+        //   leadCadenceId: leadCad.id,
+        //   mainAgentId: leadCad.mainAgentId,
+        //   agentId: agent?.id,
+        //   callTriggerTime: new Date(),
+        //   synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
+        //   stage: leadCad.stage,
+        //   status: "",
+        // });
 
         if (sent) {
           //set the lead cadence status to Started so that next time it don't get pushed to the funnel

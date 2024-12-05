@@ -321,14 +321,14 @@ export async function GetColumnsInSheet(sheetId) {
 
   return keys;
 }
-export const GetUniqueColumns = async (req, res) => {
-  function mergeAndRemoveDuplicates(array1, array2) {
-    // Filter out elements from array2 that already exist in array1
-    const uniqueArray2 = array2.filter((item) => !array1.includes(item));
+export function mergeAndRemoveDuplicates(array1, array2) {
+  // Filter out elements from array2 that already exist in array1
+  const uniqueArray2 = array2.filter((item) => !array1.includes(item));
 
-    // Concatenate array1 and unique elements of array2
-    return array1.concat(uniqueArray2);
-  }
+  // Concatenate array1 and unique elements of array2
+  return array1.concat(uniqueArray2);
+}
+export const GetUniqueColumns = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let sheetId = req.body.sheetId || null;

@@ -21,42 +21,136 @@ import {
 } from "../config/defaultInfoExtractors.js";
 import { AgentObjectives } from "../constants/defaultAgentObjectives.js";
 import AgentPromptModel from "../models/user/agentPromptModel.js";
+import { userInfo } from "os";
+import {
+  GetColumnsInSheet,
+  mergeAndRemoveDuplicates,
+} from "./LeadsController.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const MakeACall = async (lead, mainAgentModel, leadCadence) => {
+async function GetCompletePromptTextFrom(prompt, user, assistant, lead) {
+  let callScript = prompt.callScript;
+
+  let greeting = prompt.greeting;
+  greeting = greeting.replace(/{agent_name}/g, assistant.name);
+  greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
+
+  callScript = callScript.replace(/{agent_name}/g, assistant.name);
+  callScript = callScript.replace(/{brokerage_name}/g, user.brokerage);
+
+  callScript = callScript.replace(/{CU_status}/g, assistant.status);
+  callScript = callScript.replace(/{CU_address}/g, assistant.name.address);
+
+  //Get UniqueColumns in Sheets
+  let sheets = await db.LeadSheetModel.findAll({
+    where: {
+      userId: user.id,
+    },
+  });
+  if (sheets && sheets.length > 0) {
+    let keys = [];
+    for (const sheet of sheets) {
+      let sheetKeys = await GetColumnsInSheet(sheet.id);
+      keys = mergeAndRemoveDuplicates(keys, sheetKeys);
+    }
+    for (const key of keys) {
+      if (lead.extraColumns) {
+        let value = lead.extraColumns[key];
+        if (value) {
+          const regex = new RegExp(`\\\`${key}\\\``, "g"); // Create a dynamic regex to match `${key}`
+          console.log(`replacing ${key} with ${value}`);
+          callScript = callScript.replace(regex, value);
+        }
+      }
+    }
+  }
+
+  //udpate the call script here
+  let text = "";
+
+  text = `${text}\n\n${prompt.objective}\n\n`;
+  text = `${text}\n\n${prompt.companyAgentInfo}`;
+  text = `${text}\n\n${prompt.personalCharacteristics}`;
+  text = `${text}\n\n${prompt.communication}`;
+  text = `${text}\n\n${greeting}`;
+  text = `${text}\n\n${callScript}`;
+  // text = `${text}\n\n${prompt.booking}`;
+  text = `${text}\n\n${prompt.objectionHandling}`;
+  text = `${text}\n\n${prompt.guardRails}`;
+  text = `${text}\n\n${prompt.streetAddress}`;
+  text = `${text}\n\n${prompt.getTools}`;
+
+  return text;
+}
+
+export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
   // setLoading(true);
+  let leadId = leadCadence.leadId,
+    mainAgentId = leadCadence.mainAgentId;
+  let lead = await db.LeadModel.findByPk(leadId);
   let PhoneNumber = lead.phone;
   let Name = lead.firstName;
   let LastName = lead.lastName || "";
   // let Email = req.body.email;
   // let model = req.body.model || "tate";
   // let modelId = assistant.modelId;
+  let mainAgentModel = await db.MainAgentModel.findByPk(mainAgentId);
 
   let assistant = await db.AgentModel.findOne({
     where: {
       mainAgentId: mainAgentModel.id,
-      outbound: "outbound",
+      agentType: "outbound",
     },
   });
 
+  if (simulate) {
+    let sent = await db.LeadCallsSent.create({
+      leadId: leadCadence.leadId,
+      leadCadenceId: leadCadence.id,
+      mainAgentId: leadCadence.mainAgentId,
+      agentId: assistant?.id,
+      callTriggerTime: new Date(),
+      synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${leadCadence.stage}`,
+      stage: leadCadence.stage,
+      status: "",
+    });
+
+    return { status: true, data: sent };
+  }
+
   if (!assistant) {
     console.log("No Assistant found");
-    return res.send({
+    return {
       status: false,
       message: "No such assistant",
       // data: modelId,
       reason: "no_such_assistant",
-    });
+    };
   }
 
+  let user = await db.User.findByPk(mainAgentModel.userId);
   console.log("Calling assistant", assistant.name);
   console.log("Model ", assistant.modelId);
   try {
-    let basePrompt = assistant.prompt || "";
-    basePrompt = basePrompt.replace(/{prospect_name}/g, Name);
-    basePrompt = basePrompt.replace(/{phone}/g, PhoneNumber);
-    basePrompt = basePrompt.replace(/{email}/g, Email);
+    let prompt = await db.AgentPromptModel.findOne({
+      where: {
+        mainAgentId: mainAgentModel.id,
+        type: "outbound",
+      },
+    });
+    if (!prompt) {
+      console.log("No prompt for this agent");
+      return;
+    }
+
+    let basePrompt = await GetCompletePromptTextFrom(
+      prompt,
+      user,
+      assistant,
+      lead
+    );
+
     // kbPrompt = kbPrompt.replace(/{username}/g, user.username);
     //find if any previous calls exist
     console.log("#############################################\n");
@@ -87,8 +181,10 @@ export const MakeACall = async (lead, mainAgentModel, leadCadence) => {
       .then(async (response) => {
         let json = response.data;
         console.log(json);
+        console.log("Assistant used ", json.response);
         if (json.status === "ok" || json.status === "success") {
           let callId = json.response.call_id;
+          console.log("Call id ", callId);
           // let savedToGhl = await PushDataToGhl(
           //   Name,
           //   LastName,
@@ -96,204 +192,41 @@ export const MakeACall = async (lead, mainAgentModel, leadCadence) => {
           //   PhoneNumber,
           //   callId
           // );
-          let saved = await db.LeadCallsSent.create({
-            leadCadenceId: leadCadence.id,
-            synthflowCallId: callId,
-            leadId: lead.id,
-            transcript: "",
-            summary: "",
-            duration: "",
-            status: "",
-            // model: assistant.name,
-            mainAgentId: mainAgentModel.id,
-          });
-          console.log("Saved ", saved);
-          res.send({ status: true, message: "call is initiated ", data: json });
+          try {
+            let saved = await db.LeadCallsSent.create({
+              leadCadenceId: leadCadence.id,
+              synthflowCallId: callId,
+              leadId: lead.id,
+              transcript: "",
+              summary: "",
+              // duration: "",
+              status: "",
+              agentId: assistant.id,
+              stage: leadCadence.stage,
+              mainAgentId: mainAgentModel.id,
+            });
+
+            console.log("Saved ", saved);
+            return { status: true, message: "call is initiated ", data: saved };
+          } catch (error) {
+            console.log("Error Call  ", error);
+            return {
+              status: false,
+              message: "call is not initiated ",
+              data: error,
+            };
+          }
         } else {
-          let html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Error Notification</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 600px;
-      margin: 20px auto;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    .header {
-      text-align: center;
-      padding-bottom: 20px;
-    }
-    .content {
-      font-size: 16px;
-      color: #333;
-      line-height: 1.5;
-    }
-    .footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 14px;
-      color: #888;
-    }
-    .error {
-      color: #D8000C;
-      background-color: #FFD2D2;
-      border: 1px solid #D8000C;
-      padding: 10px;
-      border-radius: 5px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h2>Error Notification</h2>
-    </div>
-    <div class="content">
-      <p>Dear Team,</p>
-      <p>An error occurred while attempting to start a voice call. Below are the details:</p>
-      <div class="error">
-        <p><strong>Status:</strong> Error</p>
-        <p><strong>Message:</strong> ${json.response.answer}.</p>
-        <p><strong>Model ID:</strong> ${assistant.modelId}</p>
-      </div>
-      <p>Please review the issue and take appropriate action.</p>
-      <p>Best regards,</p>
-      <p>Your Automated Notification System</p>
-    </div>
-    <div class="footer">
-      <p>&copy; 2024 Your Company. All Rights Reserved.</p>
-    </div>
-  </div>
-</body>
-</html>
-`;
-          let sent = SendMail(
-            "noahdeveloperr@gmail.com",
-            "Call Failed",
-            "",
-            html
-          );
-          let sentSalman = SendMail(
-            "salman@e8-labs.com",
-            "Call Failed",
-            "",
-            html
-          );
-          console.log("Emails sent ", sentSalman);
-          res.send({
-            status: false,
-            message: "call is not initiated",
-            data: json,
-          });
+          console.log("In else not called");
+          //add failed call in the db
         }
       })
       .catch((error) => {
-        console.log(error);
-
-        ///check and send email
-        let html = `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Error Notification</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 600px;
-      margin: 20px auto;
-      background-color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    }
-    .header {
-      text-align: center;
-      padding-bottom: 20px;
-    }
-    .content {
-      font-size: 16px;
-      color: #333;
-      line-height: 1.5;
-    }
-    .footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 14px;
-      color: #888;
-    }
-    .error {
-      color: #D8000C;
-      background-color: #FFD2D2;
-      border: 1px solid #D8000C;
-      padding: 10px;
-      border-radius: 5px;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h2>Error Notification</h2>
-    </div>
-    <div class="content">
-      <p>Dear Team,</p>
-      <p>An error occurred while attempting to start a voice call. Below are the details:</p>
-      <div class="error">
-        <p><strong>Status:</strong> Error</p>
-        <p><strong>Message:</strong> ${error.response.answer}.</p>
-        <p><strong>Model ID:</strong> ${assistant.modelId}</p>
-      </div>
-      <p>Please review the issue and take appropriate action.</p>
-      <p>Best regards,</p>
-      <p>Your Automated Notification System</p>
-    </div>
-    <div class="footer">
-      <p>&copy; 2024 Your Company. All Rights Reserved.</p>
-    </div>
-  </div>
-</body>
-</html>
-`;
-        let sent = SendMail(
-          "noahdeveloperr@gmail.com",
-          "Call Failed",
-          "",
-          html
-        );
-        let sentSalman = SendMail(
-          "salman@e8-labs.com",
-          "Call Failed",
-          "",
-          html
-        );
-        console.log("Emails sent ", sentSalman);
-        res.send({
-          status: false,
-          message: "call is not initiated",
-          data: null,
-        });
+        return { status: false, message: "call is not initiated ", data: null };
       });
   } catch (error) {
     console.error("Error occured is :", error);
-    res.send({ status: false, message: "call is not initiated", data: null });
+    return { status: false, message: "call is not initiated", data: null };
   }
 };
 
