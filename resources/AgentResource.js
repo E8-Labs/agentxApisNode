@@ -117,9 +117,34 @@ async function getUserData(mainAgent, currentUser = null) {
     },
   });
 
-  let calls = await db.LeadCallsSent.count({
-    where: {},
+  let totalDuration = await db.LeadCallsSent.sum("duration", {
+    where: {
+      mainAgentId: mainAgent.id,
+    },
   });
+
+  let calls = await db.LeadCallsSent.count({
+    where: {
+      mainAgentId: mainAgent.id,
+    },
+  });
+  let callsGt10 = await db.LeadCallsSent.count({
+    where: {
+      mainAgentId: mainAgent.id,
+      duration: {
+        [db.Sequelize.Op.gt]: 10,
+      },
+    },
+  });
+
+  let durationText = "";
+  if (totalDuration < 60) {
+    durationText = "Less than a min";
+  } else {
+    let min = parseInt(totalDuration / 60);
+    let sec = totalDuration % 60;
+    durationText = `${min}`;
+  }
 
   const AgentResource = {
     ...mainAgent.get(),
@@ -135,6 +160,9 @@ async function getUserData(mainAgent, currentUser = null) {
     objections,
     alreadyAssignedGlobal:
       alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
+    calls: calls,
+    callsGreaterThan10Sec: callsGt10,
+    durationInMin: durationText,
   };
 
   return AgentResource;
