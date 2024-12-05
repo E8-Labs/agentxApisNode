@@ -279,8 +279,8 @@ export const GetLeads = async (req, res) => {
             // "id", "firstName", "lastName", "phone", "stage", "status", "cadenceStatus",
             // "createdAt", "userId", "sheetId", "extraColumns", "columnMappings", "updatedAt"
           ];
-          const dynamicKeysWithNonNullValues = Object.keys(data).filter(
-            (key) => !fixedKeys.includes(key) && data[key] !== null
+          const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
+            (key) => !fixedKeys.includes(key) && lead[key] !== null
           );
           keys = mergeAndRemoveDuplicates(keys, dynamicKeysWithNonNullValues);
         }
