@@ -163,6 +163,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       });
       try {
         let called = await MakeACall(leadCad);
+        console.log("First Call initiated", called);
         if (called.status) {
           //set the lead cadence status to Started so that next time it don't get pushed to the funnel
           leadCad.callTriggerTime = new Date();

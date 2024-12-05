@@ -153,9 +153,9 @@ export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
 
     // kbPrompt = kbPrompt.replace(/{username}/g, user.username);
     //find if any previous calls exist
-    console.log("#############################################\n");
-    console.log("Base prompt being sent ", basePrompt);
-    console.log("#############################################\n");
+    // console.log("#############################################\n");
+    // console.log("Base prompt being sent ", basePrompt);
+    // console.log("#############################################\n");
 
     let data = JSON.stringify({
       name: Name,
@@ -163,6 +163,29 @@ export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
       model: assistant.modelId, //"1722652829145x214249543190325760",
       prompt: basePrompt,
     });
+    let res = await initiateCall(
+      data,
+      leadCadence,
+      lead,
+      assistant,
+      mainAgentModel
+    );
+    return res;
+    //initiate call here
+  } catch (error) {
+    console.error("Error occured is :", error);
+    return { status: false, message: "call is not initiated", data: null };
+  }
+};
+
+async function initiateCall(
+  data,
+  leadCadence,
+  lead,
+  assistant,
+  mainAgentModel
+) {
+  try {
     let synthKey = process.env.SynthFlowApiKey;
 
     let config = {
@@ -176,59 +199,53 @@ export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
       data: data,
     };
 
-    axios
-      .request(config)
-      .then(async (response) => {
-        let json = response.data;
-        console.log(json);
-        console.log("Assistant used ", json.response);
-        if (json.status === "ok" || json.status === "success") {
-          let callId = json.response.call_id;
-          console.log("Call id ", callId);
-          // let savedToGhl = await PushDataToGhl(
-          //   Name,
-          //   LastName,
-          //   Email,
-          //   PhoneNumber,
-          //   callId
-          // );
-          try {
-            let saved = await db.LeadCallsSent.create({
-              leadCadenceId: leadCadence.id,
-              synthflowCallId: callId,
-              leadId: lead.id,
-              transcript: "",
-              summary: "",
-              // duration: "",
-              status: "",
-              agentId: assistant.id,
-              stage: leadCadence.stage,
-              mainAgentId: mainAgentModel.id,
-            });
+    const response = await axios.request(config);
+    const json = response.data;
 
-            console.log("Saved ", saved);
-            return { status: true, message: "call is initiated ", data: saved };
-          } catch (error) {
-            console.log("Error Call  ", error);
-            return {
-              status: false,
-              message: "call is not initiated ",
-              data: error,
-            };
-          }
-        } else {
-          console.log("In else not called");
-          //add failed call in the db
-        }
-      })
-      .catch((error) => {
-        return { status: false, message: "call is not initiated ", data: null };
-      });
+    console.log(json);
+    console.log("Assistant used ", json.response);
+
+    if (json.status === "ok" || json.status === "success") {
+      const callId = json.response.call_id;
+      console.log("Call id ", callId);
+
+      try {
+        const saved = await db.LeadCallsSent.create({
+          leadCadenceId: leadCadence.id,
+          synthflowCallId: callId,
+          leadId: lead.id,
+          transcript: "",
+          summary: "",
+          status: "",
+          agentId: assistant.id,
+          stage: leadCadence.stage,
+          mainAgentId: mainAgentModel.id,
+        });
+
+        console.log("Saved ", saved);
+        return { status: true, message: "call is initiated", data: saved };
+      } catch (error) {
+        console.log("Error Call ", error);
+        return {
+          status: false,
+          message: "call is not initiated due to database error",
+          data: error,
+        };
+      }
+    } else {
+      console.log("In else: call not initiated");
+      // Add failed call in the database if required
+      return { status: false, message: "call is not initiated", data: null };
+    }
   } catch (error) {
-    console.error("Error occured is :", error);
-    return { status: false, message: "call is not initiated", data: null };
+    console.log("Error during API call: ", error);
+    return {
+      status: false,
+      message: "call is not initiated due to API error",
+      data: null,
+    };
   }
-};
+}
 
 export async function GetVoices(req, res) {
   try {
