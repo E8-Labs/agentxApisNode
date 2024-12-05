@@ -276,18 +276,28 @@ export const GetLeads = async (req, res) => {
           });
 
           const fixedKeys = [
+            "firstName",
+            "lastName",
+            "email",
+            "phone",
             "id",
             "userId",
             "sheetId",
             "extraColumns",
             "columnMappings",
             "updatedAt",
+            "createdAt",
+            "stage",
           ];
           const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
             (key) => !fixedKeys.includes(key) && lead[key] !== null
           );
           keys = mergeAndRemoveDuplicates(keys, dynamicKeysWithNonNullValues);
         }
+        keys = mergeAndRemoveDuplicates(
+          ["firstName", "lastName", "phone", "stage", "createdAt"],
+          keys
+        );
         // leadsWithCadence = leads.map(async (lead) => {
         //   const cadence = cadenceMap[lead.id];
         //   let stage = await db.PipelineStages.findOne({
