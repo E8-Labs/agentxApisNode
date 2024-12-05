@@ -276,8 +276,12 @@ export const GetLeads = async (req, res) => {
           });
 
           const fixedKeys = [
-            // "id", "firstName", "lastName", "phone", "stage", "status", "cadenceStatus",
-            // "createdAt", "userId", "sheetId", "extraColumns", "columnMappings", "updatedAt"
+            "id",
+            "userId",
+            "sheetId",
+            "extraColumns",
+            "columnMappings",
+            "updatedAt",
           ];
           const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
             (key) => !fixedKeys.includes(key) && lead[key] !== null
