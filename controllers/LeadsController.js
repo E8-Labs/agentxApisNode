@@ -254,6 +254,7 @@ export const GetLeads = async (req, res) => {
 
         // Combine leads with cadences
         let leadsWithCadence = [];
+        let keys = [];
         for (let i = 0; i < leads.length; i++) {
           let lead = leads[i];
           const cadence = cadenceMap[lead.id];
@@ -267,11 +268,21 @@ export const GetLeads = async (req, res) => {
             let js = JSON.parse(extra);
             lead = { ...lead, ...js };
           }
+          delete lead.extraColumns;
           leadsWithCadence.push({
             ...lead,
             stage: stage, // Use LeadCadence stage if available, else LeadModel stage
             cadenceStatus: cadence ? cadence.status : null, // Cadence status or null
           });
+
+          const fixedKeys = [
+            // "id", "firstName", "lastName", "phone", "stage", "status", "cadenceStatus",
+            // "createdAt", "userId", "sheetId", "extraColumns", "columnMappings", "updatedAt"
+          ];
+          const dynamicKeysWithNonNullValues = Object.keys(data).filter(
+            (key) => !fixedKeys.includes(key) && data[key] !== null
+          );
+          keys = mergeAndRemoveDuplicates(keys, dynamicKeysWithNonNullValues);
         }
         // leadsWithCadence = leads.map(async (lead) => {
         //   const cadence = cadenceMap[lead.id];
@@ -290,6 +301,7 @@ export const GetLeads = async (req, res) => {
         return res.send({
           status: true,
           data: leadsWithCadence,
+          columns: keys,
           message: "Leads list with applied filters",
         });
       } catch (err) {
