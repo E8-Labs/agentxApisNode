@@ -118,23 +118,24 @@ async function getUserData(mainAgent, currentUser = null) {
   });
 
   let agentRes = [];
-  for (const agent of agents) {
+  for (const ag of agents) {
+    let agent = { ...ag.get() };
     let totalDuration = await db.LeadCallsSent.sum("duration", {
       where: {
-        agentId: agent.id,
+        agentId: ag.id,
       },
     });
     agent.totalDuration = totalDuration;
 
     let calls = await db.LeadCallsSent.count({
       where: {
-        agentId: agent.id,
+        agentId: ag.id,
       },
     });
     agent.calls = calls;
     let callsGt10 = await db.LeadCallsSent.count({
       where: {
-        agentId: agent.id,
+        agentId: ag.id,
         duration: {
           [db.Sequelize.Op.gt]: 10,
         },
@@ -168,9 +169,9 @@ async function getUserData(mainAgent, currentUser = null) {
     objections,
     alreadyAssignedGlobal:
       alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
-    calls: calls,
-    callsGreaterThan10Sec: callsGt10,
-    durationInMin: durationText,
+    // calls: calls,
+    // callsGreaterThan10Sec: callsGt10,
+    // durationInMin: durationText,
   };
 
   return AgentResource;
