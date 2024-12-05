@@ -301,7 +301,7 @@ export const GetLeads = async (req, res) => {
           { title: "Stage", isDefault: true },
           { title: "Date", isDefault: true },
         ];
-        for (const key in keys) {
+        for (const key of keys) {
           AllColumns.push({
             title: key,
             isDefault: false,
@@ -326,6 +326,7 @@ export const GetLeads = async (req, res) => {
           status: true,
           data: leadsWithCadence,
           columns: AllColumns,
+          keys: keys,
           message: "Leads list with applied filters",
         });
       } catch (err) {
