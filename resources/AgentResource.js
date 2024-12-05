@@ -117,38 +117,46 @@ async function getUserData(mainAgent, currentUser = null) {
     },
   });
 
-  let totalDuration = await db.LeadCallsSent.sum("duration", {
-    where: {
-      mainAgentId: mainAgent.id,
-    },
-  });
-
-  let calls = await db.LeadCallsSent.count({
-    where: {
-      mainAgentId: mainAgent.id,
-    },
-  });
-  let callsGt10 = await db.LeadCallsSent.count({
-    where: {
-      mainAgentId: mainAgent.id,
-      duration: {
-        [db.Sequelize.Op.gt]: 10,
+  let agentRes = [];
+  for (const agent of agents) {
+    let totalDuration = await db.LeadCallsSent.sum("duration", {
+      where: {
+        agentId: agent.id,
       },
-    },
-  });
+    });
+    agent.totalDuration = totalDuration;
 
-  let durationText = "";
-  if (totalDuration < 60) {
-    durationText = "Less than a min";
-  } else {
-    let min = parseInt(totalDuration / 60);
-    let sec = totalDuration % 60;
-    durationText = `${min}`;
+    let calls = await db.LeadCallsSent.count({
+      where: {
+        agentId: agent.id,
+      },
+    });
+    agent.calls = calls;
+    let callsGt10 = await db.LeadCallsSent.count({
+      where: {
+        agentId: agent.id,
+        duration: {
+          [db.Sequelize.Op.gt]: 10,
+        },
+      },
+    });
+    agent.callsGt10 = callsGt10;
+
+    let durationText = "";
+    if (totalDuration < 60) {
+      durationText = "Less than a min";
+    } else {
+      let min = parseInt(totalDuration / 60);
+      let sec = totalDuration % 60;
+      durationText = `${min}`;
+    }
+    agent.durationText = durationText;
+    agentRes.push(agent);
   }
 
   const AgentResource = {
     ...mainAgent.get(),
-    agents: agents,
+    agents: agentRes,
     stages: stages,
     pipeline: pipeline,
     greeting: prompt?.greeting || "",
