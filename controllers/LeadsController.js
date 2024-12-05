@@ -295,7 +295,7 @@ export const GetLeads = async (req, res) => {
           keys = mergeAndRemoveDuplicates(keys, dynamicKeysWithNonNullValues);
         }
         keys = mergeAndRemoveDuplicates(
-          ["firstName", "lastName", "phone", "stage", "createdAt"],
+          ["Name", "Phone", "Stage", "Date"],
           keys
         );
         // leadsWithCadence = leads.map(async (lead) => {
