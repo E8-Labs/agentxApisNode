@@ -766,6 +766,38 @@ export const AddObjectionOrGuardrail = async (req, res) => {
   });
 };
 
+export const GetObjectionsAndGuardrails = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let mainAgentId = req.query.mainAgentId;
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let objections = await db.ObjectionAndGuradrails.findAll({
+        where: {
+          mainAgentId: mainAgentId,
+          type: "objection",
+        },
+      });
+
+      let guardrails = await db.ObjectionAndGuradrails.findAll({
+        where: {
+          mainAgentId: mainAgentId,
+          type: "guardrail",
+        },
+      });
+      return res.send({
+        status: true,
+        message: "Data obtained",
+        data: { objections, guardrails },
+      });
+    }
+  });
+};
+
 export const GetAgentCallActivity = async (req, res) => {
   let { mainAgentId } = req.query;
   console.log("Finding main agent calls ", mainAgentId);
