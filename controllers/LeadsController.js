@@ -53,14 +53,25 @@ export const AddLeads = async (req, res) => {
               nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
           }
         }
-
-        let createdLead = await db.LeadModel.create({
-          ...lead,
-          extraColumns: JSON.stringify(extraColumns),
-          userId: userId,
-          sheetId: sheet.id,
-        });
-        dbLeads.push(createdLead);
+        if (
+          typeof lead.firstName == "undefined" ||
+          lead.firstName == null ||
+          typeof lead.phone == "undefined" ||
+          lead.phone == null
+        ) {
+          console.log("Lead not created ", lead);
+        } else {
+          if (typeof lead.lastName == "undefined" || lead.lastName == null) {
+            lead.lastName = "";
+          }
+          let createdLead = await db.LeadModel.create({
+            ...lead,
+            extraColumns: JSON.stringify(extraColumns),
+            userId: userId,
+            sheetId: sheet.id,
+          });
+          dbLeads.push(createdLead);
+        }
       }
       let leadsRes = await LeadResource(dbLeads);
       res.send({
