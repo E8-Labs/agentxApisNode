@@ -56,7 +56,7 @@ export const verifyJwtToken = async (req, response, next) => {
       });
     }
   } else {
-    response.send({
+    response.status(401).send({
       status: false,
       message: "Unauthenticated user",
       data: null,

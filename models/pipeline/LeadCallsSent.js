@@ -91,11 +91,21 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       // defaultValue: "",
       allowNull: true,
     },
+    agentId: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      references: {
+        model: "AgentModels",
+        key: "id",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    },
     mainAgentId: {
       type: Sequelize.INTEGER,
       allowNull: true,
       references: {
-        model: "MainAgentModels", // Table name (plural form)
+        model: "MainAgentModels",
         key: "id",
       },
       onDelete: "CASCADE",

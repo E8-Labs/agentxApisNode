@@ -122,12 +122,19 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 
       let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
       console.log(`Diff is ${diff}`);
+      let agent = await db.AgentModel.findOne({
+        where: {
+          mainAgentId: leadCad.mainAgentId,
+          agentType: "outbound",
+        },
+      });
       if (diff > waitTime) {
         console.log("Next call should be placed");
         let sent = await db.LeadCallsSent.create({
           leadId: leadCad.leadId,
           leadCadenceId: leadCad.id,
           mainAgentId: leadCad.mainAgentId,
+          agentId: agent?.id,
           callTriggerTime: new Date(),
           synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
           stage: leadCad.stage,
@@ -140,10 +147,17 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 
       //send call after checking whether the first call wait time is already passed
       //calculate time with initial leadCadence creation and now.
+      let agent = await db.AgentModel.findOne({
+        where: {
+          mainAgentId: leadCad.mainAgentId,
+          agentType: "outbound",
+        },
+      });
       let sent = await db.LeadCallsSent.create({
         leadId: leadCad.leadId,
         leadCadenceId: leadCad.id,
         mainAgentId: leadCad.mainAgentId,
+        agentId: agent?.id,
         callTriggerTime: new Date(),
         synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
         stage: leadCad.stage,
@@ -290,11 +304,18 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             console.log(
               "CronRunCadenceCallsSubsequentStages: Next call should be placed"
             );
+            let agent = await db.AgentModel.findOne({
+              where: {
+                mainAgentId: leadCad.mainAgentId,
+                agentType: "outbound",
+              },
+            });
             let sent = await db.LeadCallsSent.create({
               leadId: leadCad.leadId,
               leadCadenceId: leadCad.id,
               mainAgentId: leadCad.mainAgentId,
               callTriggerTime: new Date(),
+              agentId: agent?.id,
               synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
               stage: leadCad.stage,
               status: "",
@@ -326,10 +347,17 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
 
         //send call after checking whether the first call wait time is already passed
         //calculate time with initial leadCadence creation and now.
+        let agent = await db.AgentModel.findOne({
+          where: {
+            mainAgentId: leadCad.mainAgentId,
+            agentType: "outbound",
+          },
+        });
         let sent = await db.LeadCallsSent.create({
           leadId: leadCad.leadId,
           leadCadenceId: leadCad.id,
           mainAgentId: leadCad.mainAgentId,
+          agentId: agent?.id,
           callTriggerTime: new Date(),
           synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
           stage: leadCad.stage,

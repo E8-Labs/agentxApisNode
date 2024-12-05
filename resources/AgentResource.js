@@ -117,6 +117,10 @@ async function getUserData(mainAgent, currentUser = null) {
     },
   });
 
+  let calls = await db.LeadCallsSent.count({
+    where: {},
+  });
+
   const AgentResource = {
     ...mainAgent.get(),
     agents: agents,

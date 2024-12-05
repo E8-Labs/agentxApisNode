@@ -660,7 +660,7 @@ export const UpdateAgent = async (req, res) => {
 };
 
 export const GetAgents = async (req, res) => {
-  let { agentType } = req.query;
+  let { agentType, pipelineId } = req.query;
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -676,6 +676,36 @@ export const GetAgents = async (req, res) => {
           userId: user.id,
         },
       });
+      if (typeof pipelineId != "undefined" && pipelineId != null) {
+        let pipeline = await db.Pipeline.findByPk(pipelineId);
+        if (!pipeline) {
+          return res.status(404).send({
+            status: false,
+            data: null,
+            message: "No such pipeline",
+          });
+        }
+        if (pipeline.userId != user.id) {
+          return res.status(403).send({
+            status: false,
+            data: null,
+            message: "This pipeline doesn't belong to this user",
+          });
+        }
+        let cadenceAgents = await db.PipelineCadence.findAll({
+          where: {
+            pipelineId: pipelineId,
+          },
+        });
+        let cadenceAgentIds = cadenceAgents.map((item) => item.mainAgentId);
+        agents = await db.MainAgentModel.findAll({
+          where: {
+            id: {
+              [db.Sequelize.Op.in]: cadenceAgentIds,
+            },
+          },
+        });
+      }
 
       return res.send({
         status: true,
@@ -683,6 +713,11 @@ export const GetAgents = async (req, res) => {
         message: "Agent List",
       });
     } else {
+      return res.status(401).send({
+        status: false,
+        data: null,
+        message: "Unauthorized access",
+      });
     }
   });
 };

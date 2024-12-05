@@ -17,6 +17,14 @@ const PipelineStages = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       defaultValue: "red",
     },
+    advancedConfig: {
+      type: Sequelize.TEXT("medium"),
+      allowNull: true,
+    },
+    actionId: {
+      type: Sequelize.STRING,
+      defaultValue: "",
+    },
     pipelineId: {
       type: Sequelize.INTEGER,
       allowNull: true,

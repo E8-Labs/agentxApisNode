@@ -18,6 +18,7 @@ import PipelineCadenceResource from "../resources/PipelineCadenceResource.js";
 import PipelineResource from "../resources/PipelineResource.js";
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 import AgentResource from "../resources/AgentResource.js";
+import { CreateAndAttachInfoExtractor } from "./actionController.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -70,7 +71,9 @@ export const CreatePipeline = async (req, res) => {
   });
 };
 export const CreatePipelineStage = async (req, res) => {
-  let { pipelineId, stageTitle, color } = req.body; // mainAgentId is the mainAgent id
+  let { pipelineId, stageTitle, color, mainAgentId } = req.body; // mainAgentId is the mainAgent id
+  console.log("Data in request");
+  console.log({ pipelineId, stageTitle, color, mainAgentId });
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -95,12 +98,34 @@ export const CreatePipelineStage = async (req, res) => {
       if (lastStageByOrder) {
         order = lastStageByOrder.order + 10;
       }
+
+      let advanced = null;
+      let actionId = null;
+      if (req.body.action) {
+        advanced = { action: req.body.action };
+        // advanced.action = action;
+        if (req.body.examples && advanced) {
+          advanced.examples = req.body.examples;
+        }
+        //createInfoExtractor yes no
+        let ieData = {
+          actiontype: "yes_no",
+          question: `stage_${stageTitle}`,
+          description: req.body.action,
+          examples: req.body.examples || [],
+        };
+        let actionCreated = CreateAndAttachInfoExtractor(mainAgentId, ieData);
+        actionId = actionCreated.action_id;
+      }
+
       let stage = await db.PipelineStages.create({
         pipelineId: pipelineId,
         stageTitle: stageTitle,
         defaultColor: color,
         stageId: null,
         order: order,
+        advancedConfig: advanced ? JSON.stringify(advanced) : null,
+        actionId: actionId,
         identifier: stageTitle.toLowerCase(),
       });
 
