@@ -163,6 +163,12 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       });
       try {
         let called = await MakeACall(leadCad);
+        if (called.status) {
+          //set the lead cadence status to Started so that next time it don't get pushed to the funnel
+          leadCad.callTriggerTime = new Date();
+          leadCad.status = CadenceStatus.Started;
+          let saved = await leadCad.save();
+        }
         //if you want to simulate
         //let called = await MakeACall(leadCad, true, calls);
       } catch (error) {
@@ -178,13 +184,6 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       //   stage: leadCad.stage,
       //   status: "",
       // });
-
-      if (sent) {
-        //set the lead cadence status to Started so that next time it don't get pushed to the funnel
-        leadCad.callTriggerTime = new Date();
-        leadCad.status = CadenceStatus.Started;
-        let saved = await leadCad.save();
-      }
     }
   }
 };
@@ -377,6 +376,13 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         });
         try {
           let called = await MakeACall(leadCad);
+          if (called.status) {
+            //set the lead cadence status to Started so that next time it don't get pushed to the funnel
+            leadCad.callTriggerTime = new Date();
+            leadCad.status = CadenceStatus.Started;
+            let saved = await leadCad.save();
+            console.log("CronRunCadenceCallsSubsequentStages: CallSent now");
+          }
           //if you want to simulate
           //let called = await MakeACall(leadCad, true, calls);
         } catch (error) {
@@ -393,14 +399,6 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         //   stage: leadCad.stage,
         //   status: "",
         // });
-
-        if (sent) {
-          //set the lead cadence status to Started so that next time it don't get pushed to the funnel
-          leadCad.callTriggerTime = new Date();
-          leadCad.status = CadenceStatus.Started;
-          let saved = await leadCad.save();
-          console.log("CronRunCadenceCallsSubsequentStages: CallSent now");
-        }
       }
     }
   }
