@@ -262,6 +262,11 @@ export const GetLeads = async (req, res) => {
               id: cadence ? cadence.stage : lead.stage,
             },
           });
+          let extra = lead.extraColumns;
+          if (extra) {
+            let js = JSON.parse(extra);
+            lead = { ...lead, ...js };
+          }
           leadsWithCadence.push({
             ...lead,
             stage: stage, // Use LeadCadence stage if available, else LeadModel stage
