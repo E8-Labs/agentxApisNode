@@ -52,6 +52,8 @@ export const AddLeads = async (req, res) => {
             lead.lastName =
               nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
           }
+        } else {
+          console.log("No full name");
         }
         if (
           typeof lead.firstName == "undefined" ||
@@ -61,13 +63,20 @@ export const AddLeads = async (req, res) => {
         ) {
           console.log("Lead not created ", lead);
         } else {
-          if (typeof lead.lastName == "undefined" || lead.lastName == null) {
+          if (
+            typeof lead.lastName == "undefined" ||
+            lead.lastName == null ||
+            lead.lastName == ""
+          ) {
             //try to parse from first name
+            console.log(
+              "No last name. Checking if first name has the last name"
+            );
             let parts = lead.firstName.trim().split(" ");
-            if (parts.length > 0) {
+            if (parts.length > 1) {
+              lead.firstName = parts[0];
               lead.lastName = parts.length > 1 ? parts.slice(1).join(" ") : "";
             }
-            lead.lastName = "";
           }
           let createdLead = await db.LeadModel.create({
             ...lead,
