@@ -111,7 +111,7 @@ export const CreatePipelineStage = async (req, res) => {
         //createInfoExtractor yes no
         let ieData = {
           actiontype: "yes_no",
-          question: `stage_${stageTitle}`,
+          question: `${process.env.StagePrefix}_stage_${stageTitle}`,
           description: req.body.action,
           examples: req.body.examples || [],
         };

@@ -1171,6 +1171,7 @@ export const WebhookSynthflow = async (req, res) => {
   let dataString = JSON.stringify(data);
 
   let callId = data.call.call_id;
+  let modelId = data.call.model_id;
   let status = data.call.status;
   let duration = data.call.duration;
   let transcript = data.call.transcript;
@@ -1187,6 +1188,60 @@ export const WebhookSynthflow = async (req, res) => {
     },
   });
   if (!dbCall) {
+    //create new call
+    let leadData = data.lead;
+    let leadPhone = leadData.phone_number;
+    leadPhone = leadPhone.replace("+", "");
+    let lead = await db.LeadModel.findOne({
+      where: {
+        phone: leadPhone,
+      },
+    });
+
+    //Find assistant
+    let assistant = await db.AgentModel.findOne({
+      where: {
+        modelId: modelId,
+      },
+    });
+    if (assistant && assistant.agentType == "inbound") {
+    }
+
+    //get pipeline and leadCad
+    let leadCad = await db.LeadCadence.findOne({
+      where: {
+        leadId: lead.id,
+        mainAgentId: assistant.mainAgentId,
+      },
+    });
+    if (!leadCad) {
+      console.log("Couldn't found any leadCadence");
+      return;
+    }
+
+    let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
+    dbCall = await db.LeadCallsSent.create({
+      mainAgentId: assistant.mainAgentId,
+      userId: assistant.userId,
+      agentId: assistant.id,
+      data: dataString,
+      synthflowCallId: callId,
+      duration: duration,
+      recordingUrl: recordingUrl,
+      summary: summary,
+      transcript: transcript,
+      leadId: leadCad.leadId,
+      leadCadenceId: leadCad.leadCad.id,
+      status: status,
+    });
+    try {
+      let extractors = data.executed_actions;
+      let allKeys = Object.keys(extractors);
+
+      await handleInfoExtractorValues(json, leadCad, lead, pipeline);
+    } catch (error) {
+      //console.log("Error handling IE details ", error);
+    }
     return res.send({
       status: true,
       message: "Webhook received. No such call exists" + callId,
