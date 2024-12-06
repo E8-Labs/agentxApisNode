@@ -153,6 +153,48 @@ export const AddSmartList = async (req, res) => {
   });
 };
 
+export const DeleteList = async (req, res) => {
+  let { sheetId } = req.body; // mainAgentId is the mainAgent id
+
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let sheet = await db.LeadSheetModel.findByPk(sheetId);
+
+      if (sheet) {
+        await db.LeadModel.destroy({
+          where: {
+            sheetId: sheetId,
+          },
+        });
+        await db.LeadSheetModel.destroy({
+          where: {
+            id: sheetId,
+          },
+        });
+      }
+
+      res.send({
+        status: true,
+        message: `Sheet deleted`,
+        data: null,
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+};
+
 export const GetSheets = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
