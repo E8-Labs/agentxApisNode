@@ -62,6 +62,11 @@ export const AddLeads = async (req, res) => {
           console.log("Lead not created ", lead);
         } else {
           if (typeof lead.lastName == "undefined" || lead.lastName == null) {
+            //try to parse from first name
+            let parts = lead.firstName.trim().split(" ");
+            if (parts.length > 0) {
+              lead.lastName = parts.length > 1 ? parts.slice(1).join(" ") : "";
+            }
             lead.lastName = "";
           }
           let createdLead = await db.LeadModel.create({
