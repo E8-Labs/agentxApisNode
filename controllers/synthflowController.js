@@ -22,6 +22,7 @@ import {
 import { AgentObjectives } from "../constants/defaultAgentObjectives.js";
 import AgentPromptModel from "../models/user/agentPromptModel.js";
 import { userInfo } from "os";
+import { Objections, Guardrails } from "../constants/defaultObjections.js";
 import {
   GetColumnsInSheet,
   mergeAndRemoveDuplicates,
@@ -59,12 +60,39 @@ async function GetCompletePromptTextFrom(prompt, user, assistant, lead) {
         let value = lead.extraColumns[key];
         if (value) {
           const regex = new RegExp(`\\\`${key}\\\``, "g"); // Create a dynamic regex to match `${key}`
-          console.log(`replacing ${key} with ${value}`);
+          //console.log(`replacing ${key} with ${value}`);
           callScript = callScript.replace(regex, value);
         }
       }
     }
   }
+
+  let guardrails = await db.ObjectionAndGuradrails.findAll({
+    where: {
+      mainAgentId: assistant.mainAgentId,
+    },
+  });
+
+  let guardText = "";
+  let objectionText = "";
+  for (const guardrail in guardrails) {
+    if (guardrail.type == "guardrail") {
+      guardText = `${guardText}\n${guardrail.title}\n${guardrail.description}\n\n`;
+    } else {
+      objectionText = `${objectionText}\n${guardrail.title}\n${guardrail.description}\n\n`;
+    }
+  }
+
+  let guardrailPromptText = prompt.guardRails;
+  guardrailPromptText = guardrailPromptText.replace(/{guardrails}/g, guardText);
+
+  let objectionPromptText = prompt.objectionHandling;
+  objectionPromptText = objectionPromptText.replace(
+    /{objections}/g,
+    objectionText
+  );
+
+  //console.log("New Objection Text is ", objectionPromptText);
 
   //udpate the call script here
   let text = "";
@@ -76,8 +104,8 @@ async function GetCompletePromptTextFrom(prompt, user, assistant, lead) {
   text = `${text}\n\n${greeting}`;
   text = `${text}\n\n${callScript}`;
   // text = `${text}\n\n${prompt.booking}`;
-  text = `${text}\n\n${prompt.objectionHandling}`;
-  text = `${text}\n\n${prompt.guardRails}`;
+  text = `${text}\n\n${objectionPromptText}`;
+  text = `${text}\n\n${guardrailPromptText}`;
   text = `${text}\n\n${prompt.streetAddress}`;
   text = `${text}\n\n${prompt.getTools}`;
 
@@ -120,7 +148,7 @@ export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
   }
 
   if (!assistant) {
-    console.log("No Assistant found");
+    //console.log("No Assistant found");
     return {
       status: false,
       message: "No such assistant",
@@ -130,8 +158,8 @@ export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
   }
 
   let user = await db.User.findByPk(mainAgentModel.userId);
-  console.log("Calling assistant", assistant.name);
-  console.log("Model ", assistant.modelId);
+  //console.log("Calling assistant", assistant.name);
+  //console.log("Model ", assistant.modelId);
   try {
     let prompt = await db.AgentPromptModel.findOne({
       where: {
@@ -140,7 +168,7 @@ export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
       },
     });
     if (!prompt) {
-      console.log("No prompt for this agent");
+      //console.log("No prompt for this agent");
       return;
     }
 
@@ -153,9 +181,9 @@ export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
 
     // kbPrompt = kbPrompt.replace(/{username}/g, user.username);
     //find if any previous calls exist
-    // console.log("#############################################\n");
-    // console.log("Base prompt being sent ", basePrompt);
-    // console.log("#############################################\n");
+    // //console.log("#############################################\n");
+    // //console.log("Base prompt being sent ", basePrompt);
+    // //console.log("#############################################\n");
 
     let data = JSON.stringify({
       name: Name,
@@ -202,12 +230,12 @@ async function initiateCall(
     const response = await axios.request(config);
     const json = response.data;
 
-    console.log(json);
-    console.log("Assistant used ", json.response);
+    //console.log(json);
+    //console.log("Assistant used ", json.response);
 
     if (json.status === "ok" || json.status === "success") {
       const callId = json.response.call_id;
-      console.log("Call id ", callId);
+      //console.log("Call id ", callId);
 
       try {
         const saved = await db.LeadCallsSent.create({
@@ -222,10 +250,10 @@ async function initiateCall(
           mainAgentId: mainAgentModel.id,
         });
 
-        console.log("Saved ", saved);
+        //console.log("Saved ", saved);
         return { status: true, message: "call is initiated", data: saved };
       } catch (error) {
-        console.log("Error Call ", error);
+        //console.log("Error Call ", error);
         return {
           status: false,
           message: "call is not initiated due to database error",
@@ -233,12 +261,12 @@ async function initiateCall(
         };
       }
     } else {
-      console.log("In else: call not initiated");
+      //console.log("In else: call not initiated");
       // Add failed call in the database if required
       return { status: false, message: "call is not initiated", data: null };
     }
   } catch (error) {
-    console.log("Error during API call: ", error);
+    //console.log("Error during API call: ", error);
     return {
       status: false,
       message: "call is not initiated due to API error",
@@ -250,7 +278,7 @@ async function initiateCall(
 export async function GetVoices(req, res) {
   try {
     let synthKey = process.env.SynthFlowApiKey;
-    console.log("Synth key is ", synthKey);
+    //console.log("Synth key is ", synthKey);
 
     const options = {
       method: "POST",
@@ -372,8 +400,25 @@ export const BuildAgent = async (req, res) => {
       //   userId: user.id,
       // });
 
+      //Create Default Guardrails
+      for (const obj of Objections) {
+        let created = await db.ObjectionAndGuradrails.create({
+          title: obj.title,
+          description: obj.description,
+          type: "objection",
+          mainAgentId: mainAgent.id,
+        });
+      }
+      for (const obj of Guardrails) {
+        let created = await db.ObjectionAndGuradrails.create({
+          title: obj.title,
+          description: obj.description,
+          type: "guardrail",
+          mainAgentId: mainAgent.id,
+        });
+      }
       if (!mainAgent) {
-        console.log("Error creating main agent ");
+        //console.log("Error creating main agent ");
         return;
       }
 
@@ -406,7 +451,7 @@ export const BuildAgent = async (req, res) => {
         //Create Prompt
         let selectedPrompt = selectedObjective.prompt;
 
-        // console.log("Kyc ", kycTextSeller);
+        // //console.log("Kyc ", kycTextSeller);
         // return;
         if (agentType == "both") {
           //create Agent Sythflow
@@ -496,7 +541,7 @@ export const BuildAgent = async (req, res) => {
           data: agentRes,
         });
       } catch (error) {
-        console.log(error);
+        //console.log(error);
         res.send({
           status: false,
           message: error.message,
@@ -554,7 +599,7 @@ export const UpdateAgent = async (req, res) => {
                 voice_id: req.body.voiceId,
               },
             });
-            console.log("Voice updated to agent on synthflow", a.modelId);
+            //console.log("Voice updated to agent on synthflow", a.modelId);
           }
         }
       }
@@ -573,7 +618,7 @@ export const UpdateAgent = async (req, res) => {
           }
         );
         if (updated) {
-          console.log("Prompt updated");
+          //console.log("Prompt updated");
         }
       }
       if (req.body.inboundPrompt) {
@@ -590,7 +635,7 @@ export const UpdateAgent = async (req, res) => {
           }
         );
         if (updated) {
-          console.log("Prompt updated");
+          //console.log("Prompt updated");
         }
       }
       let agentRes = await AgentResource(agent);
@@ -750,7 +795,7 @@ export const GetObjectionsAndGuardrails = async (req, res) => {
 
 export const GetAgentCallActivity = async (req, res) => {
   let { mainAgentId } = req.query;
-  console.log("Finding main agent calls ", mainAgentId);
+  //console.log("Finding main agent calls ", mainAgentId);
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -908,10 +953,10 @@ export const AddKyc = async (req, res) => {
               kycBuyerBefore.length == 0 &&
               newBuyerKycCount > 0
             ) {
-              console.log(
-                "No Buyer kyc already added replacing buyer",
-                kycBuyerText
-              );
+              //console.log(
+              //   "No Buyer kyc already added replacing buyer",
+              //   kycBuyerText
+              // );
               for (let p of prompts) {
                 let callScript = p.callScript;
                 // callScript = callScript.replace(/{seller_kyc}/g, seller_kyc);
@@ -925,10 +970,10 @@ export const AddKyc = async (req, res) => {
               kycSellerBefore.length == 0 &&
               newSellerKycCount > 0
             ) {
-              console.log(
-                "No seller kyc already added replacing seller",
-                kycSellerText
-              );
+              //console.log(
+              //   "No seller kyc already added replacing seller",
+              //   kycSellerText
+              // );
               for (let p of prompts) {
                 let callScript = p.callScript;
                 callScript = callScript.replace(/{seller_kyc}/g, kycSellerText);
@@ -941,19 +986,20 @@ export const AddKyc = async (req, res) => {
           let found = null;
           let OpenQuestions = OpenQuestionInfoExtractors;
           OpenQuestions.map((item) => {
-            // console.log(`Comp ${item.question} = ${kyc.question}`);
+            // //console.log(`Comp ${item.question} = ${kyc.question}`);
             if (item.question == kyc.question) {
               found = item;
             }
           });
           if (found) {
-            console.log("have predefined info extractor");
+            console.log("have predefined info extractor for ", kyc.question);
+            console.log("IE found is ", found);
             let attached = await AttachInfoExtractor(
               mainAgentId,
               found.actionId
             );
           } else {
-            console.log("don't have predefined info extractor");
+            console.log("don't have predefined info extractor", kyc.question);
             let infoExtractor = await CreateAndAttachInfoExtractor(
               mainAgentId,
               kyc
@@ -986,7 +1032,7 @@ export async function CreateAssistantSynthflow(
   mainAgent
 ) {
   let synthKey = process.env.SynthFlowApiKey;
-  console.log("Inside 1");
+  //console.log("Inside 1");
   const options = {
     method: "POST",
     url: "https://api.synthflow.ai/v2/assistants",
@@ -1009,11 +1055,11 @@ export async function CreateAssistantSynthflow(
       is_recording: true,
     },
   };
-  console.log("Inside 2");
+  //console.log("Inside 2");
   try {
     let result = await axios.request(options);
-    console.log("Inside 3");
-    console.log("Create Assistant Api result ", result);
+    //console.log("Inside 3");
+    //console.log("Create Assistant Api result ", result);
 
     if (result.status == 200) {
       let assistant = await db.AgentModel.create({
@@ -1050,29 +1096,29 @@ export async function CreateAssistantSynthflow(
           // }
           // let createdAction = await CreateAndAttachAction(user, "kb");
         } catch (error) {
-          console.log("Error creating action kb ", error);
+          //console.log("Error creating action kb ", error);
         }
         // try {
         //   let createdAction = await CreateAndAttachAction(user, "booking");
         // } catch (error) {
-        //   console.log("Error creating action booking ", error);
+        //   //console.log("Error creating action booking ", error);
         // }
         // try {
         //   let createdAction = await CreateAndAttachAction(user, "availability");
         // } catch (error) {
-        //   console.log("Error creating action availability ", error);
+        //   //console.log("Error creating action availability ", error);
         // }
       }
     }
     return result;
   } catch (error) {
-    console.log("Inside error: ", error);
+    //console.log("Inside error: ", error);
     return null;
   }
 }
 export async function UpdateAssistantSynthflow(agent, data) {
   let synthKey = process.env.SynthFlowApiKey;
-  console.log("Inside Update Assistant ", data);
+  //console.log("Inside Update Assistant ", data);
   const options = {
     method: "PUT",
     url: `https://api.synthflow.ai/v2/assistants/${agent.modelId}`,
@@ -1083,14 +1129,14 @@ export async function UpdateAssistantSynthflow(agent, data) {
     },
     data: data,
   };
-  console.log("Inside 2");
+  //console.log("Inside 2");
   try {
     let result = await axios.request(options);
-    console.log("Inside 3");
-    console.log("Create Assistant Api result ", result);
+    //console.log("Inside 3");
+    //console.log("Create Assistant Api result ", result);
 
     if (result.status == 200) {
-      console.log("Assitant updated");
+      //console.log("Assitant updated");
       // let assistant = await db.Assistant.create({
       //   name: name,
       //   phone: user.phone,
@@ -1102,19 +1148,19 @@ export async function UpdateAssistantSynthflow(agent, data) {
     }
     return result;
   } catch (error) {
-    console.log("Inside error: ", error);
+    //console.log("Inside error: ", error);
     return null;
   }
 }
 
 //Webhook
 export const WebhookSynthflow = async (req, res) => {
-  // console.log("Request headers:", req.headers);
-  // console.log("Request body:", req.body);
-  // console.log("Request raw data:", req);
+  // //console.log("Request headers:", req.headers);
+  // //console.log("Request body:", req.body);
+  // //console.log("Request raw data:", req);
 
   let data = req.body;
-  console.log("Webhook data is ", data);
+  //console.log("Webhook data is ", data);
 
   let dataString = JSON.stringify(data);
 
@@ -1124,10 +1170,10 @@ export const WebhookSynthflow = async (req, res) => {
   let transcript = data.call.transcript;
   let recordingUrl = data.call.recording_url;
   let actions = data.executed_actions;
-  // console.log("Actions ", actions);
+  // //console.log("Actions ", actions);
 
   let json = extractInfo(data);
-  console.log("Extracted info ", json);
+  //console.log("Extracted info ", json);
   // return;
   let dbCall = await db.LeadCallsSent.findOne({
     where: {
@@ -1145,7 +1191,7 @@ export const WebhookSynthflow = async (req, res) => {
   //Update the logic here and test by sending dummy webhooks
   let leadCadenceId = dbCall.leadCadenceId;
   let leadCadence = await db.LeadCadence.findByPk(leadCadenceId);
-  // console.log("Hot lead ");
+  // //console.log("Hot lead ");
   let lead = await db.LeadModel.findByPk(leadCadence.leadId);
 
   let pipeline = await db.Pipeline.findByPk(leadCadence.pipelineId);
@@ -1153,7 +1199,7 @@ export const WebhookSynthflow = async (req, res) => {
   try {
     await handleInfoExtractorValues(json, leadCadence, lead, pipeline);
   } catch (error) {
-    console.log("Error handling IE details ", error);
+    //console.log("Error handling IE details ", error);
   }
   // //Get Transcript and save
   // let caller = await db.User.findByPk(dbCall.userId);
@@ -1169,7 +1215,7 @@ export const WebhookSynthflow = async (req, res) => {
   // }
 
   //only generate summary if the call status is empty or null otherwise don't
-  console.log(`DB Call status${dbCall.status}`);
+  //console.log(`DB Call status${dbCall.status}`);
   if (dbCall.status == "" || dbCall.status == null) {
     dbCall.status = status;
     dbCall.duration = duration;
@@ -1180,7 +1226,7 @@ export const WebhookSynthflow = async (req, res) => {
     // let charged = await chargeUser(caller, dbCall, assistant);
     //(dbCall.transcript != "" && dbCall.transcript != null) {
   } else {
-    console.log("Alread obtained all data");
+    //console.log("Alread obtained all data");
     dbCall.status = status;
     dbCall.duration = duration;
     dbCall.transcript = transcript;
@@ -1222,9 +1268,9 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
     });
     leadCadence.stage = hotLeadStage.id;
     let saved = await leadCadence.save();
-    console.log(
-      `Lead ${lead.firstName} move from ${leadCadence.stage} to Hot Lead`
-    );
+    //console.log(
+    //   `Lead ${lead.firstName} move from ${leadCadence.stage} to Hot Lead`
+    // );
     // move the lead to the hotlead stage immediately
   }
   if (json.notinterested || json.dnd || json.wrongnumber) {
@@ -1240,9 +1286,9 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
     leadCadence.notinterested = json.notinterested;
     leadCadence.wrongnumber = json.wrongnumber;
     let saved = await leadCadence.save();
-    console.log(
-      `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
-    );
+    //console.log(
+    //   `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
+    // );
   }
   if (json.meetingscheduled) {
     // meeting scheduled
@@ -1256,9 +1302,9 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
     // leadCadence.dnd = json.dnd;
     // leadCadence.notinterested = json.notinterested;
     let saved = await leadCadence.save();
-    console.log(
-      `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
-    );
+    //console.log(
+    //   `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
+    // );
   }
   //We may check if this was the last call or not
   if (
@@ -1278,11 +1324,11 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
       leadCadence.stage = followUpStage.id;
       leadCadence.nodecisionmaker = json.nodecisionmaker;
       let saved = await leadCadence.save();
-      console.log(
-        `Lead ${lead.firstName} move from ${leadCadence.stage} to ${followUpStage.stageTitle}`
-      );
+      //console.log(
+      //   `Lead ${lead.firstName} move from ${leadCadence.stage} to ${followUpStage.stageTitle}`
+      // );
     } else {
-      console.log("User asked to call back but already on a further stage");
+      //console.log("User asked to call back but already on a further stage");
     }
   }
 }
