@@ -30,6 +30,7 @@ const Op = db.Sequelize.Op;
 
 export const CreatePipeline = async (req, res) => {
   let { title } = req.body; // mainAgentId is the mainAgent id
+  console.log("Title is ", title);
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;

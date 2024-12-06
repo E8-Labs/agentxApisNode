@@ -465,8 +465,8 @@ Human: "I’ll only accept cash offers."`,
   },
   {
     actionId: "1732740373084x698066888693417000",
-    identifier: "When do you hope to have your home sold?", //
-    question: "saletimeline",
+    identifier: "saletimeline", //
+    question: "When do you hope to have your home sold?", // "saletimeline",
     actiontype: "open_question",
     description: `Based on the transcript provided, determine when the Human hopes to have their home sold. Extract the specific timeline mentioned by the Human. If no timeline is provided, output Not Provided.
 
