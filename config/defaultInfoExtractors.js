@@ -358,9 +358,17 @@ export const OpenQuestionInfoExtractors = [
   {
     actionId: "1732739636328x867266691998337400",
     identifier: "reasonforselling",
-    question: "Why have you decided to sell your home?", //
+    question: "Why have you decided to sell your home?", //exists on page 2
     actiontype: "open_question",
-    description: ``,
+    description: `Based on the transcript provided, identify the reason the Human has given for deciding to sell their home. Extract the specific reason as stated by the Human, summarizing it accurately if necessary. If no clear reason is provided, output Not Provided.
+Key Conditions:
+If a Reason is Clearly Stated:
+Extract the stated reason for selling as given by the Human, summarizing if needed for clarity.
+Examples:
+Human: "We’re moving because I got a new job in another state."
+
+
+Human: "Our house is just too big now that the kids have left."`,
     examples: [
       "I'm relocating for work.",
       "My home has become too small for my family.",
@@ -372,30 +380,67 @@ export const OpenQuestionInfoExtractors = [
 
   {
     actionId: "1732739837643x603166474261863200",
-    identifier: "significantlifechanges", //
+    identifier: "significantlifechanges", //exists on page 2
     question:
       "Are there any significant life changes prompting this decision, such as job relocation or changes in the family?",
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: ` Based on the transcript provided, determine whether the Human mentioned any significant life changes influencing their decision to sell their home. Extract the specific life change or reason as stated by the Human. If no life change is mentioned, output Not Provided.
+Key Conditions:
+If Significant Life Changes are Mentioned:
+Extract the specific life change influencing the decision to sell.
+Examples:
+Human: "I’m moving because I just got a new job across the country."
+Human: "We’re divorcing, and I need to sell the house."`,
+    examples: [
+      "I'm moving due to a new job in another state.",
+      "We're separating, and I need to sell the property.",
+      "Our family is expanding, and we need more space.",
+      "I’m retiring and downsizing to a smaller place.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1732740060964x163742504279039230",
-    identifier: "primarymotivationforselling", //
+    identifier: "primarymotivationforselling", //not matched
     question:
       "What's your primary motivation for selling now rather than waiting?",
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: `Based on the transcript provided, determine the Human’s primary motivation for deciding to sell their home now rather than waiting. Extract the specific reason as stated by the Human. If no clear motivation is mentioned, output Not Provided.
+Key Conditions:
+If a Primary Motivation is Mentioned:
+Extract the specific motivation or urgency for selling now instead of later.
+Examples:
+Human: "I heard the market is great right now, and I want to sell before it cools off."
+ 
+Human: "I’m relocating next month for work, so I need to sell quickly."`,
+    examples: [
+      "I want to take advantage of the current market conditions.",
+      "I need to move quickly for a new job.",
+      "I'm hoping to sell before the holidays.",
+      "I need the funds to invest in another property.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1732740176054x207236689539598270",
-    identifier: "pricevspeedpriority", //
+    identifier: "pricevspeedpriority", //not matched
     question:
       "How important is the selling price to you versus the speed of the sale?",
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: `Based on the transcript provided, determine how the Human prioritizes the selling price compared to the speed of the sale. Extract their specific preference or balance between the two as stated during the conversation. If no preference is mentioned, output Not Provided.
+Key Conditions:
+If a Preference is Mentioned:
+Extract the stated preference between selling price and speed.
+Examples:
+Human: "I need to relocate ASAP, so I’m okay with not getting the highest price."
+Human: "I don’t mind waiting if it means I can sell for the best price."`,
+    examples: [
+      "I want the highest price possible, even if it takes time.",
+      "Speed is more important since I need to relocate.",
+      "I'm looking for a balance between price and timing.",
+      "I’d rather sell quickly, even if I don’t get the top dollar.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1732740268481x868230161844916200",
@@ -403,16 +448,43 @@ export const OpenQuestionInfoExtractors = [
     question:
       "Are there any specific factors that would influence your decision to accept an offer or reject it?",
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: `Based on the transcript provided, identify the specific factors influencing the Human’s decision to accept or reject an offer. Extract the reasoning or criteria they provide, such as payment method, closing timeline, or other preferences. If no factors are mentioned, output Not Provided.
+Key Conditions:
+If Specific Factors are Mentioned:
+Extract the Human’s stated criteria or preferences for accepting or rejecting an offer.
+Examples:
+Human: "I’m looking for a buyer who can close within 30 days.""
+Human: "I’ll only accept cash offers."`,
+    examples: [
+      "I’m only looking for cash offers.",
+      "The closing timeline will be a big factor for me.",
+      "I want buyers who appreciate the renovations I’ve done.",
+      "The offer needs to be above my asking price for me to consider it.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1732740373084x698066888693417000",
     identifier: "When do you hope to have your home sold?", //
     question: "saletimeline",
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: `Based on the transcript provided, determine when the Human hopes to have their home sold. Extract the specific timeline mentioned by the Human. If no timeline is provided, output Not Provided.
+
+Key Conditions:
+If a Timeline is Mentioned:
+Extract the stated timeline for selling the home.
+Examples:
+Human: "I’d like to have it sold before the holidays."
+
+
+Human: "I need to close on this within 30 days."`,
+    examples: [
+      "I’d like to sell within the next two months.",
+      "I need it sold by the end of the year.",
+      "I’m in no rush, maybe in six months.",
+      "I want it done as soon as possible.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1732740511522x605213153134152100",
@@ -420,8 +492,32 @@ export const OpenQuestionInfoExtractors = [
     question:
       "Are there any specific events or dates driving this timeline (e.g., starting a new job, school for kids, purchasing another property)?",
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: `Based on the transcript provided, identify whether the Human mentioned any specific events or dates influencing their selling timeline. Extract the specific event or date as stated by the Human. If no specific events or dates are mentioned, output Not Provided.
+
+Key Conditions:
+If Specific Events or Dates are Mentioned:
+Extract the stated event or date influencing the selling timeline.
+Examples:
+Human: "I have to sell before I start my new job on December 1st."
+
+
+Human: "We want to move before the school year begins in August."
+
+
+If No Events or Dates are Mentioned:
+If the Human does not reference specific events or dates, output Not Provided.
+Examples:
+Human: "I’m just exploring my options right now."
+Output: Not Provided
+Human: "I don’t have a specific timeline yet."
+Output: Not Provided`,
+    examples: [
+      "I need to sell before my kids start school in September.",
+      "My job starts in another state in a month.",
+      "We’re waiting until after the holidays to list.",
+      "I need this done by the end of the quarter to align with my retirement.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1732740656337x196927377181481900",
@@ -429,32 +525,92 @@ export const OpenQuestionInfoExtractors = [
     question:
       "How would it impact you if the sale took longer than anticipated?", //
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: `Based on the transcript provided, determine how the Human indicated they would be impacted if the sale of their home takes longer than anticipated. Extract the specific consequence or sentiment expressed by the Human. If no impact is mentioned, output Not Provided.
+Key Conditions:
+If Specific Impacts are Mentioned:
+Extract the stated impact or consequence of delays in the sale timeline.
+Examples:
+Human: "If the sale takes too long, I won’t be able to start my new job on time."
+
+
+Human: "We’d have to stay in a rental longer, which is expensive."`,
+    examples: [
+      "It would delay my relocation plans.",
+      "I’d need to extend my temporary housing.",
+      "It wouldn’t be ideal, but I can manage.",
+      "I’d miss out on the market conditions I was counting on.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1732810365209x388994348989563100",
     identifier: "areaofinterest", //How would it impact you if the sale took longer than anticipated?
     question: "What area are you looking in?", //
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: `Based on the transcript provided, identify the specific area or location the Human mentioned as their area of interest. Extract the name of the area or location as stated during the conversation. If no specific area is mentioned, output Not Provided.
+
+Key Conditions:
+If an Area of Interest is Mentioned:
+Extract the specific area, region, or location the Human stated they are interested in.
+Examples:
+Human: "I’m mostly looking at properties in Seattle."
+Human: "We’re thinking about something in the northern suburbs of Chicago."
+
+
+If No Area of Interest is Mentioned:
+If the Human does not mention any specific area or location, output Not Provided.`,
+    examples: [
+      "I’m looking in San Diego.",
+      "I want to stay within the downtown LA area.",
+      "I’m focusing on the suburbs near Austin.",
+      "I’d like something in a rural area near Denver.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1733115374584x230842876789919550",
-    identifier: "typeofhome", //How would it impact you if the sale took longer than anticipated?
+    identifier: "typeofhome", //How would it impact you if the sale took longer than anticipated? //exist on pg10 row1
     question:
       "What type of home are you looking for? Single family, townhouse, condo, apartment, etc", //
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: `Based on the transcript provided, determine the type of home the Human mentioned they are looking for. Extract the specific type of home stated by the Human. If no specific type is mentioned, output Not Provided.
+
+Key Conditions:
+If a Specific Type of Home is Mentioned:
+Extract the type of home or property the Human stated they are interested in.
+Examples:
+Human: "I’m mainly looking for a single-family home in the suburbs."
+ 
+Human: "I’m thinking of something like a condo near the city."
+
+
+If No Type of Home is Mentioned:
+If the Human does not specify the type of home, output Not Provided.
+`,
+    examples: [
+      "I’m looking for a single-family home.",
+      "A condo would suit my lifestyle best.",
+      "I want a townhouse with a small backyard.",
+      "We’re hoping for a multi-family property to use as an investment.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1733115489937x904072870493430300",
-    identifier: "firsttimebuyer", //How would it impact you if the sale took longer than anticipated?
+    identifier: "firsttimebuyer", //How would it impact you if the sale took longer than anticipated? //exist on pg 1
     question: `Are you a first time home buyer?`, //
     actiontype: "open_question",
-    description: ``,
+    description: `Based on the transcript provided, determine whether the Human mentioned if they are a first-time homebuyer. Extract the specific statement regarding their homebuying experience. If no mention is made of their experience, output Not Provided.
+Key Conditions:
+If the Lead Mentions Their Homebuying Experience:
+Extract the specific statement the Human provided about whether they are a first-time homebuyer.
+Examples:
+Human: "This is my first time buying a home."
+Human: "I’ve bought two houses before; this is my third."
+      
+If No Mention of Homebuying Experience:
+If the Human does not specify what type of home buyer they are, output Not Provided.
+`,
     examples: [
       "Yes, this will be my first home.",
       "No, I’ve purchased a home before.",
@@ -480,39 +636,114 @@ Human: "I’m tired of renting, and I want to start building equity."
 
 If No Reason is Mentioned:
 If the Human does not explain why now is the right time to buy, output Not Provided.`,
-    examples: [],
+    examples: [
+      "I want to take advantage of the current interest rates.",
+      "I’m ready to stop renting and own a home.",
+      "My family needs more space, so now is the time.",
+      "Prices in the market seem favorable right now.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1733118238897x692775687893301800",
     identifier: "resizingneeds", //How would it impact you if the sale took longer than anticipated?
     question: "Are you looking to downsize or upsize?", //
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: `Based on the transcript provided, determine whether the Human mentioned if they are looking to downsize, upsize, or maintain the same size for their next home. Extract the specific resizing preference stated by the Human. If no preference is mentioned, output Not Provided.
+Key Conditions:
+If Resizing Needs are Mentioned:
+Extract the specific preference for downsizing, upsizing, or maintaining the same size.
+Examples:
+Human: "We need a larger place with an extra bedroom for our new baby."
+
+
+Human: "Our house is too big now that the kids have moved out."
+
+
+If No Resizing Needs are Mentioned:
+If the Human does not specify resizing needs, output Not Provided.`,
+    examples: [
+      "I’m looking to downsize now that my kids are grown.",
+      "We need a bigger place for our growing family.",
+      "I just want something the same size but in a different area.",
+      "I need a smaller home to reduce maintenance.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1733118322496x226356903221363260",
     identifier: "workrelocation", //How would it impact you if the sale took longer than anticipated?
     question: "Are you relocating for work?", //
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: `Based on the transcript provided, determine whether the Human mentioned relocating for work as a reason for their move. Extract the specific statement regarding work relocation, including location details if provided. If no mention of work relocation is made, output Not Provided.
+Key Conditions:
+If Work Relocation is Mentioned:
+Extract the statement about relocating for work, including location details if shared.
+Examples:
+Human: "I got a job in Austin, so I need to relocate."
+
+
+Human: "My company is transferring me to Chicago."
+
+
+If Work Relocation is Not Mentioned:
+If the Human does not specify work relocation, output Not Provided.`,
+    examples: [
+      "Yes, I’m moving to San Francisco for a new job.",
+      "No, I’m staying local but need a new home.",
+      "I’m relocating out of state for a job opportunity.",
+      "My company is transferring me to a different office.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1733118423841x612427909624138800",
     identifier: "moveintimeline", //How would it impact you if the sale took longer than anticipated?
     question: "When do you expect to move into your new place?", //
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: ` Based on the transcript provided, determine when the Human expects to move into their new home. Extract the specific timeline mentioned by the Human. If no timeline is provided, output Not Provided.
+Key Conditions:
+If a Move-In Timeline is Mentioned:
+Extract the specific timeline for moving into the new home.
+Examples:
+Human: "We’re hoping to move in by March."
+
+
+Human: "I want to be settled by the holidays."
+"
+If No Timeline is Mentioned:
+If the Human does not specify when they expect to move in, output Not Provided.`,
+    examples: [
+      "I want to move in by next summer.",
+      "I’m ready to move in as soon as possible.",
+      "I’m not in a rush; anytime next year is fine.",
+      "We’d like to move in before the school year starts.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1733118506912x723782518456135300",
     identifier: "buyingtimeline", //How would it impact you if the sale took longer than anticipated?
     question: "When do you plan on buying a home?", //
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: `Based on the transcript provided, determine when the Human plans on buying a home. Extract the specific timeline mentioned by the Human. If no timeline is provided, output Not Provided.
+Key Conditions:
+If a Buying Timeline is Mentioned:
+Extract the specific timeline the Human provides for their home-buying plans.
+Examples:
+Human: "I’m planning to buy in the next six months."
+
+
+Human: "I want to close on something by the start of summer."
+If No Buying Timeline is Mentioned:
+If the Human does not specify a timeline for buying, output Not Provided.`,
+    examples: [
+      "I’d like to make a purchase within the next three months.",
+      "I’m aiming to buy by the end of the year.",
+      "I’m still exploring and don’t have a set timeline.",
+      "I want to buy a house as soon as possible.",
+      "Not Provided",
+    ],
   },
   {
     actionId: "1733118647042x586587666282441000",
@@ -520,7 +751,25 @@ If the Human does not explain why now is the right time to buy, output Not Provi
     question:
       "Is there a specific reason you need to move by a certain date? (school year, work, etc.)", //
     actiontype: "open_question",
-    description: ``,
-    examples: [],
+    description: `Based on the transcript provided, determine whether the Human mentioned a specific reason for needing to move by a certain date (e.g., school year, work, etc.). Extract the Human’s stated reason for their timing if provided. If no reason is given, output Not Provided.
+Key Conditions
+If a Specific Reason for Moving is Mentioned:
+Extract the Human’s stated reason for needing to move by a specific date.
+Look for explicit references to deadlines like school, work, personal events, or other time-sensitive factors.
+Examples:
+Human: "I need to move quickly because my job starts next month."
+Extracted Statement: "My job starts next month."
+Human: "We want to move before the school year begins in August."
+Extracted Statement: "We want to move before the school year begins in August."
+Human: "We’re trying to close before the holidays so we can celebrate in our new home."
+Extracted Statement: "We’re trying to close before the holidays."
+If No Specific Reason is Mentioned:
+If the Human does not provide a specific reason tied to their timeline, output Not Provided.`,
+    examples: [
+      "We need to move by next month because my new job starts.",
+      "We want to settle in before the school year.",
+      "Our goal is to close before the holidays.",
+      "Not Provided",
+    ],
   },
 ];

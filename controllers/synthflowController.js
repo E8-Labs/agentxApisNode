@@ -983,14 +983,20 @@ export const AddKyc = async (req, res) => {
               }
             }
           }
-          let found = null;
-          let OpenQuestions = OpenQuestionInfoExtractors;
-          OpenQuestions.map((item) => {
-            // //console.log(`Comp ${item.question} = ${kyc.question}`);
-            if (item.question == kyc.question) {
-              found = item;
-            }
+          // let found = null;
+          // let OpenQuestions = OpenQuestionInfoExtractors;
+          // OpenQuestions.map((item) => {
+          //   // //console.log(`Comp ${item.question} = ${kyc.question}`);
+          //   if (item.question == kyc.question) {
+          //     found = item;
+          //   }
+          // });
+          let found = await db.InfoExtractorModel.findOne({
+            where: {
+              question: kyc.question,
+            },
           });
+          console.log("FOund ", found);
           if (found) {
             console.log("have predefined info extractor for ", kyc.question);
             console.log("IE found is ", found);

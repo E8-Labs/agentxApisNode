@@ -13,6 +13,12 @@ import chalk from "chalk";
 import nodemailer from "nodemailer";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 
+import { OpenQuestionInfoExtractors } from "../config/defaultInfoExtractors.js";
+import {
+  CreateAndAttachInfoExtractor,
+  CreateInfoExtractor,
+} from "./actionController.js";
+
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
 // import { admin } from "../services/firebase-admin.js";
@@ -33,5 +39,32 @@ export const LoadRegistrationData = async (req, res) => {
     status: true,
     message: "List",
     data: { agentServices, areaOfFocus, defaultRoles },
+  });
+};
+
+export const GenerateDefaultSellerBuyerKycIE = async (req, res) => {
+  for (const kyc of OpenQuestionInfoExtractors) {
+    let question = kyc.question;
+    let identifier = kyc.identifier;
+    let k = kyc;
+    k.question = k.identifier;
+    let action = await CreateInfoExtractor(kyc);
+    if (action && action.status == "success") {
+      let actionId = action.response.action_id;
+      let createdDb = await db.InfoExtractorModel.create({
+        data: JSON.stringify(kyc),
+        actionId: actionId,
+        actionType: "defaultIE",
+        question: question,
+        identifier: identifier,
+        mainAgentId: null,
+      });
+    }
+    console.log("Created ", action);
+  }
+  return res.send({
+    status: true,
+    message: "List",
+    data: null,
   });
 };

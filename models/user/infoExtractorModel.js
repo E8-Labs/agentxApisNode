@@ -12,6 +12,16 @@ const InfoExtractorModel = (sequelize, Sequelize) => {
       type: Sequelize.STRING, //defaultIE, liveTransferIE,
       allowNull: true,
     },
+    question: {
+      type: Sequelize.STRING, //defaultIE, liveTransferIE,
+      allowNull: true,
+      defaultValue: "",
+    },
+    identifier: {
+      type: Sequelize.STRING, //defaultIE, liveTransferIE,
+      allowNull: true,
+      defaultValue: "",
+    },
     mainAgentId: {
       type: Sequelize.INTEGER,
       allowNull: true,

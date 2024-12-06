@@ -2,7 +2,10 @@ import express from "express";
 import multer from "multer";
 
 import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
-import { LoadRegistrationData } from "../controllers/dataController.js";
+import {
+  LoadRegistrationData,
+  GenerateDefaultSellerBuyerKycIE,
+} from "../controllers/dataController.js";
 
 const uploadFiles = multer().fields([
   { name: "media", maxCount: 1 },
@@ -17,5 +20,6 @@ const uploadMedia = multer().fields([
 let DataRouter = express.Router();
 
 DataRouter.get("/loadDefaualtData", LoadRegistrationData);
+DataRouter.post("/createDefaultIEs", GenerateDefaultSellerBuyerKycIE);
 
 export default DataRouter;
