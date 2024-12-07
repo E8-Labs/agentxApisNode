@@ -1187,7 +1187,22 @@ export const WebhookSynthflow = async (req, res) => {
       synthflowCallId: callId,
     },
   });
+
+  let extractors = data.executed_actions;
+  let allKeys = Object.keys(extractors);
+  let allCustomStageInfoExtractorkeys = [];
+  allKeys.map((item) => {
+    if (item.includes(`${process.env.StagePrefix}_stage`)) {
+      allCustomStageInfoExtractorkeys.push(item);
+      let data = extractors[item];
+      console.log("Data for custom stage is ", data);
+    } else {
+    }
+  });
+  console.log("All custom infoExtractors", allCustomStageInfoExtractorkeys);
   if (!dbCall) {
+    console.log("Call is not already in the table.");
+
     //create new call
     let leadData = data.lead;
     let leadPhone = leadData.phone_number;
@@ -1235,9 +1250,6 @@ export const WebhookSynthflow = async (req, res) => {
       status: status,
     });
     try {
-      let extractors = data.executed_actions;
-      let allKeys = Object.keys(extractors);
-
       await handleInfoExtractorValues(json, leadCad, lead, pipeline);
     } catch (error) {
       //console.log("Error handling IE details ", error);

@@ -145,6 +145,50 @@ export const CreatePipelineStage = async (req, res) => {
   });
 };
 
+export const UpdatePipelineStage = async (req, res) => {
+  let { stageId } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let pipelineId = req.body.pipelineId;
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let pipelineStage = await db.PipelineStages.findByPk({
+        where: {
+          id: stageId,
+        },
+      });
+
+      if (pipelineStage) {
+        if (req.body.stageTitle) {
+          pipelineStage.stageTitle = req.body.stageTitle;
+        }
+        if (req.body.color) {
+          pipelineStage.defaultColor = req.body.color;
+        }
+      }
+
+      let saved = await pipelineStage.save();
+
+      let pipeline = await db.Pipeline.findByPk(pipelineStage.pipelineId);
+      return res.send({
+        status: true,
+        message: "Pipeline Stage updated",
+        data: await PipelineResource(pipeline),
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "PipelineStage update failed",
+        data: null,
+      });
+    }
+  });
+};
+
 export const ReorderPipelineStages = async (req, res) => {
   const { pipelineId, reorderedStages } = req.body;
   // `reorderedStages` should be an array of stage objects with `id` and new `order` values

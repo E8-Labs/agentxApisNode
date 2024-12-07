@@ -30,6 +30,7 @@ import UserServicesModel from "./user/userServicesModel.js";
 import UserPhoneNumbers from "./user/userPhoneModel.js";
 import InfoExtractorModel from "./user/infoExtractorModel.js";
 import LeadSheetColumnModel from "./lead/sheetColumnModel.js";
+import LeadSheetTagModel from "./lead/LeadSheetTags.js";
 
 import ObjectionAndGuradrails from "./user/objectAndGaurdrailsModel.js";
 import ApiKeysModel from "./user/apikeysModel.js";
@@ -78,6 +79,23 @@ db.InfoExtractorModel = InfoExtractorModel(sequelize, Sequelize);
 db.Stages = Stages(sequelize, Sequelize);
 db.LeadSheetModel = LeadSheetModel(sequelize, Sequelize);
 db.LeadSheetColumnModel = LeadSheetColumnModel(sequelize, Sequelize);
+db.LeadSheetTagModel = LeadSheetTagModel(sequelize, Sequelize);
+db.LeadSheetModel.hasMany(db.LeadSheetTagModel, {
+  foreignKey: "sheetId",
+  as: "tags", // Alias for association
+});
+db.LeadSheetTagModel.belongsTo(db.LeadSheetModel, {
+  foreignKey: "sheetId",
+});
+
+db.LeadSheetModel.hasMany(db.LeadSheetColumnModel, {
+  foreignKey: "sheetId",
+  as: "columns", // Alias for association
+});
+db.LeadSheetColumnModel.belongsTo(db.LeadSheetModel, {
+  foreignKey: "sheetId",
+});
+
 db.LeadModel = LeadModel(sequelize, Sequelize);
 models["LeadModel"] = db.LeadModel;
 db.Pipeline = Pipeline(sequelize, Sequelize);

@@ -104,7 +104,7 @@ export const AddLeads = async (req, res) => {
 
 //Or sheet
 export const AddSmartList = async (req, res) => {
-  let { sheetName, columns } = req.body; // mainAgentId is the mainAgent id
+  let { sheetName, columns, tags } = req.body; // mainAgentId is the mainAgent id
 
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -120,6 +120,15 @@ export const AddSmartList = async (req, res) => {
         sheetName: sheetName,
         userId: userId,
       });
+
+      if (tags) {
+        for (const tag of tags) {
+          let tagCreated = await db.LeadSheetTagModel.create({
+            tag: tag,
+            sheetId: sheet.id,
+          });
+        }
+      }
       console.log("Typeof ", typeof db.LeadSheetColumnModel);
       for (const column of columns) {
         let found = await db.LeadSheetColumnModel.findOne({
@@ -139,10 +148,27 @@ export const AddSmartList = async (req, res) => {
         }
       }
 
+      let sheetWithTags = await db.LeadSheetModel.findOne({
+        where: {
+          id: sheet.id,
+        },
+        include: [
+          {
+            model: db.LeadSheetTagModel, // Reference to the tag model
+            as: "tags", // Alias for the association (optional but recommended)
+            attributes: ["tag"], // Specify the fields you want from the tag model
+          },
+          {
+            model: db.LeadSheetColumnModel, // Reference to the tag model
+            as: "columns", // Alias for the association (optional but recommended)
+            attributes: ["columnName"], // Specify the fields you want from the tag model
+          },
+        ],
+      });
       res.send({
         status: true,
         message: `Sheet added`,
-        data: sheet,
+        data: sheetWithTags,
       });
     } else {
       res.send({
@@ -210,6 +236,18 @@ export const GetSheets = async (req, res) => {
         where: {
           userId: userId,
         },
+        include: [
+          {
+            model: db.LeadSheetTagModel, // Reference to the tag model
+            as: "tags", // Alias for the association (optional but recommended)
+            attributes: ["tag"], // Specify the fields you want from the tag model
+          },
+          {
+            model: db.LeadSheetColumnModel, // Reference to the tag model
+            as: "columns", // Alias for the association (optional but recommended)
+            attributes: ["columnName"], // Specify the fields you want from the tag model
+          },
+        ],
       });
 
       return res.send({

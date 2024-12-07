@@ -18,6 +18,12 @@ const LeadSheetModel = (sequelize, Sequelize) => {
     },
   });
 
+  // LeadSheetModel.associate = (models) => {
+  //   LeadSheetModel.belongsTo(models.LeadSheetTagModel, {
+  //     foreignKey: "sheetId",
+  //     as: "tags",
+  //   });
+  // };
   return LeadSheetModel;
 };
 
