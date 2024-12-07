@@ -308,29 +308,38 @@ export const TestAI = async (req, res) => {
 
       let lead = { firstName: name, phone: phone, extraColumns: extraColumns };
 
-      let basePrompt = await GetCompletePromptTextFrom(
-        prompt,
-        user,
-        agent,
-        lead,
-        true // test is set to true
-      );
+      try {
+        let basePrompt = await GetCompletePromptTextFrom(
+          prompt,
+          user,
+          agent,
+          lead,
+          true // test is set to true
+        );
 
-      let data = JSON.stringify({
-        name: name,
-        phone: phone,
-        model: agent.modelId, //"1722652829145x214249543190325760",
-        prompt: basePrompt,
-      });
-      let response = await initiateCall(
-        data,
-        null,
-        lead,
-        agent,
-        mainAgentModel
-      );
+        let data = JSON.stringify({
+          name: name,
+          phone: phone,
+          model: agent.modelId, //"1722652829145x214249543190325760",
+          prompt: basePrompt,
+        });
+        let response = await initiateCall(
+          data,
+          null,
+          lead,
+          agent,
+          mainAgentModel
+        );
 
-      return res.send(response);
+        return res.send(response);
+      } catch (error) {
+        console.log("some error");
+        return res.send({
+          status: false,
+          message: "Some error",
+          error: error,
+        });
+      }
     } else {
       console.log("Unauthorized user");
       return res.send({
