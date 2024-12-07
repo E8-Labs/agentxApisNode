@@ -148,7 +148,8 @@ export const CreatePipelineStage = async (req, res) => {
             console.log("The ie should be attached to these agents", agentIds);
           }
 
-          for (const id in agentIds) {
+          for (const id of agentIds) {
+            console.log(`Attaching action ${actionId} to ${id}`);
             let attached = await AttachInfoExtractor(id, actionId);
             console.log("Action attached ", attached);
           }

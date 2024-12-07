@@ -683,7 +683,7 @@ export async function AttachInfoExtractor(mainAgentId, actionIds) {
     let assistant = assistants[i];
     let attached = await AttachActionToModel(actionIds, assistant.modelId);
     console.log(
-      `Action for infoExtractor Create Response User ${assistant.id} created = `,
+      `Action for infoExtractor Create Response assitant ${assistant.modelId} created = `,
       attached
     );
   }
