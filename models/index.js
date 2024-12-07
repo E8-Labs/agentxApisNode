@@ -32,6 +32,8 @@ import InfoExtractorModel from "./user/infoExtractorModel.js";
 import LeadSheetColumnModel from "./lead/sheetColumnModel.js";
 import LeadSheetTagModel from "./lead/LeadSheetTags.js";
 
+import StageTagModel from "./pipeline/StageTags.js";
+
 import ObjectionAndGuradrails from "./user/objectAndGaurdrailsModel.js";
 import ApiKeysModel from "./user/apikeysModel.js";
 import GhlCalendarModel from "./user/ghlCalendarModel.js";
@@ -101,6 +103,16 @@ models["LeadModel"] = db.LeadModel;
 db.Pipeline = Pipeline(sequelize, Sequelize);
 db.PipelineStages = PipelineStages(sequelize, Sequelize);
 models["PipelineStages"] = db.PipelineStages;
+
+db.StageTagModel = StageTagModel(sequelize, Sequelize);
+db.PipelineStages.hasMany(db.StageTagModel, {
+  foreignKey: "pipelineStageId",
+  as: "tags", // Alias for association
+});
+db.StageTagModel.belongsTo(db.PipelineStages, {
+  foreignKey: "pipelineStageId",
+});
+
 db.PipelineCadence = PipelineCadence(sequelize, Sequelize);
 db.CadenceCalls = CadenceCalls(sequelize, Sequelize);
 db.LeadCadence = LeadCadence(sequelize, Sequelize);

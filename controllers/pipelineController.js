@@ -72,7 +72,7 @@ export const CreatePipeline = async (req, res) => {
   });
 };
 export const CreatePipelineStage = async (req, res) => {
-  let { pipelineId, stageTitle, color, mainAgentId } = req.body; // mainAgentId is the mainAgent id
+  let { pipelineId, stageTitle, color, mainAgentId, tags } = req.body; // mainAgentId is the mainAgent id
   console.log("Data in request");
   console.log({ pipelineId, stageTitle, color, mainAgentId });
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -129,6 +129,15 @@ export const CreatePipelineStage = async (req, res) => {
         actionId: actionId,
         identifier: stageTitle.toLowerCase(),
       });
+
+      if (tags) {
+        for (const tag of tags) {
+          let created = await db.StageTagModel.create({
+            tag: tag,
+            pipelineStageId: stage.id,
+          });
+        }
+      }
 
       return res.send({
         status: true,
