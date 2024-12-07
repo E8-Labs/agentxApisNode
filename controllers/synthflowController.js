@@ -30,10 +30,44 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function GetCompletePromptTextFrom(prompt, user, assistant, lead) {
+async function GetCompletePromptTextFrom(
+  prompt,
+  user,
+  assistant,
+  lead,
+  test = false
+) {
   let callScript = prompt.callScript;
-
+  console.log("User ", user);
   let greeting = prompt.greeting;
+  let companyAgentInfo = prompt.companyAgentInfo;
+  companyAgentInfo = companyAgentInfo.replace(/{agent_name}/g, assistant.name);
+  companyAgentInfo = companyAgentInfo.replace(
+    /{agent_role}/g,
+    assistant.agentRole
+  );
+  companyAgentInfo = companyAgentInfo.replace(
+    /{brokerage_name}/g,
+    user.brokerage
+  );
+  companyAgentInfo = companyAgentInfo.replace(/{CU_status}/g, assistant.status);
+  companyAgentInfo = companyAgentInfo.replace(
+    /{CU_address}/g,
+    assistant.address
+  );
+  companyAgentInfo = companyAgentInfo.replace(
+    /{call_back_number}/g,
+    assistant.callbackNumber
+  );
+  if (assistant.liveTransfer) {
+    //live_transfer_number
+    companyAgentInfo = companyAgentInfo.replace(
+      /{live_transfer_number}/g,
+      assistant.liveTransferNumber
+    );
+  } else {
+  }
+
   greeting = greeting.replace(/{agent_name}/g, assistant.name);
   greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
 
@@ -41,28 +75,45 @@ async function GetCompletePromptTextFrom(prompt, user, assistant, lead) {
   callScript = callScript.replace(/{brokerage_name}/g, user.brokerage);
 
   callScript = callScript.replace(/{CU_status}/g, assistant.status);
-  callScript = callScript.replace(/{CU_address}/g, assistant.name.address);
+  callScript = callScript.replace(/{CU_address}/g, assistant.address);
+
+  callScript = callScript.replace(/{first_name}/g, lead.firstName);
+  callScript = callScript.replace(/{firstName}/g, lead.firstName);
+  callScript = callScript.replace(/{First Name}/g, lead.firstName);
+  callScript = callScript.replace(/{Last Name}/g, lead.lastName);
+  callScript = callScript.replace(/{Email}/g, lead.email);
 
   //Get UniqueColumns in Sheets
-  let sheets = await db.LeadSheetModel.findAll({
-    where: {
-      userId: user.id,
-    },
-  });
-  if (sheets && sheets.length > 0) {
-    let keys = [];
-    for (const sheet of sheets) {
-      let sheetKeys = await GetColumnsInSheet(sheet.id);
-      keys = mergeAndRemoveDuplicates(keys, sheetKeys);
+  let keys = [];
+  if (test) {
+    const regex = /\{(.*?)\}/g;
+    let match;
+
+    while ((match = regex.exec(callScript)) !== null) {
+      keys.push(match[1]); // Add the variable name (without braces) to the array
     }
-    for (const key of keys) {
-      if (lead.extraColumns) {
-        let value = lead.extraColumns[key];
-        if (value) {
-          const regex = new RegExp(`\\\`${key}\\\``, "g"); // Create a dynamic regex to match `${key}`
-          //console.log(`replacing ${key} with ${value}`);
-          callScript = callScript.replace(regex, value);
-        }
+  } else {
+    let sheets = await db.LeadSheetModel.findAll({
+      where: {
+        userId: user.id,
+      },
+    });
+    if (sheets && sheets.length > 0) {
+      for (const sheet of sheets) {
+        let sheetKeys = await GetColumnsInSheet(sheet.id);
+        keys = mergeAndRemoveDuplicates(keys, sheetKeys);
+      }
+    }
+  }
+
+  console.log("Obtained keys ", keys);
+  for (const key of keys) {
+    if (lead.extraColumns) {
+      let value = lead.extraColumns[key];
+      if (value) {
+        const regex = new RegExp(`\\\`${key}\\\``, "g"); // Create a dynamic regex to match `${key}`
+        //console.log(`replacing ${key} with ${value}`);
+        callScript = callScript.replace(regex, value);
       }
     }
   }
@@ -92,13 +143,26 @@ async function GetCompletePromptTextFrom(prompt, user, assistant, lead) {
     objectionText
   );
 
+  if (!assistant.liveTransfer) {
+    let t = `Title: Don’t Transfer Calls
+Description: 
+Politely decline transfer requests and reassure the caller.
+Example:
+“I can’t transfer you right now, but I’d be happy to schedule a callback with our team. What’s a good time to call you back?”
+Book or Schedule:
+Always provide clear options for callback times and book the caller on the calendar
+Stay Consistent:
+Stick to this rule to maintain control and professionalism in call handling.
+`;
+    guardrailPromptText = `${guardrailPromptText}\n\n${t}`;
+  }
   //console.log("New Objection Text is ", objectionPromptText);
 
   //udpate the call script here
   let text = "";
 
   text = `${text}\n\n${prompt.objective}\n\n`;
-  text = `${text}\n\n${prompt.companyAgentInfo}`;
+  text = `${text}\n\n${companyAgentInfo}`;
   text = `${text}\n\n${prompt.personalCharacteristics}`;
   text = `${text}\n\n${prompt.communication}`;
   text = `${text}\n\n${greeting}`;
@@ -206,6 +270,78 @@ export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
   }
 };
 
+export const TestAI = async (req, res) => {
+  let { agentId, phone, name, extraColumns } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      console.log("User id ", userId);
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let agent = await db.AgentModel.findByPk(agentId);
+      if (!agent) {
+        return res.send({
+          status: false,
+          message: "No such agent",
+          data: null,
+        });
+      }
+      let mainAgentModel = await db.MainAgentModel.findByPk(agent.mainAgentId);
+      let prompt = await db.AgentPromptModel.findOne({
+        where: {
+          mainAgentId: agent.mainAgentId,
+          type: "outbound",
+        },
+      });
+      if (!prompt) {
+        //console.log("No prompt for this agent");
+        return res.send({
+          status: false,
+          message: "No prompt exists for this agent",
+          data: null,
+        });
+      }
+
+      let lead = { firstName: name, phone: phone, extraColumns: extraColumns };
+
+      let basePrompt = await GetCompletePromptTextFrom(
+        prompt,
+        user,
+        agent,
+        lead,
+        true // test is set to true
+      );
+
+      let data = JSON.stringify({
+        name: name,
+        phone: phone,
+        model: agent.modelId, //"1722652829145x214249543190325760",
+        prompt: basePrompt,
+      });
+      let response = await initiateCall(
+        data,
+        null,
+        lead,
+        agent,
+        mainAgentModel
+      );
+
+      return res.send(response);
+    } else {
+      console.log("Unauthorized user");
+      return res.send({
+        status: false,
+        message: "Unauthorized user",
+        data: null,
+      });
+    }
+  });
+};
+
 async function initiateCall(
   data,
   leadCadence,
@@ -239,14 +375,14 @@ async function initiateCall(
 
       try {
         const saved = await db.LeadCallsSent.create({
-          leadCadenceId: leadCadence.id,
+          leadCadenceId: leadCadence?.id,
           synthflowCallId: callId,
           leadId: lead.id,
           transcript: "",
           summary: "",
           status: "",
           agentId: assistant.id,
-          stage: leadCadence.stage,
+          stage: leadCadence?.stage,
           mainAgentId: mainAgentModel.id,
         });
 

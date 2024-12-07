@@ -18,7 +18,11 @@ import PipelineCadenceResource from "../resources/PipelineCadenceResource.js";
 import PipelineResource from "../resources/PipelineResource.js";
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 import AgentResource from "../resources/AgentResource.js";
-import { CreateAndAttachInfoExtractor } from "./actionController.js";
+import {
+  AttachInfoExtractor,
+  CreateAndAttachInfoExtractor,
+  CreateInfoExtractor,
+} from "./actionController.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -115,8 +119,40 @@ export const CreatePipelineStage = async (req, res) => {
           description: req.body.action,
           examples: req.body.examples || [],
         };
-        let actionCreated = CreateAndAttachInfoExtractor(mainAgentId, ieData);
-        actionId = actionCreated.action_id;
+        let actionCreated = await CreateInfoExtractor(ieData);
+        // let actionCreated = await CreateAndAttachInfoExtractor(
+        //   mainAgentId,
+        //   ieData
+        // );
+        actionId = actionCreated.response.action_id; //actionCreated.action_id;
+        if (actionId) {
+          let agentIds = [];
+          if (mainAgentId) {
+            agentIds = [mainAgentId];
+          } else {
+            //findAll Agents who are in this pipeline
+            let cadenceAgents = await db.PipelineCadence.findAll({
+              where: {
+                pipelineId: pipelineId,
+              },
+            });
+            let cadenceAgentIds = cadenceAgents.map((item) => item.mainAgentId);
+            let agents = await db.MainAgentModel.findAll({
+              where: {
+                id: {
+                  [db.Sequelize.Op.in]: cadenceAgentIds,
+                },
+              },
+            });
+            agentIds = agents.map((item) => item.id);
+            console.log("The ie should be attached to these agents", agentIds);
+          }
+
+          for (const id in agentIds) {
+            let attached = await AttachInfoExtractor(id, actionId);
+            console.log("Action attached ", attached);
+          }
+        }
       }
 
       let stage = await db.PipelineStages.create({
@@ -165,11 +201,7 @@ export const UpdatePipelineStage = async (req, res) => {
           id: userId,
         },
       });
-      let pipelineStage = await db.PipelineStages.findByPk({
-        where: {
-          id: stageId,
-        },
-      });
+      let pipelineStage = await db.PipelineStages.findByPk(stageId);
 
       if (pipelineStage) {
         if (req.body.stageTitle) {

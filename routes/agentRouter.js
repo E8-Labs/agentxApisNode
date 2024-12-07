@@ -14,6 +14,7 @@ import {
   GetAgentCallActivity,
   AddObjectionOrGuardrail,
   GetObjectionsAndGuardrails,
+  TestAI,
 } from "../controllers/synthflowController.js";
 
 import {
@@ -39,6 +40,8 @@ let AgentRouter = express.Router();
 
 AgentRouter.post("/buildAgent", verifyJwtToken, uploadFiles, BuildAgent);
 AgentRouter.post("/updateAgent", verifyJwtToken, uploadFiles, UpdateAgent);
+
+AgentRouter.post("/testAi", verifyJwtToken, uploadFiles, TestAI);
 
 AgentRouter.get("/getAgents", verifyJwtToken, uploadFiles, GetAgents);
 AgentRouter.get("/getAgentCallActivity", verifyJwtToken, GetAgentCallActivity);
