@@ -23,7 +23,7 @@ const LeadCallsSent = (sequelize, Sequelize) => {
     //   },
     leadId: {
       type: Sequelize.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: "LeadModels",
         key: "id",
@@ -33,7 +33,7 @@ const LeadCallsSent = (sequelize, Sequelize) => {
     },
     leadCadenceId: {
       type: Sequelize.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: "LeadCadences",
         key: "id",
