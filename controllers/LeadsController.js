@@ -16,7 +16,7 @@ import LeadResource from "../resources/LeadResource.js";
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 
 export const AddLeads = async (req, res) => {
-  let { sheetName, columnMappings, leads } = req.body; // mainAgentId is the mainAgent id
+  let { sheetName, columnMappings, leads, tags } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -38,6 +38,14 @@ export const AddLeads = async (req, res) => {
           sheetName: sheetName,
           userId: userId,
         });
+        if (tags) {
+          for (const tag of tags) {
+            let tagCreated = await db.LeadSheetTagModel.create({
+              tag: tag,
+              sheetId: sheet.id,
+            });
+          }
+        }
       }
 
       let dbLeads = [];
