@@ -39,11 +39,27 @@ async function getUserData(leadCadence, currentUser = null) {
 
   let agent = await db.MainAgentModel.findByPk(leadCadence.mainAgentId);
   let lead = await db.LeadModel.findByPk(leadCadence.leadId);
-  let sheet = await db.LeadSheetModel.findByPk(lead.sheetId);
+  let sheetWithTags = await db.LeadSheetModel.findOne({
+    where: {
+      id: lead.sheetId,
+    },
+    include: [
+      {
+        model: db.LeadSheetTagModel, // Reference to the tag model
+        as: "tags", // Alias for the association (optional but recommended)
+        attributes: ["tag"], // Specify the fields you want from the tag model
+      },
+      {
+        model: db.LeadSheetColumnModel, // Reference to the tag model
+        as: "columns", // Alias for the association (optional but recommended)
+        attributes: ["columnName"], // Specify the fields you want from the tag model
+      },
+    ],
+  });
   const LeadCadenceResource = {
     ...leadCadence.get(),
     agent: agent,
-    lead: { ...lead, ...sheet?.get() },
+    lead: { ...lead, ...sheetWithTags?.get() },
   };
 
   return LeadCadenceResource;
