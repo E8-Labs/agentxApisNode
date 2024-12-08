@@ -59,7 +59,7 @@ async function getUserData(leadCadence, currentUser = null) {
   const LeadCadenceResource = {
     ...leadCadence.get(),
     agent: agent,
-    lead: { ...lead, ...sheetWithTags?.get() },
+    lead: { ...lead.get(), ...sheetWithTags?.get() },
   };
 
   return LeadCadenceResource;
