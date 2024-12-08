@@ -152,6 +152,11 @@ async function getUserData(mainAgent, currentUser = null) {
       durationText = `${min}`;
     }
     agent.durationText = durationText;
+    if (agent.agentType == "outbound") {
+      agent.prompt = prompt;
+    } else {
+      agent.prompt = promptInbound;
+    }
     agentRes.push(agent);
   }
 

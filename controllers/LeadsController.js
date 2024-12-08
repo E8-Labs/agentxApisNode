@@ -87,11 +87,30 @@ export const AddLeads = async (req, res) => {
           dbLeads.push(createdLead);
         }
       }
+
+      let sheetWithTags = await db.LeadSheetModel.findOne({
+        where: {
+          id: sheet.id,
+        },
+        include: [
+          {
+            model: db.LeadSheetTagModel, // Reference to the tag model
+            as: "tags", // Alias for the association (optional but recommended)
+            attributes: ["tag"], // Specify the fields you want from the tag model
+          },
+          {
+            model: db.LeadSheetColumnModel, // Reference to the tag model
+            as: "columns", // Alias for the association (optional but recommended)
+            attributes: ["columnName"], // Specify the fields you want from the tag model
+          },
+        ],
+      });
       let leadsRes = await LeadResource(dbLeads);
       res.send({
         status: true,
         message: `${leads.length} new Leads added`,
-        data: leadsRes,
+        data: sheetWithTags,
+        leads: leadsRes,
       });
     } else {
       res.send({
