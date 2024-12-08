@@ -50,7 +50,7 @@ export const CommunityUpdateOutbound = {
     `,
 
   callScript: `
-Hi, {firstName}. I’m reaching out to share some updates about properties like yours in your area. We’re currently working with homeowners nearby, and I thought you’d be interested to know that the home at {CU_address} is {CU_status}.
+Hi, {First Name}. I’m reaching out to share some updates about properties like yours in your area. We’re currently working with homeowners nearby, and I thought you’d be interested to know that the home at {CU_address} is {CU_status}.
 
 [Condition 1: If They Express Interest in More Details or Future Selling Plans]
 Ask the following Seller KYC:
@@ -89,7 +89,7 @@ Exterior Features:
 Current Condition:
 `,
 
-  greeting: `Hi {firstName}. This is this {agent_name} with {brokerage_name}! How’s it going?`,
+  greeting: `Hi {First Name}. This is this {agent_name} with {brokerage_name}! How’s it going?`,
 
   booking: `Booking Instructions
     Before scheduling a follow-up or meeting, confirm their interest:
@@ -322,7 +322,7 @@ Exterior Features:
 Current Condition:
     `,
 
-  greeting: `Hi {firstName}. This is this {agent_name} with {brokerage_name}! How’s it going?`,
+  greeting: `Hi {First Name}. This is this {agent_name} with {brokerage_name}! How’s it going?`,
 
   booking: `Scheduling a Consultation 
     ## get_availability

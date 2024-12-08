@@ -1456,7 +1456,7 @@ export const WebhookSynthflow = async (req, res) => {
       });
     }
     if (lead) {
-      await extractAndStoreKycs(actions, lead, callId);
+      await extractIEAndStoreKycs(actions, lead, callId);
     }
 
     console.log("Lead ", lead);
@@ -1517,15 +1517,18 @@ export const WebhookSynthflow = async (req, res) => {
   // //console.log("Hot lead ");
   let lead = await db.LeadModel.findByPk(leadCadence?.leadId);
 
+  let jsonIE = null;
   if (lead) {
-    await extractAndStoreKycs(actions, lead, callId);
+    jsonIE = await extractIEAndStoreKycs(actions, lead, callId);
   }
   let pipeline = await db.Pipeline.findByPk(leadCadence.pipelineId);
 
-  try {
-    await handleInfoExtractorValues(json, leadCadence, lead, pipeline);
-  } catch (error) {
-    //console.log("Error handling IE details ", error);
+  if (jsonIE) {
+    try {
+      await handleInfoExtractorValues(jsonIE, leadCadence, lead, pipeline);
+    } catch (error) {
+      console.log("Error handling IE details ", error);
+    }
   }
   // //Get Transcript and save
   // let caller = await db.User.findByPk(dbCall.userId);
@@ -1584,13 +1587,15 @@ function extractInfo(data) {
   return result;
 }
 
-async function extractAndStoreKycs(extractors, lead, callId) {
+async function extractIEAndStoreKycs(extractors, lead, callId) {
   let keys = Object.keys(extractors);
+  let ie = {};
   for (const key of keys) {
     let data = extractors[key];
     let returnValue = data.return_value;
     let question = key.replace("info_extractor_", "");
     let answer = returnValue[question];
+    ie[question] = answer;
     console.log(`IE found ${question} : ${answer}`);
 
     if (typeof answer == "string") {
@@ -1606,81 +1611,131 @@ async function extractAndStoreKycs(extractors, lead, callId) {
   }
 
   //will handle kyc here
-
+  console.log("IE obtained ", ie);
+  return ie;
   // return result;
 }
 
 async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
-  if (json.hotlead || json.callbackrequested) {
-    let hotLeadStage = await db.PipelineStages.findOne({
-      where: {
-        identifier: "hot_lead",
-        pipelineId: pipeline.id,
-      },
-    });
-    leadCadence.stage = hotLeadStage.id;
-    let saved = await leadCadence.save();
-    //console.log(
-    //   `Lead ${lead.firstName} move from ${leadCadence.stage} to Hot Lead`
-    // );
-    // move the lead to the hotlead stage immediately
+  console.log("Handling IE ", json);
+  let keys = Object.keys(json);
+  const customStageIEs = keys.filter((str) =>
+    str.includes(`${process.env.StagePrefix}_stage`)
+  );
+  let canMoveToDefaultStage = true;
+  if (customStageIEs.length > 0) {
+    console.log("Custom stage found ", customStageIEs);
+    for (const csIE of customStageIEs) {
+      let value = json[csIE];
+      if (value) {
+        canMoveToDefaultStage = false;
+
+        let stageIdentifier = csIE.replace(
+          `${process.env.StagePrefix}_stage_`,
+          ""
+        );
+        console.log(`Move to ${stageIdentifier}`, json[csIE]);
+        let stage = await db.PipelineStages.findOne({
+          where: {
+            identifier: stageIdentifier,
+            pipelineId: pipeline.id,
+          },
+        });
+        if (stage) {
+          leadCadence.stage = stage.id;
+          let saved = await leadCadence.save();
+          console.log(`Successfully Moved to ${stageIdentifier}`, json[csIE]);
+        }
+        //here break the for loop
+        break;
+      } else {
+        console.log(`Move to ${csIE}`, json[csIE]);
+      }
+    }
   }
-  if (json.notinterested || json.dnd || json.wrongnumber) {
-    // move the lead to the notinterested stage immediately
-    let hotLeadStage = await db.PipelineStages.findOne({
-      where: {
-        identifier: "not_interested",
-        pipelineId: pipeline.id,
-      },
-    });
-    leadCadence.stage = hotLeadStage.id;
-    leadCadence.dnd = json.dnd;
-    leadCadence.notinterested = json.notinterested;
-    leadCadence.wrongnumber = json.wrongnumber;
-    let saved = await leadCadence.save();
-    //console.log(
-    //   `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
-    // );
-  }
-  if (json.meetingscheduled) {
-    // meeting scheduled
-    let hotLeadStage = await db.PipelineStages.findOne({
-      where: {
-        identifier: "booked",
-        pipelineId: pipeline.id,
-      },
-    });
-    leadCadence.stage = hotLeadStage.id;
-    // leadCadence.dnd = json.dnd;
-    // leadCadence.notinterested = json.notinterested;
-    let saved = await leadCadence.save();
-    //console.log(
-    //   `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
-    // );
-  }
-  //We may check if this was the last call or not
-  if (
-    json.callmeback ||
-    json.humancalldrop ||
-    json.voicemail ||
-    json.Busycallback ||
-    json.nodecisionmaker
-  ) {
-    let followUpStage = await db.PipelineStages.findOne({
-      where: {
-        identifier: "follow_up",
-        pipelineId: pipeline.id,
-      },
-    });
-    if (leadCadence.stage < followUpStage.id) {
-      leadCadence.stage = followUpStage.id;
-      leadCadence.nodecisionmaker = json.nodecisionmaker;
+  if (canMoveToDefaultStage) {
+    console.log("I can move to default stage");
+    if (json.hotlead || json.callbackrequested) {
+      let hotLeadStage = await db.PipelineStages.findOne({
+        where: {
+          identifier: "hot_lead",
+          pipelineId: pipeline.id,
+        },
+      });
+      if (canMoveToDefaultStage) {
+        leadCadence.stage = hotLeadStage.id;
+        let saved = await leadCadence.save();
+      }
+      //console.log(
+      //   `Lead ${lead.firstName} move from ${leadCadence.stage} to Hot Lead`
+      // );
+      // move the lead to the hotlead stage immediately
+    }
+    if (json.notinterested || json.dnd || json.wrongnumber) {
+      // move the lead to the notinterested stage immediately
+      let hotLeadStage = await db.PipelineStages.findOne({
+        where: {
+          identifier: "not_interested",
+          pipelineId: pipeline.id,
+        },
+      });
+
+      if (canMoveToDefaultStage) {
+        leadCadence.stage = hotLeadStage.id;
+      }
+      leadCadence.dnd = json.dnd;
+      leadCadence.notinterested = json.notinterested;
+      leadCadence.wrongnumber = json.wrongnumber;
       let saved = await leadCadence.save();
       //console.log(
-      //   `Lead ${lead.firstName} move from ${leadCadence.stage} to ${followUpStage.stageTitle}`
+      //   `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
       // );
-    } else {
-      //console.log("User asked to call back but already on a further stage");
+    }
+    if (json.meetingscheduled) {
+      // meeting scheduled
+      let hotLeadStage = await db.PipelineStages.findOne({
+        where: {
+          identifier: "booked",
+          pipelineId: pipeline.id,
+        },
+      });
+
+      if (canMoveToDefaultStage) {
+        leadCadence.stage = hotLeadStage.id;
+      }
+      // leadCadence.dnd = json.dnd;
+      // leadCadence.notinterested = json.notinterested;
+      let saved = await leadCadence.save();
+      //console.log(
+      //   `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
+      // );
+    }
+    //We may check if this was the last call or not
+    if (
+      json.callmeback ||
+      json.humancalldrop ||
+      json.voicemail ||
+      json.Busycallback ||
+      json.nodecisionmaker
+    ) {
+      let followUpStage = await db.PipelineStages.findOne({
+        where: {
+          identifier: "follow_up",
+          pipelineId: pipeline.id,
+        },
+      });
+      if (leadCadence.stage < followUpStage.id) {
+        if (canMoveToDefaultStage) {
+          leadCadence.stage = followUpStage.id;
+        }
+        leadCadence.nodecisionmaker = json.nodecisionmaker;
+        let saved = await leadCadence.save();
+        //console.log(
+        //   `Lead ${lead.firstName} move from ${leadCadence.stage} to ${followUpStage.stageTitle}`
+        // );
+      } else {
+        //console.log("User asked to call back but already on a further stage");
+      }
     }
   }
 }
