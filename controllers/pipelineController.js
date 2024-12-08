@@ -57,6 +57,7 @@ export const CreatePipeline = async (req, res) => {
           defaultColor: st.defaultColor,
           stageId: st.id,
           pipelineId: created.id,
+          description: st.description,
           identifier: st.identifier,
         });
       }
