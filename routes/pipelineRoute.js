@@ -14,6 +14,7 @@ import {
   ReorderPipelineStages,
   DeletePipelineStage,
   UpdatePipelineStage,
+  DeletePipeline,
 } from "../controllers/pipelineController.js";
 
 const uploadFiles = multer().fields([
@@ -46,6 +47,14 @@ PipelineRouter.post(
   uploadMedia,
   CreatePipelineStage
 );
+
+PipelineRouter.post(
+  "/deletePipeline",
+  verifyJwtToken,
+  uploadMedia,
+  DeletePipeline
+);
+
 PipelineRouter.post(
   "/updateStage",
   verifyJwtToken,

@@ -75,6 +75,52 @@ export const CreatePipeline = async (req, res) => {
     }
   });
 };
+
+export const DeletePipeline = async (req, res) => {
+  let { pipelineId } = req.body; // mainAgentId is the mainAgent id
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let pipeline = await db.Pipeline.findByPk(pipelineId);
+
+      //Check whether this stage have active cadence or assigned agents.
+      //Then use the logics accordingly.
+      try {
+        let deleted = await db.Pipeline.destroy({
+          where: {
+            id: pipelineId,
+          },
+        });
+
+        return res.send({
+          status: true,
+          message: "Pipeline deleted",
+          data: null,
+        });
+      } catch (error) {
+        return res.send({
+          status: false,
+          message: "Faield to delete pipeline",
+          data: null,
+          error: error,
+        });
+      }
+    } else {
+      return res.send({
+        status: false,
+        message: "Faield to delete pipeline",
+        data: null,
+      });
+    }
+  });
+};
+
 export const CreatePipelineStage = async (req, res) => {
   let { pipelineId, stageTitle, color, mainAgentId, tags } = req.body; // mainAgentId is the mainAgent id
   console.log("Data in request");
