@@ -23,6 +23,7 @@ import {
   CreateAndAttachInfoExtractor,
   CreateInfoExtractor,
 } from "./actionController.js";
+import PipelineCadence from "../models/pipeline/pipelineCadence.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -327,7 +328,7 @@ export const ReorderPipelineStages = async (req, res) => {
 };
 
 export const DeletePipelineStage = async (req, res) => {
-  let { pipelineId, stageId } = req.body; // mainAgentId is the mainAgent id
+  let { pipelineId, stageId, moveToStage } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -341,6 +342,44 @@ export const DeletePipelineStage = async (req, res) => {
 
       //Check whether this stage have active cadence or assigned agents.
       //Then use the logics accordingly.
+
+      //update all cadence that move to the stage which is deleted stage
+      let cadUpdate = await db.PipelineCadence.update(
+        {
+          moveToStage: moveToStage,
+        },
+        {
+          where: {
+            pipelineId: pipelineId,
+            moveToStage: stageId,
+          },
+        }
+      );
+
+      let cadUpdatedStageId = await db.PipelineCadence.update(
+        {
+          stage: moveToStage,
+        },
+        {
+          where: {
+            pipelineId: pipelineId,
+            stage: stageId,
+          },
+        }
+      );
+
+      //Update Lead Cadence to moveToStage if they are on the deleted stage
+      let leadCadUpdate = await db.LeadCadence.update(
+        {
+          stage: moveToStage,
+        },
+        {
+          where: {
+            stage: stageId,
+          },
+        }
+      );
+
       let deleted = await db.PipelineStages.destroy({
         where: {
           id: stageId,

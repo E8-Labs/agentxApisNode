@@ -108,7 +108,7 @@ export const AddLeads = async (req, res) => {
       let leadsRes = await LeadResource(dbLeads);
       res.send({
         status: true,
-        message: `${leads.length} new Leads added`,
+        message: `${leads.length} new leads added`,
         data: sheetWithTags,
         leads: leadsRes,
       });

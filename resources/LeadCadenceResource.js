@@ -39,10 +39,11 @@ async function getUserData(leadCadence, currentUser = null) {
 
   let agent = await db.MainAgentModel.findByPk(leadCadence.mainAgentId);
   let lead = await db.LeadModel.findByPk(leadCadence.leadId);
+  let sheet = await db.LeadSheetModel.findByPk(lead.sheetId);
   const LeadCadenceResource = {
     ...leadCadence.get(),
     agent: agent,
-    lead: lead,
+    lead: { ...lead, ...sheet?.get() },
   };
 
   return LeadCadenceResource;
