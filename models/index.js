@@ -37,6 +37,7 @@ import StageTagModel from "./pipeline/StageTags.js";
 import ObjectionAndGuradrails from "./user/objectAndGaurdrailsModel.js";
 import ApiKeysModel from "./user/apikeysModel.js";
 import GhlCalendarModel from "./user/ghlCalendarModel.js";
+import LeadKycsExtracted from "./lead/LeadKycsExtracted.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -119,6 +120,15 @@ db.LeadCadence = LeadCadence(sequelize, Sequelize);
 models["LeadCadence"] = db.LeadCadence;
 db.LeadCallsSent = LeadCallsSent(sequelize, Sequelize);
 models["LeadCallsSent"] = db.LeadCallsSent;
+
+db.LeadKycsExtracted = LeadKycsExtracted(sequelize, Sequelize);
+// db.LeadModel.hasMany(db.LeadKycsExtracted, {
+//   foreignKey: "leadId",
+//   as: "kycs", // Alias for association
+// });
+// db.LeadKycsExtracted.belongsTo(db.LeadModel, {
+//   foreignKey: "pipelineStageId",
+// });
 
 db.ObjectionAndGuradrails = ObjectionAndGuradrails(sequelize, Sequelize);
 models["ObjectionAndGuradrails"] = db.ObjectionAndGuradrails;

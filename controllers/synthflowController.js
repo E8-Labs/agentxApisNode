@@ -1325,7 +1325,7 @@ export const WebhookSynthflow = async (req, res) => {
   // //console.log("Actions ", actions);
 
   let json = extractInfo(data);
-  //console.log("Extracted info ", json);
+  console.log("Extracted info ", json);
   // return;
   let dbCall = await db.LeadCallsSent.findOne({
     where: {
@@ -1352,12 +1352,24 @@ export const WebhookSynthflow = async (req, res) => {
     let leadData = data.lead;
     let leadPhone = leadData.phone_number;
     leadPhone = leadPhone.replace("+", "");
+    console.log("Lead phone ", leadPhone);
     let lead = await db.LeadModel.findOne({
       where: {
         phone: leadPhone,
       },
     });
+    if (!lead) {
+      lead = await db.LeadModel.create({
+        phone: leadPhone,
+        firstName: leadData.name,
+        extraColumns: JSON.stringify(leadData.prompt_variables),
+      });
+    }
+    if (lead) {
+      await extractAndStoreKycs(actions, lead, callId);
+    }
 
+    console.log("Lead ", lead);
     //Find assistant
     let assistant = await db.AgentModel.findOne({
       where: {
@@ -1368,18 +1380,21 @@ export const WebhookSynthflow = async (req, res) => {
     }
 
     //get pipeline and leadCad
-    let leadCad = await db.LeadCadence.findOne({
-      where: {
-        leadId: lead.id,
-        mainAgentId: assistant.mainAgentId,
-      },
-    });
+    let leadCad = null;
+    if (lead) {
+      leadCad = await db.LeadCadence.findOne({
+        where: {
+          leadId: lead?.id,
+          mainAgentId: assistant.mainAgentId,
+        },
+      });
+    }
     if (!leadCad) {
-      console.log("Couldn't found any leadCadence");
-      return;
+      console.log("Couldn't find any leadCadence");
+      // return;
     }
 
-    let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
+    let pipeline = await db.Pipeline.findByPk(leadCad?.pipelineId);
     dbCall = await db.LeadCallsSent.create({
       mainAgentId: assistant.mainAgentId,
       userId: assistant.userId,
@@ -1388,10 +1403,10 @@ export const WebhookSynthflow = async (req, res) => {
       synthflowCallId: callId,
       duration: duration,
       recordingUrl: recordingUrl,
-      summary: summary,
+      summary: "",
       transcript: transcript,
-      leadId: leadCad.leadId,
-      leadCadenceId: leadCad.leadCad.id,
+      leadId: lead?.id || null,
+      leadCadenceId: leadCad?.id || null,
       status: status,
     });
     try {
@@ -1410,8 +1425,11 @@ export const WebhookSynthflow = async (req, res) => {
   let leadCadenceId = dbCall.leadCadenceId;
   let leadCadence = await db.LeadCadence.findByPk(leadCadenceId);
   // //console.log("Hot lead ");
-  let lead = await db.LeadModel.findByPk(leadCadence.leadId);
+  let lead = await db.LeadModel.findByPk(leadCadence?.leadId);
 
+  if (lead) {
+    await extractAndStoreKycs(actions, lead, callId);
+  }
   let pipeline = await db.Pipeline.findByPk(leadCadence.pipelineId);
 
   try {
@@ -1474,6 +1492,32 @@ function extractInfo(data) {
   //will handle kyc here
 
   return result;
+}
+
+async function extractAndStoreKycs(extractors, lead, callId) {
+  let keys = Object.keys(extractors);
+  for (const key of keys) {
+    let data = extractors[key];
+    let returnValue = data.return_value;
+    let question = key.replace("info_extractor_", "");
+    let answer = returnValue[question];
+    console.log(`IE found ${question} : ${answer}`);
+
+    if (typeof answer == "string") {
+      let created = await db.LeadKycsExtracted.create({
+        question: question,
+        answer: answer,
+        leadId: lead.id,
+        callId: callId,
+      });
+    } else {
+      console.log("IE is not open question ");
+    }
+  }
+
+  //will handle kyc here
+
+  // return result;
 }
 
 async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
