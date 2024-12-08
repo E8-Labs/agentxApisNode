@@ -799,6 +799,67 @@ export const UpdateAgent = async (req, res) => {
   });
 };
 
+export const DeleteAgent = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let mainAgentId = req.body.mainAgentId;
+      let agent = await db.MainAgentModel.findByPk(mainAgentId);
+      if (!agent) {
+        return res.send({
+          status: false,
+          message: "No such agent",
+          data: null,
+        });
+      }
+
+      let agents = await db.AgentModel.findAll({
+        where: {
+          mainAgentId: mainAgentId,
+        },
+      });
+
+      console.log("It has agents", agents);
+      for (const agent of agents) {
+        let del = await DeleteAssistantSynthflow(agent.modelId);
+        if (del) {
+          console.log("Agent deleted ", agent.modelId);
+        }
+      }
+
+      let pcDel = await db.PipelineCadence.destroy({
+        where: {
+          mainAgentId: mainAgentId,
+        },
+      });
+      let del = await db.MainAgentModel.destroy({
+        where: {
+          id: mainAgentId,
+        },
+      });
+
+      // let agentRes = await AgentResource(agent);
+      return res.send({
+        status: true,
+        message: `Agent ${agent.name} deleted`,
+        data: null,
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "Unauthenticated user",
+        data: null,
+      });
+    }
+  });
+};
+
 export const GetAgents = async (req, res) => {
   let { agentType, pipelineId } = req.query;
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -1267,6 +1328,35 @@ export async function CreateAssistantSynthflow(
     return null;
   }
 }
+
+export async function DeleteAssistantSynthflow(modelId) {
+  let synthKey = process.env.SynthFlowApiKey;
+  //console.log("Inside 1");
+  const options = {
+    method: "DELETE",
+    url: `https://api.synthflow.ai/v2/assistants/${modelId}`,
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      Authorization: `Bearer ${synthKey}`,
+    },
+  };
+  //console.log("Inside 2");
+  try {
+    let result = await axios.request(options);
+    //console.log("Inside 3");
+    //console.log("Create Assistant Api result ", result);
+
+    if (result.status == 200) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    //console.log("Inside error: ", error);
+    return false;
+  }
+}
+
 export async function UpdateAssistantSynthflow(agent, data) {
   let synthKey = process.env.SynthFlowApiKey;
   //console.log("Inside Update Assistant ", data);

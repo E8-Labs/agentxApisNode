@@ -6,6 +6,7 @@ import {
   CreateAssistantSynthflow,
   BuildAgent,
   UpdateAgent,
+  DeleteAgent,
   GetVoices,
   AddKyc,
   GetKyc,
@@ -40,6 +41,7 @@ let AgentRouter = express.Router();
 
 AgentRouter.post("/buildAgent", verifyJwtToken, uploadFiles, BuildAgent);
 AgentRouter.post("/updateAgent", verifyJwtToken, uploadFiles, UpdateAgent);
+AgentRouter.post("/deleteAgent", verifyJwtToken, uploadFiles, DeleteAgent);
 
 AgentRouter.post("/testAi", verifyJwtToken, uploadFiles, TestAI);
 
