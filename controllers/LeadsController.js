@@ -384,11 +384,7 @@ export const GetLeads = async (req, res) => {
           delete lead.extraColumns;
           leadsWithCadence.push({
             ...lead,
-            kycs: await db.LeadKycsExtracted.findAll({
-              where: {
-                leadId: lead.id,
-              },
-            }),
+            kycs: [{ question: "Who are you", answer: "I am salman" }],
             stage: stage, // Use LeadCadence stage if available, else LeadModel stage
             cadenceStatus: cadence ? cadence.status : null, // Cadence status or null
           });
