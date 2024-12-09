@@ -1120,6 +1120,8 @@ export const AddKyc = async (req, res) => {
       let kycSellerText = "";
       let kycBuyerText = "";
       let kycs = [];
+      let newSellerKycCount = 0,
+        newBuyerKycCount = 0;
 
       if (user) {
         for (let i = 0; i < kycQuestions.length; i++) {
@@ -1135,12 +1137,12 @@ export const AddKyc = async (req, res) => {
           });
 
           let kycExamples = [];
-          let newSellerKycCount = 0,
-            newBuyerKycCount = 0;
+
           if (created) {
             if (kyc.type == "seller") {
               newSellerKycCount += 1;
               kycSellerText = `${kycSellerText}\n${kyc.question}`;
+              console.log("replacing kyc ", kycSellerText);
             } else {
               newBuyerKycCount += 1;
               kycBuyerText = `${kycBuyerText}\n${kyc.question}`;
@@ -1154,50 +1156,7 @@ export const AddKyc = async (req, res) => {
               kycExamples.push(createdEx);
             }
           }
-          if (prompts && prompts.length > 0) {
-            if (
-              kycBuyerBefore &&
-              kycBuyerBefore.length == 0 &&
-              newBuyerKycCount > 0
-            ) {
-              console.log(
-                "No Buyer kyc already added replacing buyer",
-                kycBuyerText
-              );
-              for (let p of prompts) {
-                let callScript = p.callScript;
-                // callScript = callScript.replace(/{seller_kyc}/g, seller_kyc);
-                callScript = callScript.replace(/{buyer_kyc}/g, kycBuyerText);
-                p.callScript = callScript;
-                await p.save();
-              }
-            }
-            if (
-              kycSellerBefore &&
-              kycSellerBefore.length == 0 &&
-              newSellerKycCount > 0
-            ) {
-              console.log(
-                "No seller kyc already added replacing seller",
-                kycSellerText
-              );
-              for (let p of prompts) {
-                let callScript = p.callScript;
-                callScript = callScript.replace(/{seller_kyc}/g, kycSellerText);
-                // callScript = callScript.replace(/{buyer_kyc}/g, buyer_kyc);
-                p.callScript = callScript;
-                await p.save();
-              }
-            }
-          }
-          // let found = null;
-          // let OpenQuestions = OpenQuestionInfoExtractors;
-          // OpenQuestions.map((item) => {
-          //   // //console.log(`Comp ${item.question} = ${kyc.question}`);
-          //   if (item.question == kyc.question) {
-          //     found = item;
-          //   }
-          // });
+
           let found = await db.InfoExtractorModel.findOne({
             where: {
               question: kyc.question,
@@ -1230,6 +1189,44 @@ export const AddKyc = async (req, res) => {
           // }
           let res = await KycResource(created);
           kycs.push(res);
+        }
+
+        //replace kyc for first time
+        if (prompts && prompts.length > 0) {
+          if (
+            kycBuyerBefore &&
+            kycBuyerBefore.length == 0 &&
+            newBuyerKycCount > 0
+          ) {
+            console.log(
+              "No Buyer kyc already added replacing buyer",
+              kycBuyerText
+            );
+            for (let p of prompts) {
+              let callScript = p.callScript;
+              // callScript = callScript.replace(/{seller_kyc}/g, seller_kyc);
+              callScript = callScript.replace(/{buyer_kyc}/g, kycBuyerText);
+              p.callScript = callScript;
+              await p.save();
+            }
+          }
+          if (
+            kycSellerBefore &&
+            kycSellerBefore.length == 0 &&
+            newSellerKycCount > 0
+          ) {
+            console.log(
+              "No seller kyc already added replacing seller",
+              kycSellerText
+            );
+            for (let p of prompts) {
+              let callScript = p.callScript;
+              callScript = callScript.replace(/{seller_kyc}/g, kycSellerText);
+              // callScript = callScript.replace(/{buyer_kyc}/g, buyer_kyc);
+              p.callScript = callScript;
+              await p.save();
+            }
+          }
         }
       }
 
