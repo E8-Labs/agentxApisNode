@@ -1097,6 +1097,7 @@ export const AddKyc = async (req, res) => {
         },
       });
 
+      let mainAgent = await db.MainAgentModel.findByPk(mainAgentId);
       let prompts = await db.AgentPromptModel.findAll({
         where: {
           mainAgentId: mainAgentId,
@@ -1159,10 +1160,10 @@ export const AddKyc = async (req, res) => {
               kycBuyerBefore.length == 0 &&
               newBuyerKycCount > 0
             ) {
-              //console.log(
-              //   "No Buyer kyc already added replacing buyer",
-              //   kycBuyerText
-              // );
+              console.log(
+                "No Buyer kyc already added replacing buyer",
+                kycBuyerText
+              );
               for (let p of prompts) {
                 let callScript = p.callScript;
                 // callScript = callScript.replace(/{seller_kyc}/g, seller_kyc);
@@ -1176,10 +1177,10 @@ export const AddKyc = async (req, res) => {
               kycSellerBefore.length == 0 &&
               newSellerKycCount > 0
             ) {
-              //console.log(
-              //   "No seller kyc already added replacing seller",
-              //   kycSellerText
-              // );
+              console.log(
+                "No seller kyc already added replacing seller",
+                kycSellerText
+              );
               for (let p of prompts) {
                 let callScript = p.callScript;
                 callScript = callScript.replace(/{seller_kyc}/g, kycSellerText);
@@ -1232,7 +1233,9 @@ export const AddKyc = async (req, res) => {
         }
       }
 
-      return res.send({ status: true, message: "kyc added", data: kycs });
+      let agentRes = await AgentResource(mainAgent);
+
+      return res.send({ status: true, message: "kyc added", data: agentRes });
     } else {
     }
   });
