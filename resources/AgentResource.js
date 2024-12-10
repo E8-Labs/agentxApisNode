@@ -1,5 +1,6 @@
 import db from "../models/index.js";
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
+import KycResource from "./kycResource.js";
 import PipelineStages from "../models/pipeline/pipelineStages.js";
 // import {
 //   getTotalYapScore,
