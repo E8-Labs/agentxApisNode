@@ -189,6 +189,7 @@ export const ListAvailableNumbers = async (req, res) => {
 export const PurchasePhoneNumber = async (req, res) => {
   const { phoneNumber, mainAgentId } = req.body;
 
+  console.log("Data received ", { phoneNumber, mainAgentId });
   // Verify JWT Token
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (error) {
