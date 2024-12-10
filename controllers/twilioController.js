@@ -195,6 +195,7 @@ export const PurchasePhoneNumber = async (req, res) => {
       return res.status(401).send({
         status: false,
         message: "Unauthorized access. Invalid token.",
+        data: authData,
       });
     }
 
