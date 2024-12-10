@@ -876,6 +876,7 @@ export const GetAgents = async (req, res) => {
         where: {
           userId: user.id,
         },
+        order: [["createdAt", "DESC"]],
       });
       if (typeof pipelineId != "undefined" && pipelineId != null) {
         let pipeline = await db.Pipeline.findByPk(pipelineId);
@@ -905,6 +906,7 @@ export const GetAgents = async (req, res) => {
               [db.Sequelize.Op.in]: cadenceAgentIds,
             },
           },
+          order: [["createdAt", "DESC"]],
         });
       }
 
@@ -1141,11 +1143,11 @@ export const AddKyc = async (req, res) => {
           if (created) {
             if (kyc.type == "seller") {
               newSellerKycCount += 1;
-              kycSellerText = `${kycSellerText}\n${kyc.question}`;
+              kycSellerText = `${kycSellerText}\n{${kyc.question}}`;
               console.log("replacing kyc ", kycSellerText);
             } else {
               newBuyerKycCount += 1;
-              kycBuyerText = `${kycBuyerText}\n${kyc.question}`;
+              kycBuyerText = `${kycBuyerText}\n{${kyc.question}}`;
             }
             for (let j = 0; j < kyc.examples.length; j++) {
               let ex = kyc.examples[j];

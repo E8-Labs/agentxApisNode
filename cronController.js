@@ -272,6 +272,27 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           "CronRunCadenceCallsSubsequentStages: Calls sent to this lead ",
           calls.length
         );
+        if (lastCall.status == null || lastCall.duration == null) {
+          console.log("Last call is not complete so not placing next call");
+          return;
+        }
+        //
+        let callsStatusesToRecall = [
+          "failed",
+          "no-answer",
+          "busy",
+          "hangup_on_voicemail",
+        ];
+        if (!callsStatusesToRecall.includes(lastCall.status)) {
+          console.log("Last call completed with status", lastCall.status);
+          // console.log("So recalling")
+          return;
+        }
+        console.log(
+          "Last call completed with one of these statuses",
+          callsStatusesToRecall
+        );
+        console.log("So recalling");
         if (calls.length == callCadence.length) {
           //Don't send calls
           //All calls are sent to this lead already so we have to determine whether we push it to the next stage or do what?
