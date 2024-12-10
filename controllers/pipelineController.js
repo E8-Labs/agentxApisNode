@@ -500,12 +500,14 @@ export const CreatePipelineCadence = async (req, res) => {
           userId: userId,
         });
         pipelineId = pipeline.id;
+      } else {
+        pipeline = await db.Pipeline.findByPk(pipelineId);
       }
 
       //Check if the pipeline has custom stages with action added and assign them to these agents
       let stages = await db.PipelineStages.findAll({
         where: {
-          pipelineId: pipeline.id,
+          pipelineId: pipelineId,
           actionId: {
             [db.Sequelize.Op.ne]: null,
           },

@@ -53,8 +53,11 @@ export const CommunityUpdateOutbound = {
 Hi, {First Name}. I’m reaching out to share some updates about properties like yours in your area. We’re currently working with homeowners nearby, and I thought you’d be interested to know that the home at {CU_address} is {CU_status}.
 
 [Condition 1: If They Express Interest in More Details or Future Selling Plans]
+
+
 Ask the following Seller KYC:
 {seller_kyc}
+
 
 If they are open to discussing further:
 "Great! We can schedule a quick call or a meeting to go over your property’s current valuation and discuss any opportunities to maximize its value."
@@ -65,6 +68,7 @@ If Yes:
 "Wonderful! I’ll add you to our list so you’ll receive notifications about any major updates that could impact property values in your area. What’s the best email to send the details to?"
 If No:
 "Completely understandable! Feel free to reach out anytime if you have questions about listing your property in the future.”
+
 
 [Condition 3: If They Express Interest in Investment Opportunities]
 Ask the following buyer KYC:
