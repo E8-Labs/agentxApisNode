@@ -34,6 +34,6 @@ CalendarRouter.post(
   uploadFiles,
   CheckCalendarAvailability
 );
-CalendarRouter.post("/schedule", verifyJwtToken, uploadFiles, ScheduleEvent);
+CalendarRouter.post("/schedule", uploadFiles, ScheduleEvent);
 
 export default CalendarRouter;
