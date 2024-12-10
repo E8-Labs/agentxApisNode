@@ -24,6 +24,7 @@ import {
   CreateInfoExtractor,
 } from "./actionController.js";
 import PipelineCadence from "../models/pipeline/pipelineCadence.js";
+import { DeleteActionSynthflow } from "./synthflowController.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -339,6 +340,7 @@ export const DeletePipelineStage = async (req, res) => {
       });
 
       let pipeline = await db.Pipeline.findByPk(pipelineId);
+      let stage = await db.PipelineStages.findByPk(stageId);
 
       //Check whether this stage have active cadence or assigned agents.
       //Then use the logics accordingly.
@@ -379,6 +381,15 @@ export const DeletePipelineStage = async (req, res) => {
           },
         }
       );
+
+      //Delete Action created
+      if (stage.actionId != null) {
+        //delete the IE
+        let del = await DeleteActionSynthflow(stage.actionId);
+        if (del) {
+          console.log("Action deleted for stage as well");
+        }
+      }
 
       let deleted = await db.PipelineStages.destroy({
         where: {

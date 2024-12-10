@@ -1357,6 +1357,34 @@ export async function DeleteAssistantSynthflow(modelId) {
   }
 }
 
+export async function DeleteActionSynthflow(actionId) {
+  let synthKey = process.env.SynthFlowApiKey;
+  //console.log("Inside 1");
+  const options = {
+    method: "DELETE",
+    url: `https://api.synthflow.ai/v2/actions/action_id/${actionId}`,
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      Authorization: `Bearer ${synthKey}`,
+    },
+  };
+  //console.log("Inside 2");
+  try {
+    let result = await axios.request(options);
+    //console.log("Inside 3");
+    console.log("Delete Action Api result ", result);
+
+    if (result.status == 200) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    //console.log("Inside error: ", error);
+    return false;
+  }
+}
+
 export async function UpdateAssistantSynthflow(agent, data) {
   let synthKey = process.env.SynthFlowApiKey;
   //console.log("Inside Update Assistant ", data);
