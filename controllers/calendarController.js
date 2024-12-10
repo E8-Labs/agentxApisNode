@@ -318,6 +318,7 @@ export async function ScheduleEvent(req, res) {
   let parsedTime = getParsedTime(time);
 
   // Combine parsed date and time into a single Date object
+  console.log(`Parsed Date: ${parsedDate} Time: ${parsedTime}`);
   parsedDate.setHours(parsedTime.getHours(), parsedTime.getMinutes(), 0, 0);
   const startTimeISO = format(parsedDate, "yyyy-MM-dd'T'HH:mm:ssXXX");
 
