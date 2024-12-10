@@ -2,7 +2,11 @@ import express from "express";
 import multer from "multer";
 
 import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
-import { CreateCalendar } from "../controllers/calendarController.js";
+import {
+  AddCalendarCalDotCom,
+  ScheduleEvent,
+  CheckCalendarAvailability,
+} from "../controllers/calendarController.js";
 
 import { GenerateApiKey, GetMyApiKeys } from "../controllers/apiController.js";
 
@@ -22,7 +26,14 @@ CalendarRouter.post(
   "/createCalendar",
   verifyJwtToken,
   uploadFiles,
-  CreateCalendar
+  AddCalendarCalDotCom
 );
+CalendarRouter.post(
+  "/getAvailability",
+  verifyJwtToken,
+  uploadFiles,
+  CheckCalendarAvailability
+);
+CalendarRouter.post("/schedule", verifyJwtToken, uploadFiles, ScheduleEvent);
 
 export default CalendarRouter;

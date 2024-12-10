@@ -460,51 +460,7 @@ function GetActionApiData(user, assistant, type = "kb") {
     };
   }
   if (type == "booking") {
-    return {
-      http_mode: "GET", // Set to tomorrow's date
-      url:
-        "https://www.blindcircle.com/voice/api/action/bookAppointment?modelId=" +
-        assistant.modelId,
-      run_action_before_call_start: false,
-      name: `Book Appointment With ${user.name}`,
-      description: "Book Appointment With " + user.name,
-      variables_during_the_call: [
-        {
-          name: `date`,
-          description: "The date on which the meeting would be scheduled",
-          example: "User says he wants to schedule a meeting on Nov 11 2025.",
-          type: "string",
-        },
-        {
-          name: `time`,
-          description: "The time at which the meeting would take place",
-          example: "9:00 pm",
-          type: "string",
-        },
-        {
-          name: `user_email`,
-          description:
-            "The email of the user who will receive the meeting invite",
-          example: "my email is (abc@gmail.com).",
-          type: "string",
-        },
-      ],
-      query_parameters: [
-        {
-          key: "date",
-          value: "11-08-2024",
-        },
-        {
-          key: "time",
-          value: "9:00 pm",
-        },
-        {
-          key: "user_email",
-          value: "salmanmajid14@gmail.com",
-        },
-      ],
-      prompt: `Use the result from <results.data.message> and respond accordingly. Use <results.data.status> to check whether the appointment was booked or not.If true then booked else not.`,
-    };
+    return GetCalendarActionApiData(user, assistant);
   }
   if (type == "availability") {
     return {
@@ -688,4 +644,91 @@ export async function AttachInfoExtractor(mainAgentId, actionIds) {
     );
   }
   return true;
+}
+
+export async function CreateAndAttachCalendarAction(user, mainAgent) {
+  let assistants = await db.AgentModel.findAll({
+    where: {
+      mainAgentId: mainAgent.id,
+    },
+  });
+  let actionIds = [];
+  if (assistants) {
+    for (const assistant of assistants) {
+      let action = await CreateCustomAction(user, assistant, "booking");
+      if (action && action.status == "success") {
+        let actionId = action.response.action_id;
+        actionIds.push(actionId);
+        // created.actionId = actionId;
+
+        // let saved = await created.save();
+
+        let attached = await AttachActionToModel(actionId, assistant.modelId);
+        console.log(
+          `Action for booking Create Response User ${user.id} created = `,
+          attached
+        );
+        if (attached.status == "success") {
+          console.log("Action attached");
+        } else {
+          // return { status: false, data: null };
+        }
+      } else {
+        console.log("Could not create action");
+        // return { status: false, data: null };
+      }
+    }
+    return { status: true, data: actionIds };
+  } else {
+    return { status: false, data: null, message: "No assistant found" };
+  }
+}
+
+function GetCalendarActionApiData(user, assistant) {
+  return {
+    http_mode: "POST", // Set to tomorrow's date
+    url:
+      "https://www.blindcircle.com/agentx/api/calendar/schedule?modelId=" +
+      assistant.id +
+      `&mainAgentId=${assistant.mainAgentId}`,
+    run_action_before_call_start: false,
+    name: `Book Appointment With ${user.name}`,
+    description: "Book Appointment With " + user.name,
+    variables_during_the_call: [
+      {
+        name: `date`,
+        description: "The date on which the meeting would be scheduled",
+        example: "User says he wants to schedule a meeting on Nov 11 2025.",
+        type: "string",
+      },
+      {
+        name: `time`,
+        description: "The time at which the meeting would take place",
+        example: "9:00 pm",
+        type: "string",
+      },
+      {
+        name: `user_email`,
+        description:
+          "The email of the user who will receive the meeting invite",
+        example: "my email is (abc@gmail.com).",
+        type: "string",
+      },
+    ],
+    query_parameters: [
+      {
+        key: "date",
+        value: "02-20-2025",
+      },
+      {
+        key: "time",
+        value: "9:00 pm",
+      },
+      {
+        key: "user_email",
+        value: "salmanmajid14@gmail.com",
+      },
+    ],
+    prompt: `Use the result from <results.data.message> and respond accordingly. Use <results.data.status> to check whether the appointment was booked or not.If true then booked else not. To get more idea use <result.data.data>`,
+  };
 }

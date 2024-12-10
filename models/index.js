@@ -38,6 +38,7 @@ import ObjectionAndGuradrails from "./user/objectAndGaurdrailsModel.js";
 import ApiKeysModel from "./user/apikeysModel.js";
 import GhlCalendarModel from "./user/ghlCalendarModel.js";
 import LeadKycsExtracted from "./lead/LeadKycsExtracted.js";
+import CalendarIntegration from "./user/calendarIntegration.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -137,6 +138,9 @@ db.ApiKeysModel = ApiKeysModel(sequelize, Sequelize);
 models["ApiKeysModel"] = db.ApiKeysModel;
 
 db.GhlCalendarModel = GhlCalendarModel(sequelize, Sequelize);
+
+db.CalendarIntegration = CalendarIntegration(sequelize, Sequelize);
+models["CalendarIntegration"] = db.CalendarIntegration;
 models["GhlCalendarModel"] = db.GhlCalendarModel;
 
 // Run predefined setup
