@@ -313,12 +313,20 @@ export async function ScheduleEvent(req, res) {
   }
 
   // Define all possible date and time formats
-  let parsedDate = getParsedDate(date);
+  let parsedDate = getParsedDate(date).data;
   // Parse the time
-  let parsedTime = getParsedTime(time);
+  let parsedTime = getParsedTime(time).data;
+  console.log(`Parsed Date: ${parsedDate} Time: ${parsedTime}`);
+  if (!parsedDate || !parsedTime) {
+    return res.send({
+      status: false,
+      message: "Invalid date time",
+      data: { parsedDate, parsedTime },
+    });
+  }
 
   // Combine parsed date and time into a single Date object
-  console.log(`Parsed Date: ${parsedDate} Time: ${parsedTime}`);
+
   parsedDate.setHours(parsedTime.getHours(), parsedTime.getMinutes(), 0, 0);
   const startTimeISO = format(parsedDate, "yyyy-MM-dd'T'HH:mm:ssXXX");
 
