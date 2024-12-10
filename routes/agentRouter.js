@@ -64,7 +64,7 @@ AgentRouter.get("/voices", uploadFiles, GetVoices);
 AgentRouter.post(
   "/purchasePhone",
   verifyJwtToken,
-  uploadFiles,
+  // uploadFiles,
   PurchasePhoneNumber
 );
 AgentRouter.post(
