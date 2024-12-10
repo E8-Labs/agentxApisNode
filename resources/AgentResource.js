@@ -160,6 +160,12 @@ async function getUserData(mainAgent, currentUser = null) {
     agentRes.push(agent);
   }
 
+  let kycs = await db.KycModel.findAll({
+    where: {
+      mainAgentId: mainAgent.id,
+    },
+  });
+  let qs = await KycResource(kycs);
   const AgentResource = {
     ...mainAgent.get(),
     agents: agentRes,
@@ -172,6 +178,7 @@ async function getUserData(mainAgent, currentUser = null) {
     inboundGreeting: promptInbound?.greeting || "",
     guardrails,
     objections,
+    kyc: qs,
     alreadyAssignedGlobal:
       alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
     // calls: calls,
