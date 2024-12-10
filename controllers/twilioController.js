@@ -212,24 +212,34 @@ export const PurchasePhoneNumber = async (req, res) => {
 
       // Check if the environment is live
       if (process.env.ENVIRONMENT === "Sandbox") {
-        return res.send({
-          status: false,
-          message: "This operation is only available in live mode.",
-        });
+        // return res.send({
+        //   status: false,
+        //   message: "This operation is only available in live mode.",
+        // });
       }
 
       // Attempt to purchase the phone number via Twilio API
       let sid = process.env.PLATFORM_PHONE_NUMBER_SID;
-      const purchasedNumber = await client.incomingPhoneNumbers.create({
-        phoneNumber,
-      });
 
-      if (purchasedNumber && purchasedNumber.sid) {
-        sid = purchasedNumber.sid;
-      } else {
+      try {
+        const purchasedNumber = await client.incomingPhoneNumbers.create({
+          phoneNumber,
+        });
+
+        if (purchasedNumber && purchasedNumber.sid) {
+          sid = purchasedNumber.sid;
+        } else {
+          return res.status(500).send({
+            status: false,
+            message: "Failed to purchase phone number.",
+          });
+        }
+      } catch (twilioError) {
+        // Handle Twilio error
         return res.status(500).send({
           status: false,
-          message: "Failed to purchase phone number.",
+          message: "An error occurred while communicating with Twilio.",
+          error: twilioError.message,
         });
       }
 
