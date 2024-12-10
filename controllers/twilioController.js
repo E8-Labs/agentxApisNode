@@ -236,7 +236,7 @@ export const PurchasePhoneNumber = async (req, res) => {
         }
       } catch (twilioError) {
         // Handle Twilio error
-        return res.status(500).send({
+        return res.status(200).send({
           status: false,
           message: "An error occurred while communicating with Twilio.",
           error: twilioError.message,
