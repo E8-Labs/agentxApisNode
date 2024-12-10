@@ -352,6 +352,124 @@ Examples:
        Human: "Sure, it’s example@email.com.`,
     ],
   },
+  {
+    actionId: "1733816573205x720869652227507300",
+    question: "call_review_worthy",
+    actiontype: "yes_no",
+    description: `
+Based on the transcript provided, determine whether the conversation indicates a potential opportunity or a positive outcome that merits a manual follow-up by the sales team. This includes calls where the prospect shows interest, curiosity, or engagement in the service, discusses actionable next steps, or raises complex scenarios or objections that may require human intervention. The focus is on identifying calls that reveal good opportunities or outcomes that go beyond routine AI prospecting. Return True if the conversation aligns with any of the conditions below.
+Conditions for True:
+1. Interest in Listing a Property for Sale:
+The prospect expresses intent, curiosity, or openness to listing their property for sale.
+Examples:
+"I’ve been thinking about selling my property."
+"Can you tell me how much I could get for my home?"
+2. Exploration of Market Updates or Property Value:
+The prospect shows interest in receiving updates about the market or understanding their property’s value.
+Examples:
+"What’s the current market value for homes in my area?"
+"Could you send me updates on recent sales in my neighborhood?"
+3. Interest in Local Community Trends:
+The prospect engages with circle prospecting updates, showing curiosity about nearby listings or recent activity in their community.
+Examples:
+"What’s happening with properties near me?"
+"Can you share details about the home that was just sold down the street?"
+4. Plans for Future Action:
+The prospect indicates potential intent to act in the near future, even if not immediately ready.
+Examples:
+"I’m planning to sell, but not until next year."
+"I might be interested if the market conditions improve."
+5. Interest in Buying a Property:
+The prospect expresses curiosity or plans to explore purchasing a property in the area.
+Examples:
+"I’m looking to invest in another property in the neighborhood."
+"Can you tell me about any homes for sale nearby?"
+6. Engaged in Receiving More Information:
+The prospect asks questions or requests additional information about the service, indicating curiosity or engagement.
+Examples:
+"Can you send me more details about your process?"
+"How do you handle home sales in this area?"
+7. Referral or Neighbor Interest:
+The prospect suggests that they, a neighbor, or someone they know might be interested in listing or buying.
+Examples:
+"My neighbor has been talking about selling. You should reach out to them."
+"I know someone who’s looking to buy a property in this area."
+8. Open to a Follow-Up Conversation or Meeting:
+The prospect agrees to a follow-up or expresses openness to further engagement.
+Examples:
+"Let’s talk again in a few months when I’m ready."
+"We can set up a meeting to discuss this in more detail."
+
+`,
+    examples: [
+      `Let’s talk again in a few months when I’m ready.`,
+      ` We can set up a meeting to discuss this in more detail.`,
+      `Can you send me more details about your process?`,
+      `How do you handle home sales in this area?`,
+    ],
+  },
+  {
+    actionId: "1733816656334x556187328145851400",
+    question: "prospectemail",
+    actiontype: "open_question",
+    description: `Based on the transcript provided, determine the email address the Human shared when asked for it. If the Human explicitly provided an email address, output the email exactly as stated, ensuring correct spelling and punctuation. If no email address was clearly provided, output "Not Provided."
+Key Conditions:
+If an Email Address is Provided:
+Output the email address exactly as stated, ensuring correct spelling and punctuation.
+Examples:
+Human: "My email is john.doe@gmail.com."
+Output: john.doe@gmail.com
+Human: "You can email me at jane_smith@company.com."
+Output: jane_smith@company.com
+If the Email Address is Spoken with Separators:
+Reconstruct the email if separators like "dot" or "at" are used.
+Replace common placeholders:
+"dot" → "."
+"at" → "@"
+Examples:
+Human: "My email is john dot doe at gmail dot com."
+Output: john.doe@gmail.com
+Human: "You can contact me at jane underscore smith at company dot com."
+Output: jane_smith@company.com
+If No Email Address is Clearly Provided:
+Output "Not Provided."
+Additional Context for Extraction:
+Look for trigger phrases that often precede an email address, such as:
+"My email is..."
+"You can contact me at..."
+"Please email me at..."
+"Reach out to me via email at..."
+Avoid extracting false positives in unrelated contexts, such as:
+"I had trouble with my email earlier." → Output: Not Provided
+"I sent you an email." → Output: Not Provided`,
+    examples: [
+      `johnsmith@gmail.com`,
+      `info.adriansmith@yahoo.com `,
+      `jonathan678@hotmail.com `,
+      `None provided`,
+    ],
+  },
+
+  {
+    actionId: "1733816871737x509826336028592400",
+    question: "prospectename",
+    actiontype: "open_question",
+    description: `
+Based on the transcript provided, determine the name the Human shared when asked for it. If the Human explicitly provided their name, output the name exactly as stated, ensuring correct capitalization. If no name was clearly provided, output "Not Provided."
+Key Conditions:
+If a Name is Provided:
+Output the name exactly as stated, including correct capitalization.
+Examples:
+Human: "My name is John Doe."
+Output: John Doe
+Human: "You can call me Jane Smith."
+Output: Jane Smith
+If No Name is Clearly Provided:
+Output "Not Provided."
+
+    `,
+    examples: [`John Smith`, `Adrain Smith `, `None provided`],
+  },
 ];
 
 export const OpenQuestionInfoExtractors = [

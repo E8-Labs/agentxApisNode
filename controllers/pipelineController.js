@@ -149,7 +149,7 @@ export const CreatePipelineStage = async (req, res) => {
       });
       let order = 10;
       if (lastStageByOrder) {
-        order = lastStageByOrder.order + 10;
+        order = lastStageByOrder.order + 1;
       }
 
       let advanced = null;
@@ -491,6 +491,23 @@ export const CreatePipelineCadence = async (req, res) => {
         pipelineId = pipeline.id;
       }
 
+      //Check if the pipeline has custom stages with action added and assign them to these agents
+      let stages = await db.PipelineStages.findAll({
+        where: {
+          pipelineId: pipeline.id,
+          actionId: {
+            [db.Sequelize.Op.ne]: null,
+          },
+        },
+      });
+
+      if (stages) {
+        console.log("Found stages custom that can be assigned ", stages);
+        let actions = stages.map((item) => item.actionId);
+        console.log(`Attaching actions ${actions} to ${mainAgentId}`);
+        let attached = await AttachInfoExtractor(mainAgentId, actions);
+        console.log("Action attached ", attached);
+      }
       //   let assignedAgent = await db.PipelineAssignedAgent.create({
       //     mainAgentId: mainAgentId,
       //     pipelineId: pipelineId,
