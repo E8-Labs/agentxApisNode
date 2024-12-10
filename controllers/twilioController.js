@@ -190,7 +190,7 @@ export const PurchasePhoneNumber = async (req, res) => {
   const { phoneNumber, mainAgentId } = req.body;
 
   // Verify JWT Token
-  JWT.verify(req.token, process.env.SECRET_JWT_KEY, async (error, authData) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (error) {
       return res.status(401).send({
         status: false,
