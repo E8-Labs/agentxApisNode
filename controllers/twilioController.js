@@ -246,10 +246,12 @@ export const PurchasePhoneNumber = async (req, res) => {
         }
       } catch (twilioError) {
         // Handle Twilio error
+        console.log("Phone purchase error", twilioError);
         return res.status(200).send({
           status: false,
           message: "An error occurred while communicating with Twilio.",
           error: twilioError.message,
+          twilioError: twilioError,
         });
       }
 
