@@ -411,7 +411,7 @@ async function initiateCall(
       return { status: false, message: "call is not initiated", data: null };
     }
   } catch (error) {
-    //console.log("Error during API call: ", error);
+    console.log("Error during Sending Call API call: ", error);
     return {
       status: false,
       message: "call is not initiated due to API error",
