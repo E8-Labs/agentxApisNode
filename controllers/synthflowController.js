@@ -260,7 +260,8 @@ export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
       leadCadence,
       lead,
       assistant,
-      mainAgentModel
+      mainAgentModel,
+      calls
     );
     return res;
     //initiate call here
@@ -356,7 +357,8 @@ async function initiateCall(
   leadCadence,
   lead,
   assistant,
-  mainAgentModel
+  mainAgentModel,
+  calls = []
 ) {
   try {
     let synthKey = process.env.SynthFlowApiKey;
@@ -406,8 +408,22 @@ async function initiateCall(
         };
       }
     } else {
+      const callId =
+        json.response.call_id ||
+        `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${leadCadence.stage}`;
       //console.log("In else: call not initiated");
       // Add failed call in the database if required
+      const saved = await db.LeadCallsSent.create({
+        leadCadenceId: leadCadence?.id,
+        synthflowCallId: callId,
+        leadId: lead.id,
+        transcript: "",
+        summary: "",
+        status: "failed",
+        agentId: assistant.id,
+        stage: leadCadence?.stage,
+        mainAgentId: mainAgentModel.id,
+      });
       return { status: false, message: "call is not initiated", data: null };
     }
   } catch (error) {
