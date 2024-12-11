@@ -376,7 +376,7 @@ async function initiateCall(
     const json = response.data;
 
     //console.log(json);
-    //console.log("Assistant used ", json.response);
+    console.log("Call data ", json);
 
     if (json.status === "ok" || json.status === "success") {
       const callId = json.response.call_id;
