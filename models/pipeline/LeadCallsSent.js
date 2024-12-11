@@ -111,6 +111,50 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+    dnd: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    nodecisionmaker: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    wrongnumber: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    humancalldrop: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    voicemail: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    Busycallback: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    nodecisionmaker: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    meetingscheduled: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    notinterested: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    hotlead: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    callmeback: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
   });
   LeadCallsSent.associate = (models) => {
     LeadCallsSent.belongsTo(models.LeadModel, {

@@ -1485,8 +1485,9 @@ export const WebhookSynthflow = async (req, res) => {
         extraColumns: JSON.stringify(leadData.prompt_variables),
       });
     }
+    let jsonIE = null;
     if (lead) {
-      await extractIEAndStoreKycs(actions, lead, callId);
+      jsonIE = await extractIEAndStoreKycs(actions, lead, callId);
     }
 
     console.log("Lead ", lead);
@@ -1525,6 +1526,16 @@ export const WebhookSynthflow = async (req, res) => {
       recordingUrl: recordingUrl,
       summary: "",
       transcript: transcript,
+      hotlead: jsonIE?.hotlead,
+      notinterested: jsonIE?.notinterested,
+      dnd: jsonIE?.dnd,
+      wrongnumber: jsonIE?.wrongnumber,
+      meetingscheduled: jsonIE?.meetingscheduled,
+      callmeback: jsonIE?.callmeback,
+      humancalldrop: jsonIE?.humancalldrop,
+      voicemail: jsonIE?.voicemail,
+      Busycallback: jsonIE?.Busycallback,
+      nodecisionmaker: jsonIE?.nodecisionmaker,
       leadId: lead?.id || null,
       leadCadenceId: leadCad?.id || null,
       status: status,
@@ -1543,7 +1554,15 @@ export const WebhookSynthflow = async (req, res) => {
   //Check the infoExtractors here.
   //Update the logic here and test by sending dummy webhooks
   let leadCadenceId = dbCall.leadCadenceId;
+  if (!leadCadenceId) {
+    console.log("Test call ");
+    return res.send({ status: true, message: "Webhook received" });
+  }
   let leadCadence = await db.LeadCadence.findByPk(leadCadenceId);
+  if (!leadCadence) {
+    console.log("Test call ");
+    return res.send({ status: true, message: "Webhook received" });
+  }
   // //console.log("Hot lead ");
   let lead = await db.LeadModel.findByPk(leadCadence?.leadId);
 
@@ -1581,6 +1600,16 @@ export const WebhookSynthflow = async (req, res) => {
     dbCall.transcript = transcript;
     dbCall.recordingUrl = recordingUrl;
     dbCall.callData = dataString;
+    dbCall.hotlead = jsonIE?.hotlead;
+    dbCall.notinterested = jsonIE?.notinterested;
+    dbCall.dnd = jsonIE?.dnd;
+    dbCall.wrongnumber = jsonIE?.wrongnumber;
+    dbCall.meetingscheduled = jsonIE?.meetingscheduled;
+    dbCall.callmeback = jsonIE?.callmeback;
+    dbCall.humancalldrop = jsonIE?.humancalldrop;
+    dbCall.voicemail = jsonIE?.voicemail;
+    dbCall.Busycallback = jsonIE?.Busycallback;
+    dbCall.nodecisionmaker = jsonIE?.nodecisionmaker;
     let saved = await dbCall.save();
     // let charged = await chargeUser(caller, dbCall, assistant);
     //(dbCall.transcript != "" && dbCall.transcript != null) {
@@ -1591,6 +1620,16 @@ export const WebhookSynthflow = async (req, res) => {
     dbCall.transcript = transcript;
     dbCall.recordingUrl = recordingUrl;
     dbCall.callData = dataString;
+    dbCall.hotlead = jsonIE?.hotlead;
+    dbCall.notinterested = jsonIE?.notinterested;
+    dbCall.dnd = jsonIE?.dnd;
+    dbCall.wrongnumber = jsonIE?.wrongnumber;
+    dbCall.meetingscheduled = jsonIE?.meetingscheduled;
+    dbCall.callmeback = jsonIE?.callmeback;
+    dbCall.humancalldrop = jsonIE?.humancalldrop;
+    dbCall.voicemail = jsonIE?.voicemail;
+    dbCall.Busycallback = jsonIE?.Busycallback;
+    dbCall.nodecisionmaker = jsonIE?.nodecisionmaker;
     let saved = await dbCall.save();
   }
 
