@@ -1302,7 +1302,7 @@ export const AddKyc = async (req, res) => {
 export const DeleteKyc = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
-      let kycId = req.query.kycId;
+      let kycId = req.body.kycId;
       let userId = authData.user.id;
       let user = await db.User.findOne({
         where: {
