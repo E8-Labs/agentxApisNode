@@ -1309,16 +1309,23 @@ export const DeleteKyc = async (req, res) => {
           id: userId,
         },
       });
+
+      let kyc = await db.KycModel.findByPk(kycId);
+      let mainAgentId = kyc.mainAgentId;
       let kycsDel = await db.KycModel.destroy({
         where: {
           id: kycId,
         },
       });
 
+      let agent = await db.MainAgentModel.findByPk(mainAgentId);
+
+      let agentRes = await AgentResource(agent);
+
       return res.send({
         status: true,
         message: "Kycs deleted",
-        data: null,
+        data: agentRes,
       });
     }
   });
