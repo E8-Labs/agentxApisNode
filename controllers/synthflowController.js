@@ -1178,7 +1178,15 @@ export const AddKyc = async (req, res) => {
         },
       });
 
+      let kycSellerMotivationText = "";
+      let kycSellerNeedsText = "";
+      let kycSellerUrgencyText = "";
+
       let kycSellerText = "";
+
+      let kycBuyerMotivationText = "";
+      let kycBuyerNeedsText = "";
+      let kycBuyerUrgencyText = "";
       let kycBuyerText = "";
       let kycs = [];
       let newSellerKycCount = 0,
@@ -1203,10 +1211,28 @@ export const AddKyc = async (req, res) => {
             if (kyc.type == "seller") {
               newSellerKycCount += 1;
               kycSellerText = `${kycSellerText}\n{${kyc.question}}`;
+              if (kyc.category == "need") {
+                kycSellerNeedsText = `${kycSellerNeedsText}\n{${kyc.question}}`;
+              }
+              if (kyc.category == "motivation") {
+                kycSellerMotivationText = `${kycSellerMotivationText}\n{${kyc.question}}`;
+              }
+              if (kyc.category == "urgency") {
+                kycSellerUrgencyText = `${kycSellerUrgencyText}\n{${kyc.question}}`;
+              }
               console.log("replacing kyc ", kycSellerText);
             } else {
               newBuyerKycCount += 1;
               kycBuyerText = `${kycBuyerText}\n{${kyc.question}}`;
+              if (kyc.category == "need") {
+                kycBuyerNeedsText = `${kycBuyerNeedsText}\n{${kyc.question}}`;
+              }
+              if (kyc.category == "motivation") {
+                kycBuyerMotivationText = `${kycBuyerMotivationText}\n{${kyc.question}}`;
+              }
+              if (kyc.category == "urgency") {
+                kycBuyerUrgencyText = `${kycBuyerUrgencyText}\n{${kyc.question}}`;
+              }
             }
             for (let j = 0; j < kyc.examples.length; j++) {
               let ex = kyc.examples[j];
@@ -1238,16 +1264,7 @@ export const AddKyc = async (req, res) => {
               kyc
             );
           }
-          // created.actionId =
 
-          // if (infoExtractor) {
-          //   await db.InfoExtractorModel.create({
-          //     actionId: infoExtractor.action_id,
-          //     actionType: infoExtractor.action_type,
-          //     mainAgentId: mainAgentId,
-          //     data: JSON.stringify(infoExtractor),
-          //   });
-          // }
           let res = await KycResource(created);
           kycs.push(res);
         }
@@ -1263,6 +1280,7 @@ export const AddKyc = async (req, res) => {
               "No Buyer kyc already added replacing buyer",
               kycBuyerText
             );
+            kycBuyerText = `Buyer Motivation:\n${kycBuyerMotivationText}\nBuyer Need:\n${kycBuyerNeedsText}\nuyer Urgency:\n${kycBuyerUrgencyText}\n`;
             for (let p of prompts) {
               let callScript = p.callScript;
               // callScript = callScript.replace(/{seller_kyc}/g, seller_kyc);
@@ -1280,6 +1298,7 @@ export const AddKyc = async (req, res) => {
               "No seller kyc already added replacing seller",
               kycSellerText
             );
+            kycSellerText = `Seller Motivation:\n${kycSellerMotivationText}\nSeller Need:\n${kycSellerNeedsText}\nSeller Urgency:\n${kycSellerUrgencyText}\n`;
             for (let p of prompts) {
               let callScript = p.callScript;
               callScript = callScript.replace(/{seller_kyc}/g, kycSellerText);
