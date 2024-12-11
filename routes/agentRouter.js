@@ -10,6 +10,7 @@ import {
   GetVoices,
   AddKyc,
   GetKyc,
+  DeleteKyc,
   WebhookSynthflow,
   GetAgents,
   GetAgentCallActivity,
@@ -85,6 +86,8 @@ AgentRouter.post(
 AgentRouter.get("/getKycs", verifyJwtToken, uploadFiles, GetKyc);
 //Add Kyc
 AgentRouter.post("/addKyc", verifyJwtToken, uploadFiles, AddKyc);
+
+AgentRouter.post("/deleteKyc", verifyJwtToken, uploadFiles, DeleteKyc);
 
 AgentRouter.post(
   "/addObjectionGuardRail",

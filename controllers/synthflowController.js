@@ -351,6 +351,28 @@ export const TestAI = async (req, res) => {
     }
   });
 };
+function sanitizeJSONString(jsonString) {
+  try {
+    // Use a regex to identify strings within the JSON
+    return jsonString.trim().replace(/"(.*?)"/g, (match) => {
+      return match.replace(/[\n\r\t]/g, (char) => {
+        switch (char) {
+          case "\n":
+            return "\\n";
+          case "\r":
+            return "\\r";
+          case "\t":
+            return "\\t";
+          default:
+            return char;
+        }
+      });
+    });
+  } catch (error) {
+    console.error("Error sanitizing JSON string:", error.message);
+    throw new Error("Invalid JSON format.");
+  }
+}
 
 async function initiateCall(
   data,
@@ -375,10 +397,16 @@ async function initiateCall(
     };
 
     const response = await axios.request(config);
-    const json = response.data;
+    let json = response.data;
 
     //console.log(json);
-    console.log("Call data ", json);
+    // console.log("Call data ", json);
+    if (typeof json == "string") {
+      // json = JSON.parse(json);
+      let sanitizedJSON = sanitizeJSONString(json);
+      console.log("Sanitized json String ", sanitizedJSON);
+      json = JSON.parse(sanitizedJSON);
+    }
 
     if (json.status === "ok" || json.status === "success") {
       const callId = json.response.call_id;
@@ -408,8 +436,9 @@ async function initiateCall(
         };
       }
     } else {
+      console.log("Type of json:", typeof json);
       const callId =
-        json.response.call_id ||
+        json?.response?.call_id ||
         `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${leadCadence.stage}`;
       //console.log("In else: call not initiated");
       // Add failed call in the database if required
@@ -428,6 +457,20 @@ async function initiateCall(
     }
   } catch (error) {
     console.log("Error during Sending Call API call: ", error);
+    const callId = `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${leadCadence.stage}`;
+    //console.log("In else: call not initiated");
+    // Add failed call in the database if required
+    const saved = await db.LeadCallsSent.create({
+      leadCadenceId: leadCadence?.id,
+      synthflowCallId: callId,
+      leadId: lead.id,
+      transcript: "",
+      summary: "",
+      status: "failed",
+      agentId: assistant.id,
+      stage: leadCadence?.stage,
+      mainAgentId: mainAgentModel.id,
+    });
     return {
       status: false,
       message: "call is not initiated due to API error",
@@ -1252,6 +1295,31 @@ export const AddKyc = async (req, res) => {
 
       return res.send({ status: true, message: "kyc added", data: agentRes });
     } else {
+    }
+  });
+};
+
+export const DeleteKyc = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let kycId = req.query.kycId;
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let kycsDel = await db.KycModel.destroy({
+        where: {
+          id: kycId,
+        },
+      });
+
+      return res.send({
+        status: true,
+        message: "Kycs deleted",
+        data: null,
+      });
     }
   });
 };

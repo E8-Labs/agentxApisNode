@@ -132,7 +132,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       if (diff > waitTime) {
         console.log("Next call should be placed");
         try {
-          let called = await MakeACall(leadCad);
+          let called = await MakeACall(leadCad, false, calls);
           //if you want to simulate
           //let called = await MakeACall(leadCad, true, calls);
         } catch (error) {
@@ -162,7 +162,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         },
       });
       try {
-        let called = await MakeACall(leadCad);
+        let called = await MakeACall(leadCad, false, calls);
         console.log("First Call initiated", called);
         if (called.status) {
           //set the lead cadence status to Started so that next time it don't get pushed to the funnel
@@ -347,7 +347,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               },
             });
             try {
-              let called = await MakeACall(leadCad);
+              let called = await MakeACall(leadCad, false, calls);
               //if you want to simulate
               //let called = await MakeACall(leadCad, true, calls);
             } catch (error) {
@@ -397,7 +397,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           },
         });
         try {
-          let called = await MakeACall(leadCad);
+          let called = await MakeACall(leadCad, false, calls);
           if (called.status) {
             //set the lead cadence status to Started so that next time it don't get pushed to the funnel
             leadCad.callTriggerTime = new Date();
