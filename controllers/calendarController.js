@@ -374,10 +374,7 @@ export async function ScheduleEvent(req, res) {
         data: responseData,
       });
     } else {
-      console.error(
-        "Error scheduling event:",
-        JSON.stringify(responseData.error.details)
-      );
+      console.error("Error scheduling event:", JSON.stringify(responseData));
       return res.send({
         status: false,
         message: "Meeting cannot be scheduled",
