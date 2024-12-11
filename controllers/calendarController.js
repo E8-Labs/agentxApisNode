@@ -346,7 +346,7 @@ export async function ScheduleEvent(req, res) {
     },
     // guests: [user.email], // Add any other guests here if needed
     // meetingUrl: "https://example.com/meeting",
-    location: "Zoom", // Specify location or meeting link
+    // location: "Zoom", // Specify location or meeting link
     bookingFieldsResponses: {
       customField: "customValue", // Include any custom fields if required
     },
