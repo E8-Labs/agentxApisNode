@@ -373,9 +373,9 @@ function GetCalendarActionApiData(user, assistant) {
       },
     ],
     json_body_stringified: JSON.stringify({
-      date: "Nov 11 2025",
-      time: "9:00",
-      user_email: "abc@gmail.com",
+      date: "<date>",
+      time: "<time>",
+      user_email: "<user_email>",
     }),
     prompt: `Use the result from <results.data.message> and respond accordingly. Use <results.data.status> to check whether the appointment was booked or not.If true then booked else not. To get more idea use <result.data.data>`,
   };
