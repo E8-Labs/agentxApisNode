@@ -27,6 +27,7 @@ import PipelineCadence from "../models/pipeline/pipelineCadence.js";
 import { DeleteActionSynthflow } from "./synthflowController.js";
 import BatchResource from "../resources/BatchResource.js";
 import { BatchStatus } from "../models/pipeline/CadenceBatchModel.js";
+import { pipeline } from "stream";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -567,6 +568,52 @@ export const CreatePipelineCadence = async (req, res) => {
       return res.send({
         status: false,
         message: "Pipeline creation failed",
+        data: null,
+      });
+    }
+  });
+};
+
+export const GetAgentCadence = async (req, res) => {
+  let { mainAgentId } = req.body; // mainAgentId is the mainAgent id
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    console.log("GetAgentCadence", {
+      mainAgentId,
+    });
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let pipelineCadence = await db.PipelineCadence.findAll({
+        where: {
+          mainAgentId: mainAgentId,
+        },
+      });
+      let cadences = [];
+      if (pipelineCadence && pipelineCadence.length > 0) {
+        pipelineCadence.map(async (pc) => {
+          let cadenceCalls = await db.CadenceCalls.findAll({
+            where: {
+              pipelineCadenceId: pc.id,
+            },
+          });
+          cadence.push({ cadence: pc, calls: cadenceCalls });
+        });
+      }
+
+      return res.send({
+        status: true,
+        message: "Agent Cadence",
+        data: cadences,
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "No cadence",
         data: null,
       });
     }

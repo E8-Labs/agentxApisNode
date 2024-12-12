@@ -15,6 +15,7 @@ import {
   DeletePipelineStage,
   UpdatePipelineStage,
   DeletePipeline,
+  GetAgentCadence,
 } from "../controllers/pipelineController.js";
 
 const uploadFiles = multer().fields([
@@ -29,6 +30,12 @@ const uploadMedia = multer().fields([
 
 let PipelineRouter = express.Router();
 
+PipelineRouter.post(
+  "/getAgentCadence",
+  verifyJwtToken,
+  uploadMedia,
+  GetAgentCadence
+);
 PipelineRouter.post(
   "/createPipeline",
   verifyJwtToken,
