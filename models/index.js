@@ -41,6 +41,7 @@ import GhlCalendarModel from "./user/ghlCalendarModel.js";
 import LeadKycsExtracted from "./lead/LeadKycsExtracted.js";
 import CalendarIntegration from "./user/calendarIntegration.js";
 import CadenceBatchModel from "./pipeline/CadenceBatchModel.js";
+import LeadNotesModel from "./lead/LeadNotesModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -104,6 +105,8 @@ db.LeadSheetColumnModel.belongsTo(db.LeadSheetModel, {
 
 db.LeadModel = LeadModel(sequelize, Sequelize);
 models["LeadModel"] = db.LeadModel;
+
+db.LeadNotesModel = LeadNotesModel(sequelize, Sequelize);
 
 db.LeadTagsModel = LeadTagsModel(sequelize, Sequelize);
 

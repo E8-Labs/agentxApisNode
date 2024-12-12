@@ -66,10 +66,17 @@ async function getUserData(lead, currentUser = null) {
   } catch (error) {
     leadData = lead;
   }
+
+  let notes = await db.LeadNotesModel.findAll({
+    where: {
+      leadId: lead.id,
+    },
+  });
   const LeadResource = {
     ...leadData,
     tags: tags, //{ ...tags, ...sheetTagsArray },
     kycs: kycs,
+    notes: notes,
     // sheetTagsArray,
   };
 

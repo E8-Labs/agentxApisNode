@@ -206,6 +206,39 @@ export const AddSmartList = async (req, res) => {
   });
 };
 
+//Or sheet
+export const AddLeadNote = async (req, res) => {
+  let { leadId, note } = req.body; // mainAgentId is the mainAgent id
+
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let createdNote = await db.LeadNotesModel.create({
+        note: note,
+        userId: user.id,
+        leadId: leadId,
+      });
+      res.send({
+        status: true,
+        message: `Note added`,
+        data: createdNote,
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+};
+
 export const DeleteList = async (req, res) => {
   let { sheetId } = req.body; // mainAgentId is the mainAgent id
 

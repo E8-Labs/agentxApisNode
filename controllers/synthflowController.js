@@ -903,6 +903,13 @@ export const DeleteAgent = async (req, res) => {
         }
       }
 
+      //Cal Delete
+      let calDel = await db.CalendarIntegration.destroy({
+        where: {
+          mainAgentId: mainAgentId,
+        },
+      });
+
       let pcDel = await db.PipelineCadence.destroy({
         where: {
           mainAgentId: mainAgentId,
