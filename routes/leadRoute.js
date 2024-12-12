@@ -10,6 +10,7 @@ import {
   GetUniqueColumns,
   GetCallLogs,
   DeleteList,
+  AddLeadNote,
 } from "../controllers/LeadsController.js";
 
 const uploadFiles = multer().fields([
@@ -25,6 +26,7 @@ const uploadMedia = multer().fields([
 let LeadRouter = express.Router();
 
 LeadRouter.post("/addLeads", verifyJwtToken, AddLeads);
+LeadRouter.post("/addLeadNote", verifyJwtToken, uploadFiles, AddLeadNote);
 LeadRouter.post("/addSmartList", verifyJwtToken, AddSmartList);
 LeadRouter.post("/deleteList", verifyJwtToken, DeleteList);
 LeadRouter.get("/getLeads", verifyJwtToken, uploadFiles, GetLeads);

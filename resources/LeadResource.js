@@ -72,11 +72,18 @@ async function getUserData(lead, currentUser = null) {
       leadId: lead.id,
     },
   });
+
+  let callActivity = await db.LeadCallsSent.findAll({
+    where: {
+      leadId: lead.id,
+    },
+  });
   const LeadResource = {
     ...leadData,
     tags: tags, //{ ...tags, ...sheetTagsArray },
     kycs: kycs,
     notes: notes,
+    callActivity: callActivity,
     // sheetTagsArray,
   };
 
