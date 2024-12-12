@@ -210,7 +210,8 @@ export const MakeACall = async (
       callTriggerTime: new Date(),
       synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`,
       stage: lead.stage,
-      status: "",
+      status: "failed",
+      duration: 50,
       batchId: batchId,
     });
 
@@ -448,7 +449,7 @@ async function initiateCall(
       console.log("Type of json:", typeof json);
       const callId =
         json?.response?.call_id ||
-        `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${leadCadence.stage}`;
+        `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`;
       //console.log("In else: call not initiated");
       // Add failed call in the database if required
       const saved = await db.LeadCallsSent.create({
@@ -467,7 +468,7 @@ async function initiateCall(
     }
   } catch (error) {
     console.log("Error during Sending Call API call: ", error);
-    const callId = `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${leadCadence.stage}`;
+    const callId = `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`;
     //console.log("In else: call not initiated");
     // Add failed call in the database if required
     const saved = await db.LeadCallsSent.create({

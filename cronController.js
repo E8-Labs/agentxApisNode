@@ -399,19 +399,19 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           );
           let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
           console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
-          // if (diff > 5) {
-          //   //60 * 24
-          //   // greater than total minutes in a day = 60 * 24
-          //   //move to next stage for now
-          //   console.log(
-          //     "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
-          //   );
-          //   lead.stage = cadence.moveToStage;
-          //   let saved = await lead.save();
-          //   console.log(
-          //     "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
-          //   );
-          // }
+          if (diff > 5) {
+            //60 * 24
+            // greater than total minutes in a day = 60 * 24
+            //move to next stage for now
+            console.log(
+              "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
+            );
+            lead.stage = cadence.moveToStage;
+            let saved = await lead.save();
+            console.log(
+              "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
+            );
+          }
           // return;
         } else {
           //Get the next call from callCadence to be sent
