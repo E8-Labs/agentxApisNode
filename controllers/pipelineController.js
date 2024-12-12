@@ -632,7 +632,10 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       );
       const now = new Date();
       const minutesToAdd = 30; // Replace with your desired number of minutes
-      let startTime = new Date(now.getTime() + startTimeDifFromNow * 60000);
+      let startTime = new Date(
+        now.getTime() + startTimeDifFromNow * 60000
+      ).toISOString();
+
       // let startTime = startTimeDifFromNow;
       let batch = await db.CadenceBatchModel.create({
         pipelineId: pipelineId,
