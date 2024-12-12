@@ -60,8 +60,14 @@ async function getUserData(lead, currentUser = null) {
       leadId: lead.id,
     },
   });
+  let leadData = null;
+  try {
+    leadData = lead.get();
+  } catch (error) {
+    leadData = lead;
+  }
   const LeadResource = {
-    ...lead.get(),
+    ...leadData,
     tags: tags, //{ ...tags, ...sheetTagsArray },
     kycs: kycs,
     // sheetTagsArray,
