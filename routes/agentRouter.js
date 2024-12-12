@@ -26,6 +26,8 @@ import {
   AssignPhoneNumber,
   ReleasePhoneNumber,
 } from "../controllers/twilioController.js";
+
+import { GetDashboardData } from "../controllers/DashboardController.js";
 // import { verify } from "jsonwebtoken";
 
 const uploadFiles = multer().fields([
@@ -39,6 +41,8 @@ const uploadMedia = multer().fields([
 ]);
 
 let AgentRouter = express.Router();
+
+AgentRouter.get("/dashboard", verifyJwtToken, uploadFiles, GetDashboardData);
 
 AgentRouter.post("/buildAgent", verifyJwtToken, uploadFiles, BuildAgent);
 AgentRouter.post("/updateAgent", verifyJwtToken, uploadFiles, UpdateAgent);
