@@ -456,7 +456,7 @@ export const GetLeads = async (req, res) => {
         let reso = await LeadResource(leadsWithCadence);
         return res.send({
           status: true,
-          data: leadsWithCadence,
+          data: reso, //leadsWithCadence,
           columns: AllColumns,
           keys: keys,
           message: "Leads list with applied filters",
