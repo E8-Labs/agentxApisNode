@@ -60,16 +60,61 @@ function getTomorrowDate() {
 
 // import fetch from "node-fetch"; // Make sure to install this package if needed
 
+async function getAllSchedules(apiKey) {
+  const options = {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${apiKey}`, // Replace with your actual token
+      "cal-api-version": "2024-06-11", // Default API version
+    },
+  };
+
+  try {
+    const response = await fetch("https://api.cal.com/v2/schedules", options);
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status} - ${response.statusText}`);
+    }
+
+    const schedulesResponse = await response.json(); // Directly parse the JSON array
+    console.log(
+      "Raw Schedules Response:",
+      JSON.stringify(schedulesResponse, null, 2)
+    );
+
+    // Parse and format the schedules
+    const formattedSchedules = schedulesResponse.data.map((schedule) => ({
+      id: schedule.id,
+      name: schedule.name,
+      timeZone: schedule.timeZone,
+      availability: schedule.availability.map((availability) => ({
+        days: availability.days,
+        startTime: availability.startTime,
+        endTime: availability.endTime,
+      })),
+      isDefault: schedule.isDefault,
+    }));
+
+    console.log("Parsed Schedules:");
+    console.log(JSON.stringify(formattedSchedules, null, 2));
+
+    return formattedSchedules;
+  } catch (error) {
+    console.error("Error fetching schedules:", error.message);
+    return null;
+  }
+}
+
 export async function CheckCalendarAvailability(req, res) {
-  const { date, time } = req.body;
+  // const { agentId } = req.body;
   const mainAgentId = req.query.mainAgentId;
 
-  if (!date || !time) {
-    return res.status(400).send({
-      status: false,
-      message: "Date and time are required.",
-    });
-  }
+  // if (!date || !time) {
+  //   return res.status(400).send({
+  //     status: false,
+  //     message: "Date and time are required.",
+  //   });
+  // }
 
   // Retrieve calendar integration for the main agent
   const calIntegration = await db.CalendarIntegration.findOne({
@@ -83,51 +128,19 @@ export async function CheckCalendarAvailability(req, res) {
     });
   }
 
-  // Parse and combine date and time
-  // Define all possible date and time formats
-  let parsedDate;
-  let responseDate = getParsedDate(date);
-  if (responseDate.status) {
-    parsedDate = responseDate.data;
-  }
-  // Parse the time
-  let parsedTime;
-  let responseTime = getParsedTime(time);
-  if (responseTime.status) {
-    parsedTime = responseTime.data;
-  }
-  // Combine parsed date and time into a single Date object
-  parsedDate.setHours(parsedTime.getHours(), parsedTime.getMinutes(), 0, 0);
-  const startTimeISO = format(parsedDate, "yyyy-MM-dd'T'HH:mm:ssXXX");
-
   try {
     // Query the calendar API for availability
-    const response = await fetch(
-      `${CAL_API_URL}/availability?start=${startTimeISO}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${calIntegration.apiKey}`,
-          "Content-Type": "application/json",
-          "cal-api-version": "2024-08-13",
-        },
-      }
-    );
+    let data = await getAllSchedules(calIntegration.apiKey);
+    console.log(data);
+    // return;
 
-    const responseData = await response.json();
+    // const responseData = await response.json();
 
-    if (response.ok) {
-      const isAvailable = responseData.isAvailable || false;
-
+    if (data) {
       return res.send({
         status: true,
-        message: isAvailable
-          ? "The time slot is available."
-          : "The time slot is not available.",
-        data: {
-          available: isAvailable,
-          startTime: startTimeISO,
-        },
+        message: "User Schedule",
+        data: data,
       });
     } else {
       console.error("Error checking availability:", responseData);
@@ -430,46 +443,25 @@ export async function AddCalendarCalDotCom(req, res) {
             eventId15Min = actualEventTypes[0].id;
           }
         }
-        let created = await db.CalendarIntegration.create({
-          type: calendarType,
-          apiKey: apiKey,
-          userId: userId,
-          eventId: eventId15Min,
-          mainAgentId: mainAgentId,
-          title: title,
-        });
+        // let created = await db.CalendarIntegration.create({
+        //   type: calendarType,
+        //   apiKey: apiKey,
+        //   userId: userId,
+        //   eventId: eventId15Min,
+        //   mainAgentId: mainAgentId,
+        //   title: title,
+        // });
 
-        // let action = await CreateRealTimeBookingAction(
-        //   eventId15Min,
-        //   "salman@e8-labs.com"
-        // );
-        // if (action && action.status == "success") {
-        //   let actionId = action.response.action_id;
-        //   created.actionId = actionId;
-        //   let saved = await created.save();
-
-        //   let assistant = await db.Assistant.findOne({
-        //     where: {
-        //       userId: userId,
-        //     },
-        //   });
-        //   let attached = await AttachActionToModel(actionId, assistant.modelId);
-        //   if (attached.status == "success") {
-        //     console.log("Action attached");
-        //   }
-        // } else {
-        //   console.log("Could not create action");
-        // }
         console.log("Available Event Types:", eventTypes);
 
         //add action
-        let actionResult = await CreateAndAttachCalendarAction(user, mainAgent);
-        if (actionResult) {
-          console.log("Action Create Result ", actionResult);
-          let ids = actionResult.data;
-          created.data = JSON.stringify(ids);
-          await created.save();
-        }
+        // let actionResult = await CreateAndAttachCalendarAction(user, mainAgent);
+        // if (actionResult) {
+        //   console.log("Action Create Result ", actionResult);
+        //   let ids = actionResult.data;
+        //   created.data = JSON.stringify(ids);
+        //   await created.save();
+        // }
         // Return both calendars and event types
         return res.send({ status: true, calendars, eventTypes });
       } catch (error) {
