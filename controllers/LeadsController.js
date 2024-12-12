@@ -14,6 +14,7 @@ import nodemailer from "nodemailer";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import LeadResource from "../resources/LeadResource.js";
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
+import LeadModel from "../models/lead/lead.js";
 
 export const AddLeads = async (req, res) => {
   let { sheetName, columnMappings, leads, tags } = req.body; // mainAgentId is the mainAgent id
@@ -229,6 +230,41 @@ export const AddLeadNote = async (req, res) => {
         status: true,
         message: `Note added`,
         data: createdNote,
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+};
+
+export const AddLeadTag = async (req, res) => {
+  let { leadId, tags } = req.body; // mainAgentId is the mainAgent id
+
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      for (t of tags) {
+        let createdTag = await db.LeadTagsModel.create({
+          tag: t,
+          leadId: leadId,
+        });
+      }
+      let lead = await LeadModel.findByPk(leadId);
+      let leadRes = await LeadResource(lead);
+      res.send({
+        status: true,
+        message: `Note added`,
+        data: leadRes,
       });
     } else {
       res.send({
