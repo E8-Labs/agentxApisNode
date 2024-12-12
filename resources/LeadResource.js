@@ -38,8 +38,27 @@ async function getUserData(lead, currentUser = null) {
 
   //   const subscriptionDetails = await getSubscriptionDetails(user);
 
+  let leadTags = await db.LeadTagsModel.findAll({
+    where: {
+      leadId: lead.id,
+    },
+  });
+  let tags = leadTags.map((tag) => tag.tag);
+
+  let sheetTags = await db.LeadSheetTagModel.findAll({
+    where: {
+      sheetId: lead.sheetId,
+    },
+  });
+  let sheetTagsArray = sheetTags.map((tag) => tag.tag);
+  for (let t of sheetTagsArray) {
+    tags.push(t);
+  }
+
   const LeadResource = {
     ...lead.get(),
+    tags: tags, //{ ...tags, ...sheetTagsArray },
+    // sheetTagsArray,
   };
 
   return LeadResource;

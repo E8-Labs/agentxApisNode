@@ -334,12 +334,17 @@ export async function ScheduleEvent(req, res) {
   let apiKey = calIntegration.apiKey;
   let eventTypeId = Number(calIntegration.eventId); // Ensure this is a number
 
+  let lead = await db.LeadModel.findOne({
+    where: {
+      email: user_email,
+    },
+  });
   let inputData = {
     start: startTimeISO, // Use combined ISO date-time string for the start time
     eventTypeId: eventTypeId,
     // lengthInMinutes: 30,
     attendee: {
-      name: "Caller",
+      name: lead?.name || "Caller",
       email: user_email || "salman@e8-labs.com",
       timeZone: "America/New_York", // Ensure it's a valid IANA time-zone
       language: "en", // Ensure this is a string

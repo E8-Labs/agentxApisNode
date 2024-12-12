@@ -18,6 +18,17 @@ const LeadCadence = (sequelize, Sequelize) => {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+    batchId: {
+      // can identify the agent, pipeline and stage
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      references: {
+        model: "CadenceBatchModels",
+        key: "id",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    },
 
     mainAgentId: {
       type: Sequelize.INTEGER,

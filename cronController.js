@@ -10,7 +10,7 @@ import moment from "moment-timezone";
 import axios from "axios";
 import chalk from "chalk";
 import nodemailer from "nodemailer";
-console.log(import.meta.url);
+// console.log(import.meta.url);
 import nodeCron from "node-cron";
 import dotenv from "dotenv";
 
@@ -21,6 +21,8 @@ import { CadenceStatus } from "./models/pipeline/LeadsCadence.js";
 import Pipeline from "./models/pipeline/pipeline.js";
 import { calculateDifferenceInMinutes } from "./utils/dateutil.js";
 import { MakeACall } from "./controllers/synthflowController.js";
+
+const simulate = true;
 
 //This will push 100 leads into the cadence every day. If 100 leads are pushed, it will not psuh any more
 //Runs every 30 sec
@@ -36,24 +38,19 @@ export const CronRunCadenceCallsFirstBatch = async () => {
   endOfToday.setHours(23, 59, 59, 999); // Set to end of the day
 
   // Query to calculate the count
-  let count = await db.LeadCadence.count({
-    where: {
-      callTriggerTime: {
-        [db.Sequelize.Op.between]: [startOfToday, endOfToday], // Filter for today's date
-      },
-    },
-  });
-  if (count >= 20) {
-    console.log("Batch size limit reached so will push calls tomorrow");
-    return;
-  }
+
+  // let batch = await db.CadenceBatchModel.findByPk(b);
+  // if (count >= 20) {
+  //   console.log("Batch size limit reached so will push calls tomorrow");
+  //   return;
+  // }
 
   let leadCadence = await db.LeadCadence.findAll({
     where: {
       status: CadenceStatus.Pending,
       callTriggerTime: { [db.Sequelize.Op.is]: null }, // Check if callTriggerTime is null
     },
-    limit: 20, // Limit the batch size to 2
+    limit: 200,
   });
 
   console.log(`Found ${leadCadence.length} leads to start batch calls`);
@@ -63,128 +60,159 @@ export const CronRunCadenceCallsFirstBatch = async () => {
   }
 
   for (let i = 0; i < leadCadence.length; i++) {
-    let leadCad = leadCadence[i];
-    let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
-    let lead = await db.LeadModel.findByPk(leadCad.leadId);
-    let mainAgent = await db.MainAgentModel.findByPk(leadCad.mainAgentId);
-    // console.log("Main Agent", mainAgent);
-    let pipelineStageForLead = await db.PipelineStages.findByPk(leadCad.stage);
-    // console.log(
-    //   `Found Lead ${lead.firstName} at stage ${pipelineStageForLead.stageTitle} in Pipeline ${pipeline.title} Assigned to ${mainAgent.name}`
-    // );
-    // console.log("###############################################################################################################\n")
-    //Since this would be the first stage lead, no calls have been sent to him as of now. We will not check
-    //for last call time and wait for that amount of time
+    console.log("Iteration", i);
+    try {
+      let leadCad = leadCadence[i];
+      // console.log("Calling lead ", leadCad);
+      let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
 
-    let cadence = await db.PipelineCadence.findOne({
-      where: {
-        mainAgentId: mainAgent.id,
-        pipelineId: pipeline.id,
-        stage: leadCad.stage,
-      },
-    });
-
-    // console.log(
-    //   `Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${leadCad.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
-    // );
-
-    //Get Call Schedule for the lead Stage
-    let callCadence = await db.CadenceCalls.findAll({
-      where: {
-        pipelineCadenceId: cadence.id,
-      },
-    });
-
-    console.log("Found schedule", callCadence.length);
-
-    //decide should we send call or not?
-    //If initial call then check when the leadCadence was created and find the difference between lead cadence creation & Now.
-    //If the distance is greater than the next call duration then make that call.
-
-    //Checking number of calls sent to this lead
-    let calls = await db.LeadCallsSent.findAll({
-      where: {
-        leadCadenceId: leadCad.id,
-      },
-      order: [["createdAt", "ASC"]],
-    });
-    if (calls && calls.length > 0) {
-      console.log("Calls sent to this lead ", calls.length);
-      //Get the next call from callCadence to be sent
-      console.log("Next call to be sent is ", calls.length + 1);
-      let lastCall = calls[calls.length - 1];
-      let nextCadenceCall = callCadence[calls.length];
-
-      let waitTime =
-        Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
-        Number(nextCadenceCall.waitTimeHours) * 60 +
-        Number(nextCadenceCall.waitTimeMinutes);
-      console.log(`Total wait time for next call  ${waitTime} min`);
-
-      let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
-      console.log(`Diff is ${diff}`);
-      let agent = await db.AgentModel.findOne({
+      //Check calls sent for this batch
+      let count = await db.LeadCadence.count({
         where: {
-          mainAgentId: leadCad.mainAgentId,
-          agentType: "outbound",
+          callTriggerTime: {
+            [db.Sequelize.Op.between]: [startOfToday, endOfToday], // Filter for today's date
+          },
+          batchId: leadCad.batchId,
         },
       });
-      if (diff > waitTime) {
-        console.log("Next call should be placed");
+      console.log(`${batch.id} Batch ${batch.batchSize} Calls: ${count}`);
+      if (count >= batch.batchSize) {
+        console.log("Batch size limit reached so will push calls tomorrow");
+        continue;
+      } else {
+      }
+      console.log(`Here 1`);
+      let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
+      let lead = await db.LeadModel.findByPk(leadCad.leadId);
+      console.log("Finding agent for ", leadCad.mainAgentId);
+      let mainAgent = await db.MainAgentModel.findByPk(leadCad.mainAgentId);
+      console.log("Main Agent", mainAgent);
+      let pipelineStageForLead = await db.PipelineStages.findByPk(lead.stage);
+      console.log(
+        `Found Lead ${lead.firstName} at stage ${pipelineStageForLead.stageTitle} in Pipeline ${pipeline.title} Assigned to ${mainAgent.name}`
+      );
+      // console.log("###############################################################################################################\n")
+      //Since this would be the first stage lead, no calls have been sent to him as of now. We will not check
+      //for last call time and wait for that amount of time
+
+      let cadence = await db.PipelineCadence.findOne({
+        where: {
+          mainAgentId: mainAgent.id,
+          pipelineId: pipeline.id,
+          stage: lead.stage,
+        },
+      });
+
+      if (!cadence) {
+        console.log(
+          `No Cadence Found for  agent ${mainAgent.id} at stage ${leadCad.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
+        );
+        continue;
+      }
+      console.log(
+        `Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${leadCad.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
+      );
+      //Get Call Schedule for the lead Stage
+      let callCadence = await db.CadenceCalls.findAll({
+        where: {
+          pipelineCadenceId: cadence.id,
+        },
+      });
+
+      console.log("Found schedule", callCadence.length);
+
+      //decide should we send call or not?
+      //If initial call then check when the leadCadence was created and find the difference between lead cadence creation & Now.
+      //If the distance is greater than the next call duration then make that call.
+
+      //Checking number of calls sent to this lead
+      let calls = await db.LeadCallsSent.findAll({
+        where: {
+          leadCadenceId: leadCad.id,
+        },
+        order: [["createdAt", "ASC"]],
+      });
+      if (calls && calls.length > 0) {
+        console.log("Calls sent to this lead ", calls.length);
+        //Get the next call from callCadence to be sent
+        console.log("Next call to be sent is ", calls.length + 1);
+        let lastCall = calls[calls.length - 1];
+        let nextCadenceCall = callCadence[calls.length];
+
+        let waitTime =
+          Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
+          Number(nextCadenceCall.waitTimeHours) * 60 +
+          Number(nextCadenceCall.waitTimeMinutes);
+        console.log(`Total wait time for next call  ${waitTime} min`);
+
+        let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
+        console.log(`Diff is ${diff}`);
+        let agent = await db.AgentModel.findOne({
+          where: {
+            mainAgentId: leadCad.mainAgentId,
+            agentType: "outbound",
+          },
+        });
+        if (diff >= waitTime) {
+          console.log("Next call should be placed");
+          try {
+            let called = await MakeACall(leadCad, simulate, calls);
+            //if you want to simulate
+            //let called = await MakeACall(leadCad, true, calls);
+          } catch (error) {
+            console.log("Error Sending Call ", error);
+          }
+          // let sent = await db.LeadCallsSent.create({
+          //   leadId: leadCad.leadId,
+          //   leadCadenceId: leadCad.id,
+          //   mainAgentId: leadCad.mainAgentId,
+          //   agentId: agent?.id,
+          //   callTriggerTime: new Date(),
+          //   synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
+          //   stage: leadCad.stage,
+          // });
+        } else {
+          console.log("Difference is small so next call can not be placed");
+        }
+      } else {
+        console.log("No call already sent");
+
+        //send call after checking whether the first call wait time is already passed
+        //calculate time with initial leadCadence creation and now.
+        let agent = await db.AgentModel.findOne({
+          where: {
+            mainAgentId: leadCad.mainAgentId,
+            agentType: "outbound",
+          },
+        });
         try {
-          let called = await MakeACall(leadCad, false, calls);
+          let called = await MakeACall(leadCad, simulate, calls);
+          console.log("First Call initiated", called);
+          if (called.status) {
+            //set the lead cadence status to Started so that next time it don't get pushed to the funnel
+            // leadCad.callTriggerTime = new Date();
+            // leadCad.status = CadenceStatus.Started;
+            let updated = await db.LeadCadence.update(
+              {
+                status: CadenceStatus.Started,
+                callTriggerTime: new Date(),
+              },
+              {
+                where: {
+                  batchId: leadCad.batchId,
+                },
+              }
+            );
+            // let saved = await leadCad.save();
+          }
           //if you want to simulate
           //let called = await MakeACall(leadCad, true, calls);
         } catch (error) {
           console.log("Error Sending Call ", error);
         }
-        // let sent = await db.LeadCallsSent.create({
-        //   leadId: leadCad.leadId,
-        //   leadCadenceId: leadCad.id,
-        //   mainAgentId: leadCad.mainAgentId,
-        //   agentId: agent?.id,
-        //   callTriggerTime: new Date(),
-        //   synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
-        //   stage: leadCad.stage,
-        // });
-      } else {
-        console.log("Difference is small so next call can not be placed");
       }
-    } else {
-      console.log("No call already sent");
-
-      //send call after checking whether the first call wait time is already passed
-      //calculate time with initial leadCadence creation and now.
-      let agent = await db.AgentModel.findOne({
-        where: {
-          mainAgentId: leadCad.mainAgentId,
-          agentType: "outbound",
-        },
-      });
-      try {
-        let called = await MakeACall(leadCad, false, calls);
-        console.log("First Call initiated", called);
-        if (called.status) {
-          //set the lead cadence status to Started so that next time it don't get pushed to the funnel
-          leadCad.callTriggerTime = new Date();
-          leadCad.status = CadenceStatus.Started;
-          let saved = await leadCad.save();
-        }
-        //if you want to simulate
-        //let called = await MakeACall(leadCad, true, calls);
-      } catch (error) {
-        console.log("Error Sending Call ", error);
-      }
-      // let sent = await db.LeadCallsSent.create({
-      //   leadId: leadCad.leadId,
-      //   leadCadenceId: leadCad.id,
-      //   mainAgentId: leadCad.mainAgentId,
-      //   agentId: agent?.id,
-      //   callTriggerTime: new Date(),
-      //   synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
-      //   stage: leadCad.stage,
-      //   status: "",
-      // });
+    } catch (error) {
+      console.log("Exception For Loop ", error);
     }
   }
 };
@@ -200,10 +228,34 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
     },
     limit: 50, // Limit the batch size to 2
   });
+  let newLeads = [];
+
+  for (const l of leadCadence) {
+    let mainAgentId = l.mainAgentId;
+    //check if this agent isa ctive in lead's current stage
+    let lead = await db.LeadModel.findByPk(l.leadId);
+    let leadStage = lead.stage;
+    let pCad = await db.PipelineCadence.findOne({
+      where: {
+        pipelineId: l.pipelineId,
+        stage: leadStage,
+        mainAgentId: mainAgentId,
+      },
+    });
+    if (pCad) {
+      console.log("This leadCad has active cadence rn");
+      newLeads.push(l);
+    }
+  }
 
   console.log(
-    `CronRunCadenceCallsSubsequentStages: Found ${leadCadence.length} leads to start subsequent calls`
+    `CronRunCadenceCallsSubsequentStages: Before Filter Found ${leadCadence.length} leads to start subsequent calls`
   );
+  leadCadence = newLeads;
+  console.log(
+    `CronRunCadenceCallsSubsequentStages: After Filter Found ${leadCadence.length} leads to start subsequent calls`
+  );
+  // return;
   if (leadCadence.length == 0) {
     console.log(
       `CronRunCadenceCallsSubsequentStages: Found No new leads to start subsequent calls today`
@@ -212,12 +264,15 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
   }
 
   for (let i = 0; i < leadCadence.length; i++) {
+    console.log(
+      `______________________ Iteration ${i} Start ______________________`
+    );
     let leadCad = leadCadence[i];
     let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
     let lead = await db.LeadModel.findByPk(leadCad.leadId);
     let mainAgent = await db.MainAgentModel.findByPk(leadCad.mainAgentId);
     // console.log("Main Agent", mainAgent);
-    let pipelineStageForLead = await db.PipelineStages.findByPk(leadCad.stage);
+    let pipelineStageForLead = await db.PipelineStages.findByPk(lead.stage);
     // console.log(
     //   `Found Lead ${lead.firstName} at stage ${pipelineStageForLead.stageTitle} in Pipeline ${pipeline.title} Assigned to ${mainAgent.name}`
     // );
@@ -229,19 +284,20 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       where: {
         mainAgentId: mainAgent.id,
         pipelineId: pipeline.id,
-        stage: leadCad.stage,
+        stage: lead.stage,
       },
     });
     if (!cadence) {
       console.log(
-        `CronRunCadenceCallsSubsequentStages: Cadence have no active leads ${leadCad.mainAgentId} | ${leadCad.stage} | ${leadCad.pipelineId}`
+        `CronRunCadenceCallsSubsequentStages: Cadence have no active leads ${leadCad.mainAgentId} | ${lead.stage} | ${leadCad.pipelineId}`
       );
       // return;
     } else {
-      // console.log(
-      //   `Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${leadCad.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
-      // );
+      console.log(
+        `Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${lead.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
+      );
 
+      // continue;
       //Get Call Schedule for the lead Stage
       let callCadence = await db.CadenceCalls.findAll({
         where: {
@@ -262,7 +318,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       let calls = await db.LeadCallsSent.findAll({
         where: {
           leadCadenceId: leadCad.id,
-          stage: leadCad.stage,
+          stage: lead.stage,
         },
         order: [["createdAt", "ASC"]],
       });
@@ -274,7 +330,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         );
         if (lastCall.status == null || lastCall.duration == null) {
           console.log("Last call is not complete so not placing next call");
-          return;
+          continue;
         }
         //
         let callsStatusesToRecall = [
@@ -286,7 +342,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         if (!callsStatusesToRecall.includes(lastCall.status)) {
           console.log("Last call completed with status", lastCall.status);
           // console.log("So recalling")
-          return;
+          continue;
         }
         console.log(
           "Last call completed with one of these statuses",
@@ -303,19 +359,19 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           );
           let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
           console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
-          if (diff > 5) {
-            //60 * 24
-            // greater than total minutes in a day = 60 * 24
-            //move to next stage for now
-            console.log(
-              "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
-            );
-            leadCad.stage = cadence.moveToStage;
-            let saved = await leadCad.save();
-            console.log(
-              "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
-            );
-          }
+          // if (diff > 5) {
+          //   //60 * 24
+          //   // greater than total minutes in a day = 60 * 24
+          //   //move to next stage for now
+          //   console.log(
+          //     "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
+          //   );
+          //   lead.stage = cadence.moveToStage;
+          //   let saved = await lead.save();
+          //   console.log(
+          //     "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
+          //   );
+          // }
           // return;
         } else {
           //Get the next call from callCadence to be sent
@@ -336,9 +392,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
 
           let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
           console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
-          if (diff > waitTime) {
+          if (diff >= waitTime) {
             console.log(
-              "CronRunCadenceCallsSubsequentStages: Next call should be placed"
+              "CronRunCadenceCallsSubsequentStages: Next call should be placed for",
+              leadCad.id
             );
             let agent = await db.AgentModel.findOne({
               where: {
@@ -347,7 +404,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               },
             });
             try {
-              let called = await MakeACall(leadCad, false, calls);
+              let called = await MakeACall(leadCad, simulate, calls);
               //if you want to simulate
               //let called = await MakeACall(leadCad, true, calls);
             } catch (error) {
@@ -370,8 +427,8 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               console.log(
                 "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
               );
-              leadCad.stage = cadence.moveToStage;
-              let saved = await leadCad.save();
+              lead.stage = cadence.moveToStage;
+              let saved = await lead.save();
               console.log(
                 "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
               );
@@ -397,7 +454,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           },
         });
         try {
-          let called = await MakeACall(leadCad, false, calls);
+          let called = await MakeACall(leadCad, simulate, calls);
           if (called.status) {
             //set the lead cadence status to Started so that next time it don't get pushed to the funnel
             leadCad.callTriggerTime = new Date();
@@ -423,6 +480,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         // });
       }
     }
+    console.log(
+      `______________________ Iteration ${i} END ______________________`
+    );
   }
 };
 

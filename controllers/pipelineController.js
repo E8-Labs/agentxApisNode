@@ -25,6 +25,7 @@ import {
 } from "./actionController.js";
 import PipelineCadence from "../models/pipeline/pipelineCadence.js";
 import { DeleteActionSynthflow } from "./synthflowController.js";
+import BatchResource from "../resources/BatchResource.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -574,8 +575,15 @@ export const CreatePipelineCadence = async (req, res) => {
 //Start Calling
 export const AssignLeadsToPipelineAndAgents = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
-    let { pipelineId, mainAgentIds, leadIds } = req.body;
-    console.log("Data in assign leads", { pipelineId, mainAgentIds, leadIds });
+    let { pipelineId, mainAgentIds, leadIds, batchSize, startTimeDifFromNow } =
+      req.body;
+    console.log("Data in assign leads", {
+      pipelineId,
+      mainAgentIds,
+      leadIds,
+      batchSize,
+      startTimeDifFromNow,
+    });
     if (authData) {
       let userId = authData.user.id;
       let user = await db.User.findOne({
@@ -593,7 +601,22 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
         order: [["createdAt", "ASC"]],
       });
 
+      let leadUpdated = await db.LeadModel.update(
+        {
+          stage: stage.id,
+        },
+        {
+          where: {
+            id: {
+              [db.Sequelize.Op.in]: leadIds,
+            },
+          },
+        }
+      );
+
       let pipeline = await db.Pipeline.findByPk(pipelineId);
+      //Pause Older Batches. This code will be changed based on the new Batch Model
+      //Ideally user will not assign same leads to another batch.
       await db.LeadCadence.update(
         { status: CadenceStatus.Paused }, // Set status to 'Paused'
         {
@@ -606,6 +629,17 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
           },
         }
       );
+      const now = new Date();
+      const minutesToAdd = 30; // Replace with your desired number of minutes
+      let startTime = new Date(now.getTime() + startTimeDifFromNow * 60000);
+      // let startTime = startTimeDifFromNow;
+      let batch = await db.CadenceBatchModel.create({
+        pipelineId: pipelineId,
+        userId: userId,
+        totalLeads: leadIds.length,
+        batchSize: batchSize,
+        startTime: startTime,
+      });
       for (let i = 0; i < leadIds.length; i++) {
         let leadId = leadIds[i];
 
@@ -613,12 +647,23 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
 
         for (let j = 0; j < mainAgentIds.length; j++) {
           let agentId = mainAgentIds[j];
-
+          // let batch = batches[agentId];
+          // if (!batch) {
+          //   batch = await db.CadenceBatchModel.create({
+          //     pipelineId: pipelineId,
+          //     mainAgentId: agentId,
+          //     totalLeads: leadIds.length,
+          //     batchSize: batchSize,
+          //     startTime: startTime,
+          //   });
+          //   batches[agentId] = batch;
+          // }
           let leadCadence = await db.LeadCadence.create({
             leadId: leadId,
             mainAgentId: agentId,
             pipelineId: pipelineId,
-            stage: stage.id, //New Lead stage
+            // stage: stage.id, //New Lead stage
+            batchId: batch.id,
           });
 
           //Update the status of the Lead to New Lead
@@ -699,6 +744,247 @@ export const GetScheduledCalls = async (req, res) => {
         },
       });
 
+      let batches = await db.CadenceBatchModel.findAll({
+        where: {
+          userId: user.id,
+        },
+      });
+      let batchIds = batches.map((batch) => batch.id);
+
+      let resource = await BatchResource(batches);
+      if (batches) {
+        return res.send({
+          status: true,
+          message: "Batched Calls found",
+          data: resource,
+        });
+      } else {
+        return res.send({
+          status: false,
+          message: "No Scheduled calls",
+        });
+      }
+    }
+  });
+};
+
+export const GetScheduledCallsForAgent = async (mainAgentId) => {
+  // const { mainAgentId } = req.query;
+
+  let agentIds = [];
+  let agents = null;
+  //await db.MainAgentModel.findAll({
+  //   where: {
+  //     userId: user.id,
+  //   },
+  // });
+  if (mainAgentId) {
+    agents = await db.MainAgentModel.findAll({
+      where: {
+        id: mainAgentId,
+      },
+    });
+  }
+
+  agents.map((item) => {
+    agentIds.push(item.id);
+  });
+
+  console.log("AgentIds", agentIds);
+
+  try {
+    // Fetch all relevant leads and their last call details
+
+    // Fetch all leads for the authenticated agents
+    // Fetch all relevant leads through LeadCadence
+    const leadsWithCadence = await db.LeadCadence.findAll({
+      where: {
+        mainAgentId: { [db.Sequelize.Op.in]: agentIds },
+      },
+      include: [
+        {
+          model: db.LeadModel,
+          as: "Lead",
+          attributes: [
+            "id",
+            "firstName",
+            "lastName",
+            "email",
+            "phone",
+            "address",
+            "createdAt",
+          ],
+          // where: {
+          //   ...(name && {
+          //     [db.Sequelize.Op.or]: [
+          //       { firstName: { [db.Sequelize.Op.like]: `%${name}%` } },
+          //       { lastName: { [db.Sequelize.Op.like]: `%${name}%` } },
+          //     ],
+          //   }),
+          // },
+        },
+      ],
+    });
+
+    console.log(
+      "---------------------------------------------------------------------------"
+    );
+    console.log("Lead with cadence", leadsWithCadence.length);
+    console.log(
+      "---------------------------------------------------------------------------\n\n\n\n"
+    );
+
+    // return;
+    // Fetch all relevant last calls
+    const lastCalls = await db.LeadCallsSent.findAll({
+      attributes: ["leadId", "callTriggerTime", "leadCadenceId"],
+      where: {
+        leadCadenceId: {
+          [db.Sequelize.Op.in]: leadsWithCadence.map((cadence) => cadence.id),
+        },
+      },
+    });
+    // console.log(
+    //   "---------------------------------------------------------------------------"
+    // );
+
+    // console.log("Last calls ", lastCalls);
+    // console.log(
+    //   "---------------------------------------------------------------------------\n\n\n\n"
+    // );
+    // return;
+    const futureCalls = [];
+    let uniqueAgentIds = [];
+    let AgentsWithActiveCadence = [];
+
+    // Process leads with previous calls
+    for (const lastCall of lastCalls) {
+      const cadenceCalls = await db.CadenceCalls.findAll({
+        where: { pipelineCadenceId: lastCall.leadCadenceId },
+      });
+
+      // console.log("cadenceCall last calls", cadenceCalls);
+      const leadData = leadsWithCadence.find(
+        (cadence) => cadence.id === lastCall.leadCadenceId
+      );
+      if (leadData) {
+        for (const cadenceCall of cadenceCalls) {
+          const delayInMilliseconds =
+            cadenceCall.waitTimeDays * 24 * 60 * 60 * 1000 +
+            cadenceCall.waitTimeHours * 60 * 60 * 1000 +
+            cadenceCall.waitTimeMinutes * 60 * 1000;
+
+          const nextCallTime = new Date(
+            new Date(lastCall.callTriggerTime).getTime() + delayInMilliseconds
+          );
+
+          if (nextCallTime > new Date()) {
+            let mainAgent = await db.MainAgentModel.findByPk(
+              leadData?.mainAgentId
+            );
+
+            if (!uniqueAgentIds.includes(leadData.mainAgentId)) {
+              uniqueAgentIds.push(leadData?.mainAgentId);
+              AgentsWithActiveCadence.push(mainAgent);
+            }
+            futureCalls.push({
+              leadId: leadData?.Lead?.id,
+              stage: cadenceCall.pipelineCadenceId, // The stage from CadenceCalls
+              leadDetails: leadData?.Lead,
+              scheduledAt: nextCallTime,
+              agent: await AgentResource(mainAgent),
+            });
+          }
+        }
+      }
+    }
+
+    // Process leads with no previous calls
+
+    const leadsWithoutCalls = leadsWithCadence.filter((cadence) => {
+      // console.log("Cadence ", cadence);
+      return !lastCalls.some((call) => call.leadId === cadence.Lead.id);
+    });
+    // console.log("Lead without calls", leadsWithoutCalls);
+
+    for (const lead of leadsWithoutCalls) {
+      let pipelineCadence = await db.PipelineCadence.findOne({
+        where: {
+          mainAgentId: lead.mainAgentId,
+          pipelineId: lead.pipelineId,
+          stage: lead.stage,
+        },
+      });
+      console.log(
+        `Pipeline cadence agent= ${lead.mainAgentId} | pipeline= ${lead.pipelineId} | stage= ${lead.stage}`,
+        pipelineCadence
+      );
+      if (!pipelineCadence) {
+      } else {
+        const cadenceCalls = await db.CadenceCalls.findAll({
+          where: { pipelineCadenceId: pipelineCadence.id }, // Use stage from LeadCadence
+        });
+        console.log(`CadenceCalls for ${pipelineCadence.id}`);
+        console.log("Total ", cadenceCalls.length);
+        if (cadenceCalls && cadenceCalls.length > 0) {
+          for (const cadenceCall of cadenceCalls) {
+            // if (cadenceCall) {
+            console.log("There is cadence call");
+            const delayInMilliseconds =
+              cadenceCall.waitTimeDays * 24 * 60 * 60 * 1000 +
+              cadenceCall.waitTimeHours * 60 * 60 * 1000 +
+              cadenceCall.waitTimeMinutes * 60 * 1000;
+
+            const nextCallTime = new Date(
+              new Date(lead.createdAt).getTime() + delayInMilliseconds
+            );
+
+            let mainAgent = await db.MainAgentModel.findByPk(lead.mainAgentId);
+            if (nextCallTime > new Date()) {
+              if (!uniqueAgentIds.includes(lead.mainAgentId)) {
+                uniqueAgentIds.push(lead?.mainAgentId);
+                AgentsWithActiveCadence.push(mainAgent);
+              }
+              futureCalls.push({
+                leadId: lead.Lead.id,
+                stage: lead.stage, // The stage from LeadCadence
+                leadDetails: lead.Lead,
+                createdAt: lead.createdAt,
+                agent: await AgentResource(mainAgent),
+                scheduledAt: nextCallTime,
+              });
+            }
+            // }
+          }
+        }
+      }
+    }
+
+    // Map and format the data
+
+    return {
+      status: true,
+      data: futureCalls,
+      // agents: await AgentResource(AgentsWithActiveCadence),
+    };
+  } catch (error) {
+    console.error("Error fetching call logs:", error);
+    return { status: false, error: "Server error" };
+  }
+};
+export const GetScheduledCallsOld = async (req, res) => {
+  const { mainAgentId } = req.query;
+
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
       let agentIds = [];
       let agents = await db.MainAgentModel.findAll({
         where: {
@@ -753,14 +1039,15 @@ export const GetScheduledCalls = async (req, res) => {
           ],
         });
 
-        // console.log(
-        //   "---------------------------------------------------------------------------"
-        // );
-        // console.log("Lead with cadence", leadsWithCadence);
-        // console.log(
-        //   "---------------------------------------------------------------------------\n\n\n\n"
-        // );
+        console.log(
+          "---------------------------------------------------------------------------"
+        );
+        console.log("Lead with cadence", leadsWithCadence.length);
+        console.log(
+          "---------------------------------------------------------------------------\n\n\n\n"
+        );
 
+        // return;
         // Fetch all relevant last calls
         const lastCalls = await db.LeadCallsSent.findAll({
           attributes: ["leadId", "callTriggerTime", "leadCadenceId"],
@@ -776,10 +1063,11 @@ export const GetScheduledCalls = async (req, res) => {
         //   "---------------------------------------------------------------------------"
         // );
 
-        // console.log("Last calls ", lastCalls);
+        console.log("Last calls ", lastCalls);
         // console.log(
         //   "---------------------------------------------------------------------------\n\n\n\n"
         // );
+        // return;
         const futureCalls = [];
         let uniqueAgentIds = [];
         let AgentsWithActiveCadence = [];
@@ -906,6 +1194,38 @@ export const GetScheduledCalls = async (req, res) => {
         status: true,
         data: leadSheets,
         message: "Lead Sheets List",
+      });
+    } else {
+    }
+  });
+};
+
+//
+export const GetCallActivities = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let agents = await db.MainAgentModel.findAll({
+        where: {
+          userId: userId,
+        },
+      });
+      let agentIds = [];
+      if (agents && agents.length > 0) {
+        agentIds = agents.map((item) => item.id);
+      }
+      let pipelineCad = await db.PipelineCadence.findAll({
+        where: {
+          mainAgentId: {
+            [db.Sequelize.Op.in]: agentIds,
+          },
+        },
       });
     } else {
     }

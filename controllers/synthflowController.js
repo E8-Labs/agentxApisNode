@@ -203,8 +203,8 @@ export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
       mainAgentId: leadCadence.mainAgentId,
       agentId: assistant?.id,
       callTriggerTime: new Date(),
-      synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${leadCadence.stage}`,
-      stage: leadCadence.stage,
+      synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`,
+      stage: lead.stage,
       status: "",
     });
 
@@ -450,7 +450,7 @@ async function initiateCall(
         summary: "",
         status: "failed",
         agentId: assistant.id,
-        stage: leadCadence?.stage,
+        stage: lead?.stage,
         mainAgentId: mainAgentModel.id,
       });
       return { status: false, message: "call is not initiated", data: null };
@@ -468,7 +468,7 @@ async function initiateCall(
       summary: "",
       status: "failed",
       agentId: assistant.id,
-      stage: leadCadence?.stage,
+      stage: lead?.stage,
       mainAgentId: mainAgentModel.id,
     });
     return {
@@ -1619,6 +1619,20 @@ export const WebhookSynthflow = async (req, res) => {
           mainAgentId: assistant.mainAgentId,
         },
       });
+      if (!leadCad) {
+        //Agent can be active only in one pipeline at atime
+        let pipelineCadence = await db.PipelineCadence.findOne({
+          where: {
+            mainAgentId: assistant.mainAgentId,
+          },
+        });
+
+        leadCad = await db.LeadCadence.create({
+          // mainAgentId: assistant.mainAgentId,
+          leadId: lead.id,
+          pipelineId: pipelineCadence.pipelineId,
+        });
+      }
     }
     if (!leadCad) {
       console.log("Couldn't find any leadCadence");
@@ -1651,7 +1665,7 @@ export const WebhookSynthflow = async (req, res) => {
       status: status,
     });
     try {
-      await handleInfoExtractorValues(json, leadCad, lead, pipeline);
+      await handleInfoExtractorValues(jsonIE, leadCad, lead, pipeline);
     } catch (error) {
       //console.log("Error handling IE details ", error);
     }
@@ -1659,20 +1673,20 @@ export const WebhookSynthflow = async (req, res) => {
       status: true,
       message: "Webhook received. No such call exists" + callId,
     });
-  }
+  } //if call doesnt exist logic ends here
 
   //Check the infoExtractors here.
   //Update the logic here and test by sending dummy webhooks
   let leadCadenceId = dbCall.leadCadenceId;
-  if (!leadCadenceId) {
-    console.log("Test call ");
-    return res.send({ status: true, message: "Webhook received" });
-  }
+  // if (!leadCadenceId) {
+  //   console.log("Test call ");
+  //   return res.send({ status: true, message: "Webhook received" });
+  // }
   let leadCadence = await db.LeadCadence.findByPk(leadCadenceId);
-  if (!leadCadence) {
-    console.log("Test call ");
-    return res.send({ status: true, message: "Webhook received" });
-  }
+  // if (!leadCadence) {
+  //   console.log("Test call ");
+  //   return res.send({ status: true, message: "Webhook received" });
+  // }
   // //console.log("Hot lead ");
   let lead = await db.LeadModel.findByPk(leadCadence?.leadId);
 
@@ -1680,6 +1694,7 @@ export const WebhookSynthflow = async (req, res) => {
   if (lead) {
     jsonIE = await extractIEAndStoreKycs(actions, lead, callId);
   }
+  console.log("All IEs ", jsonIE);
   let pipeline = await db.Pipeline.findByPk(leadCadence.pipelineId);
 
   if (jsonIE) {
@@ -1835,6 +1850,7 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
   if (canMoveToDefaultStage) {
     console.log("I can move to default stage");
     if (json.hotlead || json.callbackrequested) {
+      console.log("It's a hotlead");
       let hotLeadStage = await db.PipelineStages.findOne({
         where: {
           identifier: "hot_lead",

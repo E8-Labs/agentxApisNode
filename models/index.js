@@ -31,6 +31,7 @@ import UserPhoneNumbers from "./user/userPhoneModel.js";
 import InfoExtractorModel from "./user/infoExtractorModel.js";
 import LeadSheetColumnModel from "./lead/sheetColumnModel.js";
 import LeadSheetTagModel from "./lead/LeadSheetTags.js";
+import LeadTagsModel from "./lead/LeadTagsModel.js";
 
 import StageTagModel from "./pipeline/StageTags.js";
 
@@ -39,6 +40,7 @@ import ApiKeysModel from "./user/apikeysModel.js";
 import GhlCalendarModel from "./user/ghlCalendarModel.js";
 import LeadKycsExtracted from "./lead/LeadKycsExtracted.js";
 import CalendarIntegration from "./user/calendarIntegration.js";
+import CadenceBatchModel from "./pipeline/CadenceBatchModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -102,8 +104,19 @@ db.LeadSheetColumnModel.belongsTo(db.LeadSheetModel, {
 
 db.LeadModel = LeadModel(sequelize, Sequelize);
 models["LeadModel"] = db.LeadModel;
+
+db.LeadTagsModel = LeadTagsModel(sequelize, Sequelize);
+
 db.Pipeline = Pipeline(sequelize, Sequelize);
 db.PipelineStages = PipelineStages(sequelize, Sequelize);
+db.Pipeline.hasMany(db.PipelineStages, {
+  foreignKey: "pipelineId",
+  as: "stages", // Alias for association
+});
+db.PipelineStages.belongsTo(db.Pipeline, {
+  foreignKey: "pipelineId",
+  as: "stages", // Alias for association
+});
 models["PipelineStages"] = db.PipelineStages;
 
 db.StageTagModel = StageTagModel(sequelize, Sequelize);
@@ -116,8 +129,24 @@ db.StageTagModel.belongsTo(db.PipelineStages, {
 });
 
 db.PipelineCadence = PipelineCadence(sequelize, Sequelize);
-db.CadenceCalls = CadenceCalls(sequelize, Sequelize);
+db.CadenceBatchModel = CadenceBatchModel(sequelize, Sequelize);
 db.LeadCadence = LeadCadence(sequelize, Sequelize);
+db.CadenceBatchModel.belongsTo(db.User, {
+  foreignKey: "userId",
+});
+db.User.hasMany(db.CadenceBatchModel, {
+  foreignKey: "userId",
+});
+
+db.CadenceBatchModel.belongsTo(db.Pipeline, {
+  foreignKey: "pipelineId",
+});
+db.Pipeline.hasMany(db.CadenceBatchModel, {
+  foreignKey: "pipelineId",
+});
+
+db.CadenceCalls = CadenceCalls(sequelize, Sequelize);
+
 models["LeadCadence"] = db.LeadCadence;
 db.LeadCallsSent = LeadCallsSent(sequelize, Sequelize);
 models["LeadCallsSent"] = db.LeadCallsSent;

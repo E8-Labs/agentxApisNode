@@ -59,11 +59,13 @@ const LeadModel = (sequelize, Sequelize) => {
     stage: {
       type: Sequelize.INTEGER,
       allowNull: true,
-      defaultValue: null, // 9 is the id of the "No Stage" stage
+      defaultValue: null,
       references: {
-        model: "Stages",
+        model: "PipelineStages",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
   });
   LeadModel.associate = (models) => {
