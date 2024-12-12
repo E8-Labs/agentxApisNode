@@ -1855,8 +1855,8 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
           },
         });
         if (stage) {
-          leadCadence.stage = stage.id;
-          let saved = await leadCadence.save();
+          lead.stage = stage.id;
+          let saved = await lead.save();
           console.log(`Successfully Moved to ${stageIdentifier}`, json[csIE]);
         }
         //here break the for loop
@@ -1877,8 +1877,8 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
         },
       });
       if (canMoveToDefaultStage) {
-        leadCadence.stage = hotLeadStage.id;
-        let saved = await leadCadence.save();
+        lead.stage = hotLeadStage.id;
+        let saved = await lead.save();
       }
       //console.log(
       //   `Lead ${lead.firstName} move from ${leadCadence.stage} to Hot Lead`
@@ -1895,7 +1895,8 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
       });
 
       if (canMoveToDefaultStage) {
-        leadCadence.stage = hotLeadStage.id;
+        lead.stage = hotLeadStage.id;
+        await lead.save();
       }
       leadCadence.dnd = json.dnd;
       leadCadence.notinterested = json.notinterested;
@@ -1915,11 +1916,11 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
       });
 
       if (canMoveToDefaultStage) {
-        leadCadence.stage = hotLeadStage.id;
+        lead.stage = hotLeadStage.id;
       }
       // leadCadence.dnd = json.dnd;
       // leadCadence.notinterested = json.notinterested;
-      let saved = await leadCadence.save();
+      let saved = await lead.save();
       //console.log(
       //   `Lead ${lead.firstName} move from ${leadCadence.stage} to ${hotLeadStage.stageTitle}`
       // );
@@ -1938,12 +1939,13 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
           pipelineId: pipeline.id,
         },
       });
-      if (leadCadence.stage < followUpStage.id) {
+      if (lead.stage < followUpStage.id) {
         if (canMoveToDefaultStage) {
           leadCadence.stage = followUpStage.id;
         }
         leadCadence.nodecisionmaker = json.nodecisionmaker;
-        let saved = await leadCadence.save();
+        let saved = await lead.save();
+        let cadSaved = await leadCadence.save();
         //console.log(
         //   `Lead ${lead.firstName} move from ${leadCadence.stage} to ${followUpStage.stageTitle}`
         // );
