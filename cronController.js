@@ -72,7 +72,6 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 
       if (dbDate.getTime() >= currentDate.getTime()) {
         // console.log("The database date is greater than or equal to the current date.");
-      } else {
         console.log(
           "This cadence batch start time is in future",
           dbDate.getTime()
@@ -303,10 +302,13 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
     const dbDate = new Date(batch.startTime); // Date from the database
     const currentDate = new Date(); // Current date and time
 
-    if (dbDate >= currentDate) {
-      // console.log("The database date is greater than or equal to the current date.");
-    } else {
-      console.log("This cadence batch start time is in future");
+    if (dbDate.getTime() >= currentDate.getTime()) {
+      // console.log("The database date is greater than or equal to the current date.");
+      console.log(
+        "This cadence batch start time is in future",
+        dbDate.getTime()
+      );
+      console.log("Current Date ", currentDate.getTime());
       continue;
     }
 
