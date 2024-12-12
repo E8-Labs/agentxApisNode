@@ -66,6 +66,16 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       let leadCad = leadCadence[i];
 
       let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
+
+      const dbDate = new Date(batch.startTime); // Date from the database
+      const currentDate = new Date(); // Current date and time
+
+      if (dbDate >= currentDate) {
+        // console.log("The database date is greater than or equal to the current date.");
+      } else {
+        console.log("This cadence batch start time is in future");
+        continue;
+      }
       console.log("Calling Batch Status ", batch.status);
       if (batch.status != BatchStatus.Active) {
         console.log("Cadence is paused for this batch", batch.id);
@@ -286,6 +296,15 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
     //for last call time and wait for that amount of time
 
     let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
+    const dbDate = new Date(batch.startTime); // Date from the database
+    const currentDate = new Date(); // Current date and time
+
+    if (dbDate >= currentDate) {
+      // console.log("The database date is greater than or equal to the current date.");
+    } else {
+      console.log("This cadence batch start time is in future");
+      continue;
+    }
 
     if (batch.status != BatchStatus.Active) {
       console.log(
