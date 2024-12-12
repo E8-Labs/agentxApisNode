@@ -55,9 +55,15 @@ async function getUserData(lead, currentUser = null) {
     tags.push(t);
   }
 
+  let kycs = await db.LeadKycsExtracted.findAll({
+    where: {
+      leadId: lead.id,
+    },
+  });
   const LeadResource = {
     ...lead.get(),
     tags: tags, //{ ...tags, ...sheetTagsArray },
+    kycs: kycs,
     // sheetTagsArray,
   };
 

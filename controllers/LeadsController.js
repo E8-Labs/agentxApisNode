@@ -319,6 +319,11 @@ export const GetLeads = async (req, res) => {
             [db.Sequelize.Op.between]: [new Date(fromDate), new Date(toDate)],
           };
         }
+        if (stageIds && stageIds != "") {
+          leadFilters.stage = {
+            [db.Sequelize.Op.in]: stageIds.split(",").map(Number),
+          };
+        }
 
         // Fetch leads first based on general filters
         const leads = await db.LeadModel.findAll({
@@ -345,7 +350,7 @@ export const GetLeads = async (req, res) => {
           const cadenceFilters = {
             leadId: { [db.Sequelize.Op.in]: leadIds },
             status: CadenceStatus.Started, // Only active cadences
-            stage: { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) },
+            // stage: { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) },
           };
 
           cadences = await db.LeadCadence.findAll({
@@ -381,7 +386,7 @@ export const GetLeads = async (req, res) => {
           const cadence = cadenceMap[lead.id];
           let stage = await db.PipelineStages.findOne({
             where: {
-              id: cadence ? cadence.stage : lead.stage,
+              id: lead.stage,
             },
           });
           let extra = lead.extraColumns;
@@ -448,6 +453,7 @@ export const GetLeads = async (req, res) => {
         //   };
         // });
 
+        let reso = await LeadResource(leadsWithCadence);
         return res.send({
           status: true,
           data: leadsWithCadence,
