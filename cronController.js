@@ -21,6 +21,7 @@ import { CadenceStatus } from "./models/pipeline/LeadsCadence.js";
 import Pipeline from "./models/pipeline/pipeline.js";
 import { calculateDifferenceInMinutes } from "./utils/dateutil.js";
 import { MakeACall } from "./controllers/synthflowController.js";
+import { BatchStatus } from "./models/pipeline/CadenceBatchModel.js";
 
 const simulate = true;
 
@@ -63,9 +64,13 @@ export const CronRunCadenceCallsFirstBatch = async () => {
     console.log("Iteration", i);
     try {
       let leadCad = leadCadence[i];
-      // console.log("Calling lead ", leadCad);
-      let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
 
+      let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
+      console.log("Calling Batch Status ", batch.status);
+      if (batch.status != BatchStatus.Active) {
+        console.log("Cadence is paused for this batch", batch.id);
+        continue;
+      }
       //Check calls sent for this batch
       let count = await db.LeadCadence.count({
         where: {
@@ -156,7 +161,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         if (diff >= waitTime) {
           console.log("Next call should be placed");
           try {
-            let called = await MakeACall(leadCad, simulate, calls);
+            let called = await MakeACall(leadCad, simulate, calls, batch.id);
             //if you want to simulate
             //let called = await MakeACall(leadCad, true, calls);
           } catch (error) {
@@ -186,7 +191,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           },
         });
         try {
-          let called = await MakeACall(leadCad, simulate, calls);
+          let called = await MakeACall(leadCad, simulate, calls, batch.id);
           console.log("First Call initiated", called);
           if (called.status) {
             //set the lead cadence status to Started so that next time it don't get pushed to the funnel
@@ -279,6 +284,16 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
     // console.log("###############################################################################################################\n")
     //Since this would be the first stage lead, no calls have been sent to him as of now. We will not check
     //for last call time and wait for that amount of time
+
+    let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
+
+    if (batch.status != BatchStatus.Active) {
+      console.log(
+        "CronRunCadenceCallsSubsequentStages: Cadence is paused for this batch",
+        batch.id
+      );
+      continue;
+    }
 
     let cadence = await db.PipelineCadence.findOne({
       where: {
@@ -404,7 +419,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               },
             });
             try {
-              let called = await MakeACall(leadCad, simulate, calls);
+              let called = await MakeACall(leadCad, simulate, calls, batch.id);
               //if you want to simulate
               //let called = await MakeACall(leadCad, true, calls);
             } catch (error) {
@@ -454,7 +469,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           },
         });
         try {
-          let called = await MakeACall(leadCad, simulate, calls);
+          let called = await MakeACall(leadCad, simulate, calls, batch.id);
           if (called.status) {
             //set the lead cadence status to Started so that next time it don't get pushed to the funnel
             leadCad.callTriggerTime = new Date();

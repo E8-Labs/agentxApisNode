@@ -176,7 +176,12 @@ Stick to this rule to maintain control and professionalism in call handling.
   return text;
 }
 
-export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
+export const MakeACall = async (
+  leadCadence,
+  simulate = false,
+  calls = [],
+  batchId = null
+) => {
   // setLoading(true);
   let leadId = leadCadence.leadId,
     mainAgentId = leadCadence.mainAgentId;
@@ -206,6 +211,7 @@ export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
       synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`,
       stage: lead.stage,
       status: "",
+      batchId: batchId,
     });
 
     return { status: true, data: sent };
@@ -261,7 +267,8 @@ export const MakeACall = async (leadCadence, simulate = false, calls = []) => {
       lead,
       assistant,
       mainAgentModel,
-      calls
+      calls,
+      batchId
     );
     return res;
     //initiate call here
@@ -380,7 +387,8 @@ async function initiateCall(
   lead,
   assistant,
   mainAgentModel,
-  calls = []
+  calls = [],
+  batchId
 ) {
   try {
     let synthKey = process.env.SynthFlowApiKey;
@@ -423,6 +431,7 @@ async function initiateCall(
           agentId: assistant.id,
           stage: leadCadence?.stage,
           mainAgentId: mainAgentModel.id,
+          batchId: batchId,
         });
 
         //console.log("Saved ", saved);
@@ -452,6 +461,7 @@ async function initiateCall(
         agentId: assistant.id,
         stage: lead?.stage,
         mainAgentId: mainAgentModel.id,
+        batchId: batchId,
       });
       return { status: false, message: "call is not initiated", data: null };
     }
@@ -470,6 +480,7 @@ async function initiateCall(
       agentId: assistant.id,
       stage: lead?.stage,
       mainAgentId: mainAgentModel.id,
+      batchId: batchId,
     });
     return {
       status: false,
@@ -1663,6 +1674,7 @@ export const WebhookSynthflow = async (req, res) => {
       leadId: lead?.id || null,
       leadCadenceId: leadCad?.id || null,
       status: status,
+      batchId: batchId,
     });
     try {
       await handleInfoExtractorValues(jsonIE, leadCad, lead, pipeline);

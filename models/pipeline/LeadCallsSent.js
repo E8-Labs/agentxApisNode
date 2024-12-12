@@ -13,14 +13,10 @@ const LeadCallsSent = (sequelize, Sequelize) => {
     //     },
     //   },
 
-    //   mainAgentId: {
-    //     type: Sequelize.INTEGER,
-    //     allowNull: true,
-    //     references: {
-    //       model: "MainAgentModels",
-    //       key: "id",
-    //     },
-    //   },
+    batchId: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
     leadId: {
       type: Sequelize.INTEGER,
       allowNull: true,
@@ -111,6 +107,7 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+
     dnd: {
       type: Sequelize.BOOLEAN,
       allowNull: true,
