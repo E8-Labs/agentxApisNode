@@ -28,6 +28,7 @@ import { DeleteActionSynthflow } from "./synthflowController.js";
 import BatchResource from "../resources/BatchResource.js";
 import { BatchStatus } from "../models/pipeline/CadenceBatchModel.js";
 import { pipeline } from "stream";
+import PipelineStages from "../models/pipeline/pipelineStages.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -593,16 +594,22 @@ export const GetAgentCadence = async (req, res) => {
           mainAgentId: mainAgentId,
         },
       });
+      console.log("Found pc ", JSON.stringify(pipelineCadence));
       let cadences = [];
       if (pipelineCadence && pipelineCadence.length > 0) {
-        pipelineCadence.map(async (pc) => {
+        for (let pc of pipelineCadence) {
+          let pcStage = await db.PipelineStages.findByPk(pc.stage);
+          let moveToStage = await db.PipelineStages.findByPk(pc.moveToStage);
+          pc.stage = pcStage;
+          pc.moveToStage = moveToStage;
+
           let cadenceCalls = await db.CadenceCalls.findAll({
             where: {
               pipelineCadenceId: pc.id,
             },
           });
-          cadence.push({ cadence: pc, calls: cadenceCalls });
-        });
+          cadences.push({ cadence: pc, calls: cadenceCalls });
+        }
       }
 
       return res.send({
