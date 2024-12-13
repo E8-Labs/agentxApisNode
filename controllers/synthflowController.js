@@ -1523,7 +1523,7 @@ export async function DeleteActionSynthflow(actionId) {
 
 export async function UpdateAssistantSynthflow(agent, data) {
   let synthKey = process.env.SynthFlowApiKey;
-  //console.log("Inside Update Assistant ", data);
+  console.log("Inside Update Assistant ", data);
   const options = {
     method: "PUT",
     url: `https://api.synthflow.ai/v2/assistants/${agent.modelId}`,
