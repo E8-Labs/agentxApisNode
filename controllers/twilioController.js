@@ -294,6 +294,13 @@ export const AssignPhoneNumber = async (req, res) => {
     liveTransfer,
   } = req.body;
 
+  console.log("AssignDataPhone", {
+    phoneNumber,
+    mainAgentId,
+    callbackNumber,
+    liveTransferNumber,
+    liveTransfer,
+  });
   let defaultInstructionsForTransfer =
     "Make the transfer if the user asks to speak to one of our team member or a live agent.";
   let instructions = req.body.instructions || defaultInstructionsForTransfer;
