@@ -475,3 +475,38 @@ export async function AddCalendarCalDotCom(req, res) {
     }
   });
 }
+
+export async function GetUserConnectedCalendars(req, res) {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findByPk(userId);
+      const calendars = await db.CalendarIntegration.findAll({
+        attributes: [
+          "title",
+          "apiKey",
+          "eventId",
+          [
+            db.Sequelize.fn("MAX", db.Sequelize.col("createdAt")),
+            "latestCreatedAt",
+          ], // Example: Fetch the latest createdAt if needed
+        ],
+        where: {
+          userId: userId,
+        },
+        group: ["apiKey", "eventId"], // Group by unique apiKey and eventId
+        order: [
+          [db.Sequelize.fn("MAX", db.Sequelize.col("createdAt")), "DESC"],
+        ], // Order by latest createdAt
+      });
+      // Return both calendars and event types
+      return res.send({ status: true, data: calendars });
+    } else {
+      return res.send({
+        status: false,
+        data: null,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+}
