@@ -473,21 +473,21 @@ async function initiateCall(
     }
   } catch (error) {
     console.log("Error during Sending Call API call: ", error);
-    const callId = `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`;
+    // const callId = `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`;
     //console.log("In else: call not initiated");
     // Add failed call in the database if required
-    const saved = await db.LeadCallsSent.create({
-      leadCadenceId: leadCadence?.id,
-      synthflowCallId: callId,
-      leadId: lead.id,
-      transcript: "",
-      summary: "",
-      status: "failed",
-      agentId: assistant.id,
-      stage: lead?.stage,
-      mainAgentId: mainAgentModel.id,
-      batchId: batchId,
-    });
+    // const saved = await db.LeadCallsSent.create({
+    //   leadCadenceId: leadCadence?.id,
+    //   synthflowCallId: callId,
+    //   leadId: lead.id,
+    //   transcript: "",
+    //   summary: "",
+    //   status: "failed",
+    //   agentId: assistant.id,
+    //   stage: lead?.stage,
+    //   mainAgentId: mainAgentModel.id,
+    //   batchId: batchId,
+    // });
     return {
       status: false,
       message: "call is not initiated due to API error",
