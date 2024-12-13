@@ -14,7 +14,7 @@ import {
   GetInfoExtractorApiData,
 } from "./actionController.js";
 import AgentResource from "../resources/AgentResource.js";
-import LeadCadence from "../models/pipeline/LeadsCadence.js";
+import LeadCadence, { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 import {
   InfoExtractors,
   OpenQuestionInfoExtractors,
@@ -1565,7 +1565,7 @@ export const WebhookSynthflow = async (req, res) => {
   // //console.log("Request raw data:", req);
 
   let data = req.body;
-  console.log("Webhook data is ", data);
+  // console.log("Webhook data is ", data);
 
   let dataString = JSON.stringify(data);
 
@@ -1580,7 +1580,7 @@ export const WebhookSynthflow = async (req, res) => {
   // //console.log("Actions ", actions);
 
   let json = extractInfo(data);
-  console.log("Extracted info ", json);
+  // console.log("Extracted info ", json);
   // return;
   let dbCall = await db.LeadCallsSent.findOne({
     where: {
@@ -1595,11 +1595,11 @@ export const WebhookSynthflow = async (req, res) => {
     if (item.includes(`${process.env.StagePrefix}_stage`)) {
       allCustomStageInfoExtractorkeys.push(item);
       let data = extractors[item];
-      console.log("Data for custom stage is ", data);
+      // console.log("Data for custom stage is ", data);
     } else {
     }
   });
-  console.log("All custom infoExtractors", allCustomStageInfoExtractorkeys);
+  // console.log("All custom infoExtractors", allCustomStageInfoExtractorkeys);
   if (!dbCall) {
     console.log("Call is not already in the table.");
 
@@ -1613,9 +1613,38 @@ export const WebhookSynthflow = async (req, res) => {
         phone: leadPhone,
       },
     });
+    //Find assistant
+    let assistant = await db.AgentModel.findOne({
+      where: {
+        modelId: modelId,
+      },
+    });
+    if (!assistant) {
+      console.log("No such agent");
+      return;
+    }
+    let userId = assistant.userId; // userId
+    let sheet = null;
+    if (assistant && assistant.agentType == "inbound") {
+      console.log("It's an inbound model");
+      sheet = await db.LeadSheetModel.findOne({
+        where: {
+          sheetName: "InboundLeads",
+        },
+      });
+      if (!sheet) {
+        sheet = await db.LeadSheetModel.create({
+          userId: userId,
+          sheetName: "InboundLeads",
+        });
+      }
+    }
+    //find sheet
     if (!lead) {
       lead = await db.LeadModel.create({
         phone: leadPhone,
+        userId: userId,
+        sheetId: sheet.id,
         firstName: leadData.name,
         extraColumns: JSON.stringify(leadData.prompt_variables),
       });
@@ -1625,18 +1654,11 @@ export const WebhookSynthflow = async (req, res) => {
       jsonIE = await extractIEAndStoreKycs(actions, lead, callId);
     }
 
-    console.log("Lead ", lead);
-    //Find assistant
-    let assistant = await db.AgentModel.findOne({
-      where: {
-        modelId: modelId,
-      },
-    });
-    if (assistant && assistant.agentType == "inbound") {
-    }
+    // console.log("Lead ", lead);
 
     //get pipeline and leadCad
     let leadCad = null;
+
     if (lead) {
       leadCad = await db.LeadCadence.findOne({
         where: {
@@ -1654,6 +1676,7 @@ export const WebhookSynthflow = async (req, res) => {
 
         leadCad = await db.LeadCadence.create({
           // mainAgentId: assistant.mainAgentId,
+          status: CadenceStatus.Started,
           leadId: lead.id,
           pipelineId: pipelineCadence.pipelineId,
         });
@@ -1689,7 +1712,7 @@ export const WebhookSynthflow = async (req, res) => {
       leadId: lead?.id || null,
       leadCadenceId: leadCad?.id || null,
       status: status,
-      batchId: batchId,
+      batchId: null,
     });
     try {
       await handleInfoExtractorValues(jsonIE, leadCad, lead, pipeline);

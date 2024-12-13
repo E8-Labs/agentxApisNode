@@ -32,7 +32,8 @@ const LeadCadence = (sequelize, Sequelize) => {
     batchId: {
       // can identify the agent, pipeline and stage
       type: Sequelize.INTEGER,
-      allowNull: false,
+      allowNull: true,
+      defaultValue: null,
       references: {
         model: "CadenceBatchModels",
         key: "id",
