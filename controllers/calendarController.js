@@ -443,25 +443,25 @@ export async function AddCalendarCalDotCom(req, res) {
             eventId15Min = actualEventTypes[0].id;
           }
         }
-        // let created = await db.CalendarIntegration.create({
-        //   type: calendarType,
-        //   apiKey: apiKey,
-        //   userId: userId,
-        //   eventId: eventId15Min,
-        //   mainAgentId: mainAgentId,
-        //   title: title,
-        // });
+        let created = await db.CalendarIntegration.create({
+          type: calendarType,
+          apiKey: apiKey,
+          userId: userId,
+          eventId: eventId15Min,
+          mainAgentId: mainAgentId,
+          title: title,
+        });
 
         console.log("Available Event Types:", eventTypes);
 
         //add action
-        // let actionResult = await CreateAndAttachCalendarAction(user, mainAgent);
-        // if (actionResult) {
-        //   console.log("Action Create Result ", actionResult);
-        //   let ids = actionResult.data;
-        //   created.data = JSON.stringify(ids);
-        //   await created.save();
-        // }
+        let actionResult = await CreateAndAttachCalendarAction(user, mainAgent);
+        if (actionResult) {
+          console.log("Action Create Result ", actionResult);
+          let ids = actionResult.data;
+          created.data = JSON.stringify(ids);
+          await created.save();
+        }
         // Return both calendars and event types
         return res.send({ status: true, calendars, eventTypes });
       } catch (error) {

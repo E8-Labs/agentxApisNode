@@ -152,6 +152,10 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       type: Sequelize.BOOLEAN,
       allowNull: true,
     },
+    call_review_worthy: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
   });
   LeadCallsSent.associate = (models) => {
     LeadCallsSent.belongsTo(models.LeadModel, {

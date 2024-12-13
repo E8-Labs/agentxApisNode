@@ -109,27 +109,27 @@ function GetActionApiData(user, assistant, type = "kb") {
     return {
       http_mode: "GET", // Set to tomorrow's date
       url:
-        "https://www.blindcircle.com/voice/api/action/checkAvailability?modelId=" +
-        assistant.modelId,
-      run_action_before_call_start: false,
+        "https://www.blindcircle.com/agentx/api/calendar/getAvailability?mainAgentId=" +
+        assistant.mainAgentId,
+      run_action_before_call_start: true,
       name: `Check Availability For ${user.name}`,
       description: "Check Availability For " + user.name,
       variables_during_the_call: [
-        {
-          name: `date`,
-          description:
-            "Whenever a user asks for availability for meeting or one to one session, trigger this function.",
-          example: "User queries for your availability.",
-          type: "string",
-        },
+        // {
+        //   name: `date`,
+        //   description:
+        //     "Whenever a user asks for availability for meeting or one to one session, trigger this function.",
+        //   example: "User queries for your availability.",
+        //   type: "string",
+        // },
       ],
       query_parameters: [
-        {
-          key: "date",
-          value: "11-08-2024",
-        },
+        // {
+        //   key: "date",
+        //   value: "11-08-2024",
+        // },
       ],
-      prompt: `Use the result from <results.data.message> and respond accordingly.`,
+      prompt: `You can use <results.data.data[]>   to check for the calendar availability for the user`,
     };
   }
 }
@@ -299,18 +299,33 @@ export async function CreateAndAttachCalendarAction(user, mainAgent) {
   if (assistants) {
     for (const assistant of assistants) {
       let action = await CreateCustomAction(user, assistant, "booking");
+
       if (action && action.status == "success") {
         let actionId = action.response.action_id;
         actionIds.push(actionId);
-        // created.actionId = actionId;
-
-        // let saved = await created.save();
-
         let attached = await AttachActionToModel(actionId, assistant.modelId);
         console.log(
           `Action for booking Create Response User ${user.id} created = `,
           attached
         );
+
+        let actionAv = await CreateCustomAction(
+          user,
+          assistant,
+          "availability"
+        );
+        if (actionAv && actionAv.status == "success") {
+          let actionAvId = actionAv.response.action_id;
+          actionIds.push(actionAvId);
+          let attachedAv = await AttachActionToModel(
+            actionAvId,
+            assistant.modelId
+          );
+          console.log(
+            `Action for booking Create Response User ${user.id} created = `,
+            attachedAv
+          );
+        }
         if (attached.status == "success") {
           console.log("Action attached");
         } else {

@@ -1684,6 +1684,7 @@ export const WebhookSynthflow = async (req, res) => {
       voicemail: jsonIE?.voicemail,
       Busycallback: jsonIE?.Busycallback,
       nodecisionmaker: jsonIE?.nodecisionmaker,
+      call_review_worthy: jsonIE?.call_review_worthy,
       leadId: lead?.id || null,
       leadCadenceId: leadCad?.id || null,
       status: status,
@@ -1760,6 +1761,7 @@ export const WebhookSynthflow = async (req, res) => {
     dbCall.voicemail = jsonIE?.voicemail;
     dbCall.Busycallback = jsonIE?.Busycallback;
     dbCall.nodecisionmaker = jsonIE?.nodecisionmaker;
+    dbCall.call_review_worthy = jsonIE?.call_review_worthy;
     let saved = await dbCall.save();
     // let charged = await chargeUser(caller, dbCall, assistant);
     //(dbCall.transcript != "" && dbCall.transcript != null) {
@@ -1779,6 +1781,7 @@ export const WebhookSynthflow = async (req, res) => {
     dbCall.humancalldrop = jsonIE?.humancalldrop;
     dbCall.voicemail = jsonIE?.voicemail;
     dbCall.Busycallback = jsonIE?.Busycallback;
+    dbCall.call_review_worthy = jsonIE?.call_review_worthy;
     dbCall.nodecisionmaker = jsonIE?.nodecisionmaker;
     let saved = await dbCall.save();
   }
