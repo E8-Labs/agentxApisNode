@@ -1538,7 +1538,7 @@ export async function UpdateAssistantSynthflow(agent, data) {
   try {
     let result = await axios.request(options);
     //console.log("Inside 3");
-    //console.log("Create Assistant Api result ", result);
+    console.log("Assign Assistant Api result ", result);
 
     if (result.status == 200) {
       //console.log("Assitant updated");
