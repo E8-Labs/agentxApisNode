@@ -1678,7 +1678,7 @@ export const WebhookSynthflow = async (req, res) => {
           // mainAgentId: assistant.mainAgentId,
           status: CadenceStatus.Started,
           leadId: lead.id,
-          pipelineId: pipelineCadence.pipelineId,
+          pipelineId: pipelineCadence?.pipelineId,
         });
       }
     }
@@ -1745,7 +1745,7 @@ export const WebhookSynthflow = async (req, res) => {
     jsonIE = await extractIEAndStoreKycs(actions, lead, callId);
   }
   console.log("All IEs ", jsonIE);
-  let pipeline = await db.Pipeline.findByPk(leadCadence.pipelineId);
+  let pipeline = await db.Pipeline.findByPk(leadCadence?.pipelineId);
 
   if (jsonIE) {
     try {
