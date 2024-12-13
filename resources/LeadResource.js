@@ -78,12 +78,27 @@ async function getUserData(lead, currentUser = null) {
       leadId: lead.id,
     },
   });
+  let formattedCalls = [];
+  if (callActivity && callActivity.length > 0) {
+    formattedCalls = callActivity.map((call) => {
+      const minutes = Math.floor(call.duration / 60);
+      const seconds = call.duration % 60;
+      const formattedDuration = `${String(minutes).padStart(2, "0")}:${String(
+        seconds
+      ).padStart(2, "0")}`;
+
+      return {
+        ...call.dataValues, // Include existing call data
+        durationFormatted: formattedDuration,
+      };
+    });
+  }
   const LeadResource = {
     ...leadData,
     tags: tags, //{ ...tags, ...sheetTagsArray },
     kycs: kycs,
     notes: notes,
-    callActivity: callActivity,
+    callActivity: formattedCalls,
     // sheetTagsArray,
   };
 
