@@ -286,13 +286,17 @@ export const PurchasePhoneNumber = async (req, res) => {
 
 // API to purchase a phone number
 export const AssignPhoneNumber = async (req, res) => {
-  const {
+  let {
     phoneNumber,
     mainAgentId,
     callbackNumber,
     liveTransferNumber,
     liveTransfer,
   } = req.body;
+
+  if (!phoneNumber.startsWith("+")) {
+    phoneNumber = "+" + phoneNumber;
+  }
 
   console.log("AssignDataPhone", {
     phoneNumber,
