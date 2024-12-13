@@ -330,7 +330,7 @@ export const TestAI = async (req, res) => {
           lead,
           true // test is set to true
         );
-
+        console.log("Calling Test AI with model", agent.modelId);
         let data = JSON.stringify({
           name: name,
           phone: phone,
