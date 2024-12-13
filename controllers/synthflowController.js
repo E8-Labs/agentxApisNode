@@ -1565,12 +1565,13 @@ export const WebhookSynthflow = async (req, res) => {
   // //console.log("Request raw data:", req);
 
   let data = req.body;
-  //console.log("Webhook data is ", data);
+  console.log("Webhook data is ", data);
 
   let dataString = JSON.stringify(data);
 
   let callId = data.call.call_id;
   let modelId = data.call.model_id;
+  console.log("Model Id ", modelId);
   let status = data.call.status;
   let duration = data.call.duration;
   let transcript = data.call.transcript;
