@@ -134,6 +134,16 @@ db.StageTagModel.belongsTo(db.PipelineStages, {
 db.PipelineCadence = PipelineCadence(sequelize, Sequelize);
 db.CadenceBatchModel = CadenceBatchModel(sequelize, Sequelize);
 db.LeadCadence = LeadCadence(sequelize, Sequelize);
+
+// db.PipelineCadence.hasMany(db.LeadCadence, {
+//   foreignKey: "pipelineCadenceId",
+// });
+
+// db.LeadCadence.belongsTo(db.PipelineCadence, {
+//   foreignKey: "pipelineCadenceId", // Ensure this column exists in LeadCadence
+//   as: "PipelineCadence",
+// });
+
 db.CadenceBatchModel.belongsTo(db.User, {
   foreignKey: "userId",
 });

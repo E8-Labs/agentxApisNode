@@ -1042,6 +1042,100 @@ export const GetScheduledCallsForAgent = async (mainAgentId) => {
     return { status: false, error: "Server error" };
   }
 };
+
+export const GetScheduledFutureCalls = async (agentId, batchId) => {
+  let PipelineCadence = db.PipelineCadence;
+  let CadenceCalls = db.CadenceCalls;
+  let LeadCadence = db.LeadCadence;
+  let LeadCallsSent = db.LeadCallsSent;
+  let Op = db.Sequelize.Op;
+
+  try {
+    // Fetch the relevant LeadCadences for the agent and batch
+    const leadCadences = await LeadCadence.findAll({
+      where: {
+        mainAgentId: agentId,
+        batchId: batchId,
+        status: { [Op.ne]: "Paused" }, // Exclude paused cadences
+      },
+    });
+
+    const futureCalls = [];
+
+    for (const leadCadence of leadCadences) {
+      let currentStage = leadCadence.stage || 288; // Default to the starting stage if stage is null
+      let lastCallTime = moment(leadCadence.callTriggerTime || new Date());
+
+      while (currentStage) {
+        // Fetch the PipelineCadence for the current stage
+        const pipelineCadence = await PipelineCadence.findOne({
+          where: { stage: currentStage, pipelineId: leadCadence.pipelineId },
+        });
+
+        if (!pipelineCadence) {
+          console.warn(
+            `No PipelineCadence found for stage ${currentStage} and pipeline ${leadCadence.pipelineId}`
+          );
+          break;
+        }
+
+        // Fetch the CadenceCalls for the current PipelineCadence
+        const cadenceCalls = await CadenceCalls.findAll({
+          where: { pipelineCadenceId: pipelineCadence.id },
+          order: [["id", "ASC"]],
+        });
+
+        // Get the calls already sent for this stage
+        const callsSent = await LeadCallsSent.findAll({
+          where: {
+            leadCadenceId: leadCadence.id,
+            stage: currentStage,
+          },
+          order: [["callTriggerTime", "ASC"]],
+        });
+
+        let totalCallsSent = callsSent.length;
+
+        // Calculate future calls for the current stage
+        for (const [index, cadenceCall] of cadenceCalls.entries()) {
+          if (totalCallsSent > index) continue; // Skip already sent calls
+
+          const waitTimeMinutes = cadenceCall.waitTimeMinutes || 0;
+          const waitTimeHours = cadenceCall.waitTimeHours || 0;
+          const waitTimeDays = cadenceCall.waitTimeDays || 0;
+
+          const nextCallTime = lastCallTime
+            .clone()
+            .add(waitTimeMinutes, "minutes")
+            .add(waitTimeHours, "hours")
+            .add(waitTimeDays, "days");
+
+          futureCalls.push({
+            leadId: leadCadence.leadId,
+            agentId: agentId,
+            batchId: batchId,
+            pipelineCadenceId: pipelineCadence.id,
+            stage: currentStage,
+            callTriggerTime: nextCallTime.toISOString(),
+          });
+
+          lastCallTime = nextCallTime;
+        }
+
+        // Move to the next stage
+        currentStage = pipelineCadence.moveToStage;
+      }
+    }
+
+    return futureCalls;
+  } catch (error) {
+    console.error("Error fetching future calls:", error);
+    throw new Error("Failed to calculate future calls.");
+  }
+};
+
+// export default GetScheduledFutureCalls;
+
 export const GetScheduledCallsOld = async (req, res) => {
   const { mainAgentId } = req.query;
 

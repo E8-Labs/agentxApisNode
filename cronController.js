@@ -123,7 +123,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 
       if (!cadence) {
         console.log(
-          `No Cadence Found for  agent ${mainAgent.id} at stage ${leadCad.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
+          `No Cadence Found for  agent ${mainAgent.id} at stage ${lead.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
         );
         continue;
       }

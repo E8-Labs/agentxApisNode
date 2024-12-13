@@ -22,7 +22,10 @@ import {
 import { AgentObjectives } from "../constants/defaultAgentObjectives.js";
 import AgentPromptModel from "../models/user/agentPromptModel.js";
 import { userInfo } from "os";
-import { Objections, Guardrails } from "../constants/defaultObjections.js";
+import {
+  CommunityUpdateObjections,
+  CommunityUpdateGuardrails,
+} from "../constants/defaultObjections.js";
 import {
   GetColumnsInSheet,
   mergeAndRemoveDuplicates,
@@ -30,6 +33,7 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+//Generate Prompt
 async function GetCompletePromptTextFrom(
   prompt,
   user,
@@ -82,6 +86,7 @@ async function GetCompletePromptTextFrom(
   callScript = callScript.replace(/{First Name}/g, lead.firstName);
   callScript = callScript.replace(/{Last Name}/g, lead.lastName);
   callScript = callScript.replace(/{Email}/g, lead.email);
+  callScript = callScript.replace(/{Address}/g, lead.address);
 
   //Get UniqueColumns in Sheets
   let keys = [];
@@ -617,7 +622,7 @@ export const BuildAgent = async (req, res) => {
       // });
 
       //Create Default Guardrails
-      for (const obj of Objections) {
+      for (const obj of selectedObjective.objections || []) {
         let created = await db.ObjectionAndGuradrails.create({
           title: obj.title,
           description: obj.description,
@@ -625,7 +630,7 @@ export const BuildAgent = async (req, res) => {
           mainAgentId: mainAgent.id,
         });
       }
-      for (const obj of Guardrails) {
+      for (const obj of selectedObjective.guardrails || []) {
         let created = await db.ObjectionAndGuradrails.create({
           title: obj.title,
           description: obj.description,

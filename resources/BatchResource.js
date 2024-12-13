@@ -1,7 +1,10 @@
 import db from "../models/index.js";
 import AgentResource from "./AgentResource.js";
 import AgentLiteResource from "./AgentLiteResource.js";
-import { GetScheduledCallsForAgent } from "../controllers/pipelineController.js";
+import {
+  GetScheduledCallsForAgent,
+  GetScheduledFutureCalls,
+} from "../controllers/pipelineController.js";
 import LeadResource from "./LeadResource.js";
 // import {
 //   getTotalYapScore,
@@ -38,7 +41,12 @@ async function getUserData(batch, currentUser = null) {
       batchId: batch.id,
     },
   });
-  let agentIds = leadCad.map((lc) => lc.mainAgentId);
+  let agentIds = [];
+  leadCad.map((lc) => {
+    if (!agentIds.includes(lc.mainAgentId)) {
+      agentIds.push(lc.mainAgentId);
+    }
+  });
   let agents = await db.MainAgentModel.findAll({
     where: {
       id: {
@@ -46,7 +54,12 @@ async function getUserData(batch, currentUser = null) {
       },
     },
   });
-  let leadIds = leadCad.map((lc) => lc.leadId);
+  let leadIds = [];
+  leadCad.map((lc) => {
+    if (!leadIds.includes(lc.leadId)) {
+      leadIds.push(lc.leadId);
+    }
+  });
   let leads = await db.LeadModel.findAll({
     where: {
       id: {
@@ -82,15 +95,25 @@ async function getUserData(batch, currentUser = null) {
 
   let agentCalls = [];
   for (const ag of agentIds) {
-    let calls = await GetScheduledCallsForAgent(ag);
+    let calls = await GetScheduledFutureCalls(ag, batch.id);
     agentCalls.push({ agentId: ag, calls: calls });
   }
+
+  let pastCalls = await db.LeadCallsSent.findAll({
+    where: {
+      batchId: batch.id,
+      mainAgentId: {
+        [db.Sequelize.Op.in]: agentIds,
+      },
+    },
+  });
 
   const BatchResource = {
     ...batch.get(),
     leads: await LeadResource(leads),
     agents: await AgentLiteResource(agents),
     agentCalls: agentCalls,
+    pastCalls: pastCalls,
   };
 
   return BatchResource;

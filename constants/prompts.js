@@ -1,9 +1,27 @@
 import {
   CommunityUpdateOutbound,
   CommunityUpdateInbound,
-} from "./communityUpdate.js";
+} from "./communityUpdatePrompt.js";
+import {
+  AbsenteeOwnerOutbound,
+  AbsenteeOwnerInbound,
+} from "./AbsenteeOwnerPrompt.js";
+import {
+  ExpiredListingInbound,
+  ExpiredListingOutbound,
+} from "./ExpiredListingPrompt.js";
+import {
+  ReactivationOutbound,
+  ReactivationInbound,
+} from "./ReactivationPrompt.js";
 
 export const Prompts = {
   CommunityUpdate: CommunityUpdateOutbound,
   CommunityUpdateInbound: CommunityUpdateInbound,
+  AbsenteeOwnerOutbound: AbsenteeOwnerOutbound,
+  AbsenteeOwnerInbound: AbsenteeOwnerInbound,
+  ExpiredListingInbound: ExpiredListingInbound,
+  ExpiredListingOutbound: ExpiredListingOutbound,
+  ReactivationOutbound: ReactivationOutbound,
+  ReactivationInbound: ReactivationInbound,
 };
