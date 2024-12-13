@@ -12,6 +12,7 @@ import {
   DeleteList,
   AddLeadNote,
   AddLeadTag,
+  DeleteLeadTag,
 } from "../controllers/LeadsController.js";
 
 const uploadFiles = multer().fields([
@@ -29,6 +30,7 @@ let LeadRouter = express.Router();
 LeadRouter.post("/addLeads", verifyJwtToken, AddLeads);
 LeadRouter.post("/addLeadNote", verifyJwtToken, uploadFiles, AddLeadNote);
 LeadRouter.post("/addLeadTag", verifyJwtToken, uploadFiles, AddLeadTag);
+LeadRouter.post("/deleteLeadTag", verifyJwtToken, uploadFiles, DeleteLeadTag);
 LeadRouter.post("/addSmartList", verifyJwtToken, AddSmartList);
 LeadRouter.post("/deleteList", verifyJwtToken, DeleteList);
 LeadRouter.get("/getLeads", verifyJwtToken, uploadFiles, GetLeads);
