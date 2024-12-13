@@ -29,8 +29,8 @@ CalendarRouter.post(
   uploadFiles,
   AddCalendarCalDotCom
 );
-CalendarRouter.post("/getAvailability", uploadFiles, CheckCalendarAvailability);
-CalendarRouter.get("/schedule", uploadFiles, ScheduleEvent);
+CalendarRouter.get("/getAvailability", uploadFiles, CheckCalendarAvailability);
+CalendarRouter.post("/schedule", uploadFiles, ScheduleEvent);
 CalendarRouter.get(
   "/calendars",
   verifyJwtToken,

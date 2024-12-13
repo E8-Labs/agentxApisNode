@@ -113,7 +113,9 @@ function GetActionApiData(user, assistant, type = "kb") {
         assistant.mainAgentId,
       run_action_before_call_start: true,
       name: `Check Availability For ${user.name}`,
-      description: "Check Availability For " + user.name,
+      description:
+        "Use the Check Availability action to verify the user's calendar for open time slots when booking a meeting, appointment, or event. Ensure you accurately query their schedule to find suitable availability and provide relevant options. ",
+      speech_while_using_the_tool: "One second, let me check the calendar",
       variables_during_the_call: [
         // {
         //   name: `date`,
@@ -351,7 +353,9 @@ function GetCalendarActionApiData(user, assistant) {
       `&mainAgentId=${assistant.mainAgentId}`,
     run_action_before_call_start: false,
     name: `Book Appointment With ${user.name}`,
-    description: "Book Appointment With " + user.name,
+    description:
+      "Use the Create a Booking action to schedule a meeting, appointment, or event directly in the user's calendar. Ensure the booking aligns with the user's preferences and availability to avoid conflicts.",
+    speech_while_using_the_tool: "One second, let me check the calendar",
     variables_during_the_call: [
       {
         name: `date`,
