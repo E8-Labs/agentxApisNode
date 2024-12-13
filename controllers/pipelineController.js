@@ -781,7 +781,9 @@ export const PausePipelineCadenceForAnAgent = async (req, res) => {
           status: BatchStatus.Paused,
         },
         {
-          id: batchId,
+          where: {
+            id: batchId,
+          },
         }
       );
 
