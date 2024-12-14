@@ -627,6 +627,88 @@ export const GetAgentCadence = async (req, res) => {
   });
 };
 
+export async function AssignLeads(
+  user,
+  pipelineId,
+  leadIds,
+  mainAgentIds,
+  startTimeDifFromNow = 0,
+  batchSize = 50
+) {
+  try {
+    let stage = await db.PipelineStages.findOne({
+      where: {
+        identifier: "new_lead",
+        pipelineId: pipelineId,
+      },
+      order: [["createdAt", "ASC"]],
+    });
+
+    let leadUpdated = await db.LeadModel.update(
+      {
+        stage: stage.id,
+      },
+      {
+        where: {
+          id: {
+            [db.Sequelize.Op.in]: leadIds,
+          },
+        },
+      }
+    );
+    let pipeline = await db.Pipeline.findByPk(pipelineId);
+    //Pause Older Batches. This code will be changed based on the new Batch Model
+    //Ideally user will not assign same leads to another batch.
+    await db.LeadCadence.update(
+      { status: CadenceStatus.Paused }, // Set status to 'Paused'
+      {
+        where: {
+          status: {
+            [db.Sequelize.Op.ne]: CadenceStatus.Paused, // Status not equal to 'Paused'
+          },
+          leadId: { [db.Sequelize.Op.in]: leadIds },
+          pipelineId: pipelineId,
+        },
+      }
+    );
+
+    const now = new Date();
+    const minutesToAdd = 30; // Replace with your desired number of minutes
+    let startTime = new Date(
+      now.getTime() + startTimeDifFromNow * 60000
+    ).toISOString();
+
+    // let startTime = startTimeDifFromNow;
+    let batch = await db.CadenceBatchModel.create({
+      pipelineId: pipelineId,
+      userId: user.id,
+      totalLeads: leadIds.length,
+      batchSize: batchSize,
+      startTime: startTime,
+    });
+    for (let i = 0; i < leadIds.length; i++) {
+      let leadId = leadIds[i];
+
+      //Update all others to paused
+
+      for (let j = 0; j < mainAgentIds.length; j++) {
+        let agentId = mainAgentIds[j];
+        let leadCadence = await db.LeadCadence.create({
+          leadId: leadId,
+          mainAgentId: agentId,
+          pipelineId: pipelineId,
+          // stage: stage.id, //New Lead stage
+          batchId: batch.id,
+        });
+      }
+    }
+    return pipeline;
+  } catch (error) {
+    console.log("Error assigning ", error);
+    return null;
+  }
+}
+
 //Start Calling
 export const AssignLeadsToPipelineAndAgents = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -648,88 +730,14 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       });
 
       //Get New Lead Stage of the Pipeline
-      let stage = await db.PipelineStages.findOne({
-        where: {
-          identifier: "new_lead",
-          pipelineId: pipelineId,
-        },
-        order: [["createdAt", "ASC"]],
-      });
-
-      let leadUpdated = await db.LeadModel.update(
-        {
-          stage: stage.id,
-        },
-        {
-          where: {
-            id: {
-              [db.Sequelize.Op.in]: leadIds,
-            },
-          },
-        }
+      let pipeline = await AssignLeads(
+        user,
+        pipelineId,
+        leadIds,
+        mainAgentIds,
+        startTimeDifFromNow,
+        batchSize
       );
-
-      let pipeline = await db.Pipeline.findByPk(pipelineId);
-      //Pause Older Batches. This code will be changed based on the new Batch Model
-      //Ideally user will not assign same leads to another batch.
-      await db.LeadCadence.update(
-        { status: CadenceStatus.Paused }, // Set status to 'Paused'
-        {
-          where: {
-            status: {
-              [db.Sequelize.Op.ne]: CadenceStatus.Paused, // Status not equal to 'Paused'
-            },
-            leadId: { [db.Sequelize.Op.in]: leadIds },
-            pipelineId: pipelineId,
-          },
-        }
-      );
-      const now = new Date();
-      const minutesToAdd = 30; // Replace with your desired number of minutes
-      let startTime = new Date(
-        now.getTime() + startTimeDifFromNow * 60000
-      ).toISOString();
-
-      // let startTime = startTimeDifFromNow;
-      let batch = await db.CadenceBatchModel.create({
-        pipelineId: pipelineId,
-        userId: userId,
-        totalLeads: leadIds.length,
-        batchSize: batchSize,
-        startTime: startTime,
-      });
-      for (let i = 0; i < leadIds.length; i++) {
-        let leadId = leadIds[i];
-
-        //Update all others to paused
-
-        for (let j = 0; j < mainAgentIds.length; j++) {
-          let agentId = mainAgentIds[j];
-          // let batch = batches[agentId];
-          // if (!batch) {
-          //   batch = await db.CadenceBatchModel.create({
-          //     pipelineId: pipelineId,
-          //     mainAgentId: agentId,
-          //     totalLeads: leadIds.length,
-          //     batchSize: batchSize,
-          //     startTime: startTime,
-          //   });
-          //   batches[agentId] = batch;
-          // }
-          let leadCadence = await db.LeadCadence.create({
-            leadId: leadId,
-            mainAgentId: agentId,
-            pipelineId: pipelineId,
-            // stage: stage.id, //New Lead stage
-            batchId: batch.id,
-          });
-
-          //Update the status of the Lead to New Lead
-          // await db.LeadModel.update({
-          //   stage:
-          // })
-        }
-      }
 
       return res.send({
         status: true,

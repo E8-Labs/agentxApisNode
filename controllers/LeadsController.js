@@ -15,6 +15,7 @@ import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import LeadResource from "../resources/LeadResource.js";
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 import LeadModel from "../models/lead/lead.js";
+import { AssignLeads } from "./pipelineController.js";
 
 export const AddLeads = async (req, res) => {
   let { sheetName, columnMappings, leads, tags } = req.body; // mainAgentId is the mainAgent id
@@ -116,12 +117,23 @@ export const AddLeads = async (req, res) => {
       });
 
       if (req.body.mainAgentIds) {
+        let leadIds = dbLeads.map((lead) => lead.id);
         let ids = req.body.mainAgentIds || [];
         if (!req.body.pipelineId) {
           //sen response
         }
         if (ids.length > 0) {
+          let pipelineId = req.body.pipelineId;
           //assign leads here as well
+          console.log("Assigning leads in Add Leads Function");
+          let pipeline = await AssignLeads(
+            user,
+            pipelineId,
+            leadIds,
+            ids,
+            req.body.startTimeDifFromNow || 0,
+            req.body.batchSize || 50
+          );
         }
       }
 
