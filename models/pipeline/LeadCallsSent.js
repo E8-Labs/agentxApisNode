@@ -156,6 +156,10 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       type: Sequelize.BOOLEAN,
       allowNull: true,
     },
+    movedToStage: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
   });
   LeadCallsSent.associate = (models) => {
     LeadCallsSent.belongsTo(models.LeadModel, {

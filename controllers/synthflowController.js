@@ -30,6 +30,7 @@ import {
   GetColumnsInSheet,
   mergeAndRemoveDuplicates,
 } from "./LeadsController.js";
+import dbConfig from "../config/dbConfig.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -1714,7 +1715,7 @@ export const WebhookSynthflow = async (req, res) => {
       batchId: null,
     });
     try {
-      await handleInfoExtractorValues(jsonIE, leadCad, lead, pipeline);
+      await handleInfoExtractorValues(jsonIE, leadCad, lead, pipeline, dbCall);
     } catch (error) {
       //console.log("Error handling IE details ", error);
     }
@@ -1748,7 +1749,13 @@ export const WebhookSynthflow = async (req, res) => {
 
   if (jsonIE) {
     try {
-      await handleInfoExtractorValues(jsonIE, leadCadence, lead, pipeline);
+      await handleInfoExtractorValues(
+        jsonIE,
+        leadCadence,
+        lead,
+        pipeline,
+        dbCall
+      );
     } catch (error) {
       console.log("Error handling IE details ", error);
     }
@@ -1861,7 +1868,13 @@ async function extractIEAndStoreKycs(extractors, lead, callId) {
   // return result;
 }
 
-async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
+async function handleInfoExtractorValues(
+  json,
+  leadCadence,
+  lead,
+  pipeline,
+  dbCall
+) {
   console.log("Handling IE ", json);
   let keys = Object.keys(json);
   const customStageIEs = keys.filter((str) =>
@@ -1887,6 +1900,9 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
           },
         });
         if (stage) {
+          dbCall.movedToStage = stage.id;
+          dbCall.stage = lead.stage;
+          let callSaved = await dbCall.save();
           lead.stage = stage.id;
           let saved = await lead.save();
           console.log(`Successfully Moved to ${stageIdentifier}`, json[csIE]);
@@ -1900,6 +1916,7 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
   }
   if (canMoveToDefaultStage) {
     console.log("I can move to default stage");
+    let moveToStage = null;
     if (json.hotlead || json.callbackrequested) {
       console.log("It's a hotlead");
       let hotLeadStage = await db.PipelineStages.findOne({
@@ -1909,8 +1926,9 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
         },
       });
       if (canMoveToDefaultStage) {
-        lead.stage = hotLeadStage.id;
-        let saved = await lead.save();
+        moveToStage = hotLeadStage.id;
+        // lead.stage = hotLeadStage.id;
+        // let saved = await lead.save();
       }
       //console.log(
       //   `Lead ${lead.firstName} move from ${leadCadence.stage} to Hot Lead`
@@ -1927,8 +1945,9 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
       });
 
       if (canMoveToDefaultStage) {
-        lead.stage = hotLeadStage.id;
-        await lead.save();
+        // lead.stage = hotLeadStage.id;
+        // await lead.save();
+        moveToStage = hotLeadStage.id;
       }
       leadCadence.dnd = json.dnd;
       leadCadence.notinterested = json.notinterested;
@@ -1948,7 +1967,8 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
       });
 
       if (canMoveToDefaultStage) {
-        lead.stage = hotLeadStage.id;
+        // lead.stage = hotLeadStage.id;
+        moveToStage = hotLeadStage.id;
       }
       // leadCadence.dnd = json.dnd;
       // leadCadence.notinterested = json.notinterested;
@@ -1973,10 +1993,11 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
       });
       if (lead.stage < followUpStage.id) {
         if (canMoveToDefaultStage) {
-          leadCadence.stage = followUpStage.id;
+          // lead.stage = followUpStage.id;
+          moveToStage = followUpStage.id;
         }
         leadCadence.nodecisionmaker = json.nodecisionmaker;
-        let saved = await lead.save();
+        // let saved = await lead.save();
         let cadSaved = await leadCadence.save();
         //console.log(
         //   `Lead ${lead.firstName} move from ${leadCadence.stage} to ${followUpStage.stageTitle}`
@@ -1984,6 +2005,13 @@ async function handleInfoExtractorValues(json, leadCadence, lead, pipeline) {
       } else {
         //console.log("User asked to call back but already on a further stage");
       }
+    }
+    if (moveToStage != null) {
+      dbCall.movedToStage = stage.id;
+      dbCall.stage = lead.stage;
+      let callSaved = await dbCall.save();
+      lead.stage = stage.id;
+      let saved = await lead.save();
     }
   }
 }
