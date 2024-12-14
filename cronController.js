@@ -358,10 +358,11 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       let calls = await db.LeadCallsSent.findAll({
         where: {
           leadCadenceId: leadCad.id,
-          stage: lead.stage,
+          // stage: lead.stage,
         },
         order: [["createdAt", "ASC"]],
       });
+      console.log(`Calls for ${leadCad.id} at stage ${lead.stage}`);
       let lastCall = calls[calls.length - 1];
       if (calls && calls.length > 0) {
         console.log(

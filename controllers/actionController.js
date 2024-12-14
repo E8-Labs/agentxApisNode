@@ -399,3 +399,28 @@ function GetCalendarActionApiData(user, assistant) {
     prompt: `Use the result from <results.data.message> and respond accordingly. Use <results.data.status> to check whether the appointment was booked or not.If true then booked else not. To get more idea use <result.data.data>`,
   };
 }
+
+export async function UpdateLiveTransferAction(action, phoneNumber) {
+  try {
+    let kyc = { phone: phoneNumber, actionType: "live_transfer" };
+    const response = await axios.post(
+      API_URL_Synthflow_Actions + `/${action}`,
+      GetInfoExtractorApiData(kyc),
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.SynthFlowApiKey}`,
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log("Live Transfer update response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error(
+      "Error Info Extractor:",
+      error.response ? error.response.data : error.message
+    );
+    return null;
+  }
+}

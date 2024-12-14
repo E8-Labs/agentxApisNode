@@ -5,6 +5,7 @@ import { UpdateAssistantSynthflow } from "./synthflowController.js";
 import {
   CreateAndAttachAction,
   CreateAndAttachInfoExtractor,
+  UpdateLiveTransferAction,
 } from "./actionController.js";
 import AvailablePhoneResource from "../resources/AvailablePhoneResource.js";
 const client = twilio(
@@ -375,7 +376,20 @@ export const AssignPhoneNumber = async (req, res) => {
                 });
               } else {
                 //update IE
-                console.log("Update IE not implemented");
+                let actionId = assistants[0].liveTransferActionId;
+                if (
+                  liveTransferNumber != assistants[0].liveTransferNumber ||
+                  !assistants[0].liveTransferNumber?.includes(
+                    liveTransferNumber
+                  )
+                ) {
+                  console.log("Update IE not implemented");
+                  console.log("Update Action here");
+                  let updated = await UpdateLiveTransferAction(
+                    actionId,
+                    liveTransferNumber
+                  );
+                }
               }
             }
             for (let i = 0; i < assistants.length; i++) {
