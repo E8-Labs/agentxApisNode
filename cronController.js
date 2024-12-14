@@ -171,7 +171,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
             agentType: "outbound",
           },
         });
-        if (diff >= waitTime) {
+        if (diff * 60 >= waitTime * 60 - 10) {
           console.log("Next call should be placed");
           try {
             let called = await MakeACall(leadCad, simulate, calls, batch.id);
@@ -430,7 +430,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           );
           let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
           console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
-          if (diff > 5) {
+          if (diff * 60 >= 70) {
             //60 * 24
             // greater than total minutes in a day = 60 * 24
             //move to next stage for now
@@ -464,7 +464,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
 
           let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
           console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
-          if (diff >= waitTime) {
+          if (diff * 60 >= waitTime * 60 - 5) {
             console.log(
               "CronRunCadenceCallsSubsequentStages: Next call should be placed for",
               leadCad.id
