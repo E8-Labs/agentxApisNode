@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import LeadEmailModel from "../models/lead/LeadEmails.js";
 // import {
 //   getTotalYapScore,
 //   getTotalReviews,
@@ -93,12 +94,18 @@ async function getUserData(lead, currentUser = null) {
       };
     });
   }
+  let emails = await LeadEmailModel.findAll({
+    where: {
+      leadId: lead.id,
+    },
+  });
   const LeadResource = {
     ...leadData,
     tags: tags, //{ ...tags, ...sheetTagsArray },
     kycs: kycs,
     notes: notes,
     callActivity: formattedCalls,
+    emails: emails,
     // sheetTagsArray,
   };
 

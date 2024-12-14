@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 import LeadCadenceResource from "./LeadCadenceResource.js";
 import PipelineCadenceResource from "./PipelineCadenceResource.js";
 import PipelineStageResource from "./PipelineStageResource.js";
@@ -49,6 +50,7 @@ async function getUserData(pipeline, currentUser = null) {
   let leadCadences = await db.LeadCadence.findAll({
     where: {
       pipelineId: pipeline.id,
+      status: CadenceStatus.Started,
     },
   });
 
