@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import LeadResource from "./LeadResource.js";
 // import {
 //   getTotalYapScore,
 //   getTotalReviews,
@@ -59,7 +60,7 @@ async function getUserData(leadCadence, currentUser = null) {
   const LeadCadenceResource = {
     ...leadCadence.get(),
     agent: agent,
-    lead: { ...lead.get(), ...sheetWithTags?.get() },
+    lead: await LeadResource(lead), //{ ...lead.get(), ...sheetWithTags?.get() },
   };
 
   return LeadCadenceResource;

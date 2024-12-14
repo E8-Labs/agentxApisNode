@@ -411,6 +411,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         //   callsStatusesToRecall
         // );
         console.log("So recalling");
+        //Check the calls on this stage and see how many are sent on the current stage lead is at
         let callsOnThisStage = await db.LeadCallsSent.findAll({
           where: {
             leadCadenceId: leadCad.id,
@@ -436,6 +437,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             console.log(
               "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
             );
+            console.log("Last Call ID ", lastCall.id);
             lead.stage = cadence.moveToStage;
             let saved = await lead.save();
             console.log(
