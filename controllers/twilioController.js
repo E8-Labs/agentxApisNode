@@ -432,7 +432,7 @@ export const AssignPhoneNumber = async (req, res) => {
                 );
                 assistant.phoneNumber = phoneNumber;
                 let updated = await UpdateAssistantSynthflow(assistant, {
-                  phone_number: phoneNumber.replace("+", ""),
+                  phone_number: phoneNumber,
                 });
               } else {
                 console.log(
