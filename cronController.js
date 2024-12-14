@@ -450,7 +450,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             calls.length + 1
           );
 
-          let nextCadenceCall = callCadence[calls.length];
+          let nextCadenceCall = callCadence[callsOnThisStage.length];
 
           let waitTime =
             Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
