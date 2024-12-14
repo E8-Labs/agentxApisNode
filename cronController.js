@@ -380,11 +380,14 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           "busy",
           "hangup_on_voicemail",
         ];
-        if (!callsStatusesToRecall.includes(lastCall.status)) {
+        if (lastCall.status == "completed" && lastCall.movedToStage == null) {
+          // last call completed with status completed but didn't move the lead to any stage so should call again
+        } else if (!callsStatusesToRecall.includes(lastCall.status)) {
           console.log("Last call completed with status", lastCall.status);
           // console.log("So recalling")
           continue;
         }
+
         console.log(
           "Last call completed with one of these statuses",
           callsStatusesToRecall
