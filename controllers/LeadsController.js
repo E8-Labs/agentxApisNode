@@ -114,6 +114,17 @@ export const AddLeads = async (req, res) => {
           },
         ],
       });
+
+      if (req.body.mainAgentIds) {
+        let ids = req.body.mainAgentIds || [];
+        if (!req.body.pipelineId) {
+          //sen response
+        }
+        if (ids.length > 0) {
+          //assign leads here as well
+        }
+      }
+
       let leadsRes = await LeadResource(dbLeads);
       res.send({
         status: true,
@@ -275,29 +286,38 @@ export const AddLeadTag = async (req, res) => {
   });
 };
 export const DeleteLeadTag = async (req, res) => {
-  let { tagId } = req.body; // mainAgentId is the mainAgent id
+  let { tagId, tag } = req.body; // mainAgentId is the mainAgent id
 
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
       //   if(userId == null)
-      let user = await db.User.findOne({
-        where: {
-          id: userId,
-        },
-      });
-
-      let deleted = await db.LeadTagsModel.destroy({
-        where: {
-          id: tagId,
-        },
-      });
-
-      res.send({
-        status: true,
-        message: `Tag deleted`,
-        data: null,
-      });
+      if (tagId || tag) {
+        if (tagId) {
+          let deleted = await db.LeadTagsModel.destroy({
+            where: {
+              id: tagId,
+            },
+          });
+        } else {
+          let deleted = await db.LeadTagsModel.destroy({
+            where: {
+              tag: tag,
+            },
+          });
+        }
+        res.send({
+          status: true,
+          message: `Tag deleted`,
+          data: null,
+        });
+      } else {
+        res.send({
+          status: false,
+          message: `Tag not deleted`,
+          data: null,
+        });
+      }
     } else {
       res.send({
         status: false,

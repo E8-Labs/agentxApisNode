@@ -49,7 +49,7 @@ export const verifyJwtToken = async (req, response, next) => {
         });
       }
     } else {
-      response(401).send({
+      response.status(401).send({
         status: false,
         message: "Invalid api key",
         data: null,

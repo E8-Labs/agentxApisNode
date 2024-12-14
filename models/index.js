@@ -43,6 +43,7 @@ import CalendarIntegration from "./user/calendarIntegration.js";
 import CadenceBatchModel from "./pipeline/CadenceBatchModel.js";
 import LeadNotesModel from "./lead/LeadNotesModel.js";
 import LeadEmailModel from "./lead/LeadEmails.js";
+import WebhookModel from "./webhooks/WebhookModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -82,6 +83,8 @@ db.AgentModel = AgentModel(sequelize, Sequelize);
 db.KycModel = KycModel(sequelize, Sequelize);
 db.KycExampleModel = KycExampleModel(sequelize, Sequelize);
 db.InfoExtractorModel = InfoExtractorModel(sequelize, Sequelize);
+
+db.WebhookModel = WebhookModel(sequelize, Sequelize);
 
 // Pipeline models
 db.Stages = Stages(sequelize, Sequelize);

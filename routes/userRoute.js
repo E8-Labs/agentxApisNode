@@ -9,6 +9,11 @@ import {
   CheckEmailExists,
 } from "../controllers/userController.js";
 
+import {
+  CreateWebhook,
+  GetAllWebhooks,
+} from "../controllers/WebhookController.js";
+
 import { GenerateApiKey, GetMyApiKeys } from "../controllers/apiController.js";
 
 const uploadFiles = multer().fields([
@@ -28,6 +33,9 @@ UserRouter.post("/register", uploadFiles, RegisterUser);
 
 UserRouter.post("/generateApiKey", verifyJwtToken, GenerateApiKey);
 UserRouter.get("/apiKeys", verifyJwtToken, GetMyApiKeys);
+
+UserRouter.post("/createWebhook", verifyJwtToken, CreateWebhook);
+UserRouter.get("/getWebhooks", verifyJwtToken, GetAllWebhooks);
 
 // UserRouter.post("/updateProfile", verifyJwtToken, uploadFiles, UpdateProfile);
 UserRouter.post("/checkPhoneNumber", CheckPhoneExists);
