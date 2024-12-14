@@ -131,7 +131,7 @@ function GetActionApiData(user, assistant, type = "kb") {
         //   value: "11-08-2024",
         // },
       ],
-      prompt: `You can use <results.data.data[]>   to check for the calendar availability for the user`,
+      prompt: `You can use <results.data.data>   to check for the calendar availability for the user`,
     };
   }
 }

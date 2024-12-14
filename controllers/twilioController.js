@@ -341,7 +341,7 @@ export const AssignPhoneNumber = async (req, res) => {
 
         let alreadyPurchased = false;
         if (phoneNumberDB && phoneNumberDB.phone) {
-          alreadyPurchased = false;
+          alreadyPurchased = true;
         }
         // for (let i = 0; i < mainAgents.length; i++) {
         //   let ma = mainAgents[i];
