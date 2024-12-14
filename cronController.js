@@ -406,12 +406,20 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           continue;
         }
 
-        console.log(
-          "Last call completed with one of these statuses",
-          callsStatusesToRecall
-        );
+        // console.log(
+        //   "Last call completed with one of these statuses",
+        //   callsStatusesToRecall
+        // );
         console.log("So recalling");
-        if (calls.length == callCadence.length) {
+        let callsOnThisStage = await db.LeadCallsSent.findAll({
+          where: {
+            leadCadenceId: leadCad.id,
+            stage: lead.stage,
+          },
+        });
+        console.log("Total Cals ", calls.length);
+        console.log(`Calls on ${lead.stage} ${callsOnThisStage.length}`);
+        if (callsOnThisStage.length == callCadence.length) {
           //Don't send calls
           //All calls are sent to this lead already so we have to determine whether we push it to the next stage or do what?
           //We can either move the lead cadence to the next stage or leave it to the outcome of the call.

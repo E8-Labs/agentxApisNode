@@ -436,7 +436,7 @@ async function initiateCall(
           summary: "",
           status: "",
           agentId: assistant.id,
-          stage: leadCadence?.stage,
+          stage: lead?.stage,
           mainAgentId: mainAgentModel.id,
           batchId: batchId,
         });
