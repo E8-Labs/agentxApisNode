@@ -362,9 +362,13 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         },
         order: [["createdAt", "ASC"]],
       });
-      console.log(`Calls for ${leadCad.id} at stage ${lead.stage}`);
-      let lastCall = calls[calls.length - 1];
+      console.log(
+        `Calls for ${leadCad.id} at stage ${lead.stage}`,
+        calls.length
+      );
+
       if (calls && calls.length > 0) {
+        let lastCall = calls[calls.length - 1];
         console.log(
           "CronRunCadenceCallsSubsequentStages: Calls sent to this lead ",
           calls.length
@@ -380,8 +384,22 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           "busy",
           "hangup_on_voicemail",
         ];
-        if (lastCall.status == "completed" && lastCall.movedToStage == null) {
-          // last call completed with status completed but didn't move the lead to any stage so should call again
+
+        if (lastCall.status == "completed") {
+          // last call completed with status completed
+          //but didn't move the lead to any stage so should call again
+          if (lead.stage != lastCall.stage) {
+            //last call moved the lead to new stage
+            console.log(
+              "last call moved the lead to new stage",
+              lastCall.movedToStage
+            );
+          }
+          if (lastCall.movedToStage == null) {
+          }
+          //but moved the lead to any stage so should call again
+          else if (lastCall.movedToStage != null) {
+          }
         } else if (!callsStatusesToRecall.includes(lastCall.status)) {
           console.log("Last call completed with status", lastCall.status);
           // console.log("So recalling")
@@ -501,9 +519,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           let called = await MakeACall(leadCad, simulate, calls, batch.id);
           if (called.status) {
             //set the lead cadence status to Started so that next time it don't get pushed to the funnel
-            leadCad.callTriggerTime = new Date();
-            leadCad.status = CadenceStatus.Started;
-            let saved = await leadCad.save();
+            // leadCad.callTriggerTime = new Date();
+            // leadCad.status = CadenceStatus.Started;
+            // let saved = await leadCad.save();
             console.log("CronRunCadenceCallsSubsequentStages: CallSent now");
           }
           //if you want to simulate
