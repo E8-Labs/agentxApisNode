@@ -375,7 +375,7 @@ export const DeletePipelineStage = async (req, res) => {
       );
 
       //Update Lead Cadence to moveToStage if they are on the deleted stage
-      let leadCadUpdate = await db.LeadCadence.update(
+      let leadCadUpdate = await db.LeadModel.update(
         {
           stage: moveToStage,
         },
