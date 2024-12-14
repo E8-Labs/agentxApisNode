@@ -350,41 +350,66 @@ export const DeletePipelineStage = async (req, res) => {
       //Then use the logics accordingly.
 
       //update all cadence that move to the stage which is deleted stage
-      let cadUpdate = await db.PipelineCadence.update(
-        {
-          moveToStage: moveToStage,
-        },
-        {
+      if (moveToStage) {
+        let cadUpdate = await db.PipelineCadence.update(
+          {
+            moveToStage: moveToStage,
+          },
+          {
+            where: {
+              pipelineId: pipelineId,
+              moveToStage: stageId,
+            },
+          }
+        );
+
+        let cadUpdatedStageId = await db.PipelineCadence.update(
+          {
+            stage: moveToStage,
+          },
+          {
+            where: {
+              pipelineId: pipelineId,
+              stage: stageId,
+            },
+          }
+        );
+
+        //Update Lead Cadence to moveToStage if they are on the deleted stage
+        let leadCadUpdate = await db.LeadModel.update(
+          {
+            stage: moveToStage,
+          },
+          {
+            where: {
+              stage: stageId,
+            },
+          }
+        );
+      } else {
+        let leadCadUpdate = await db.LeadModel.update(
+          {
+            stage: null,
+          },
+          {
+            where: {
+              stage: stageId,
+            },
+          }
+        );
+        let cadUpdatedStageId = await db.PipelineCadence.destroy({
+          where: {
+            pipelineId: pipelineId,
+            stage: stageId,
+          },
+        });
+        let cadUpdate = await db.PipelineCadence.destroy({
           where: {
             pipelineId: pipelineId,
             moveToStage: stageId,
           },
-        }
-      );
-
-      let cadUpdatedStageId = await db.PipelineCadence.update(
-        {
-          stage: moveToStage,
-        },
-        {
-          where: {
-            pipelineId: pipelineId,
-            stage: stageId,
-          },
-        }
-      );
-
-      //Update Lead Cadence to moveToStage if they are on the deleted stage
-      let leadCadUpdate = await db.LeadModel.update(
-        {
-          stage: moveToStage,
-        },
-        {
-          where: {
-            stage: stageId,
-          },
-        }
-      );
+        });
+      }
 
       //Delete Action created
       if (stage.actionId != null) {
