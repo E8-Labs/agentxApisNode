@@ -94,7 +94,7 @@ async function getUserData(lead, currentUser = null) {
       };
     });
   }
-  let emails = await LeadEmailModel.findAll({
+  let emails = await db.LeadEmailModel.findAll({
     where: {
       leadId: lead.id,
     },
