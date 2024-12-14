@@ -2007,10 +2007,10 @@ async function handleInfoExtractorValues(
       }
     }
     if (moveToStage != null) {
-      dbCall.movedToStage = stage.id;
+      dbCall.movedToStage = moveToStage; //stage.id;
       dbCall.stage = lead.stage;
       let callSaved = await dbCall.save();
-      lead.stage = stage.id;
+      lead.stage = moveToStage; //stage.id;
       let saved = await lead.save();
     }
   }
