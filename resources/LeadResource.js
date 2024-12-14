@@ -52,9 +52,9 @@ async function getUserData(lead, currentUser = null) {
     },
   });
   let sheetTagsArray = sheetTags.map((tag) => tag.tag);
-  for (let t of sheetTagsArray) {
-    tags.push(t);
-  }
+  // for (let t of sheetTagsArray) {
+  //   tags.push(t);
+  // }
 
   let kycs = await db.LeadKycsExtracted.findAll({
     where: {
