@@ -105,6 +105,61 @@ async function getAllSchedules(apiKey) {
   }
 }
 
+// export async function CheckCalendarAvailabilityOld(req, res) {
+//   // const { agentId } = req.body;
+//   const mainAgentId = req.query.mainAgentId;
+
+//   // if (!date || !time) {
+//   //   return res.status(400).send({
+//   //     status: false,
+//   //     message: "Date and time are required.",
+//   //   });
+//   // }
+
+//   // Retrieve calendar integration for the main agent
+//   const calIntegration = await db.CalendarIntegration.findOne({
+//     where: { mainAgentId: mainAgentId },
+//   });
+
+//   if (!calIntegration) {
+//     return res.status(404).send({
+//       status: false,
+//       message: "Calendar integration not found.",
+//     });
+//   }
+
+//   try {
+//     // Query the calendar API for availability
+//     let data = await getAllSchedules(calIntegration.apiKey);
+//     console.log(data);
+//     // return;
+
+//     // const responseData = await response.json();
+
+//     if (data) {
+//       return res.send({
+//         status: true,
+//         message: "User Schedule",
+//         data: data,
+//       });
+//     } else {
+//       console.error("Error checking availability:", responseData);
+//       return res.status(response.status).send({
+//         status: false,
+//         message: "Failed to check availability.",
+//         data: responseData,
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error during availability check:", error.message);
+//     return res.status(500).send({
+//       status: false,
+//       message: "An error occurred while checking availability.",
+//       error: error.message,
+//     });
+//   }
+// }
+
 export async function CheckCalendarAvailability(req, res) {
   // const { agentId } = req.body;
   const mainAgentId = req.query.mainAgentId;
@@ -130,8 +185,15 @@ export async function CheckCalendarAvailability(req, res) {
 
   try {
     // Query the calendar API for availability
-    let data = await getAllSchedules(calIntegration.apiKey);
+    let data = await fetchAvailableSlotsForNext15Days(
+      calIntegration.apiKey,
+      calIntegration.eventId
+    );
     console.log(data);
+    // let formatted = "";
+    // if (data) {
+    //   formatted = formatAvailableSlots(data);
+    // }
     // return;
 
     // const responseData = await response.json();
@@ -143,11 +205,11 @@ export async function CheckCalendarAvailability(req, res) {
         data: data,
       });
     } else {
-      console.error("Error checking availability:", responseData);
-      return res.status(response.status).send({
+      console.error("Error checking availability:", data);
+      return res.status(200).send({
         status: false,
         message: "Failed to check availability.",
-        data: responseData,
+        data: data,
       });
     }
   } catch (error) {
@@ -160,6 +222,52 @@ export async function CheckCalendarAvailability(req, res) {
   }
 }
 
+const formatAvailableSlots = (data) => {
+  const slots = data.slots; // Extract the slots object
+  let slotsString = "";
+
+  // Iterate through the slots object
+  for (const [date, times] of Object.entries(slots)) {
+    slotsString += `${date}:\n`; // Add the date as a header
+    times.forEach((slot) => {
+      // Convert time to a readable format
+      const formattedTime = new Date(slot.time).toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      slotsString += `  ${formattedTime}\n`;
+    });
+    slotsString += "\n"; // Add a newline after each date
+  }
+
+  return slotsString;
+};
+const fetchAvailableSlotsForNext15Days = async (apiKey, eventTypeId) => {
+  const today = new Date();
+  const startTime = today.toISOString(); // Today's date in ISO format
+
+  // Add 15 days to today's date
+  const endTime = new Date(today);
+  endTime.setDate(today.getDate() + 15);
+
+  try {
+    const response = await axios.get("https://api.cal.com/v2/slots/available", {
+      headers: {
+        Authorization: "Bearer " + apiKey,
+      },
+      params: {
+        startTime: startTime, // Start today
+        endTime: endTime.toISOString(), // End 15 days from today
+        eventTypeId: eventTypeId, // Replace with your actual eventTypeId
+      },
+    });
+    console.log(response.data);
+    return response.data;
+  } catch (error) {
+    console.error(error.response ? error.response.data : error.message);
+    return null;
+  }
+};
 function getParsedTime(time) {
   const timeFormats = [
     "HH:mm",
