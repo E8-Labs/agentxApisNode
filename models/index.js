@@ -44,6 +44,7 @@ import CadenceBatchModel from "./pipeline/CadenceBatchModel.js";
 import LeadNotesModel from "./lead/LeadNotesModel.js";
 import LeadEmailModel from "./lead/LeadEmails.js";
 import WebhookModel from "./webhooks/WebhookModel.js";
+import ScheduledBooking from "./pipeline/ScheduledBooking.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -109,6 +110,8 @@ db.LeadSheetColumnModel.belongsTo(db.LeadSheetModel, {
 
 db.LeadModel = LeadModel(sequelize, Sequelize);
 models["LeadModel"] = db.LeadModel;
+
+db.ScheduledBooking = ScheduledBooking(sequelize, Sequelize);
 
 db.LeadEmailModel = LeadEmailModel(sequelize, Sequelize);
 

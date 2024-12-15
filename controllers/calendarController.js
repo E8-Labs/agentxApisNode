@@ -501,6 +501,14 @@ export async function ScheduleEvent(req, res) {
     const responseData = await response.json();
     if (response.ok) {
       console.log("Event scheduled successfully:", responseData);
+      if (lead) {
+        console.log("Lead was found so creating event");
+        await db.ScheduledBooking.create({
+          leadId: lead.id,
+          mainAgentId: mainAgentId,
+          datetime: startTimeISO,
+        });
+      }
       return res.send({
         status: true,
         message: "Event scheduled successfully",
