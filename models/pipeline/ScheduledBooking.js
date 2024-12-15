@@ -14,7 +14,7 @@ const ScheduledBooking = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: false,
       references: {
-        model: "Users",
+        model: "LeadModels",
         key: "id",
       },
       onDelete: "CASCADE",

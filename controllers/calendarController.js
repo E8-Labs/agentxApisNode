@@ -2,6 +2,7 @@ import JWT from "jsonwebtoken";
 import db from "../models/index.js";
 import axios from "axios";
 import GHL from "../utils/ghl.js";
+import { toZonedTime, formatInTimeZone, toDate } from "date-fns-tz";
 
 import {
   AttachActionToModel,
@@ -14,6 +15,19 @@ import {
 } from "./actionController.js";
 
 import { parse, isValid, format } from "date-fns";
+
+import { DateTime } from "luxon";
+
+const convertToPacificTime = (isoString) => {
+  // Parse the ISO string with the original timezone offset
+  const dateTime = DateTime.fromISO(isoString, { setZone: true });
+
+  // Convert to the Pacific Time Zone (America/Los_Angeles)
+  const pacificTime = dateTime.setZone("America/Los_Angeles");
+
+  // Format the result as an ISO string
+  return pacificTime.toISO();
+};
 
 const CAL_API_URL = "https://api.cal.com/v2";
 
@@ -37,128 +51,6 @@ function getTomorrowDate() {
   tomorrow.setDate(today.getDate() + 1);
   return tomorrow.toISOString().split("T")[0];
 }
-
-// export const CheckCalendarAvailability = async (req, res) => {
-//   let modelId = req.query.assistantId || null;
-//   if (!modelId) {
-//     modelId = req.query.modelId;
-//   }
-//   if (!modelId) {
-//     return res.send({
-//       status: false,
-//       message: "No such model Id",
-//     });
-//   }
-//   console.log("Hello in Custom action Check availability", modelId);
-//   let q = req.query.date;
-//   console.log("Date that the user want to check is ", q);
-//   return res.send({
-//     status: true,
-//     message: "No slots are available to book",
-//   });
-// };
-
-// import fetch from "node-fetch"; // Make sure to install this package if needed
-
-async function getAllSchedules(apiKey) {
-  const options = {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${apiKey}`, // Replace with your actual token
-      "cal-api-version": "2024-06-11", // Default API version
-    },
-  };
-
-  try {
-    const response = await fetch("https://api.cal.com/v2/schedules", options);
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.status} - ${response.statusText}`);
-    }
-
-    const schedulesResponse = await response.json(); // Directly parse the JSON array
-    console.log(
-      "Raw Schedules Response:",
-      JSON.stringify(schedulesResponse, null, 2)
-    );
-
-    // Parse and format the schedules
-    const formattedSchedules = schedulesResponse.data.map((schedule) => ({
-      id: schedule.id,
-      name: schedule.name,
-      timeZone: schedule.timeZone,
-      availability: schedule.availability.map((availability) => ({
-        days: availability.days,
-        startTime: availability.startTime,
-        endTime: availability.endTime,
-      })),
-      isDefault: schedule.isDefault,
-    }));
-
-    console.log("Parsed Schedules:");
-    console.log(JSON.stringify(formattedSchedules, null, 2));
-
-    return formattedSchedules;
-  } catch (error) {
-    console.error("Error fetching schedules:", error.message);
-    return null;
-  }
-}
-
-// export async function CheckCalendarAvailabilityOld(req, res) {
-//   // const { agentId } = req.body;
-//   const mainAgentId = req.query.mainAgentId;
-
-//   // if (!date || !time) {
-//   //   return res.status(400).send({
-//   //     status: false,
-//   //     message: "Date and time are required.",
-//   //   });
-//   // }
-
-//   // Retrieve calendar integration for the main agent
-//   const calIntegration = await db.CalendarIntegration.findOne({
-//     where: { mainAgentId: mainAgentId },
-//   });
-
-//   if (!calIntegration) {
-//     return res.status(404).send({
-//       status: false,
-//       message: "Calendar integration not found.",
-//     });
-//   }
-
-//   try {
-//     // Query the calendar API for availability
-//     let data = await getAllSchedules(calIntegration.apiKey);
-//     console.log(data);
-//     // return;
-
-//     // const responseData = await response.json();
-
-//     if (data) {
-//       return res.send({
-//         status: true,
-//         message: "User Schedule",
-//         data: data,
-//       });
-//     } else {
-//       console.error("Error checking availability:", responseData);
-//       return res.status(response.status).send({
-//         status: false,
-//         message: "Failed to check availability.",
-//         data: responseData,
-//       });
-//     }
-//   } catch (error) {
-//     console.error("Error during availability check:", error.message);
-//     return res.status(500).send({
-//       status: false,
-//       message: "An error occurred while checking availability.",
-//       error: error.message,
-//     });
-//   }
-// }
 
 export async function CheckCalendarAvailability(req, res) {
   // const { agentId } = req.body;
@@ -449,8 +341,12 @@ export async function ScheduleEvent(req, res) {
   // Combine parsed date and time into a single Date object
 
   parsedDate.setHours(parsedTime.getHours(), parsedTime.getMinutes(), 0, 0);
+  console.log(`Parsed Date: ${parsedDate} `);
   const startTimeISO = format(parsedDate, "yyyy-MM-dd'T'HH:mm:ssXXX");
+  const pacificTime = convertToPacificTime(startTimeISO);
 
+  console.log("Pacific Time:", pacificTime);
+  // return;
   // Consider the calendar is cal.com
   let apiKey = calIntegration.apiKey;
   let eventTypeId = Number(calIntegration.eventId); // Ensure this is a number
@@ -532,6 +428,164 @@ export async function ScheduleEvent(req, res) {
     });
   }
 }
+
+const validTimeZone = (timeZone) => {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const convertToCalendarTimeZoneExact = (
+  userDate,
+  userTime,
+  calendarTimeZone
+) => {
+  // Combine the user-provided date and time into a single string
+  const dateTimeString = `${userDate} ${userTime}`;
+
+  // Parse it as a date-time in the calendar's timezone
+  const calendarDateTime = toDate(dateTimeString, {
+    timeZone: calendarTimeZone,
+  });
+
+  // Format it as an ISO string in the calendar's timezone
+  const calendarISO = formatInTimeZone(
+    calendarDateTime,
+    calendarTimeZone,
+    "yyyy-MM-dd'T'HH:mm:ssXXX"
+  );
+
+  return calendarISO;
+};
+
+// export async function ScheduleEventNewInProgress(req, res) {
+//   let { user_email, date, time, lead_name, lead_phone } = req.body;
+//   console.log("Schedule meeting with date and time: ", {
+//     user_email,
+//     date,
+//     time,
+//   });
+
+//   let mainAgentId = req.query.mainAgentId;
+//   let modelId = req.query.modelId || null;
+
+//   if (!modelId) {
+//     return res.send({
+//       status: false,
+//       message: "No such model Id",
+//     });
+//   }
+
+//   // Fetch agent and integration details (unchanged)
+//   let agent = await db.AgentModel.findOne({ where: { id: modelId } });
+//   if (!agent) {
+//     return res.send({
+//       status: false,
+//       message: "Meeting cannot be scheduled",
+//       data: "Meeting cannot be scheduled",
+//     });
+//   }
+//   let mainAgent = await db.MainAgentModel.findOne({
+//     where: { id: mainAgentId },
+//   });
+//   let user = await db.User.findByPk(mainAgent.userId);
+//   let calIntegration = await db.CalendarIntegration.findOne({
+//     where: { mainAgentId: mainAgent.id },
+//   });
+//   if (!calIntegration) {
+//     return res.send({
+//       status: false,
+//       message: "Meeting cannot be scheduled",
+//       data: "Meeting cannot be scheduled",
+//     });
+//   }
+
+//   // Parse date and time
+//   let parsedDate = getParsedDate(date).data; // Returns a Date object
+//   let parsedTime = getParsedTime(time).data; // Returns a Date object
+
+//   // console.log(`Parsed Date: ${parsedDate} Time: ${parsedTime}`);
+//   // if (!parsedDate || !parsedTime) {
+//   //   return res.send({
+//   //     status: false,
+//   //     message: "Invalid date time",
+//   //     data: { parsedDate, parsedTime },
+//   //   });
+//   // }
+
+//   // Combine date and time into a single Date object
+//   parsedDate.setHours(parsedTime.getHours(), parsedTime.getMinutes(), 0, 0);
+//   let userTimeZone = "America/Los_Angeles";
+//   const calendarISO = convertToCalendarTimeZoneExact(date, time, userTimeZone);
+//   console.log("Calendar Tz ", calendarISO);
+//   userTimeZone = validTimeZone(userTimeZone) ? userTimeZone : "UTC"; // Adjust based on user's time zone
+
+//   console.log("Using time zone:", userTimeZone);
+//   // const parsedDate = new Date(`${date}T${time}:00`); // Combine date and time into a single Date object
+//   const zonedDate = toZonedTime(parsedDate, userTimeZone);
+//   const startTimeISO = formatInTimeZone(
+//     zonedDate,
+//     userTimeZone,
+//     "yyyy-MM-dd'T'HH:mm:ssXXX"
+//   );
+
+//   console.log("Zoned Date:", zonedDate);
+//   console.log("Formatted Start Time (ISO):", startTimeISO);
+//   return;
+//   // Proceed with scheduling (rest of your code)
+//   let inputData = {
+//     start: startTimeISO, // Use the ISO string of the UTC time
+//     eventTypeId: Number(calIntegration.eventId),
+//     // lengthInMinutes: 30, // Adjust if necessary
+//     attendee: {
+//       name: lead_name || "Caller",
+//       email: user_email || "example@domain.com",
+//       timeZone: userTimeZone, // User's time zone
+//       language: "en",
+//     },
+//     metadata: {},
+//   };
+
+//   try {
+//     const response = await fetch(`${CAL_API_URL}/bookings`, {
+//       method: "POST",
+//       headers: {
+//         Authorization: `Bearer ${calIntegration.apiKey}`,
+//         "Content-Type": "application/json",
+//         "cal-api-version": "2024-08-13",
+//       },
+//       body: JSON.stringify(inputData),
+//     });
+
+//     const responseData = await response.json();
+//     if (response.ok) {
+//       console.log("Event scheduled successfully:", responseData);
+//       // Save booking to your database if necessary
+//       return res.send({
+//         status: true,
+//         message: "Event scheduled successfully",
+//         data: responseData,
+//       });
+//     } else {
+//       console.error("Error scheduling event:", JSON.stringify(responseData));
+//       return res.send({
+//         status: false,
+//         message: "Meeting cannot be scheduled",
+//         data: responseData,
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Error scheduling event:", error.message);
+//     return res.send({
+//       status: false,
+//       message: "Meeting cannot be scheduled",
+//       error: error.message,
+//     });
+//   }
+// }
 
 export async function AddCalendarCalDotCom(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {

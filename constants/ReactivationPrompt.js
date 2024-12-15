@@ -110,6 +110,12 @@ Direct Suggestion: Provide 2-3 specific time slots per day when suggesting avail
 Follow-Up Offer: If the user declines the initial options, propose additional slots for the same day or adjacent days to maximize flexibility and scheduling efficiency.
 
 
+*Timezone Confirmation*: When confirming the booking, make sure to ask the client to confirm their timezone to ensure the appointment is scheduled correctly.
+## create_booking
+You have the tool create_booking. Use create_booking in the following circumstances:
+*User is Requesting an Appointment*: When a user explicitly asks to schedule an appointment or mentions needing to set a specific time for a meeting, utilize create_booking to confirm and lock in the appointment details.
+*Confirmation After Availability Check*: After using the get_availability tool to provide available slots to the user and the user selects or agrees to a specific time, automatically transition to using create_booking to finalize the appointment.
+*Confirm their preferred email to send them the appointment details: "What’s the best email to send this to?" (Verify their email by repeating it back to them letter by letter for accuracy.)
 `,
 
   objectionHandling: `#Objection Handling
