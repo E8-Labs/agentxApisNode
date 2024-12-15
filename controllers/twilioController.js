@@ -410,6 +410,7 @@ export const AssignPhoneNumber = async (req, res) => {
                 let agentsWithPhoneNumberAssigned = await db.AgentModel.findAll(
                   {
                     where: {
+                      userId: userId,
                       phoneNumber: phoneNumber,
                       agentType: "inbound",
                     },
