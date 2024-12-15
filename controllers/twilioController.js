@@ -305,6 +305,14 @@ export const AssignPhoneNumber = async (req, res) => {
   if (!phoneNumber.startsWith("+")) {
     phoneNumber = "+" + phoneNumber;
   }
+  if (agentId && mainAgentId) {
+    //can not happen
+    return res.send({
+      status: false,
+      message: "Only one of these required agentId or mainAgentId",
+      data: null,
+    });
+  }
 
   console.log("AssignDataPhone", {
     phoneNumber,

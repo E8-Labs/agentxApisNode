@@ -93,7 +93,7 @@ export const AddLeads = async (req, res) => {
           } else if (lead.phone.startsWith("1")) {
             lead.phone = "+" + lead.phone;
           }
-          if (leads.length == 12) {
+          if (lead.phone.length == 12) {
             // only push the lead if the number is valid
             let createdLead = await db.LeadModel.create({
               ...lead,
