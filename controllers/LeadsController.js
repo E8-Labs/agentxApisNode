@@ -689,7 +689,6 @@ export const GetCallLogs = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
-      //   if(userId == null)
       let user = await db.User.findOne({
         where: {
           id: userId,
@@ -697,7 +696,8 @@ export const GetCallLogs = async (req, res) => {
       });
 
       try {
-        const { name, duration, status } = req.query; //duration in seconds
+        const { name, duration, status, startDate, endDate, stageIds } =
+          req.query; // duration in seconds
 
         // Define filters
         const filters = {};
@@ -721,6 +721,19 @@ export const GetCallLogs = async (req, res) => {
           filters.status = { [Op.like]: `%${status}%` };
         }
 
+        if (startDate && endDate) {
+          filters.createdAt = {
+            [Op.between]: [new Date(startDate), new Date(endDate)],
+          };
+        }
+
+        if (stageIds) {
+          const stagesArray = stageIds
+            .split(",")
+            .map((id) => parseInt(id.trim(), 10));
+          filters.stage = { [Op.in]: stagesArray };
+        }
+
         // Query to fetch call logs
         const callLogs = await db.LeadCallsSent.findAll({
           where: filters,
@@ -728,19 +741,12 @@ export const GetCallLogs = async (req, res) => {
             {
               model: db.LeadModel,
               as: "LeadModel",
-              // attributes: ["firstName", "lastName", "email", "phone"],
             },
             {
               model: db.PipelineStages,
               as: "PipelineStages",
-              // attributes: ["stageTitle"],
             },
           ],
-          // attributes: [
-          //   "duration",
-          //   "createdAt",
-          //   [db.sequelize.literal("duration / 60"), "callDurationMinutes"],
-          // ],
         });
 
         // Map and format the data
@@ -770,6 +776,7 @@ export const GetCallLogs = async (req, res) => {
         message: "Lead Sheets List",
       });
     } else {
+      return res.status(403).json({ success: false, error: "Unauthorized" });
     }
   });
 };
