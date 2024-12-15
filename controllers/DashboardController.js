@@ -146,11 +146,18 @@ export const GetDashboardData = async (req, res) => {
         return `${min} min ${sec} sec`;
       };
 
+      let avDuration = 0;
+      if (callsInCurrentPeriod && callsInCurrentPeriod.length > 0) {
+        avDuration = stats.totalDuration / callsInCurrentPeriod.length;
+      }
+      let formattedAvDuration = formatDuration(avDuration);
+
       return res.send({
         status: true,
         data: {
           stats: {
             totalDuration: formatDuration(stats.totalDuration),
+            avDuration: formattedAvDuration,
             totalCalls: stats.totalCalls,
             totalCallsGt10: stats.totalCallsGt10,
             notInterested: stats.notInterested,
