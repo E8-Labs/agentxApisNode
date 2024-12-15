@@ -387,7 +387,7 @@ function getParsedDate(date) {
   return { status: true, message: "Parsed", data: parsedDate };
 }
 export async function ScheduleEvent(req, res) {
-  let { user_email, date, time } = req.body;
+  let { user_email, date, time, lead_name, lead_phone } = req.body;
   console.log("Schedule meeting with date and time: ", {
     user_email,
     date,
@@ -460,12 +460,19 @@ export async function ScheduleEvent(req, res) {
       email: user_email,
     },
   });
+  if (!lead) {
+    lead = await db.LeadModel.findOne({
+      where: {
+        phone: lead_phone,
+      },
+    });
+  }
   let inputData = {
     start: startTimeISO, // Use combined ISO date-time string for the start time
     eventTypeId: eventTypeId,
     // lengthInMinutes: 30,
     attendee: {
-      name: lead?.name || "Caller",
+      name: lead?.name || lead_name || "Caller",
       email: user_email || "salman@e8-labs.com",
       timeZone: "America/New_York", // Ensure it's a valid IANA time-zone
       language: "en", // Ensure this is a string

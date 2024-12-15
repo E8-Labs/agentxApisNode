@@ -341,7 +341,20 @@ export const TestAI = async (req, res) => {
         });
       }
 
-      let lead = { firstName: name, phone: phone, extraColumns: extraColumns };
+      let lead = await db.LeadModel.findOne({
+        where: {
+          phone: phone,
+        },
+      });
+
+      if (!lead) {
+        // { firstName: name, phone: phone, extraColumns: extraColumns };
+        lead = await db.LeadModel.create({
+          phone: phone,
+          firstName: name,
+          extraColumns: JSON.stringify(extraColumns),
+        });
+      }
 
       try {
         let basePrompt = await GetCompletePromptTextFrom(
