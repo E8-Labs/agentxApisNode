@@ -296,6 +296,7 @@ export const AssignPhoneNumber = async (req, res) => {
   let {
     phoneNumber,
     mainAgentId,
+    agentId,
     callbackNumber,
     liveTransferNumber,
     liveTransfer,
@@ -308,6 +309,7 @@ export const AssignPhoneNumber = async (req, res) => {
   console.log("AssignDataPhone", {
     phoneNumber,
     mainAgentId,
+    agentId,
     callbackNumber,
     liveTransferNumber,
     liveTransfer,
@@ -339,16 +341,40 @@ export const AssignPhoneNumber = async (req, res) => {
             userId: user.id,
           },
         });
+        let alreadyPurchased = false;
+        if (phoneNumberDB && phoneNumberDB.phone) {
+          alreadyPurchased = true;
+        }
+
+        //if just agent id then it assigned to that particular inbound or outbound model
+        if (agentId) {
+          let agent = await db.AgentModel.findByPk(agentId);
+          if (!agent) {
+            return res.send({
+              status: false,
+              message: "No such agent",
+              data: null,
+            });
+          }
+          let updated = await UpdateAssistantSynthflow(agent, {
+            phone_number: phoneNumber,
+          });
+          agent.phoneNumber = phoneNumber;
+
+          let saved = await agent.save();
+          return res.send({
+            status: true,
+            message: "Number assigned to model",
+            data: null,
+          });
+        }
+
         let mainAgents = await db.MainAgentModel.findAll({
           where: {
             userId: user.id,
           },
         });
 
-        let alreadyPurchased = false;
-        if (phoneNumberDB && phoneNumberDB.phone) {
-          alreadyPurchased = true;
-        }
         // for (let i = 0; i < mainAgents.length; i++) {
         //   let ma = mainAgents[i];
         //   let agent = await db.AgentModel.findOne({
