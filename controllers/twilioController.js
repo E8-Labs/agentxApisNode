@@ -110,6 +110,11 @@ export const ReleasePhoneNumber = async (req, res) => {
         if (agent) {
           agent.phoneNumber = "";
           let saved = await agent.save();
+
+          //release phone from that inbound model
+          let updated = await UpdateAssistantSynthflow(agent, {
+            phone_number: "",
+          });
           return res.status(200).send({
             status: true,
             message: "Phone Number Released",

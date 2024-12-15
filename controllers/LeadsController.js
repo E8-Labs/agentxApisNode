@@ -88,15 +88,27 @@ export const AddLeads = async (req, res) => {
               lead.lastName = parts.length > 1 ? parts.slice(1).join(" ") : "";
             }
           }
-          let createdLead = await db.LeadModel.create({
-            ...lead,
-            extraColumns: JSON.stringify(extraColumns),
-            userId: userId,
-            sheetId: sheet.id,
-          });
-          dbLeads.push(createdLead);
+          if (!lead.phone.startsWith("+1")) {
+            lead.phone = "+1" + lead.phone;
+          } else if (lead.phone.startsWith("1")) {
+            lead.phone = "+" + lead.phone;
+          }
+          if (leads.length == 12) {
+            // only push the lead if the number is valid
+            let createdLead = await db.LeadModel.create({
+              ...lead,
+              extraColumns: JSON.stringify(extraColumns),
+              userId: userId,
+              sheetId: sheet.id,
+            });
+            dbLeads.push(createdLead);
+          }
+          // if (!lead.phone.startsWith("+") && lead.phone.startsWith("1")) {
+          // }
         }
       }
+
+      //Hi {First Name}. This is this Dec 15 Default Pipeline Noah Realty! How’s it going?
 
       let sheetWithTags = await db.LeadSheetModel.findOne({
         where: {

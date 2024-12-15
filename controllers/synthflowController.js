@@ -1681,6 +1681,14 @@ export const WebhookSynthflow = async (req, res) => {
         firstName: leadData.name,
         extraColumns: JSON.stringify(leadData.prompt_variables),
       });
+      let tagCreated = await db.LeadTagsModel.create({
+        tag: "inbound",
+        leadId: lead.id,
+      });
+      let tagSheetCreated = await db.LeadSheetTagModel.create({
+        tag: "inbound",
+        sheetId: sheet.id,
+      });
     }
     let jsonIE = null;
     if (lead) {
@@ -2029,10 +2037,11 @@ async function handleInfoExtractorValues(
       // );
     }
     //We may check if this was the last call or not
+    //if the stage is new lead and some calls from the cadence are remaining then don't move the lead to follow up stage
     if (
       json.callmeback ||
       json.humancalldrop ||
-      json.voicemail ||
+      // json.voicemail ||
       json.Busycallback ||
       json.nodecisionmaker
     ) {
