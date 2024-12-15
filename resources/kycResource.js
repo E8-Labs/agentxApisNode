@@ -28,7 +28,6 @@ const KycResource = async (user, currentUser = null) => {
 };
 
 async function getUserData(kyc, currentUser = null) {
-  console.log("Type of kyc is ", typeof kyc);
   //   let totalYapScore = 0;
   //   let reviews = 0;
   //   if (user instanceof db.User) {
