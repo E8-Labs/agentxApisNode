@@ -142,7 +142,7 @@ export const GetDashboardData = async (req, res) => {
       const formatDuration = (seconds) => {
         if (seconds < 60) return "Less than a min";
         const min = Math.floor(seconds / 60);
-        const sec = seconds % 60;
+        const sec = Math.floor(seconds % 60); // Remove decimal from seconds
         return `${min} min ${sec} sec`;
       };
 
