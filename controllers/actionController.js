@@ -376,6 +376,20 @@ function GetCalendarActionApiData(user, assistant) {
         example: "my email is (abc@gmail.com).",
         type: "string",
       },
+      {
+        name: `lead_phone`,
+        description:
+          "The phone of the lead who will receive the meeting invite. You already have this as Lead Info",
+        example: "Lead Phone: 14086799068",
+        type: "string",
+      },
+      {
+        name: `lead_name`,
+        description:
+          "The name of the lead who will receive the meeting invite. You already have this as Lead Name",
+        example: "Lead Name: (Noah).",
+        type: "string",
+      },
     ],
     query_parameters: [
       {
@@ -395,6 +409,8 @@ function GetCalendarActionApiData(user, assistant) {
       date: "<date>",
       time: "<time>",
       user_email: "<user_email>",
+      lead_phone: "<lead_phone>",
+      lead_name: "<lead_name>",
     }),
     prompt: `Use the result from <results.data.message> and respond accordingly. Use <results.data.status> to check whether the appointment was booked or not.If true then booked else not. To get more idea use <result.data.data>`,
   };
