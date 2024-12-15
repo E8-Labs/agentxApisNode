@@ -95,6 +95,19 @@ export const RegisterUser = async (req, res) => {
   const brokerage = req.body.brokerage;
   const averageTransactionPerYear = req.body.averageTransactionPerYear;
 
+  let u = await db.User.findOne({
+    where: {
+      phone: phone,
+    },
+  });
+  if (user) {
+    return res.send({
+      status: false,
+      message: "User with this phone number already exists",
+      data: null,
+    });
+  }
+
   let agentService = req.body.agentService;
   let areaOfFocus = req.body.areaOfFocus;
 
