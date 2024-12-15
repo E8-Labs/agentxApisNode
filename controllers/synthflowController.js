@@ -174,11 +174,31 @@ Stick to this rule to maintain control and professionalism in call handling.
   text = `${text}\n\n${greeting}`;
   text = `${text}\n\n${callScript}`;
   // text = `${text}\n\n${prompt.booking}`;
+  //check if the user have connected calendar for this agent
+  let cal = await db.CalendarIntegration.findOne({
+    where: {
+      mainAgentId: assistant.mainAgentId,
+    },
+  });
+  if (cal) {
+    //add booking
+    console.log("Calendar is connected so adding booking instructions");
+    text = `${text}\n\n${prompt.booking}`;
+  }
   text = `${text}\n\n${objectionPromptText}`;
   text = `${text}\n\n${guardrailPromptText}`;
   text = `${text}\n\n${prompt.streetAddress}`;
   text = `${text}\n\n${prompt.getTools}`;
 
+  //lead info
+  let leadInfo = `
+##Lead Info
+Lead Phone Number: ${lead.phone}
+Lead Name: ${lead.firstName} ${lead.lastName}
+Lead Email: ${lead.email ? lead.email : "N/A"}
+  `;
+
+  text = `${text}\n\n${leadInfo}`;
   return text;
 }
 

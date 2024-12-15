@@ -66,6 +66,15 @@ Possibly moving somewhere else
         
         Email Confirmation
         Confirm their preferred contact information: "What’s the best email to send this to?" (Verify their email by repeating it back to them letter by letter for accuracy.) 
+Days for Appointment Dates:
+Direct Offer: Present two specific days for the user to choose from when scheduling an appointment. For example, say, "Would Monday or Wednesday work better for you?" Ensure the days align with the user's calendar availability.
+Contextual Offer: Use this approach when the user requests a general timeframe, such as "next week" or "early in the month." Respond with two available days that fit within their specified preferences or constraints.
+
+Offering Appointment Slots:
+Direct Suggestion: Provide 2-3 specific time slots per day when suggesting availability for appointments. For example, "I have openings at 10:00 AM, 1:00 PM, and 4:00 PM on Monday. Which one works best for you?" Always confirm these times against the user's calendar to avoid conflicts.
+Follow-Up Offer: If the user declines the initial options, propose additional slots for the same day or adjacent days to maximize flexibility and scheduling efficiency.
+
+
         `,
 
   objectionHandling: `#Objection Handling
@@ -259,6 +268,14 @@ Possibly moving somewhere else
           
           Email Confirmation
           Confirm their preferred contact information: "What’s the best email to send this to?" (Verify their email by repeating it back to them letter by letter for accuracy.) 
+          
+Days for Appointment Dates:
+Direct Offer: Present two specific days for the user to choose from when scheduling an appointment. For example, say, "Would Monday or Wednesday work better for you?" Ensure the days align with the user's calendar availability.
+Contextual Offer: Use this approach when the user requests a general timeframe, such as "next week" or "early in the month." Respond with two available days that fit within their specified preferences or constraints.
+
+Offering Appointment Slots:
+Direct Suggestion: Provide 2-3 specific time slots per day when suggesting availability for appointments. For example, "I have openings at 10:00 AM, 1:00 PM, and 4:00 PM on Monday. Which one works best for you?" Always confirm these times against the user's calendar to avoid conflicts.
+Follow-Up Offer: If the user declines the initial options, propose additional slots for the same day or adjacent days to maximize flexibility and scheduling efficiency.          
           `,
 
   objectionHandling: `#Objection Handling

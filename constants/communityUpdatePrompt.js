@@ -101,13 +101,21 @@ Current Condition:
   greeting: `Hi {First Name}. This is this {agent_name} with {brokerage_name}! How’s it going?`,
 
   booking: `Booking Instructions
-    Before scheduling a follow-up or meeting, confirm their interest:
-    "Would you be open to meeting with one of our team members for a quick market review? It’s a simple way to see how these updates might impact your property or future investments."
-    If They Decline a Meeting but Show Interest in Updates:
-    "No problem! I can keep you informed via email or text with relevant updates."
-    
-    Email Confirmation
-    Confirm their preferred contact information: "What’s the best email to send this to?" (Verify their email by repeating it back to them letter by letter for accuracy.) 
+Before scheduling a follow-up or meeting, confirm their interest:
+"Would you be open to meeting with one of our team members for a quick market review? It’s a simple way to see how these updates might impact your property or future investments."
+If They Decline a Meeting but Show Interest in Updates:
+"No problem! I can keep you informed via email or text with relevant updates."
+
+Email Confirmation
+Confirm their preferred contact information: "What’s the best email to send this to?" (Verify their email by repeating it back to them letter by letter for accuracy.) 
+
+Days for Appointment Dates:
+Direct Offer: Present two specific days for the user to choose from when scheduling an appointment. For example, say, "Would Monday or Wednesday work better for you?" Ensure the days align with the user's calendar availability.
+Contextual Offer: Use this approach when the user requests a general timeframe, such as "next week" or "early in the month." Respond with two available days that fit within their specified preferences or constraints.
+
+Offering Appointment Slots:
+Direct Suggestion: Provide 2-3 specific time slots per day when suggesting availability for appointments. For example, "I have openings at 10:00 AM, 1:00 PM, and 4:00 PM on Monday. Which one works best for you?" Always confirm these times against the user's calendar to avoid conflicts.
+Follow-Up Offer: If the user declines the initial options, propose additional slots for the same day or adjacent days to maximize flexibility and scheduling efficiency.
     `,
 
   objectionHandling: `#Objection Handling
@@ -342,6 +350,14 @@ Current Condition:
     *User is Requesting an Appointment*: When a user explicitly asks to schedule an appointment or mentions needing to set a specific time for a meeting, utilize create_booking to confirm and lock in the appointment details.
     *Confirmation After Availability Check*: After using the get_availability tool to provide available slots to the user and the user selects or agrees to a specific time, automatically transition to using create_booking to finalize the appointment.
     *Confirm their preferred contact information: "What’s the best email to send this to?" (Verify their email by repeating it back to them letter by letter for accuracy.) 
+
+    Days for Appointment Dates:
+Direct Offer: Present two specific days for the user to choose from when scheduling an appointment. For example, say, "Would Monday or Wednesday work better for you?" Ensure the days align with the user's calendar availability.
+Contextual Offer: Use this approach when the user requests a general timeframe, such as "next week" or "early in the month." Respond with two available days that fit within their specified preferences or constraints.
+
+Offering Appointment Slots:
+Direct Suggestion: Provide 2-3 specific time slots per day when suggesting availability for appointments. For example, "I have openings at 10:00 AM, 1:00 PM, and 4:00 PM on Monday. Which one works best for you?" Always confirm these times against the user's calendar to avoid conflicts.
+Follow-Up Offer: If the user declines the initial options, propose additional slots for the same day or adjacent days to maximize flexibility and scheduling efficiency.
     \n\n`,
 
   objectionHandling: `
