@@ -33,6 +33,7 @@ export const ListUsersAvailablePhoneNumbers = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
+      console.log("User id is ", userId);
       let user = await db.User.findOne({
         where: {
           id: userId,
