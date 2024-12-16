@@ -770,21 +770,25 @@ export const GetCallLogs = async (req, res) => {
         });
 
         // Map and format the data
-        const formattedCalls = callLogs.map((call) => {
-          const minutes = Math.floor(call.duration / 60);
-          const seconds = call.duration % 60;
-          const formattedDuration = `${String(minutes).padStart(
-            2,
-            "0"
-          )}:${String(seconds).padStart(2, "0")}`;
+        // const formattedCalls = callLogs.map((call) => {
+        //   const minutes = Math.floor(call.duration / 60);
+        //   const seconds = call.duration % 60;
+        //   const formattedDuration = `${String(minutes).padStart(
+        //     2,
+        //     "0"
+        //   )}:${String(seconds).padStart(2, "0")}`;
 
-          return {
-            ...call.dataValues, // Include existing call data
-            durationFormatted: formattedDuration,
-          };
-        });
+        //   return {
+        //     ...call.dataValues, // Include existing call data
+        //     durationFormatted: formattedDuration,
+        //   };
+        // });
 
-        let callRes = await LeadCallResource(callLogs);
+        const callsWithCompleteData = callLogs.map(
+          (call) => call.leadId != null
+        );
+
+        let callRes = await LeadCallResource(callsWithCompleteData);
         return res.status(200).json({ success: true, data: callRes });
       } catch (error) {
         console.error("Error fetching call logs:", error);
