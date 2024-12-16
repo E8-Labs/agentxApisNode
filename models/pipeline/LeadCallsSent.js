@@ -112,6 +112,16 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+    pipelineId: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      // references: {
+      //   model: "Pipeline",
+      //   key: "id",
+      // },
+      // onDelete: "CASCADE",
+      // onUpdate: "CASCADE",
+    },
 
     dnd: {
       type: Sequelize.BOOLEAN,

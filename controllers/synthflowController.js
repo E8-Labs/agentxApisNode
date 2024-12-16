@@ -471,6 +471,7 @@ async function initiateCall(
           agentId: assistant.id,
           stage: lead?.stage,
           mainAgentId: mainAgentModel.id,
+          pipelineId: leadCadence?.pipelineId,
           batchId: batchId,
         });
 
@@ -486,6 +487,12 @@ async function initiateCall(
       }
     } else {
       console.log("Call Failed with", json);
+      if (json.status == "error") {
+        if (leadCadence) {
+          leadCadence.status = CadenceStatus.Errored;
+          let saved = await leadCadence?.save();
+        }
+      }
       // const callId =
       //   json?.response?.call_id ||
       //   `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`;
@@ -1728,7 +1735,7 @@ export const WebhookSynthflow = async (req, res) => {
       }
     }
     if (!leadCad) {
-      console.log("Couldn't find any leadCadence");
+      console.log("Couldn't find or create any leadCadence");
       // return;
     }
 
@@ -1758,6 +1765,7 @@ export const WebhookSynthflow = async (req, res) => {
       leadCadenceId: leadCad?.id || null,
       status: status,
       batchId: null,
+      pipelineId: pipeline?.id || null,
       endCallReason: endCallReason,
     });
     try {

@@ -16,6 +16,7 @@ import LeadResource from "../resources/LeadResource.js";
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 import LeadModel from "../models/lead/lead.js";
 import { AssignLeads } from "./pipelineController.js";
+import LeadCallResource from "../resources/LeadCallResource.js";
 
 export const AddLeads = async (req, res) => {
   let { sheetName, columnMappings, leads, tags } = req.body; // mainAgentId is the mainAgent id
@@ -783,7 +784,8 @@ export const GetCallLogs = async (req, res) => {
           };
         });
 
-        return res.status(200).json({ success: true, data: formattedCalls });
+        let callRes = await LeadCallResource(callLogs);
+        return res.status(200).json({ success: true, data: callRes });
       } catch (error) {
         console.error("Error fetching call logs:", error);
         return res.status(500).json({ success: false, error: "Server error" });

@@ -28,9 +28,26 @@ const LeadCallResource = async (user, currentUser = null) => {
 };
 
 async function getUserData(call, currentUser = null) {
-  const KycReLeadCallResourcesource = {
-    ...call.get(),
-  };
+  let pipelineId = call.pipelineId || null;
+  if (pipelineId == null) {
+    let leadCadId = call.leadCadenceId;
+    let leadCad = await db.LeadCadence.findByPk(leadCadId);
+    if (leadCad) {
+      pipelineId = leadCad.pipelineId;
+    }
+  }
+  let pipeline = null;
+  if (pipelineId) {
+    pipeline = await db.Pipeline.findByPk(pipelineId);
+  }
+  let callData = null;
+  try {
+    callData = { ...call.get() };
+  } catch (error) {
+    callData = call;
+  }
+  callData.pipeline = pipeline;
+  const LeadCallResource = callData;
 
   return LeadCallResource;
 }
