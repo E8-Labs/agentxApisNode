@@ -784,9 +784,12 @@ export const GetCallLogs = async (req, res) => {
         //   };
         // });
 
-        const callsWithCompleteData = callLogs.map(
-          (call) => call.leadId != null
-        );
+        let callsWithCompleteData = [];
+        callLogs.map((call) => {
+          if (call.leadId != null) {
+            callsWithCompleteData.push(call);
+          }
+        });
 
         let callRes = await LeadCallResource(callsWithCompleteData);
         return res.status(200).json({ success: true, data: callRes });
