@@ -166,6 +166,11 @@ async function getUserData(mainAgent, currentUser = null) {
       mainAgentId: mainAgent.id,
     },
   });
+  let calendar = await db.CalendarIntegration.findOne({
+    where: {
+      mainAgentId: mainAgent.id,
+    },
+  });
   let qs = await KycResource(kycs);
   const AgentResource = {
     ...mainAgent.get(),
@@ -180,6 +185,7 @@ async function getUserData(mainAgent, currentUser = null) {
     guardrails,
     objections,
     kyc: qs,
+    calendar: calendar,
     alreadyAssignedGlobal:
       alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
     // calls: calls,

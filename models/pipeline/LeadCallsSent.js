@@ -171,6 +171,11 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       type: Sequelize.BOOLEAN,
       allowNull: true,
     },
+    testCall: {
+      type: Sequelize.BOOLEAN,
+      // allowNull: false,
+      defaultValue: false,
+    },
     movedToStage: {
       type: Sequelize.INTEGER,
       allowNull: true,

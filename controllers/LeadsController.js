@@ -757,6 +757,7 @@ export const GetCallLogs = async (req, res) => {
         // Query to fetch call logs
         const callLogs = await db.LeadCallsSent.findAll({
           where: filters,
+          order: [["createdAt", "DESC"]],
           include: [
             {
               model: db.LeadModel,
