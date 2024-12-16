@@ -447,8 +447,8 @@ async function initiateCall(
     const response = await axios.request(config);
     let json = response.data;
 
-    //console.log(json);
-    // console.log("Call data ", json);
+    // console.log(json);
+    console.log("Call data ", json);
     if (typeof json == "string") {
       // json = JSON.parse(json);
       let sanitizedJSON = sanitizeJSONString(json);
@@ -485,7 +485,7 @@ async function initiateCall(
         };
       }
     } else {
-      console.log("Type of json:", typeof json);
+      console.log("Call Failed with", json);
       // const callId =
       //   json?.response?.call_id ||
       //   `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`;
@@ -1609,6 +1609,7 @@ export const WebhookSynthflow = async (req, res) => {
   let duration = data.call.duration;
   let transcript = data.call.transcript;
   let recordingUrl = data.call.recording_url;
+  let endCallReason = data.call.end_call_reason;
   let actions = data.executed_actions;
   // //console.log("Actions ", actions);
 
@@ -1633,6 +1634,7 @@ export const WebhookSynthflow = async (req, res) => {
     }
   });
   // console.log("All custom infoExtractors", allCustomStageInfoExtractorkeys);
+  //Call is either inbound or initiate by TestAI
   if (!dbCall) {
     console.log("Call is not already in the table.");
 
@@ -1677,7 +1679,7 @@ export const WebhookSynthflow = async (req, res) => {
       lead = await db.LeadModel.create({
         phone: leadPhone,
         userId: userId,
-        sheetId: sheet.id,
+        sheetId: sheet?.id,
         firstName: leadData.name,
         extraColumns: JSON.stringify(leadData.prompt_variables),
       });
@@ -1685,10 +1687,12 @@ export const WebhookSynthflow = async (req, res) => {
         tag: "inbound",
         leadId: lead.id,
       });
-      let tagSheetCreated = await db.LeadSheetTagModel.create({
-        tag: "inbound",
-        sheetId: sheet.id,
-      });
+      if (sheet) {
+        let tagSheetCreated = await db.LeadSheetTagModel.create({
+          tag: "inbound",
+          sheetId: sheet?.id,
+        });
+      }
     }
     let jsonIE = null;
     if (lead) {
@@ -1754,6 +1758,7 @@ export const WebhookSynthflow = async (req, res) => {
       leadCadenceId: leadCad?.id || null,
       status: status,
       batchId: null,
+      endCallReason: endCallReason,
     });
     try {
       await handleInfoExtractorValues(jsonIE, leadCad, lead, pipeline, dbCall);
@@ -1833,6 +1838,7 @@ export const WebhookSynthflow = async (req, res) => {
     dbCall.Busycallback = jsonIE?.Busycallback;
     dbCall.nodecisionmaker = jsonIE?.nodecisionmaker;
     dbCall.call_review_worthy = jsonIE?.call_review_worthy;
+    dbCall.endCallReason = endCallReason;
     let saved = await dbCall.save();
     // let charged = await chargeUser(caller, dbCall, assistant);
     //(dbCall.transcript != "" && dbCall.transcript != null) {
@@ -1854,6 +1860,7 @@ export const WebhookSynthflow = async (req, res) => {
     dbCall.Busycallback = jsonIE?.Busycallback;
     dbCall.call_review_worthy = jsonIE?.call_review_worthy;
     dbCall.nodecisionmaker = jsonIE?.nodecisionmaker;
+    dbCall.endCallReason = endCallReason;
     let saved = await dbCall.save();
   }
 

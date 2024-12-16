@@ -76,6 +76,11 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       default: "",
       allowNull: false,
     },
+    endCallReason: {
+      type: Sequelize.STRING,
+      defaultValue: "",
+      allowNull: false,
+    },
 
     callData: {
       type: Sequelize.TEXT("medium"),

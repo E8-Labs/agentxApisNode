@@ -88,12 +88,19 @@ export const AddLeads = async (req, res) => {
               lead.lastName = parts.length > 1 ? parts.slice(1).join(" ") : "";
             }
           }
-          if (!lead.phone.startsWith("+1")) {
-            lead.phone = "+1" + lead.phone;
-          } else if (lead.phone.startsWith("1")) {
-            lead.phone = "+" + lead.phone;
+          if (!lead.phone.startsWith("1") && !lead.phone.startsWith("+")) {
+            console.log("Phone starts with 1");
+            lead.phone = "1" + lead.phone;
           }
-          if (lead.phone.length == 12) {
+          // if (!lead.phone.startsWith("+1")) {
+          //   console.log("Phone Not starts with +1");
+          //   lead.phone = "+1" + lead.phone;
+          // }
+          console.log(lead);
+          if (
+            lead.phone.length == 11 ||
+            (lead.phone.length == 12 && lead.phone.startsWith("+"))
+          ) {
             // only push the lead if the number is valid
             let createdLead = await db.LeadModel.create({
               ...lead,
@@ -152,7 +159,7 @@ export const AddLeads = async (req, res) => {
       let leadsRes = await LeadResource(dbLeads);
       res.send({
         status: true,
-        message: `${leads.length} new leads added`,
+        message: `${dbLeads.length} new leads added`,
         data: sheetWithTags,
         leads: leadsRes,
       });
