@@ -171,7 +171,7 @@ export const RegisterUser = async (req, res) => {
     projectsPerYear: projectsPerYear,
     primaryClientType: primaryClientType,
   });
-  let customerId = await generateStripeCustomerId(u.id);
+  let customerId = await generateStripeCustomerId(user.id);
   console.log("Stripe Custome Id Generated in Register");
 
   if (agentService && agentService.length > 0) {
