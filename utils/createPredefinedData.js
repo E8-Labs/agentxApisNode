@@ -739,7 +739,7 @@ export async function createAgentServices(db) {
     try {
       await db.AgentService.create(ser);
     } catch (err) {
-      console.log("Error Service: ", err);
+      // console.log("Error Service: ", err);
     }
   }
 }
@@ -780,6 +780,49 @@ export async function createAgentDefaultRoles(db) {
 
   try {
     await db.AgentRole.bulkCreate(data);
+  } catch (err) {}
+}
+
+export async function createAgentDefaultIndustry(db) {
+  const industries = [
+    {
+      id: 1,
+      title: "Information Technology (IT)",
+      agentType: UserTypes.RecruiterAgent,
+    },
+    { id: 2, title: "Healthcare", agentType: UserTypes.RecruiterAgent },
+    {
+      id: 3,
+      title: "Finance and Accounting",
+      agentType: UserTypes.RecruiterAgent,
+    },
+    { id: 4, title: "Engineering", agentType: UserTypes.RecruiterAgent },
+    {
+      id: 5,
+      title: "Sales and Marketing",
+      agentType: UserTypes.RecruiterAgent,
+    },
+    { id: 6, title: "Manufacturing", agentType: UserTypes.RecruiterAgent },
+    { id: 8, title: "Education", agentType: UserTypes.RecruiterAgent },
+    {
+      id: 9,
+      title: "Retail and Hospitality",
+      agentType: UserTypes.RecruiterAgent,
+    },
+    {
+      id: 10,
+      title: "Government and Public Sector",
+      agentType: UserTypes.RecruiterAgent,
+    },
+    {
+      id: 11,
+      title: "Non-Profit Organizations",
+      agentType: UserTypes.RecruiterAgent,
+    },
+  ];
+
+  try {
+    await db.UserIndustry.bulkCreate(industries);
   } catch (err) {}
 }
 

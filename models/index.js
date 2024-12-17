@@ -13,6 +13,7 @@ import {
   createAgentServices,
   createAgentDefaultRoles,
   addDefaultStages,
+  createAgentDefaultIndustry,
 } from "../utils/createPredefinedData.js";
 
 import AgentRole from "./user/agentRole.js";
@@ -226,6 +227,8 @@ models["AgentRole"] = db.AgentRole;
 await createAgentDefaultRoles(db);
 models["Stages"] = db.Stages;
 await addDefaultStages(db);
+
+await createAgentDefaultIndustry(db);
 
 // Model associations
 Object.keys(models).forEach((modelName) => {
