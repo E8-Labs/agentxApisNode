@@ -146,9 +146,9 @@ export const SubscribePayasyougoPlan = async (req, res) => {
         },
         order: [["createdAt", "DESC"]],
       });
-      let firstTime = false;
+      let firstTime = true;
       if (history && history.length > 0) {
-        firstTime = true;
+        firstTime = false;
       }
 
       try {
