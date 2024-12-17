@@ -9,10 +9,6 @@ const AgentRole = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       defaultValue: "",
     },
-    type: {
-      type: Sequelize.STRING,
-      defaultValue: "system",
-    },
   });
 
   return AgentRole;

@@ -1,0 +1,34 @@
+// Record the history of user's plans. The last one would be current plan
+
+const PlanHistory = (sequelize, Sequelize) => {
+  const PlanHistory = sequelize.define("PlanHistory", {
+    type: {
+      type: Sequelize.ENUM,
+      values: ["Plan30", "Plan120", "Plan360", "Plan720"],
+      defaultValue: "Plan30",
+    },
+    price: {
+      type: Sequelize.DOUBLE,
+      defaultValue: 45,
+    },
+    userId: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      references: {
+        model: "Users",
+        key: "id",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    },
+    status: {
+      type: Sequelize.ENUM,
+      values: ["active", "cancelled"],
+      defaultValue: "active",
+    },
+  });
+
+  return PlanHistory;
+};
+
+export default PlanHistory;

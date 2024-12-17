@@ -18,6 +18,7 @@ import {
   CreateAndAttachInfoExtractor,
   CreateInfoExtractor,
 } from "./actionController.js";
+import { UserTypes } from "../models/user/userModel.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -28,17 +29,46 @@ const User = db.User;
 const Op = db.Sequelize.Op;
 
 export const LoadRegistrationData = async (req, res) => {
-  let agentServices = await db.AgentService.findAll();
-  let areaOfFocus = await db.AreaOfFocus.findAll();
-  let defaultRoles = await db.AgentRole.findAll({
+  let type = req.query.type || UserTypes.RealEstateAgent;
+  let agentServices = await db.AgentService.findAll({
     where: {
-      type: "system",
+      userId: {
+        [db.Sequelize.Op.is]: null,
+      },
+      agentType: type,
     },
+  });
+  let areaOfFocus = await db.AreaOfFocus.findAll({
+    where: {
+      userId: {
+        [db.Sequelize.Op.is]: null,
+      },
+      agentType: type,
+    },
+  });
+
+  let userIndustry = await db.UserIndustry.findAll({
+    where: {
+      userId: {
+        [db.Sequelize.Op.is]: null,
+      },
+      agentType: type,
+    },
+  });
+  let defaultRoles = await db.AgentRole.findAll({
+    // where: {
+    //   type: "system",
+    // },
   });
   return res.send({
     status: true,
     message: "List",
-    data: { agentServices, areaOfFocus, defaultRoles },
+    data: {
+      agentServices,
+      areaOfFocus,
+      defaultRoles,
+      userIndustry: userIndustry,
+    },
   });
 };
 

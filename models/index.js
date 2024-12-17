@@ -16,6 +16,7 @@ import {
 } from "../utils/createPredefinedData.js";
 
 import AgentRole from "./user/agentRole.js";
+import UserIndustry from "./user/userIndustry.js";
 import Stages from "./pipeline/stages.js";
 import LeadModel from "./lead/lead.js";
 import Pipeline from "./pipeline/pipeline.js";
@@ -46,6 +47,9 @@ import LeadEmailModel from "./lead/LeadEmails.js";
 import WebhookModel from "./webhooks/WebhookModel.js";
 import ScheduledBooking from "./pipeline/ScheduledBooking.js";
 
+import PaymentHistory from "./user/payment/paymentPlans.js";
+import PlanHistory from "./user/payment/PlanHistory.js";
+
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
   dbConfig.MYSQL_DB_USER,
@@ -71,6 +75,7 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 // Define models
+db.UserIndustry = UserIndustry(sequelize, Sequelize);
 db.AreaOfFocus = AreaOfFocus(sequelize, Sequelize);
 db.AgentService = AgentService(sequelize, Sequelize);
 db.User = User(sequelize, Sequelize);
@@ -86,6 +91,24 @@ db.KycExampleModel = KycExampleModel(sequelize, Sequelize);
 db.InfoExtractorModel = InfoExtractorModel(sequelize, Sequelize);
 
 db.WebhookModel = WebhookModel(sequelize, Sequelize);
+
+db.PaymentHistory = PaymentHistory(sequelize, Sequelize);
+db.PaymentHistory.belongsTo(db.User, {
+  foreignKey: "userId",
+});
+db.User.hasMany(db.PaymentHistory, {
+  foreignKey: "userId",
+  as: "paymentHistory",
+});
+
+db.PlanHistory = PlanHistory(sequelize, Sequelize);
+db.PlanHistory.belongsTo(db.User, {
+  foreignKey: "userId",
+});
+db.User.hasMany(db.PlanHistory, {
+  foreignKey: "userId",
+  as: "planHistory",
+});
 
 // Pipeline models
 db.Stages = Stages(sequelize, Sequelize);

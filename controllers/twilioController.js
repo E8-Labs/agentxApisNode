@@ -8,6 +8,7 @@ import {
   UpdateLiveTransferAction,
 } from "./actionController.js";
 import AvailablePhoneResource from "../resources/AvailablePhoneResource.js";
+import { chargeUser } from "../utils/stripe.js";
 const client = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -193,11 +194,109 @@ export const ListAvailableNumbers = async (req, res) => {
   });
 };
 
-export const PurchasePhoneNumber = async (req, res) => {
-  const { phoneNumber, mainAgentId } = req.body;
+// export const PurchasePhoneNumberOld = async (req, res) => {
+//   const { phoneNumber, mainAgentId } = req.body;
 
-  console.log("Data received ", { phoneNumber, mainAgentId });
-  // Verify JWT Token
+//   console.log("Data received ", { phoneNumber, mainAgentId });
+//   // Verify JWT Token
+//   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+//     if (error) {
+//       return res.status(401).send({
+//         status: false,
+//         message: "Unauthorized access. Invalid token.",
+//         token: req.token,
+//         data: authData,
+//       });
+//     }
+
+//     try {
+//       const userId = authData.user.id;
+
+//       // Retrieve user from the database
+//       const user = await db.User.findOne({ where: { id: userId } });
+//       if (!user) {
+//         return res.status(404).send({
+//           status: false,
+//           message: "User not found.",
+//         });
+//       }
+
+//       // Check if the environment is live
+//       if (process.env.ENVIRONMENT === "Sandbox") {
+//         // return res.send({
+//         //   status: false,
+//         //   message: "This operation is only available in live mode.",
+//         // });
+//       }
+
+//       // Attempt to purchase the phone number via Twilio API
+//       let sid = process.env.PLATFORM_PHONE_NUMBER_SID;
+
+//       try {
+//         // return res.send({
+//         //   status: true,
+//         //   message: "Phone number purchased successfully.",
+//         //   data: {
+//         //     sid: "sid",
+//         //     phoneNumber: phoneNumber,
+//         //   },
+//         // });
+//         const purchasedNumber = await client.incomingPhoneNumbers.create({
+//           phoneNumber,
+//         });
+
+//         if (purchasedNumber && purchasedNumber.sid) {
+//           sid = purchasedNumber.sid;
+//         } else {
+//           return res.status(500).send({
+//             status: false,
+//             message: "Failed to purchase phone number.",
+//           });
+//         }
+//       } catch (twilioError) {
+//         // Handle Twilio error
+//         console.log("Phone purchase error", twilioError);
+//         return res.status(200).send({
+//           status: false,
+//           message: "An error occurred while communicating with Twilio.",
+//           error: twilioError.message,
+//           twilioError: twilioError,
+//         });
+//       }
+
+//       // Save the purchased phone number in the database
+//       const phoneCreated = await db.UserPhoneNumbers.create({
+//         phone: phoneNumber,
+//         phoneSid: sid,
+//         phoneStatus: "active",
+//         userId: user.id,
+//       });
+
+//       // Respond with success
+//       return res.send({
+//         status: true,
+//         message: "Phone number purchased successfully.",
+//         data: {
+//           sid: sid,
+//           phoneNumber: phoneNumber,
+//         },
+//       });
+//     } catch (error) {
+//       // Catch any errors and respond with an error message
+//       return res.status(500).send({
+//         status: false,
+//         message: "An error occurred while purchasing the phone number.",
+//         error: error.message,
+//       });
+//     }
+//   });
+// };
+
+// API to purchase a phone number
+
+export const PurchasePhoneNumber = async (req, res) => {
+  const { phoneNumber, mainAgentId, paymentMethodId } = req.body;
+
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (error) {
       return res.status(401).send({
@@ -210,88 +309,58 @@ export const PurchasePhoneNumber = async (req, res) => {
 
     try {
       const userId = authData.user.id;
+      const environment = process.env.ENVIRONMENT || "Sandbox";
 
-      // Retrieve user from the database
-      const user = await db.User.findOne({ where: { id: userId } });
-      if (!user) {
-        return res.status(404).send({
-          status: false,
-          message: "User not found.",
-        });
-      }
+      // Charge user for phone number
+      const phoneNumberCost = 999; // Monthly cost in cents
+      await chargeUser(
+        userId,
+        phoneNumberCost,
+        `Purchase of phone number ${phoneNumber}`,
+        environment
+      );
 
-      // Check if the environment is live
-      if (process.env.ENVIRONMENT === "Sandbox") {
-        // return res.send({
-        //   status: false,
-        //   message: "This operation is only available in live mode.",
-        // });
-      }
-
-      // Attempt to purchase the phone number via Twilio API
-      let sid = process.env.PLATFORM_PHONE_NUMBER_SID;
-
-      try {
-        // return res.send({
-        //   status: true,
-        //   message: "Phone number purchased successfully.",
-        //   data: {
-        //     sid: "sid",
-        //     phoneNumber: phoneNumber,
-        //   },
-        // });
-        const purchasedNumber = await client.incomingPhoneNumbers.create({
-          phoneNumber,
-        });
-
-        if (purchasedNumber && purchasedNumber.sid) {
-          sid = purchasedNumber.sid;
-        } else {
-          return res.status(500).send({
-            status: false,
-            message: "Failed to purchase phone number.",
-          });
-        }
-      } catch (twilioError) {
-        // Handle Twilio error
-        console.log("Phone purchase error", twilioError);
-        return res.status(200).send({
-          status: false,
-          message: "An error occurred while communicating with Twilio.",
-          error: twilioError.message,
-          twilioError: twilioError,
-        });
-      }
-
-      // Save the purchased phone number in the database
-      const phoneCreated = await db.UserPhoneNumbers.create({
-        phone: phoneNumber,
-        phoneSid: sid,
-        phoneStatus: "active",
-        userId: user.id,
+      // Proceed with Twilio phone number purchase
+      const purchasedNumber = await client.incomingPhoneNumbers.create({
+        phoneNumber,
       });
 
-      // Respond with success
+      if (!purchasedNumber || !purchasedNumber.sid) {
+        return res.status(500).send({
+          status: false,
+          message: "Failed to purchase phone number.",
+        });
+      }
+
+      // Save number in database
+      await db.UserPhoneNumbers.create({
+        phone: phoneNumber,
+        phoneSid: purchasedNumber.sid,
+        phoneStatus: "active",
+        userId,
+        nextBillingDate: new Date(
+          new Date().setMonth(new Date().getMonth() + 1)
+        ),
+      });
+
       return res.send({
         status: true,
         message: "Phone number purchased successfully.",
         data: {
-          sid: sid,
-          phoneNumber: phoneNumber,
+          phoneNumber,
+          phoneSid: purchasedNumber.sid,
         },
       });
     } catch (error) {
-      // Catch any errors and respond with an error message
       return res.status(500).send({
         status: false,
-        message: "An error occurred while purchasing the phone number.",
+        message: "Error occurred.",
         error: error.message,
       });
     }
   });
 };
 
-// API to purchase a phone number
 export const AssignPhoneNumber = async (req, res) => {
   let {
     phoneNumber,

@@ -14,6 +14,12 @@ import {
   GetAllWebhooks,
 } from "../controllers/WebhookController.js";
 
+import {
+  AddPaymentMethod,
+  SubscribePayasyougoPlan,
+  GetPaymentmethods,
+} from "../controllers/PaymentController.js";
+
 import { GenerateApiKey, GetMyApiKeys } from "../controllers/apiController.js";
 
 const uploadFiles = multer().fields([
@@ -48,4 +54,8 @@ UserRouter.post("/checkEmailExists", CheckEmailExists);
 // UserRouter.post("/sendVerificationEmail", SendEmailVerificationCode);
 // UserRouter.post("/verifyEmail", VerifyEmailCode);
 
+//Payment
+UserRouter.post("/addPaymentMethod", verifyJwtToken, AddPaymentMethod);
+UserRouter.post("/subscribePlan", verifyJwtToken, SubscribePayasyougoPlan);
+UserRouter.get("/getPaymentMethods", verifyJwtToken, GetPaymentmethods);
 export default UserRouter;

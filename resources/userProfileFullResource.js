@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
 // import {
 //   getTotalYapScore,
 //   getTotalReviews,
@@ -44,10 +45,20 @@ async function getUserData(user, currentUser = null) {
       userId: user.id,
     },
   });
+
+  let planHistory = await db.PlanHistory.findAll({
+    where: {
+      userId: user.id,
+    },
+    order: [["createdAt", "DESC"]],
+    limit: 1,
+  });
   const UserFullResource = {
     ...user.get(),
+    plan: planHistory && planHistory.length > 0 ? planHistory[0] : null,
     alreadyAssignedGlobal:
       alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
+    availableMinutes: user.totalSecondsAvailable / 60,
   };
 
   return UserFullResource;

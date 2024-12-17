@@ -13,6 +13,7 @@ import nodemailer from "nodemailer";
 console.log(import.meta.url);
 
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
+import { generateStripeCustomerId } from "../utils/stripe.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -69,6 +70,8 @@ export const LoginUser = async (req, res) => {
       data: null,
     });
   } else {
+    let customerId = await generateStripeCustomerId(user.id);
+    console.log("Stripe Custome Id Generated in Login");
     // bcrypt.compare(password, user.password, async function (err, result) {
     // result == true
     // if (result) {
@@ -101,6 +104,8 @@ export const RegisterUser = async (req, res) => {
     },
   });
   if (user) {
+    let customerId = await generateStripeCustomerId(user.id);
+    console.log("Stripe Custome Id Generated in Register");
     return res.send({
       status: false,
       message: "User with this phone number already exists",

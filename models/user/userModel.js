@@ -69,6 +69,19 @@ const User = (sequelize, Sequelize) => {
       default: "free",
       allowNull: true,
     },
+    stripeCustomerIdLive: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    stripeCustomerIdTest: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    totalSecondsAvailable: {
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
   });
 
   return User;
@@ -80,5 +93,9 @@ export const UserTypes = {
   RealEstateAgent: "RealEstateAgent",
   SolarRep: "SolarRep",
   SalesDevRep: "SalesDevRep",
+  MarketerAgent: "MarketerAgent",
+  WebsiteAgent: "WebsiteAgent",
   InsuranceAgent: "InsuranceAgent",
+  RecruiterAgent: "RecruiterAgent",
+  TaxAgent: "TaxAgent",
 };

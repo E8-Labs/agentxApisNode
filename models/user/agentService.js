@@ -1,3 +1,4 @@
+import { UserTypes } from "./userModel.js";
 const AgentService = (sequelize, Sequelize) => {
   const AgentService = sequelize.define("AgentService", {
     title: {
@@ -8,6 +9,14 @@ const AgentService = (sequelize, Sequelize) => {
     description: {
       type: Sequelize.STRING,
       defaultValue: "",
+    },
+    agentType: {
+      type: Sequelize.STRING,
+      defaultValue: UserTypes.RealEstateAgent,
+    },
+    userId: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
     },
   });
 
