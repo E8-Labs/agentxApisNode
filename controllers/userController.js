@@ -113,8 +113,8 @@ export const RegisterUser = async (req, res) => {
       phone: phone,
     },
   });
-  if (user) {
-    let customerId = await generateStripeCustomerId(user.id);
+  if (u) {
+    let customerId = await generateStripeCustomerId(u.id);
     console.log("Stripe Custome Id Generated in Register");
     return res.send({
       status: false,
@@ -171,6 +171,8 @@ export const RegisterUser = async (req, res) => {
     projectsPerYear: projectsPerYear,
     primaryClientType: primaryClientType,
   });
+  let customerId = await generateStripeCustomerId(u.id);
+  console.log("Stripe Custome Id Generated in Register");
 
   if (agentService && agentService.length > 0) {
     agentService = JSON.parse(agentService);
