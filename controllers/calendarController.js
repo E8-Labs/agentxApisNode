@@ -594,6 +594,7 @@ export async function AddCalendarCalDotCom(req, res) {
       let user = await db.User.findByPk(userId);
       let calendarType = req.body.calendarType || "cal_dot_com"; //cal_dot_com or ghl
       let apiKey = req.body.apiKey; // for calDotCom
+      let timeZone = req.body.timeZone; // for calDotCom
       let eventId = req.body.eventId || null;
       let mainAgentId = req.body.mainAgentId;
       let mainAgent = await db.MainAgentModel.findByPk(mainAgentId);
@@ -627,6 +628,7 @@ export async function AddCalendarCalDotCom(req, res) {
           eventId: eventId15Min,
           mainAgentId: mainAgentId,
           title: title,
+          timeZone: timeZone,
         });
 
         console.log("Available Event Types:", eventTypes);
@@ -663,6 +665,7 @@ export async function GetUserConnectedCalendars(req, res) {
           "title",
           "apiKey",
           "eventId",
+          "timeZone",
           [
             db.Sequelize.fn("MAX", db.Sequelize.col("createdAt")),
             "latestCreatedAt",
@@ -671,7 +674,7 @@ export async function GetUserConnectedCalendars(req, res) {
         where: {
           userId: userId,
         },
-        group: ["apiKey", "eventId", "title"], // Group by unique apiKey and eventId
+        group: ["apiKey", "eventId", "title", "timeZone"], // Group by unique apiKey and eventId
         order: [
           [db.Sequelize.fn("MAX", db.Sequelize.col("createdAt")), "DESC"],
         ], // Order by latest createdAt

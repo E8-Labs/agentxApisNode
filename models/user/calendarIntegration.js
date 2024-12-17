@@ -18,6 +18,11 @@ const CalendarIntegration = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: false,
     },
+    timeZone: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      defaultValue: "America/Los_Angeles",
+    },
     actionId: {
       type: Sequelize.STRING, // id of the action on the synthflow
       allowNull: true,
