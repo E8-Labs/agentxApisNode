@@ -178,19 +178,28 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             "Charging for plan " + foundPlan.type
           );
           if (charge && charge.status) {
-            let lastPlan = history[0];
-            if (lastPlan.type != foundPlan.type) {
-              //user updated his plan
-              await db.PlanHistory.update(
-                {
-                  status: "cancelled",
-                },
-                {
-                  where: {
-                    userId: user.id,
+            if (history.length > 0) {
+              let lastPlan = history[0];
+              if (lastPlan.type != foundPlan.type) {
+                //user updated his plan
+                await db.PlanHistory.update(
+                  {
+                    status: "cancelled",
                   },
-                }
-              );
+                  {
+                    where: {
+                      userId: user.id,
+                    },
+                  }
+                );
+                let planHistory = await db.PlanHistory.create({
+                  userId: user.id,
+                  type: foundPlan.type,
+                  price: foundPlan.price,
+                  status: "active",
+                });
+              }
+            } else {
               let planHistory = await db.PlanHistory.create({
                 userId: user.id,
                 type: foundPlan.type,
