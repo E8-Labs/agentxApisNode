@@ -9,7 +9,7 @@ import {
 } from "./actionController.js";
 import AvailablePhoneResource from "../resources/AvailablePhoneResource.js";
 import { chargeUser } from "../utils/stripe.js";
-const client = twilio(
+const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
 );
@@ -312,7 +312,7 @@ export const PurchasePhoneNumber = async (req, res) => {
       const environment = process.env.ENVIRONMENT || "Sandbox";
 
       // Charge user for phone number
-      const phoneNumberCost = 999; // Monthly cost in cents
+      const phoneNumberCost = 200; // Monthly cost in cents
       await chargeUser(
         userId,
         phoneNumberCost,
@@ -321,36 +321,57 @@ export const PurchasePhoneNumber = async (req, res) => {
       );
 
       // Proceed with Twilio phone number purchase
-      const purchasedNumber = await client.incomingPhoneNumbers.create({
-        phoneNumber,
-      });
+      if (charge && charge.status) {
+        let purchasedNumber = null;
+        if (process.env.Environment == "Sandbox") {
+          console.log("Sandbox environment so not actually buying number");
+          purchasedNumber = { sid: `PHSID${phoneNumber}` };
+        } else {
+          console.log("Live env so acutall purchasing number");
+          purchasedNumber = await client.incomingPhoneNumbers.create({
+            phoneNumber,
+          });
+        }
 
-      if (!purchasedNumber || !purchasedNumber.sid) {
-        return res.status(500).send({
+        if (!purchasedNumber || !purchasedNumber.sid) {
+          return res.status(500).send({
+            status: false,
+            message: "Failed to purchase phone number.",
+          });
+        }
+
+        // Save number in database
+        await db.UserPhoneNumbers.create({
+          phone: phoneNumber,
+          phoneSid: purchasedNumber.sid,
+          phoneStatus: "active",
+          userId,
+          nextBillingDate: new Date(
+            new Date().setMonth(new Date().getMonth() + 1)
+          ),
+        });
+        let planHistory = await db.PaymentHistory.create({
+          title: "Phone Number Purchase",
+          description: `Monthly charge for phone number ${phoneNumber}`,
+          userId: userId,
+          type: "PhonePurchase",
+          price: 2,
+        });
+
+        return res.send({
+          status: true,
+          message: "Phone number purchased successfully.",
+          data: {
+            phoneNumber,
+            phoneSid: purchasedNumber.sid,
+          },
+        });
+      } else {
+        return res.send({
           status: false,
-          message: "Failed to purchase phone number.",
+          message: "Payment could not be processed",
         });
       }
-
-      // Save number in database
-      await db.UserPhoneNumbers.create({
-        phone: phoneNumber,
-        phoneSid: purchasedNumber.sid,
-        phoneStatus: "active",
-        userId,
-        nextBillingDate: new Date(
-          new Date().setMonth(new Date().getMonth() + 1)
-        ),
-      });
-
-      return res.send({
-        status: true,
-        message: "Phone number purchased successfully.",
-        data: {
-          phoneNumber,
-          phoneSid: purchasedNumber.sid,
-        },
-      });
     } catch (error) {
       return res.status(500).send({
         status: false,
@@ -570,4 +591,106 @@ export const AssignPhoneNumber = async (req, res) => {
       console.log("Error: unauthenticated user");
     }
   });
+};
+
+export const PhoneNumberCron = async () => {
+  const PhoneNumberPrice = 2;
+  console.log("Starting daily phone number billing process...");
+
+  const today = new Date();
+
+  try {
+    // Fetch active phone numbers where the billing date is due
+    const phoneNumbers = await db.UserPhoneNumbers.findAll({
+      where: {
+        phoneStatus: "active",
+        // nextBillingDate: {
+        //   [db.Sequelize.Op.lte]: today,
+        // },
+      },
+      include: [{ model: db.User, as: "user" }], // Fetch user details
+    });
+
+    console.log(`Found ${phoneNumbers.length} phone numbers to process.`);
+
+    for (const phoneNumber of phoneNumbers) {
+      try {
+        const user = phoneNumber.user;
+
+        if (!user) {
+          console.warn(
+            `User not found for phone number ${phoneNumber.phone}. Skipping.`
+          );
+          continue;
+        }
+
+        // Charge the user (example: $10 per month in cents)
+        const amountToCharge = PhoneNumberPrice * 100; // $10 in cents
+        const chargeResult = await chargeUser(
+          user.id,
+          amountToCharge,
+          `Monthly charge for phone number ${phoneNumber.phone}`
+        );
+
+        if (chargeResult.status) {
+          let planHistory = await db.PaymentHistory.create({
+            title: "Phone Number Purchase",
+            description: `Monthly charge for phone number ${phoneNumber.phone}`,
+            userId: phoneNumber.userId,
+            type: "PhonePurchase",
+            price: PhoneNumberPrice,
+          });
+          // Successful charge: update the next billing date
+          phoneNumber.nextBillingDate = new Date(
+            new Date().setMonth(new Date().getMonth() + 1)
+          );
+          phoneNumber.phoneStatus = "active";
+          await phoneNumber.save();
+
+          console.log(
+            `Successfully charged user ${user.id} for phone number ${phoneNumber.phone}`
+          );
+        } else {
+          phoneNumber.phoneStatus = "released";
+          await phoneNumber.save();
+          await twilioClient
+            .incomingPhoneNumbers(phoneNumber.phoneSid)
+            .remove();
+
+          // Failed charge: mark the phone number as released and release it from Twilio
+          console.warn(
+            `Failed to charge user ${user.id} for phone number ${phoneNumber.phone}. Releasing phone number.`
+          );
+
+          await twilioClient
+            .incomingPhoneNumbers(phoneNumber.phoneSid)
+            .remove();
+
+          phoneNumber.phoneStatus = "released";
+          await phoneNumber.save();
+
+          console.log(`Phone number ${phoneNumber.phone} has been released.`);
+        }
+      } catch (chargeError) {
+        await twilioClient.incomingPhoneNumbers(phoneNumber.phoneSid).remove();
+
+        phoneNumber.phoneStatus = "released";
+        await phoneNumber.save();
+        console.error(
+          `Error processing phone number ${phoneNumber.phone}: ${chargeError.message}`
+        );
+      }
+    }
+
+    console.log("Daily phone number billing process completed.");
+  } catch (error) {
+    // await twilioClient.incomingPhoneNumbers(phoneNumber.phoneSid).remove();
+
+    // phoneNumber.phoneStatus = "released";
+    // await phoneNumber.save();
+    console.error(
+      "Error in daily phone number billing cron job:",
+      error.message
+    );
+  }
 };

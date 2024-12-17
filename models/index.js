@@ -83,6 +83,15 @@ db.User = User(sequelize, Sequelize);
 db.UserFocusModel = UserFocusModel(sequelize, Sequelize);
 db.UserServicesModel = UserServicesModel(sequelize, Sequelize);
 db.UserPhoneNumbers = UserPhoneNumbers(sequelize, Sequelize);
+db.User.hasMany(db.UserPhoneNumbers, {
+  foreignKey: "userId",
+  as: "PhoneNumbers",
+});
+db.UserPhoneNumbers.belongsTo(db.User, {
+  foreignKey: "userId",
+  as: "user",
+});
+
 db.AgentRole = AgentRole(sequelize, Sequelize);
 db.MainAgentModel = MainAgentModel(sequelize, Sequelize);
 db.AgentPromptModel = AgentPromptModel(sequelize, Sequelize);

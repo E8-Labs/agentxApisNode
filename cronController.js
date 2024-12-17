@@ -12,6 +12,14 @@ import chalk from "chalk";
 import nodemailer from "nodemailer";
 // console.log(import.meta.url);
 import nodeCron from "node-cron";
+import { chargeUser } from "./utils/stripe.js"; // Function to charge user
+import twilio from "twilio";
+
+// Twilio setup
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -22,6 +30,7 @@ import Pipeline from "./models/pipeline/pipeline.js";
 import { calculateDifferenceInMinutes } from "./utils/dateutil.js";
 import { MakeACall } from "./controllers/synthflowController.js";
 import { BatchStatus } from "./models/pipeline/CadenceBatchModel.js";
+import { PhoneNumberCron } from "./controllers/twilioController.js";
 
 const simulate = process.env.CronEnvironment == "Sandbox" ? true : false;
 console.log("Simulate ", simulate);
@@ -577,3 +586,11 @@ const CronRunCadenceCallsSubsequentStagesCron = nodeCron.schedule(
   CronRunCadenceCallsSubsequentStages
 );
 CronRunCadenceCallsSubsequentStagesCron.start();
+
+// Schedule a cron job to run every day at midnight
+// cron.schedule("0 0 * * *", PhoneNumberCron);
+
+//Testing every min
+const CronPhone = nodeCron.schedule("0 0 * * *", PhoneNumberCron);
+CronPhone.start();
+// PhoneNumberCron();
