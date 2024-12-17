@@ -604,9 +604,9 @@ export const PhoneNumberCron = async () => {
     const phoneNumbers = await db.UserPhoneNumbers.findAll({
       where: {
         phoneStatus: "active",
-        // nextBillingDate: {
-        //   [db.Sequelize.Op.lte]: today,
-        // },
+        nextBillingDate: {
+          [db.Sequelize.Op.lte]: today,
+        },
       },
       include: [{ model: db.User, as: "user" }], // Fetch user details
     });
