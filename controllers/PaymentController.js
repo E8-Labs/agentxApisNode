@@ -152,7 +152,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
       }
 
       try {
-        if (firstTime && foundPlan == PayAsYouGoPlanTypes.Plan30Min) {
+        if (firstTime && foundPlan.type == PayAsYouGoPlanTypes.Plan30Min) {
           // give 30 min free
           let TotalSeconds = foundPlan.duration;
           user.totalSecondsAvailable += TotalSeconds;
