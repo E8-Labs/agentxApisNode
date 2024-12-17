@@ -23,7 +23,7 @@ import { calculateDifferenceInMinutes } from "./utils/dateutil.js";
 import { MakeACall } from "./controllers/synthflowController.js";
 import { BatchStatus } from "./models/pipeline/CadenceBatchModel.js";
 
-const simulate = process.env.Environment == "Sandbox" ? true : false;
+const simulate = process.env.CronEnvironment == "Sandbox" ? true : false;
 console.log("Simulate ", simulate);
 //This will push 100 leads into the cadence every day. If 100 leads are pushed, it will not psuh any more
 //Runs every 30 sec
