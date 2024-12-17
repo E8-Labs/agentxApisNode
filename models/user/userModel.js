@@ -82,6 +82,31 @@ const User = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: 0,
     },
+
+    projectSizeKw: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    areaOfService: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    company: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    projectsPerYear: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    primaryClientType: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    website: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return User;

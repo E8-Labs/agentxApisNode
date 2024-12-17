@@ -98,6 +98,16 @@ export const RegisterUser = async (req, res) => {
   const brokerage = req.body.brokerage;
   const averageTransactionPerYear = req.body.averageTransactionPerYear;
 
+  //Solar Rep
+  let projectSizeKw = req.body.projectSizeKw;
+  let areaOfService = req.body.areaOfService;
+  let company = req.body.company;
+  let projectsPerYear = req.body.projectsPerYear;
+  let primaryClientType = req.body.primaryClientType; // residential, commercial, both
+
+  //Website owners
+  let website = req.body.website;
+
   let u = await db.User.findOne({
     where: {
       phone: phone,
@@ -154,6 +164,12 @@ export const RegisterUser = async (req, res) => {
     // agentService: agentService[0],
     // areaOfFocus: areaOfFocus[0],
     farm: farm,
+    projectSizeKw: projectSizeKw,
+    areaOfService: areaOfService,
+    company: company,
+    website: website,
+    projectsPerYear: projectsPerYear,
+    primaryClientType: primaryClientType,
   });
 
   if (agentService && agentService.length > 0) {

@@ -184,7 +184,9 @@ Stick to this rule to maintain control and professionalism in call handling.
   if (cal) {
     //add booking
     console.log("Calendar is connected so adding booking instructions");
-    text = `${text}\n\n${prompt.booking}`;
+    text = `${text}\n\n${prompt.booking}\nTimezone for the calendar: ${
+      cal.timeZone || "America/Los_Angeles"
+    }`;
   }
   text = `${text}\n\n${objectionPromptText}`;
   text = `${text}\n\n${guardrailPromptText}`;
