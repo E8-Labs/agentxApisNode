@@ -52,6 +52,44 @@ export const CreateWebhook = async (req, res) => {
   });
 };
 
+export const DeleteWebhook = async (req, res) => {
+  let id = req.body.id;
+  if (!id) {
+    return res.send({
+      status: false,
+      message: "Missing required parameters: id",
+    });
+  }
+  console.log("Id of webhook ", id);
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      // console.log("User", user);
+
+      let del = await db.WebhookModel.destroy({
+        where: {
+          id: id,
+        },
+      });
+      return res.send({
+        status: true,
+        message: "Webhook deleted",
+        data: created,
+      });
+    } else {
+      return res(401).send({
+        status: false,
+        message: "Unauthorized access",
+      });
+    }
+  });
+};
+
 export const GetAllWebhooks = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {

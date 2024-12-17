@@ -12,6 +12,7 @@ import {
 import {
   CreateWebhook,
   GetAllWebhooks,
+  DeleteWebhook,
 } from "../controllers/WebhookController.js";
 
 import {
@@ -41,6 +42,7 @@ UserRouter.post("/generateApiKey", verifyJwtToken, GenerateApiKey);
 UserRouter.get("/apiKeys", verifyJwtToken, GetMyApiKeys);
 
 UserRouter.post("/createWebhook", verifyJwtToken, CreateWebhook);
+UserRouter.post("/deleteWebhook", verifyJwtToken, DeleteWebhook);
 UserRouter.get("/getWebhooks", verifyJwtToken, GetAllWebhooks);
 
 // UserRouter.post("/updateProfile", verifyJwtToken, uploadFiles, UpdateProfile);
