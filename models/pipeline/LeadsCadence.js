@@ -127,6 +127,7 @@ export const CadenceStatus = {
   Pending: "Pending",
   Started: "Started",
   Paused: "Paused",
+  TestLead: "TestLead",
   Errored: "Errored", // invalid number or something else. Call status is error
   Booked: "Booked", // the rest of the cadence for that
 };

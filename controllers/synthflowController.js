@@ -331,6 +331,7 @@ export const TestAI = async (req, res) => {
       }
       console.log("Testing agent ", agent.agentType);
       let mainAgentModel = await db.MainAgentModel.findByPk(agent.mainAgentId);
+
       let prompt = await db.AgentPromptModel.findOne({
         where: {
           mainAgentId: agent.mainAgentId,
@@ -361,6 +362,7 @@ export const TestAI = async (req, res) => {
           phone: phone,
           firstName: name,
           extraColumns: JSON.stringify(extraColumns),
+          userId: mainAgentModel.userId,
         });
         console.log("Lead created", lead.id);
       } else {
@@ -373,6 +375,19 @@ export const TestAI = async (req, res) => {
         },
         order: [["createdAt", "DESC"]],
       });
+      if (pcadence) {
+        let pipelineId = pcadence.pipelineId;
+        let newLeadStage = await db.PipelineStages.findOne({
+          where: {
+            pipelineId: pipelineId,
+            identifier: "new_lead",
+          },
+        });
+        if (newLeadStage) {
+          lead.stage = newLeadStage.id;
+          await lead.save();
+        }
+      }
       let cad = null;
       if (pcadence) {
         // only add newLead the cadence
@@ -397,7 +412,7 @@ export const TestAI = async (req, res) => {
           pipelineId: pcadence.pipelineId,
           mainAgentId: mainAgentModel.id,
           leadId: lead.id,
-          status: CadenceStatus.Started,
+          status: CadenceStatus.TestLead,
         });
       }
 
@@ -886,6 +901,8 @@ export const UpdateAgent = async (req, res) => {
         });
       }
 
+      console.log("User ", userId);
+      console.log("Update ", req.body);
       let agents = await db.AgentModel.findAll({
         where: {
           mainAgentId: mainAgentId,
@@ -2027,9 +2044,9 @@ async function handleInfoExtractorValues(
 
       moveToStage = bookedStage?.id || null;
     } else if (
-      json.callmeback ||
+      // json.callmeback ||
       json.humancalldrop ||
-      json.Busycallback ||
+      // json.Busycallback ||
       json.nodecisionmaker
     ) {
       const followUpStage = await db.PipelineStages.findOne({

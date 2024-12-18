@@ -32,6 +32,9 @@ import { MakeACall } from "./controllers/synthflowController.js";
 import { BatchStatus } from "./models/pipeline/CadenceBatchModel.js";
 import { PhoneNumberCron } from "./controllers/twilioController.js";
 
+//Concurrent Calls- Set Limit to 100
+//https://docs.synthflow.ai/docs/concurrency-calls
+
 const simulate = process.env.CronEnvironment == "Sandbox" ? true : false;
 console.log("Simulate ", simulate);
 //This will push 100 leads into the cadence every day. If 100 leads are pushed, it will not psuh any more
