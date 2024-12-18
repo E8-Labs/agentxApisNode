@@ -19,8 +19,63 @@ import { AssignLeads } from "./pipelineController.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
 
+/**
+ * Check for stage conflicts among agents.
+ * @param {Array<number>} mainAgentIds - Array of agent IDs to check.
+ * @returns {Object} - Object containing conflicts or a success message.
+ */
+export const checkStageConflicts = async (mainAgentIds) => {
+  try {
+    // Fetch conflicting stages for the given mainAgentIds
+    const conflicts = await db.PipelineCadence.findAll({
+      attributes: ["stage", [db.Sequelize.fn("COUNT", "stage"), "agentCount"]],
+      where: {
+        mainAgentId: {
+          [db.Sequelize.Op.in]: mainAgentIds, // Filter by given mainAgentIds
+        },
+      },
+      group: ["stage"],
+      having: db.Sequelize.literal("COUNT(stage) > 1"), // Only stages assigned to multiple agents
+    });
+
+    if (conflicts.length > 0) {
+      // Format the response with conflict details
+      return {
+        status: false,
+        message: "Conflicts detected in stages for the provided agents.",
+        conflicts: conflicts.map((conflict) => ({
+          stage: conflict.stage,
+          agentCount: parseInt(conflict.dataValues.agentCount, 10),
+        })),
+      };
+    }
+
+    // No conflicts found
+    return {
+      status: true,
+      message: "No conflicts found in stages for the provided agents.",
+    };
+  } catch (error) {
+    console.error("Error checking stage conflicts:", error.message);
+    return {
+      status: false,
+      message: "Error checking stage conflicts.",
+      error: error.message,
+    };
+  }
+};
+
 export const AddLeads = async (req, res) => {
   let { sheetName, columnMappings, leads, tags } = req.body; // mainAgentId is the mainAgent id
+  if (req.body.mainAgentIds) {
+    console.log("Main agent ids", req.body.mainAgentIds);
+    let checkData = await checkStageConflicts(req.body.mainAgentIds);
+    console.log("Check data");
+    console.log(checkData);
+    if (checkData.status == false) {
+      return res.send(checkData);
+    }
+  }
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -162,16 +217,18 @@ export const AddLeads = async (req, res) => {
       let leadsRes = await LeadResource(dbLeads);
 
       //call the api for webhook of this user
-      let webhooks = await db.WebhookModel.findAll({
-        where: {
-          userId: user.id,
-          action: WebhookTypes.TypeNewLeadAdded,
-        },
-      });
-      console.log("Found webhooks ", webhooks.length);
-      if (webhooks && webhooks.length > 0) {
-        for (const webhook of webhooks) {
-          postDataToWebhook(webhook.url, leadsRes);
+      if (dbLeads.length > 0) {
+        let webhooks = await db.WebhookModel.findAll({
+          where: {
+            userId: user.id,
+            action: WebhookTypes.TypeNewLeadAdded,
+          },
+        });
+        console.log("Found webhooks ", webhooks.length);
+        if (webhooks && webhooks.length > 0) {
+          for (const webhook of webhooks) {
+            postDataToWebhook(webhook.url, leadsRes);
+          }
         }
       }
       res.send({
