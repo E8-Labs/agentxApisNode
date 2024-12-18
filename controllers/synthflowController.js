@@ -329,11 +329,12 @@ export const TestAI = async (req, res) => {
           data: null,
         });
       }
+      console.log("Testing agent ", agent.agentType);
       let mainAgentModel = await db.MainAgentModel.findByPk(agent.mainAgentId);
       let prompt = await db.AgentPromptModel.findOne({
         where: {
           mainAgentId: agent.mainAgentId,
-          type: "outbound",
+          type: agent.agentType,
         },
       });
       if (!prompt) {
