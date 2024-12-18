@@ -1548,13 +1548,18 @@ export const AddKyc = async (req, res) => {
               mainAgentId,
               found.actionId
             );
+            created.actionId = found.actionId;
           } else {
             console.log("don't have predefined info extractor", kyc.question);
             let infoExtractor = await CreateAndAttachInfoExtractor(
               mainAgentId,
               kyc
             );
+            if (infoExtractor) {
+              created.actionId = infoExtractor.action_id;
+            }
           }
+          await created.save();
 
           let res = await KycResource(created);
           kycs.push(res);
@@ -1613,6 +1618,7 @@ export const DeleteKyc = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let kycId = req.body.kycId;
+      console.log("Kyc to del", kycId);
       let userId = authData.user.id;
       let user = await db.User.findOne({
         where: {
@@ -1622,6 +1628,32 @@ export const DeleteKyc = async (req, res) => {
 
       let kyc = await db.KycModel.findByPk(kycId);
       let mainAgentId = kyc.mainAgentId;
+
+      if (kyc.actionId) {
+        //remove the action
+        let agents = await db.AgentModel.findAll({
+          where: {
+            mainAgentId: kyc.mainAgentId,
+          },
+        });
+        if (agents && agents.length > 0) {
+          await DetachActionsSynthflow([kyc.actionId], agents[0].modelId);
+          if (agents.length > 1) {
+            await DetachActionsSynthflow([kyc.actionId], agents[1].modelId);
+          }
+        }
+        //Delete action if not in the Default InfoE
+        let found = await db.InfoExtractorModel.findOne({
+          where: {
+            question: kyc.question,
+          },
+        });
+        console.log("FOund ", found);
+        if (!found) {
+          console.log("Not a default action kyc, so delete");
+          await DeleteActionSynthflow(kyc.actionId);
+        }
+      }
       let kycsDel = await db.KycModel.destroy({
         where: {
           id: kycId,
@@ -1768,7 +1800,7 @@ export async function DeleteActionSynthflow(actionId) {
   //console.log("Inside 1");
   const options = {
     method: "DELETE",
-    url: `https://api.synthflow.ai/v2/actions/action_id/${actionId}`,
+    url: `https://api.synthflow.ai/v2/actions/${actionId}`,
     headers: {
       accept: "application/json",
       "content-type": "application/json",
@@ -1780,6 +1812,35 @@ export async function DeleteActionSynthflow(actionId) {
     let result = await axios.request(options);
     //console.log("Inside 3");
     console.log("Delete Action Api result ", result);
+
+    if (result.status == 200) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.log("Inside error: ", error);
+    return false;
+  }
+}
+
+export async function DetachActionsSynthflow(actionIds, modelId) {
+  let synthKey = process.env.SynthFlowApiKey;
+  //console.log("Inside 1");
+  const options = {
+    method: "POST",
+    url: `https://api.synthflow.ai/v2/actions/detach`,
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      Authorization: `Bearer ${synthKey}`,
+    },
+    data: { model_id: modelId, actions: actionIds },
+  };
+  //console.log("Inside 2");
+  try {
+    let result = await axios.request(options);
+    //console.log("Inside 3");
+    // console.log("Detach Action Api result ", result);
 
     if (result.status == 200) {
       return true;
