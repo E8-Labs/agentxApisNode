@@ -180,26 +180,26 @@ export const CreatePipelineStage = async (req, res) => {
         actionId = actionCreated.response.action_id; //actionCreated.action_id;
         if (actionId) {
           let agentIds = [];
-          if (mainAgentId) {
-            agentIds = [mainAgentId];
-          } else {
-            //findAll Agents who are in this pipeline
-            let cadenceAgents = await db.PipelineCadence.findAll({
-              where: {
-                pipelineId: pipelineId,
+          // if (mainAgentId) {
+          //   agentIds = [mainAgentId];
+          // } else {
+          //findAll Agents who are in this pipeline
+          let cadenceAgents = await db.PipelineCadence.findAll({
+            where: {
+              pipelineId: pipelineId,
+            },
+          });
+          let cadenceAgentIds = cadenceAgents.map((item) => item.mainAgentId);
+          let agents = await db.MainAgentModel.findAll({
+            where: {
+              id: {
+                [db.Sequelize.Op.in]: cadenceAgentIds,
               },
-            });
-            let cadenceAgentIds = cadenceAgents.map((item) => item.mainAgentId);
-            let agents = await db.MainAgentModel.findAll({
-              where: {
-                id: {
-                  [db.Sequelize.Op.in]: cadenceAgentIds,
-                },
-              },
-            });
-            agentIds = agents.map((item) => item.id);
-            console.log("The ie should be attached to these agents", agentIds);
-          }
+            },
+          });
+          agentIds = agents.map((item) => item.id);
+          console.log("The ie should be attached to these agents", agentIds);
+          // }
 
           for (const id of agentIds) {
             console.log(`Attaching action ${actionId} to ${id}`);

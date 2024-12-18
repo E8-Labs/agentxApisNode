@@ -17,6 +17,7 @@ import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 import LeadModel from "../models/lead/lead.js";
 import { AssignLeads } from "./pipelineController.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
+import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
 
 export const AddLeads = async (req, res) => {
   let { sheetName, columnMappings, leads, tags } = req.body; // mainAgentId is the mainAgent id
@@ -98,6 +99,7 @@ export const AddLeads = async (req, res) => {
           //   lead.phone = "+1" + lead.phone;
           // }
           console.log(lead);
+
           if (
             lead.phone.length == 11 ||
             (lead.phone.length == 12 && lead.phone.startsWith("+"))
@@ -158,6 +160,20 @@ export const AddLeads = async (req, res) => {
       }
 
       let leadsRes = await LeadResource(dbLeads);
+
+      //call the api for webhook of this user
+      let webhooks = await db.WebhookModel.findAll({
+        where: {
+          userId: user.id,
+          action: WebhookTypes.TypeNewLeadAdded,
+        },
+      });
+      console.log("Found webhooks ", webhooks.length);
+      if (webhooks && webhooks.length > 0) {
+        for (const webhook of webhooks) {
+          postDataToWebhook(webhook.url, leadsRes);
+        }
+      }
       res.send({
         status: true,
         message: `${dbLeads.length} new leads added`,
@@ -171,6 +187,28 @@ export const AddLeads = async (req, res) => {
       });
     }
   });
+};
+
+const postDataToWebhook = async (url, data) => {
+  // const url = "https://hooks.zapier.com/hooks/catch/6841430/2sxlm";
+  // const data = {
+  //   key1: "value1",
+  //   key2: "value2",
+  //   nested: {
+  //     key3: "value3",
+  //   },
+  // };
+
+  try {
+    const response = await axios.post(url, data, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    console.log("Response from Zapier:", response.data);
+  } catch (error) {
+    console.error("Error posting to Zapier:", error.message);
+  }
 };
 
 //Or sheet

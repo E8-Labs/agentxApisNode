@@ -1975,7 +1975,6 @@ async function handleInfoExtractorValues(
     const value = json[csIE];
 
     if (value) {
-      canMoveToDefaultStage = false;
       const stageIdentifier = csIE.replace(
         `${process.env.StagePrefix}_stage_`,
         ""
@@ -1985,6 +1984,7 @@ async function handleInfoExtractorValues(
       });
 
       if (stage) {
+        canMoveToDefaultStage = false;
         dbCall.movedToStage = stage.id;
         dbCall.stage = lead.stage;
         await dbCall.save();
