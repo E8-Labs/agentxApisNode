@@ -36,6 +36,118 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 //Generate Prompt
+
+async function getInboudPromptText(prompt, assistant, user) {
+  let callScript = prompt.callScript;
+
+  let greeting = prompt.greeting;
+  let companyAgentInfo = prompt.companyAgentInfo;
+  companyAgentInfo = companyAgentInfo.replace(/{agent_name}/g, assistant.name);
+  companyAgentInfo = companyAgentInfo.replace(
+    /{agent_role}/g,
+    assistant.agentRole
+  );
+  companyAgentInfo = companyAgentInfo.replace(
+    /{brokerage_name}/g,
+    user.brokerage
+  );
+  companyAgentInfo = companyAgentInfo.replace(/{CU_status}/g, assistant.status);
+  companyAgentInfo = companyAgentInfo.replace(
+    /{CU_address}/g,
+    assistant.address
+  );
+  companyAgentInfo = companyAgentInfo.replace(
+    /{call_back_number}/g,
+    assistant.callbackNumber
+  );
+  if (assistant.liveTransfer) {
+    //live_transfer_number
+    companyAgentInfo = companyAgentInfo.replace(
+      /{live_transfer_number}/g,
+      assistant.liveTransferNumber
+    );
+  } else {
+  }
+
+  greeting = greeting.replace(/{agent_name}/g, assistant.name);
+  greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
+
+  callScript = callScript.replace(/{agent_name}/g, assistant.name);
+  callScript = callScript.replace(/{brokerage_name}/g, user.brokerage);
+
+  callScript = callScript.replace(/{CU_status}/g, assistant.status);
+  callScript = callScript.replace(/{CU_address}/g, assistant.address);
+
+  let guardrails = await db.ObjectionAndGuradrails.findAll({
+    where: {
+      mainAgentId: assistant.mainAgentId,
+    },
+  });
+
+  let guardText = "";
+  let objectionText = "";
+  for (const guardrail in guardrails) {
+    if (guardrail.type == "guardrail") {
+      guardText = `${guardText}\n${guardrail.title}\n${guardrail.description}\n\n`;
+    } else {
+      objectionText = `${objectionText}\n${guardrail.title}\n${guardrail.description}\n\n`;
+    }
+  }
+
+  let guardrailPromptText = prompt.guardRails;
+  guardrailPromptText = guardrailPromptText.replace(/{guardrails}/g, guardText);
+
+  let objectionPromptText = prompt.objectionHandling;
+  objectionPromptText = objectionPromptText.replace(
+    /{objections}/g,
+    objectionText
+  );
+
+  if (!assistant.liveTransfer) {
+    let t = `Title: Don’t Transfer Calls
+Description: 
+Politely decline transfer requests and reassure the caller.
+Example:
+“I can’t transfer you right now, but I’d be happy to schedule a callback with our team. What’s a good time to call you back?”
+Book or Schedule:
+Always provide clear options for callback times and book the caller on the calendar
+Stay Consistent:
+Stick to this rule to maintain control and professionalism in call handling.
+`;
+    guardrailPromptText = `${guardrailPromptText}\n\n${t}`;
+  }
+  //console.log("New Objection Text is ", objectionPromptText);
+
+  //udpate the call script here
+  let text = "";
+
+  text = `${text}\n\n${prompt.objective}\n\n`;
+  text = `${text}\n\n${companyAgentInfo}`;
+  text = `${text}\n\n${prompt.personalCharacteristics}`;
+  text = `${text}\n\n${prompt.communication}`;
+  text = `${text}\n\n${greeting}`;
+  text = `${text}\n\n${callScript}`;
+  // text = `${text}\n\n${prompt.booking}`;
+  //check if the user have connected calendar for this agent
+  let cal = await db.CalendarIntegration.findOne({
+    where: {
+      mainAgentId: assistant.mainAgentId,
+    },
+  });
+  if (cal) {
+    //add booking
+    console.log("Calendar is connected so adding booking instructions");
+    text = `${text}\n\n${prompt.booking}\nTimezone for the calendar: ${
+      cal.timeZone || "America/Los_Angeles"
+    }`;
+  }
+  text = `${text}\n\n${objectionPromptText}`;
+  text = `${text}\n\n${guardrailPromptText}`;
+  text = `${text}\n\n${prompt.streetAddress}`;
+  text = `${text}\n\n${prompt.getTools}`;
+
+  return text;
+}
 async function GetCompletePromptTextFrom(
   prompt,
   user,
@@ -351,6 +463,7 @@ export const TestAI = async (req, res) => {
       let lead = await db.LeadModel.findOne({
         where: {
           phone: phone,
+          userId: user.id,
         },
       });
 
@@ -668,7 +781,8 @@ async function CreatePromptForAgent(
   callScript = callScript.replace(/{CU_status}/g, CUStatus);
   callScript = callScript.replace(/{CU_address}/g, CUAddress);
 
-  if (selectedObjective.prompt) {
+  if (p) {
+    console.log("Creating prompt");
     let prompt = await db.AgentPromptModel.create({
       mainAgentId: mainAgent.id,
       objective: p.objective,
@@ -685,7 +799,10 @@ async function CreatePromptForAgent(
       streetAddress: p.streetAddress,
       type: type,
     });
+    return prompt;
   } else {
+    console.log("No prompt");
+    return null;
   }
 }
 
@@ -783,6 +900,7 @@ export const BuildAgent = async (req, res) => {
         // return;
         if (agentType == "both") {
           //create Agent Sythflow
+          // let p = GetCompletePromptTextFrom()
           let data = {
             userId: user.id,
             name: name,
@@ -819,12 +937,30 @@ export const BuildAgent = async (req, res) => {
             selectedObjective
           );
           data.agentType = "inbound";
+
+          let inboundPromptText = "";
+          if (createdInboundPrompt) {
+            inboundPromptText = await getInboudPromptText(
+              createdInboundPrompt,
+              { ...data, callbackNumber: null, liveTransferNumber: null },
+              user
+            );
+            data.prompt = inboundPromptText;
+          }
           let createdInbound = await CreateAssistantSynthflow(
             data,
             "inbound",
             mainAgent
           );
           data.agentType = "outbound";
+          if (createdOutboundPrompt) {
+            data.prompt = await getInboudPromptText(
+              createdOutboundPrompt,
+              { ...data, callbackNumber: null, liveTransferNumber: null },
+              user
+            );
+            // data.prompt = inboundPromptText;
+          }
           let createdOutbound = await CreateAssistantSynthflow(
             data,
             "outbound",
@@ -855,6 +991,16 @@ export const BuildAgent = async (req, res) => {
             agentType,
             selectedObjective
           );
+          // if(createdOutbound){
+          data.prompt = await getInboudPromptText(
+            created,
+            { ...data, callbackNumber: null, liveTransferNumber: null },
+            user
+          );
+          // console.log("Prompt ");
+          // console.log(data.prompt);
+          // data.prompt = inboundPromptText;
+          // }
           let createdAgent = await CreateAssistantSynthflow(
             data,
             agentType,
@@ -869,7 +1015,7 @@ export const BuildAgent = async (req, res) => {
           data: agentRes,
         });
       } catch (error) {
-        //console.log(error);
+        console.log(error);
         res.send({
           status: false,
           message: error.message,
@@ -966,6 +1112,18 @@ export const UpdateAgent = async (req, res) => {
         );
         if (updated) {
           //console.log("Prompt updated");
+          if (agents) {
+            for (let i = 0; i < agents.length; i++) {
+              let a = agents[i];
+              let updatedSynthflow = await UpdateAssistantSynthflow(a, {
+                agent: {
+                  prompt: req.body.inboundPrompt,
+                  greeting: req.body.inboundGreeting,
+                },
+              });
+              //console.log("Voice updated to agent on synthflow", a.modelId);
+            }
+          }
         }
       }
       let agentRes = await AgentResource(agent);
@@ -1489,7 +1647,7 @@ export async function CreateAssistantSynthflow(
   mainAgent
 ) {
   let synthKey = process.env.SynthFlowApiKey;
-  //console.log("Inside 1");
+  // console.log("Inside 1", agentData.prompt);
   const options = {
     method: "POST",
     url: "https://api.synthflow.ai/v2/assistants",
@@ -1502,11 +1660,14 @@ export async function CreateAssistantSynthflow(
       type: type,
       name: agentData.name,
       external_webhook_url: process.env.WebHookForSynthflow,
+
       agent: {
+        prompt: agentData.prompt,
         llm: "gpt-4o",
         language: "en-US",
-        prompt: "",
-        greeting_message: "",
+        greeting_message:
+          agentData.greeting ||
+          `Hey there you have called ${mainAgent.name}. How can i assist you today?`,
         voice_id: "wefw5e68456wef",
       },
       is_recording: true,
@@ -1840,7 +2001,9 @@ async function findOrCreateSheet(assistant, sheetName) {
 }
 
 async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
-  let lead = await db.LeadModel.findOne({ where: { phone: leadPhone } });
+  let lead = await db.LeadModel.findOne({
+    where: { phone: leadPhone, userId: userId },
+  });
   if (!lead) {
     let firstName = leadData.name;
     let lastName = "";
