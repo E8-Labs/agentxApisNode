@@ -17,6 +17,7 @@ import {
   AddObjectionOrGuardrail,
   GetObjectionsAndGuardrails,
   TestAI,
+  SetOutcomeforpreviousCalls,
 } from "../controllers/synthflowController.js";
 
 import {
@@ -92,6 +93,8 @@ AgentRouter.get("/getKycs", verifyJwtToken, uploadFiles, GetKyc);
 AgentRouter.post("/addKyc", verifyJwtToken, uploadFiles, AddKyc);
 
 AgentRouter.post("/deleteKyc", verifyJwtToken, uploadFiles, DeleteKyc);
+
+AgentRouter.post("/updateCallStatusForAll", SetOutcomeforpreviousCalls);
 
 AgentRouter.post(
   "/addObjectionGuardRail",

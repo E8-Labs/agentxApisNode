@@ -2109,6 +2109,18 @@ async function findOrCreateLeadCadence(lead, assistant, jsonIE) {
       mainAgentId: assistant?.mainAgentId,
       pipelineId: pipelineCadence?.pipelineId,
     });
+
+    if (pipelineCadence) {
+      let pipelineId = pipelineCadence.pipelineId;
+      let newLeadStage = await db.PipelineStages.findOne({
+        where: {
+          pipelineId: pipelineId,
+          identifier: "new_lead",
+        },
+      });
+      lead.stage = newLeadStage?.id;
+      await lead.save();
+    }
   }
 
   return leadCad;
@@ -2160,6 +2172,7 @@ async function processInfoExtractors(jsonIE, leadCadence, lead, dbCall) {
 }
 
 async function extractIEAndStoreKycs(extractors, lead, callId) {
+  console.log("Extractors ", extractors);
   const keys = Object.keys(extractors);
   const ie = {};
 
@@ -2167,6 +2180,7 @@ async function extractIEAndStoreKycs(extractors, lead, callId) {
     const data = extractors[key];
     const returnValue = data.return_value;
     const question = key.replace("info_extractor_", "");
+    console.log("Question is ", question);
     const answer = returnValue[question];
 
     ie[question] = answer;
@@ -2206,12 +2220,35 @@ async function handleInfoExtractorValues(
   pipeline,
   dbCall
 ) {
+  await SetAllTagsFromIEAndCall(
+    json,
+    dbCall.status,
+    dbCall.endCallReason,
+    lead
+  );
+  let outcome = GetOutcomeFromCall(json, dbCall.status, dbCall.endCallReason);
+  console.log("Outcome is ", outcome);
+  dbCall.callOutcome = outcome;
+  await dbCall.save();
   console.log("Handling IE", json);
   const keys = Object.keys(json);
   const customStageIEs = keys.filter((str) =>
     str.includes(`${process.env.StagePrefix}_stage`)
   );
   let canMoveToDefaultStage = true;
+  let movedToPriorityStage = false;
+  var tags = [];
+  let moveToStage = null;
+  //priority
+  if (json.meetingscheduled) {
+    tags.push("Booked");
+    const bookedStage = await db.PipelineStages.findOne({
+      where: { identifier: "booked", pipelineId: pipeline.id },
+    });
+
+    moveToStage = bookedStage?.id || null;
+    movedToPriorityStage = true;
+  }
 
   for (const csIE of customStageIEs) {
     const value = json[csIE];
@@ -2239,57 +2276,175 @@ async function handleInfoExtractorValues(
     }
   }
 
-  if (canMoveToDefaultStage) {
-    let moveToStage = null;
+  // if (canMoveToDefaultStage) {
 
-    if (json.hotlead || json.callbackrequested) {
-      console.log("It's a hotlead");
-      const hotLeadStage = await db.PipelineStages.findOne({
-        where: { identifier: "hot_lead", pipelineId: pipeline.id },
-      });
+  if (json.hotlead || json.callbackrequested) {
+    console.log("It's a hotlead");
+    const hotLeadStage = await db.PipelineStages.findOne({
+      where: { identifier: "hot_lead", pipelineId: pipeline.id },
+    });
 
-      moveToStage = hotLeadStage?.id || null;
-    } else if (json.notinterested || json.dnd || json.wrongnumber) {
-      const notInterestedStage = await db.PipelineStages.findOne({
-        where: { identifier: "not_interested", pipelineId: pipeline.id },
-      });
+    moveToStage = hotLeadStage?.id || null;
+  } else if (json.notinterested || json.dnd || json.wrongnumber) {
+    tags.push("Not Interested");
+    const notInterestedStage = await db.PipelineStages.findOne({
+      where: { identifier: "not_interested", pipelineId: pipeline.id },
+    });
 
-      moveToStage = notInterestedStage?.id || null;
-      Object.assign(leadCadence, {
-        dnd: json.dnd,
-        notinterested: json.notinterested,
-        wrongnumber: json.wrongnumber,
-      });
+    moveToStage = notInterestedStage?.id || null;
+    Object.assign(leadCadence, {
+      dnd: json.dnd,
+      notinterested: json.notinterested,
+      wrongnumber: json.wrongnumber,
+    });
+    await leadCadence.save();
+  } else if (json.meetingscheduled) {
+    const bookedStage = await db.PipelineStages.findOne({
+      where: { identifier: "booked", pipelineId: pipeline.id },
+    });
+
+    moveToStage = bookedStage?.id || null;
+  } else if (
+    // json.callmeback ||
+    json.humancalldrop ||
+    // json.Busycallback ||
+    json.nodecisionmaker
+  ) {
+    const followUpStage = await db.PipelineStages.findOne({
+      where: { identifier: "follow_up", pipelineId: pipeline.id },
+    });
+
+    if (lead.stage < followUpStage.id) {
+      moveToStage = followUpStage?.id || null;
+      leadCadence.nodecisionmaker = json.nodecisionmaker;
       await leadCadence.save();
-    } else if (json.meetingscheduled) {
-      const bookedStage = await db.PipelineStages.findOne({
-        where: { identifier: "booked", pipelineId: pipeline.id },
-      });
-
-      moveToStage = bookedStage?.id || null;
-    } else if (
-      // json.callmeback ||
-      json.humancalldrop ||
-      // json.Busycallback ||
-      json.nodecisionmaker
-    ) {
-      const followUpStage = await db.PipelineStages.findOne({
-        where: { identifier: "follow_up", pipelineId: pipeline.id },
-      });
-
-      if (lead.stage < followUpStage.id) {
-        moveToStage = followUpStage?.id || null;
-        leadCadence.nodecisionmaker = json.nodecisionmaker;
-        await leadCadence.save();
-      }
-    }
-
-    if (moveToStage) {
-      dbCall.movedToStage = moveToStage;
-      dbCall.stage = lead.stage;
-      await dbCall.save();
-      lead.stage = moveToStage;
-      await lead.save();
     }
   }
+
+  // }
+  if (moveToStage && !movedToPriorityStage && canMoveToDefaultStage) {
+    console.log(
+      "if moveToStage is not null and the lead hasn't moved to any priority stage && can move to Default Stage"
+    );
+    // if moveToStage is not null and the lead hasn't moved to any priority stage && can move to Default Stage
+    dbCall.movedToStage = moveToStage;
+    dbCall.stage = lead.stage;
+    await dbCall.save();
+    lead.stage = moveToStage;
+    await lead.save();
+  }
 }
+
+const SetAllTagsFromIEAndCall = async (
+  jsonIE,
+  callStatus,
+  endCallReason,
+  lead
+) => {
+  let tags = [];
+  if (jsonIE.meetingscheduled) {
+    tags.push("Booked");
+  }
+  if (jsonIE.dnd) {
+    tags.push("dnd");
+  }
+  if (jsonIE.hotlead) {
+    tags.push("Hot");
+  }
+  if (jsonIE.voicemail) {
+    tags.push("Voicemail");
+  }
+
+  if (jsonIE.Busycallback || callStatus == "busy") {
+    tags.push("Busy");
+  }
+  if (callStatus == "no-answer") {
+    tags.push("No Answer");
+  }
+  if (callStatus == "failed") {
+    tags.push("Failed");
+  }
+  if (endCallReason == "human_pick_up_cut_off" || jsonIE.humancalldrop) {
+    tags.push("Hangup");
+  }
+
+  let data = [];
+  for (const t of tags) {
+    data.push({ tag: t, leadId: lead.id });
+  }
+  let created = await db.LeadTagsModel.bulkCreate(data);
+  return tags;
+};
+const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
+  let status = "";
+  let tags = [];
+  if (callStatus == "completed") {
+    if (jsonIE.meetingscheduled) {
+      status = "Booked";
+    }
+    if (jsonIE.hotlead) {
+      status = "Hot Lead";
+    }
+    if (jsonIE.notinterested) {
+      status = "Not Interested";
+    }
+    if (endCallReason == "voicemail") {
+      status = "Voicemain";
+    }
+    if (endCallReason == "human_pick_up_cut_off" || jsonIE.humancalldrop) {
+      status = "Hangup";
+    }
+    if (jsonIE.dnd) {
+      status = "Busy";
+    }
+    if (jsonIE.Busycallback) {
+      tags.push("Busy");
+    }
+  } else if (callStatus == "busy") {
+    status = "Busy";
+  } else if (callStatus == "failed") {
+    status = "Failed";
+  } else if (callStatus == "hangup_on_voicemail") {
+    status = "Voicemail";
+  } else if (callStatus == "no-answer") {
+    status = "No answer";
+  }
+  return status;
+};
+
+const addTagToLead = async (tag, lead) => {
+  let added = await db.LeadTagsModel.create({
+    tag: tag,
+    leadId: lead.id,
+  });
+  return added;
+};
+
+export const SetOutcomeforpreviousCalls = async (req, res) => {
+  let calls = await db.LeadCallsSent.findAll();
+  if (calls && calls.length > 0) {
+    for (const call of calls) {
+      let callData = call.callData;
+      if (callData) {
+        let parsed = JSON.parse(callData);
+        let actions = parsed.executed_actions;
+        let lead = await db.LeadModel.findByPk(call.leadId);
+        let jsonIE = await extractIEAndStoreKycs(
+          actions,
+          lead,
+          call.synthflowCallId
+        );
+
+        let outcome = GetOutcomeFromCall(
+          jsonIE,
+          call.status,
+          call.endCallReason
+        );
+        call.callOutcome = outcome;
+        await call.save();
+      }
+    }
+  }
+  return res.send({ status: true, message: "All call status updated" });
+};
+// SetOutcomeforpreviousCalls();

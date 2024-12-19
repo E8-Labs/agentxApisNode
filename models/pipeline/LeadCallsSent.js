@@ -180,6 +180,11 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: true,
     },
+    callOutcome: {
+      type: Sequelize.STRING,
+      // allowNull: false,
+      defaultValue: "Completed",
+    },
   });
   LeadCallsSent.associate = (models) => {
     LeadCallsSent.belongsTo(models.LeadModel, {
