@@ -375,8 +375,8 @@ export const PurchasePhoneNumber = async (req, res) => {
     } catch (error) {
       return res.status(500).send({
         status: false,
-        message: "Error occurred.",
-        error: error.message,
+        message: error.message,
+        error: error,
       });
     }
   });
