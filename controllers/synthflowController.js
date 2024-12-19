@@ -1617,7 +1617,7 @@ export const AddKyc = async (req, res) => {
 };
 
 export const UpdateKyc = async (req, res) => {
-  let { kycQuestions, mainAgentId } = req.body; // mainAgentId is the mainAgent id
+  let { kycQuestions, mainAgentId, type } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -1640,6 +1640,7 @@ export const UpdateKyc = async (req, res) => {
         let allAgentKycs = await db.KycModel.findAll({
           where: {
             mainAgentId: mainAgentId,
+            type: type,
           },
         });
         let alreadyPresentKycIds = [];
