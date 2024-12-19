@@ -313,7 +313,7 @@ export const PurchasePhoneNumber = async (req, res) => {
 
       // Charge user for phone number
       const phoneNumberCost = 200; // Monthly cost in cents
-      await chargeUser(
+      let charge = await chargeUser(
         userId,
         phoneNumberCost,
         `Purchase of phone number ${phoneNumber}`,
