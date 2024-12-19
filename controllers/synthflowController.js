@@ -1643,7 +1643,7 @@ export const UpdateKyc = async (req, res) => {
         let alreadyPresentKycIds = [];
         if (allAgentKycs && allAgentKycs.length > 0) {
           alreadyPresentKycIds = allAgentKycs.map((item) => {
-            alreadyPresentKycIds.push(id);
+            alreadyPresentKycIds.push(item.id);
           });
         }
         let newKycs = [];
