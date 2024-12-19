@@ -2186,26 +2186,28 @@ async function extractIEAndStoreKycs(extractors, lead, callId) {
     ie[question] = answer;
     console.log(`IE found ${question} : ${answer}`);
 
-    if (typeof answer === "string") {
-      if (question === "prospectemail") {
-        const emailFound = await db.LeadEmailModel.findOne({
-          where: { email: answer, leadId: lead.id },
-        });
+    if (lead) {
+      if (typeof answer === "string") {
+        if (question === "prospectemail") {
+          const emailFound = await db.LeadEmailModel.findOne({
+            where: { email: answer, leadId: lead.id },
+          });
 
-        if (!emailFound) {
-          console.log("New email added");
-          await db.LeadEmailModel.create({ email: answer, leadId: lead.id });
+          if (!emailFound) {
+            console.log("New email added");
+            await db.LeadEmailModel.create({ email: answer, leadId: lead.id });
+          }
+        } else if (answer !== "prospectname") {
+          await db.LeadKycsExtracted.create({
+            question,
+            answer,
+            leadId: lead.id,
+            callId,
+          });
         }
-      } else if (answer !== "prospectname") {
-        await db.LeadKycsExtracted.create({
-          question,
-          answer,
-          leadId: lead.id,
-          callId,
-        });
+      } else {
+        console.log("IE is not open question");
       }
-    } else {
-      console.log("IE is not open question");
     }
   }
 
