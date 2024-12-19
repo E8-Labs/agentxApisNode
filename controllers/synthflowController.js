@@ -1642,10 +1642,9 @@ export const UpdateKyc = async (req, res) => {
         });
         let alreadyPresentKycIds = [];
         if (allAgentKycs && allAgentKycs.length > 0) {
-          alreadyPresentKycIds = allAgentKycs.map((item) => {
-            alreadyPresentKycIds.push(item.id);
-          });
+          alreadyPresentKycIds = allAgentKycs.map((item) => item.id);
         }
+
         let newKycs = [];
         for (let i = 0; i < kycQuestions.length; i++) {
           let kyc = kycQuestions[i];
@@ -1724,9 +1723,9 @@ export const UpdateKyc = async (req, res) => {
         console.log("Kycs older ", alreadyPresentKycIds);
         console.log("Kycs new ", newKycs);
         console.log("Kycs to delete", kycsTobeDeleted);
-        // for (const id of kycsTobeDeleted) {
-        //   await DeleteKycQuesiton(id);
-        // }
+        for (const id of kycsTobeDeleted) {
+          await DeleteKycQuesiton(id);
+        }
       }
 
       let agentRes = await AgentResource(mainAgent);
