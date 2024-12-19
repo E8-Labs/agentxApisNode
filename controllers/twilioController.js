@@ -16,7 +16,7 @@ const twilioClient = twilio(
 
 const getPhoneNumberPricing = async (countryCode) => {
   try {
-    const pricing = await client.pricing.v1.phoneNumbers
+    const pricing = await twilioClient.pricing.v1.phoneNumbers
       .countries(countryCode)
       .fetch();
     console.log("Priceing ", pricing);
@@ -241,7 +241,7 @@ export const ListAvailableNumbers = async (req, res) => {
 //         //     phoneNumber: phoneNumber,
 //         //   },
 //         // });
-//         const purchasedNumber = await client.incomingPhoneNumbers.create({
+//         const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
 //           phoneNumber,
 //         });
 
@@ -328,7 +328,7 @@ export const PurchasePhoneNumber = async (req, res) => {
           purchasedNumber = { sid: `PHSID${phoneNumber}` };
         } else {
           console.log("Live env so acutall purchasing number");
-          purchasedNumber = await client.incomingPhoneNumbers.create({
+          purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
             phoneNumber,
           });
         }
@@ -672,7 +672,9 @@ export const PhoneNumberCron = async () => {
           console.log(`Phone number ${phoneNumber.phone} has been released.`);
         }
       } catch (chargeError) {
-        await twilioClient.incomingPhoneNumbers(phoneNumber.phoneSid).remove();
+        await twiliotwilioClient
+          .incomingPhoneNumbers(phoneNumber.phoneSid)
+          .remove();
 
         phoneNumber.phoneStatus = "released";
         await phoneNumber.save();
@@ -684,7 +686,7 @@ export const PhoneNumberCron = async () => {
 
     console.log("Daily phone number billing process completed.");
   } catch (error) {
-    // await twilioClient.incomingPhoneNumbers(phoneNumber.phoneSid).remove();
+    // await twiliotwilioClient.incomingPhoneNumbers(phoneNumber.phoneSid).remove();
 
     // phoneNumber.phoneStatus = "released";
     // await phoneNumber.save();
