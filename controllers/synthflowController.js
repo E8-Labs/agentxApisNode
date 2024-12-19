@@ -1614,6 +1614,163 @@ export const AddKyc = async (req, res) => {
   });
 };
 
+export const UpdateKyc = async (req, res) => {
+  let { kycQuestions, mainAgentId } = req.body; // mainAgentId is the mainAgent id
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let mainAgent = await db.MainAgentModel.findByPk(mainAgentId);
+      let prompts = await db.AgentPromptModel.findAll({
+        where: {
+          mainAgentId: mainAgentId,
+        },
+      });
+
+      let kycs = [];
+
+      if (user) {
+        let allAgentKycs = await db.KycModel.findAll({
+          where: {
+            mainAgentId: mainAgentId,
+          },
+        });
+        let alreadyPresentKycIds = [];
+        if (allAgentKycs && allAgentKycs.length > 0) {
+          alreadyPresentKycIds = allAgentKycs.map((item) => {
+            alreadyPresentKycIds.push(id);
+          });
+        }
+        let newKycs = [];
+        for (let i = 0; i < kycQuestions.length; i++) {
+          let kyc = kycQuestions[i];
+          kyc.actiontype = "open_question";
+          kyc.description = `Based on the transcript provided, identify what the Human said when asked ${kyc.question}. If no clear answer is provided, output Not Provided.`;
+
+          // check if there is already a kyc with this details
+          let created = await db.KycModel.findOne({
+            where: {
+              userId: user.id,
+              question: kyc.question,
+              type: kyc.type,
+              category: kyc.category,
+              mainAgentId: mainAgentId,
+            },
+          });
+          //this kyc didn't exist. So add one and add IE as well
+          if (!created) {
+            created = await db.KycModel.create({
+              userId: user.id,
+              question: kyc.question,
+              category: kyc.category, //Needs, Motivation, Urgency etc
+              type: kyc.type, //seller or buyer
+              mainAgentId: mainAgentId,
+            });
+            let kycExamples = [];
+
+            if (created) {
+              for (let j = 0; j < kyc.examples.length; j++) {
+                let ex = kyc.examples[j];
+                let createdEx = await db.KycExampleModel.create({
+                  kycId: created.id,
+                  example: ex,
+                });
+                kycExamples.push(createdEx);
+              }
+            }
+
+            //Add IE
+            let found = await db.InfoExtractorModel.findOne({
+              where: {
+                question: kyc.question,
+              },
+            });
+            console.log("FOund ", found);
+            if (found) {
+              console.log("have predefined info extractor for ", kyc.question);
+              console.log("IE found is ", found);
+              let attached = await AttachInfoExtractor(
+                mainAgentId,
+                found.actionId
+              );
+              created.actionId = found.actionId;
+            } else {
+              console.log("don't have predefined info extractor", kyc.question);
+              let infoExtractor = await CreateAndAttachInfoExtractor(
+                mainAgentId,
+                kyc
+              );
+              if (infoExtractor) {
+                created.actionId = infoExtractor.action_id;
+              }
+            }
+            await created.save();
+
+            let res = await KycResource(created);
+            kycs.push(res);
+          }
+          newKycs.push(created.id);
+        }
+
+        //delete kycs that are only present in the alreadyPresentKycIds and not in the newKycs
+        const kycsTobeDeleted = alreadyPresentKycIds.filter(
+          (value) => !newKycs.includes(value)
+        );
+        console.log("Kycs to delete", kycsTobeDeleted);
+        for (const id of kycsTobeDeleted) {
+          await DeleteKycQuesiton(id);
+        }
+      }
+
+      let agentRes = await AgentResource(mainAgent);
+
+      return res.send({ status: true, message: "kyc added", data: agentRes });
+    } else {
+    }
+  });
+};
+
+async function DeleteKycQuesiton(kycId) {
+  let kyc = await db.KycModel.findByPk(kycId);
+  if (kyc && kyc.actionId) {
+    //remove the action
+    let agents = await db.AgentModel.findAll({
+      where: {
+        mainAgentId: kyc.mainAgentId,
+      },
+    });
+    if (agents && agents.length > 0) {
+      await DetachActionsSynthflow([kyc.actionId], agents[0].modelId);
+      if (agents.length > 1) {
+        await DetachActionsSynthflow([kyc.actionId], agents[1].modelId);
+      }
+    }
+    //Delete action if not in the Default InfoE
+    let found = await db.InfoExtractorModel.findOne({
+      where: {
+        question: kyc.question,
+      },
+    });
+    // console.log("FOund ", found);
+    if (!found) {
+      console.log("Not a default action kyc, so delete");
+      await DeleteActionSynthflow(kyc.actionId);
+    } else {
+      console.log("Default kyc so not deleting the action just detached");
+    }
+  }
+  let kycsDel = await db.KycModel.destroy({
+    where: {
+      id: kycId,
+    },
+  });
+}
+
 export const DeleteKyc = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -1629,36 +1786,39 @@ export const DeleteKyc = async (req, res) => {
       let kyc = await db.KycModel.findByPk(kycId);
       let mainAgentId = kyc.mainAgentId;
 
-      if (kyc.actionId) {
-        //remove the action
-        let agents = await db.AgentModel.findAll({
-          where: {
-            mainAgentId: kyc.mainAgentId,
-          },
-        });
-        if (agents && agents.length > 0) {
-          await DetachActionsSynthflow([kyc.actionId], agents[0].modelId);
-          if (agents.length > 1) {
-            await DetachActionsSynthflow([kyc.actionId], agents[1].modelId);
-          }
-        }
-        //Delete action if not in the Default InfoE
-        let found = await db.InfoExtractorModel.findOne({
-          where: {
-            question: kyc.question,
-          },
-        });
-        console.log("FOund ", found);
-        if (!found) {
-          console.log("Not a default action kyc, so delete");
-          await DeleteActionSynthflow(kyc.actionId);
-        }
+      if (kyc) {
+        await DeleteKycQuesiton(kyc.id);
       }
-      let kycsDel = await db.KycModel.destroy({
-        where: {
-          id: kycId,
-        },
-      });
+      // if (kyc.actionId) {
+      //   //remove the action
+      //   let agents = await db.AgentModel.findAll({
+      //     where: {
+      //       mainAgentId: kyc.mainAgentId,
+      //     },
+      //   });
+      //   if (agents && agents.length > 0) {
+      //     await DetachActionsSynthflow([kyc.actionId], agents[0].modelId);
+      //     if (agents.length > 1) {
+      //       await DetachActionsSynthflow([kyc.actionId], agents[1].modelId);
+      //     }
+      //   }
+      //   //Delete action if not in the Default InfoE
+      //   let found = await db.InfoExtractorModel.findOne({
+      //     where: {
+      //       question: kyc.question,
+      //     },
+      //   });
+      //   console.log("FOund ", found);
+      //   if (!found) {
+      //     console.log("Not a default action kyc, so delete");
+      //     await DeleteActionSynthflow(kyc.actionId);
+      //   }
+      // }
+      // let kycsDel = await db.KycModel.destroy({
+      //   where: {
+      //     id: kycId,
+      //   },
+      // });
 
       let agent = await db.MainAgentModel.findByPk(mainAgentId);
 
@@ -2386,17 +2546,17 @@ const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
 
   // }
   if (callStatus == "completed") {
-    if (jsonIE.meetingscheduled) {
-      status = "Booked";
-    }
     if (jsonIE.hotlead) {
       status = "Hot Lead";
+    }
+    if (jsonIE.meetingscheduled) {
+      status = "Booked";
     }
     if (jsonIE.notinterested) {
       status = "Not Interested";
     }
     if (endCallReason == "voicemail") {
-      status = "Voicemain";
+      status = "Voicemail";
     }
     if (endCallReason == "human_pick_up_cut_off" || jsonIE.humancalldrop) {
       status = "Hangup";
@@ -2405,7 +2565,8 @@ const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
       status = "Busy";
     }
     if (jsonIE.Busycallback) {
-      tags.push("Busy");
+      // tags.push("Busy");
+      status = "Busy";
     }
   } else if (callStatus == "busy") {
     status = "Busy";

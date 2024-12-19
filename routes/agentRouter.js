@@ -9,6 +9,7 @@ import {
   DeleteAgent,
   GetVoices,
   AddKyc,
+  UpdateKyc,
   GetKyc,
   DeleteKyc,
   WebhookSynthflow,
@@ -91,6 +92,8 @@ AgentRouter.post(
 AgentRouter.get("/getKycs", verifyJwtToken, uploadFiles, GetKyc);
 //Add Kyc
 AgentRouter.post("/addKyc", verifyJwtToken, uploadFiles, AddKyc);
+//Update Kyc
+AgentRouter.post("/updateKyc", verifyJwtToken, uploadFiles, UpdateKyc);
 
 AgentRouter.post("/deleteKyc", verifyJwtToken, uploadFiles, DeleteKyc);
 
