@@ -373,7 +373,7 @@ export const PurchasePhoneNumber = async (req, res) => {
         });
       }
     } catch (error) {
-      return res.status(500).send({
+      return res.status(200).send({
         status: false,
         message: error.message,
         error: error,
