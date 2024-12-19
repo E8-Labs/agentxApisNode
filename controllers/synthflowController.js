@@ -2252,29 +2252,31 @@ async function handleInfoExtractorValues(
     movedToPriorityStage = true;
   }
 
-  for (const csIE of customStageIEs) {
-    const value = json[csIE];
+  if (!movedToPriorityStage) {
+    for (const csIE of customStageIEs) {
+      const value = json[csIE];
 
-    if (value) {
-      const stageIdentifier = csIE.replace(
-        `${process.env.StagePrefix}_stage_`,
-        ""
-      );
-      const stage = await db.PipelineStages.findOne({
-        where: { identifier: stageIdentifier, pipelineId: pipeline.id },
-      });
+      if (value) {
+        const stageIdentifier = csIE.replace(
+          `${process.env.StagePrefix}_stage_`,
+          ""
+        );
+        const stage = await db.PipelineStages.findOne({
+          where: { identifier: stageIdentifier, pipelineId: pipeline.id },
+        });
 
-      if (stage) {
-        canMoveToDefaultStage = false;
-        dbCall.movedToStage = stage.id;
-        dbCall.stage = lead.stage;
-        await dbCall.save();
-        lead.stage = stage.id;
-        await lead.save();
-        console.log(`Successfully moved to ${stageIdentifier}`, json[csIE]);
+        if (stage) {
+          canMoveToDefaultStage = false;
+          dbCall.movedToStage = stage.id;
+          dbCall.stage = lead.stage;
+          await dbCall.save();
+          lead.stage = stage.id;
+          await lead.save();
+          console.log(`Successfully moved to ${stageIdentifier}`, json[csIE]);
+        }
+
+        break;
       }
-
-      break;
     }
   }
 
@@ -2415,14 +2417,6 @@ const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
     status = "No answer";
   }
   return status;
-};
-
-const addTagToLead = async (tag, lead) => {
-  let added = await db.LeadTagsModel.create({
-    tag: tag,
-    leadId: lead.id,
-  });
-  return added;
 };
 
 export const SetOutcomeforpreviousCalls = async (req, res) => {
