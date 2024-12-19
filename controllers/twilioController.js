@@ -160,7 +160,7 @@ export const ListAvailableNumbers = async (req, res) => {
         const price = await getPhoneNumberPricing(options.countryCode);
 
         // Search for available numbers
-        const numbers = await client
+        const numbers = await twilioClient
           .availablePhoneNumbers(options.countryCode)
           .local.list(options);
 
@@ -672,9 +672,7 @@ export const PhoneNumberCron = async () => {
           console.log(`Phone number ${phoneNumber.phone} has been released.`);
         }
       } catch (chargeError) {
-        await twiliotwilioClient
-          .incomingPhoneNumbers(phoneNumber.phoneSid)
-          .remove();
+        await twilioClient.incomingPhoneNumbers(phoneNumber.phoneSid).remove();
 
         phoneNumber.phoneStatus = "released";
         await phoneNumber.save();
