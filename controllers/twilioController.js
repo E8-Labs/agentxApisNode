@@ -323,15 +323,15 @@ export const PurchasePhoneNumber = async (req, res) => {
       // Proceed with Twilio phone number purchase
       if (charge && charge.status) {
         let purchasedNumber = null;
-        if (process.env.Environment == "Sandbox") {
-          console.log("Sandbox environment so not actually buying number");
-          purchasedNumber = { sid: `PHSID${phoneNumber}` };
-        } else {
-          console.log("Live env so acutall purchasing number");
-          purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
-            phoneNumber,
-          });
-        }
+        // if (process.env.Environment == "Sandbox") {
+        //   console.log("Sandbox environment so not actually buying number");
+        //   purchasedNumber = { sid: `PHSID${phoneNumber}` };
+        // } else {
+        console.log("Live env so acutall purchasing number");
+        purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
+          phoneNumber,
+        });
+        // }
 
         if (!purchasedNumber || !purchasedNumber.sid) {
           return res.status(500).send({
