@@ -1525,13 +1525,15 @@ export const AddKyc = async (req, res) => {
                 kycBuyerUrgencyText = `${kycBuyerUrgencyText}\n{${kyc.question}}`;
               }
             }
-            for (let j = 0; j < kyc.examples.length; j++) {
-              let ex = kyc.examples[j];
-              let createdEx = await db.KycExampleModel.create({
-                kycId: created.id,
-                example: ex,
-              });
-              kycExamples.push(createdEx);
+            if (kyc.examples) {
+              for (let j = 0; j < kyc.examples.length; j++) {
+                let ex = kyc.examples[j];
+                let createdEx = await db.KycExampleModel.create({
+                  kycId: created.id,
+                  example: ex,
+                });
+                kycExamples.push(createdEx);
+              }
             }
           }
 
@@ -1672,7 +1674,7 @@ export const UpdateKyc = async (req, res) => {
             });
             let kycExamples = [];
 
-            if (created) {
+            if (created && kyc.examples) {
               for (let j = 0; j < kyc.examples.length; j++) {
                 let ex = kyc.examples[j];
                 let createdEx = await db.KycExampleModel.create({
