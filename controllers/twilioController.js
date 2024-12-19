@@ -157,7 +157,7 @@ export const ListAvailableNumbers = async (req, res) => {
         };
 
         // Retrieve pricing for the specified country
-        const price = await getPhoneNumberPricing(options.countryCode);
+        // const price = await getPhoneNumberPricing(options.countryCode);
 
         // Search for available numbers
         const numbers = await twilioClient
