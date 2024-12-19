@@ -16,10 +16,10 @@ import { chargeUser } from "./utils/stripe.js"; // Function to charge user
 import twilio from "twilio";
 
 // Twilio setup
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
+// const twilioClient = twilio(
+//   process.env.TWILIO_ACCOUNT_SID,
+//   process.env.TWILIO_AUTH_TOKEN
+// );
 import dotenv from "dotenv";
 
 dotenv.config();
