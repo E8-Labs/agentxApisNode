@@ -857,6 +857,9 @@ export const GetCallLogs = async (req, res) => {
             {
               model: db.LeadModel,
               as: "LeadModel",
+              where: {
+                userId,
+              },
             },
             {
               model: db.PipelineStages,

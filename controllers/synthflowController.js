@@ -2380,6 +2380,9 @@ const SetAllTagsFromIEAndCall = async (
 const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
   let status = "";
   let tags = [];
+  // if (callStatus == "errored"){
+
+  // }
   if (callStatus == "completed") {
     if (jsonIE.meetingscheduled) {
       status = "Booked";
