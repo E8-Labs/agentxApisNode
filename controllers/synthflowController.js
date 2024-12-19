@@ -1721,10 +1721,12 @@ export const UpdateKyc = async (req, res) => {
         const kycsTobeDeleted = alreadyPresentKycIds.filter(
           (value) => !newKycs.includes(value)
         );
+        console.log("Kycs older ", alreadyPresentKycIds);
+        console.log("Kycs new ", newKycs);
         console.log("Kycs to delete", kycsTobeDeleted);
-        for (const id of kycsTobeDeleted) {
-          await DeleteKycQuesiton(id);
-        }
+        // for (const id of kycsTobeDeleted) {
+        //   await DeleteKycQuesiton(id);
+        // }
       }
 
       let agentRes = await AgentResource(mainAgent);
