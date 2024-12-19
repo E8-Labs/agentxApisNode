@@ -548,7 +548,7 @@ export const GetLeads = async (req, res) => {
       try {
         const { sheetId, stageIds, fromDate, toDate } = req.query; // Fetching query parameters
         const userId = authData.user.id;
-
+        let offset = Number(req.query.offset) || 0;
         // Validate the user
         const user = await db.User.findOne({
           where: { id: userId },
@@ -576,6 +576,8 @@ export const GetLeads = async (req, res) => {
         // Fetch leads first based on general filters
         const leads = await db.LeadModel.findAll({
           where: leadFilters,
+          offset: offset,
+          limit: 500,
           // attributes: ["id", "firstName", "lastName", "email", "phone", "stage"], // Adjust attributes as needed
           raw: true, // Return plain objects
         });
@@ -804,6 +806,7 @@ export const GetCallLogs = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
+      let offset = Number(req.query.offset) || 0;
       let user = await db.User.findOne({
         where: {
           id: userId,
@@ -853,6 +856,8 @@ export const GetCallLogs = async (req, res) => {
         const callLogs = await db.LeadCallsSent.findAll({
           where: filters,
           order: [["createdAt", "DESC"]],
+          offset: offset,
+          limit: 500,
           include: [
             {
               model: db.LeadModel,
