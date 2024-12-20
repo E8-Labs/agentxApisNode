@@ -1159,7 +1159,7 @@ export const UpdateAgent = async (req, res) => {
         let updated = await db.AgentPromptModel.update(
           {
             callScript: req.body.inboundPrompt,
-            greeting: req.body.inboundGreeting,
+            greeting_message: req.body.inboundGreeting,
           },
           {
             where: {
@@ -1177,7 +1177,7 @@ export const UpdateAgent = async (req, res) => {
                 let updatedSynthflow = await UpdateAssistantSynthflow(a, {
                   agent: {
                     prompt: req.body.inboundPrompt,
-                    greeting: req.body.inboundGreeting,
+                    greeting_message: req.body.inboundGreeting,
                   },
                 });
               }
