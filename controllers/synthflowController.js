@@ -872,6 +872,9 @@ export const BuildAgent = async (req, res) => {
 
       let selectedObjective = null;
       for (let i = 0; i < AgentObjectives.length; i++) {
+        console.log(
+          `matching ${AgentObjectives[i].id} == ${agentObjectiveId} `
+        );
         if (
           AgentObjectives[i].id == agentObjectiveId ||
           AgentObjectives[i].title == agentObjective
