@@ -106,7 +106,7 @@ export const ReleasePhoneNumber = async (req, res) => {
         let agent = await db.AgentModel.findOne({
           where: {
             phoneNumber: phoneNumber,
-            id: inboundAgentId,
+            // id: inboundAgentId,
           },
         });
 

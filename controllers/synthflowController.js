@@ -1142,12 +1142,14 @@ export const UpdateAgent = async (req, res) => {
           if (agents) {
             for (let i = 0; i < agents.length; i++) {
               let a = agents[i];
-              let updatedSynthflow = await UpdateAssistantSynthflow(a, {
-                agent: {
-                  prompt: req.body.prompt,
-                  greeting: req.body.greeting,
-                },
-              });
+              if (a.agentType == "outbound") {
+                let updatedSynthflow = await UpdateAssistantSynthflow(a, {
+                  agent: {
+                    prompt: req.body.prompt,
+                    greeting: req.body.greeting,
+                  },
+                });
+              }
               //console.log("Voice updated to agent on synthflow", a.modelId);
             }
           }
@@ -1171,12 +1173,14 @@ export const UpdateAgent = async (req, res) => {
           if (agents) {
             for (let i = 0; i < agents.length; i++) {
               let a = agents[i];
-              let updatedSynthflow = await UpdateAssistantSynthflow(a, {
-                agent: {
-                  prompt: req.body.inboundPrompt,
-                  greeting: req.body.inboundGreeting,
-                },
-              });
+              if (a.agentType == "inbound") {
+                let updatedSynthflow = await UpdateAssistantSynthflow(a, {
+                  agent: {
+                    prompt: req.body.inboundPrompt,
+                    greeting: req.body.inboundGreeting,
+                  },
+                });
+              }
               //console.log("Voice updated to agent on synthflow", a.modelId);
             }
           }
@@ -2089,7 +2093,7 @@ export async function UpdateAssistantSynthflow(agent, data) {
   try {
     let result = await axios.request(options);
     //console.log("Inside 3");
-    console.log("Assign Assistant Api result ", result);
+    console.log("Update Assistant Api result ", result);
 
     if (result.status == 200) {
       //console.log("Assitant updated");
