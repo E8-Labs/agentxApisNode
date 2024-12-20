@@ -155,21 +155,25 @@ async function getUserData(mainAgent, currentUser = null) {
     agent.durationText = durationText;
     agent.voiceId = agent.voiceId ? agent.voiceId : "";
     if (agent.agentType == "outbound") {
-      agent.prompt = {
-        id: prompt.id,
-        prompt: prompt.callScript,
-        greeting: prompt.greeting,
-        objective: prompt.objective,
-        type: prompt.type,
-      };
+      if (prompt) {
+        agent.prompt = {
+          id: prompt.id,
+          prompt: prompt.callScript,
+          greeting: prompt.greeting,
+          objective: prompt.objective,
+          type: prompt.type,
+        };
+      }
     } else {
-      agent.prompt = {
-        id: promptInbound.id,
-        prompt: promptInbound.callScript,
-        greeting: promptInbound.greeting,
-        objective: promptInbound.objective,
-        type: promptInbound.type,
-      };
+      if (promptInbound) {
+        agent.prompt = {
+          id: promptInbound?.id,
+          prompt: promptInbound?.callScript,
+          greeting: promptInbound?.greeting,
+          objective: promptInbound?.objective,
+          type: promptInbound?.type,
+        };
+      }
     }
     agentRes.push(agent);
   }
