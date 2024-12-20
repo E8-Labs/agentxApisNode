@@ -154,9 +154,21 @@ async function getUserData(mainAgent, currentUser = null) {
     }
     agent.durationText = durationText;
     if (agent.agentType == "outbound") {
-      agent.prompt = prompt;
+      agent.prompt = {
+        id: prompt.id,
+        prompt: prompt.callScript,
+        greeting: prompt.greeting,
+        objective: prompt.objective,
+        type: prompt.type,
+      };
     } else {
-      agent.prompt = promptInbound;
+      agent.prompt = {
+        id: promptInbound.id,
+        prompt: promptInbound.callScript,
+        greeting: promptInbound.greeting,
+        objective: promptInbound.objective,
+        type: promptInbound.type,
+      };
     }
     agentRes.push(agent);
   }
