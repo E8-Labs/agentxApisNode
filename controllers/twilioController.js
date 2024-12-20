@@ -125,10 +125,11 @@ export const ReleasePhoneNumber = async (req, res) => {
 
           newAgent.phoneNumber = phoneNumber;
           await newAgent.save();
+
           return res.status(200).send({
             status: true,
             message: "Phone Number Released",
-            data: agent,
+            data: { agent1: agent, agent2: newAgent },
           });
         } else {
           return res.status(200).send({
