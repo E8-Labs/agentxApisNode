@@ -1213,6 +1213,33 @@ export const UpdateAgent = async (req, res) => {
           }
         }
       }
+
+      if (req.body.inboundObjective) {
+        let updated = await db.AgentPromptModel.update(
+          {
+            objective: req.body.inboundObjective,
+          },
+          {
+            where: {
+              mainAgentId: mainAgentId,
+              type: "inbound",
+            },
+          }
+        );
+      }
+      if (req.body.outboundObjective) {
+        let updated = await db.AgentPromptModel.update(
+          {
+            objective: req.body.outboundObjective,
+          },
+          {
+            where: {
+              mainAgentId: mainAgentId,
+              type: "outbound",
+            },
+          }
+        );
+      }
       let agentRes = await AgentResource(agent);
       return res.send({
         status: true,
