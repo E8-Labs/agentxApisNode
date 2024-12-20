@@ -90,6 +90,7 @@ export const ListUsersAvailablePhoneNumbers = async (req, res) => {
 
 export const ReleasePhoneNumber = async (req, res) => {
   let inboundAgentId = req.body.agentId;
+  let newAgentId = req.body.newAgentId;
   let phoneNumber = req.body.phoneNumber;
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -108,14 +109,22 @@ export const ReleasePhoneNumber = async (req, res) => {
             id: inboundAgentId,
           },
         });
+
+        let newAgent = await db.AgentModel.findByPk(newAgentId);
         if (agent) {
           agent.phoneNumber = "";
           let saved = await agent.save();
-
           //release phone from that inbound model
           let updated = await UpdateAssistantSynthflow(agent, {
-            phone_number: "",
+            phone_number: null,
           });
+
+          let updatedNew = await UpdateAssistantSynthflow(newAgent, {
+            phone_number: phoneNumber,
+          });
+
+          newAgent.phoneNumber = phoneNumber;
+          await newAgent.save();
           return res.status(200).send({
             status: true,
             message: "Phone Number Released",

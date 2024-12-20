@@ -50,6 +50,7 @@ import ScheduledBooking from "./pipeline/ScheduledBooking.js";
 
 import PaymentHistory from "./user/payment/paymentPlans.js";
 import PlanHistory from "./user/payment/PlanHistory.js";
+import LeadCallTriesModel from "./pipeline/LeadCallTriesModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -205,6 +206,9 @@ db.CadenceCalls = CadenceCalls(sequelize, Sequelize);
 models["LeadCadence"] = db.LeadCadence;
 db.LeadCallsSent = LeadCallsSent(sequelize, Sequelize);
 models["LeadCallsSent"] = db.LeadCallsSent;
+
+db.LeadCallTriesModel = LeadCallTriesModel(sequelize, Sequelize);
+models["LeadCallTriesModel"] = db.LeadCallTriesModel;
 
 db.LeadKycsExtracted = LeadKycsExtracted(sequelize, Sequelize);
 // db.LeadModel.hasMany(db.LeadKycsExtracted, {

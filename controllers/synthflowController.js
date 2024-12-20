@@ -317,6 +317,37 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
   return text;
 }
 
+async function addCallTry(
+  leadCadence,
+  lead,
+  assistant,
+  calls = [],
+  batchId = null,
+  status = "success",
+  callId = null
+) {
+  try {
+    let callTry = await db.LeadCallTriesModel.create({
+      leadId: leadCadence?.leadId,
+      leadCadenceId: leadCadence?.id,
+      mainAgentId: leadCadence?.mainAgentId,
+      agentId: assistant?.id,
+      callId:
+        callId == null
+          ? `CallNo-${calls.length}-LeadCadId-${leadCadence?.id || "LC"}-${
+              lead?.stage || ""
+            }`
+          : callId,
+      stage: lead.stage,
+      status: status,
+      batchId: batchId,
+    });
+    return callTry;
+  } catch (error) {
+    return null;
+  }
+}
+
 export const MakeACall = async (
   leadCadence,
   simulate = false,
@@ -343,7 +374,8 @@ export const MakeACall = async (
   });
 
   if (simulate) {
-    let sent = await db.LeadCallsSent.create({
+    let sent = null;
+    sent = await db.LeadCallsSent.create({
       leadId: leadCadence.leadId,
       leadCadenceId: leadCadence.id,
       mainAgentId: leadCadence.mainAgentId,
@@ -355,6 +387,7 @@ export const MakeACall = async (
       duration: 50,
       batchId: batchId,
     });
+    await addCallTry(leadCadence, lead, assistant, calls, batchId, "success"); //errored
 
     return { status: true, data: sent };
   }
@@ -637,7 +670,15 @@ async function initiateCall(
     if (json.status === "ok" || json.status === "success") {
       const callId = json.response.call_id;
       //console.log("Call id ", callId);
-
+      await addCallTry(
+        leadCadence,
+        lead,
+        assistant,
+        calls,
+        batchId,
+        "success",
+        callId
+      );
       try {
         const saved = await db.LeadCallsSent.create({
           leadCadenceId: leadCadence?.id,
@@ -658,6 +699,7 @@ async function initiateCall(
         return { status: true, message: "call is initiated", data: saved };
       } catch (error) {
         //console.log("Error Call ", error);
+        await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
         return {
           status: false,
           message: "call is not initiated due to database error",
@@ -665,11 +707,12 @@ async function initiateCall(
         };
       }
     } else {
+      await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
       console.log("Call Failed with", json);
       if (json.status == "error") {
         if (leadCadence) {
-          leadCadence.status = CadenceStatus.Errored;
-          let saved = await leadCadence?.save();
+          // leadCadence.status = CadenceStatus.Errored;
+          // let saved = await leadCadence?.save();
         }
       }
       // const callId =
@@ -692,6 +735,7 @@ async function initiateCall(
       return { status: false, message: "call is not initiated", data: null };
     }
   } catch (error) {
+    await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
     console.log("Error during Sending Call API call: ", error);
     // const callId = `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`;
     //console.log("In else: call not initiated");
@@ -1080,7 +1124,7 @@ export const UpdateAgent = async (req, res) => {
         }
       }
 
-      if (req.body.prompt) {
+      if (req.body.prompt || req.body.greeting) {
         let updated = await db.AgentPromptModel.update(
           {
             callScript: req.body.prompt,
@@ -1095,9 +1139,21 @@ export const UpdateAgent = async (req, res) => {
         );
         if (updated) {
           //console.log("Prompt updated");
+          if (agents) {
+            for (let i = 0; i < agents.length; i++) {
+              let a = agents[i];
+              let updatedSynthflow = await UpdateAssistantSynthflow(a, {
+                agent: {
+                  prompt: req.body.prompt,
+                  greeting: req.body.greeting,
+                },
+              });
+              //console.log("Voice updated to agent on synthflow", a.modelId);
+            }
+          }
         }
       }
-      if (req.body.inboundPrompt) {
+      if (req.body.inboundPrompt || req.body.inboundGreeting) {
         let updated = await db.AgentPromptModel.update(
           {
             callScript: req.body.inboundPrompt,
