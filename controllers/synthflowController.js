@@ -807,6 +807,8 @@ async function CreatePromptForAgent(
   selectedObjective
 ) {
   let p = selectedObjective.prompt;
+  console.log("Objective ");
+  console.log(selectedObjective);
   if (type == "inbound") {
     p = selectedObjective.promptInbound;
   }
