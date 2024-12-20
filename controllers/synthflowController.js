@@ -352,7 +352,8 @@ export const MakeACall = async (
   leadCadence,
   simulate = false,
   calls = [],
-  batchId = null
+  batchId = null,
+  maxTriesReached = false
 ) => {
   // setLoading(true);
   let leadId = leadCadence.leadId,
@@ -384,10 +385,30 @@ export const MakeACall = async (
       synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`,
       stage: lead.stage,
       status: "failed",
+      endCallReason: "Max Tries unsuccessfull",
       duration: 50,
       batchId: batchId,
     });
     await addCallTry(leadCadence, lead, assistant, calls, batchId, "success"); //errored
+
+    return { status: true, data: sent };
+  }
+  if (maxTriesReached) {
+    // If user has tried 3 times and call errored or wasn't successfull then we add a call with status maxTries Failed
+    let sent = null;
+    sent = await db.LeadCallsSent.create({
+      leadId: leadCadence.leadId,
+      leadCadenceId: leadCadence.id,
+      mainAgentId: leadCadence.mainAgentId,
+      agentId: assistant?.id,
+      callTriggerTime: new Date(),
+      synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`,
+      stage: lead.stage,
+      status: "failed",
+      duration: 50,
+      batchId: batchId,
+    });
+    // await addCallTry(leadCadence, lead, assistant, calls, batchId, "success"); //errored
 
     return { status: true, data: sent };
   }

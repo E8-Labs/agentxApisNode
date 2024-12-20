@@ -181,6 +181,16 @@ export const CronRunCadenceCallsFirstBatch = async () => {
               //set cad errored
               leadCad.status = CadenceStatus.Errored;
               let saved = await leadCad?.save();
+
+              lead.stage = null;
+              await lead.save();
+              let called = await MakeACall(
+                leadCad,
+                simulate,
+                calls,
+                batch.id,
+                true
+              ); //maxTriesReached = true
             }
             //if you want to simulate
             //let called = await MakeACall(leadCad, true, calls);
@@ -509,6 +519,16 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
                 //set cad errored
                 leadCad.status = CadenceStatus.Errored;
                 let saved = await leadCad?.save();
+
+                lead.stage = null;
+                await lead.save();
+                let called = await MakeACall(
+                  leadCad,
+                  simulate,
+                  calls,
+                  batch.id,
+                  true
+                ); //maxTriesReached = true
               }
               // let called = await MakeACall(leadCad, simulate, calls, batch.id);
               //if you want to simulate
@@ -580,6 +600,16 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             //set cad errored
             leadCad.status = CadenceStatus.Errored;
             let saved = await leadCad?.save();
+
+            lead.stage = null;
+            await lead.save();
+            let called = await MakeACall(
+              leadCad,
+              simulate,
+              calls,
+              batch.id,
+              true
+            ); //maxTriesReached = true
           }
 
           //if you want to simulate
