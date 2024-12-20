@@ -153,6 +153,7 @@ async function getUserData(mainAgent, currentUser = null) {
       durationText = `${min}`;
     }
     agent.durationText = durationText;
+    agent.voiceId = agent.voiceId ? agent.voiceId : "";
     if (agent.agentType == "outbound") {
       agent.prompt = {
         id: prompt.id,
