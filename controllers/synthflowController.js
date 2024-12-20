@@ -859,6 +859,7 @@ export const BuildAgent = async (req, res) => {
           id: userId,
         },
       });
+      console.log("BuildAgent", req.body);
 
       const name = req.body.name;
       const agentRole = req.body.agentRole || "";
