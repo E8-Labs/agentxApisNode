@@ -158,7 +158,7 @@ async function getUserData(mainAgent, currentUser = null) {
       if (prompt) {
         agent.prompt = {
           id: prompt.id,
-          prompt: prompt.callScript,
+          callScript: prompt.callScript,
           greeting: prompt.greeting,
           objective: prompt.objective,
           type: prompt.type,
@@ -168,7 +168,7 @@ async function getUserData(mainAgent, currentUser = null) {
       if (promptInbound) {
         agent.prompt = {
           id: promptInbound?.id,
-          prompt: promptInbound?.callScript,
+          callScript: promptInbound?.callScript,
           greeting: promptInbound?.greeting,
           objective: promptInbound?.objective,
           type: promptInbound?.type,
