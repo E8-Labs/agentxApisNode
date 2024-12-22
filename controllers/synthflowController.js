@@ -592,6 +592,7 @@ export const TestAI = async (req, res) => {
           true // test is set to true
         );
         let greeting = prompt.greeting;
+        greeting = greeting?.replace(/{First Name}/g, lead.firstName);
         greeting = greeting?.replace(/{agent_name}/g, agent.name);
         greeting = greeting?.replace(/{brokerage_name}/g, user.brokerage);
         console.log("Calling Test AI with model", agent.modelId);
