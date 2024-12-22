@@ -1228,7 +1228,7 @@ export const UpdateAgent = async (req, res) => {
         let updated = await db.AgentPromptModel.update(
           {
             callScript: req.body.inboundPrompt,
-            greeting_message: req.body.inboundGreeting,
+            greeting: req.body.inboundGreeting,
           },
           {
             where: {
