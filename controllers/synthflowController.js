@@ -2507,7 +2507,7 @@ async function handleInfoExtractorValues(
     lead
   );
   let outcome = GetOutcomeFromCall(json, dbCall.status, dbCall.endCallReason);
-  console.log("Outcome is ", outcome);
+  console.log("Outcome is this ", outcome);
   dbCall.callOutcome = outcome;
   await dbCall.save();
   console.log("Handling IE", json);
