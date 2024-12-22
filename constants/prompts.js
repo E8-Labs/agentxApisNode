@@ -14,6 +14,11 @@ import {
   ReactivationOutbound,
   ReactivationInbound,
 } from "./ReactivationPrompt.js";
+import { OthersInbound, OthersOutbound } from "./OthersPrompt.js";
+import {
+  CircleProspectingInbound,
+  CircleProspectingOutbound,
+} from "./CircleProspectingPrompt.js";
 
 export const Prompts = {
   CommunityUpdate: CommunityUpdateOutbound,
@@ -24,4 +29,8 @@ export const Prompts = {
   ExpiredListingOutbound: ExpiredListingOutbound,
   ReactivationOutbound: ReactivationOutbound,
   ReactivationInbound: ReactivationInbound,
+  OthersOutbound: OthersOutbound,
+  OthersInbound: OthersInbound,
+  CircleProspectingInbound,
+  CircleProspectingOutbound,
 };

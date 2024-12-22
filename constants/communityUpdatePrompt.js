@@ -56,7 +56,7 @@ Hi, {First Name}. I’m reaching out to share some updates about properties like
 [Condition 1: If They Express Interest in More Details or Future Selling Plans]
 
 Ask the following Seller KYC:
-{seller_kyc}
+{seller_kyc}s
 
 
 If they are open to discussing further:

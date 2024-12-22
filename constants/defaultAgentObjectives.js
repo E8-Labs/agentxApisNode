@@ -79,6 +79,9 @@ export const AgentObjectives = [
     icon: "",
     title: "others",
     details: "",
-    prompt: null,
+    prompt: Prompts.OthersOutbound,
+    promptInbound: Prompts.OthersInbound,
+    objections: [],
+    guardrails: [],
   },
 ];

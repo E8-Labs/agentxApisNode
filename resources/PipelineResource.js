@@ -50,7 +50,9 @@ async function getUserData(pipeline, currentUser = null) {
   let leadCadences = await db.LeadCadence.findAll({
     where: {
       pipelineId: pipeline.id,
-      status: CadenceStatus.Started,
+      status: {
+        [db.Sequelize.Op.in]: [CadenceStatus.Started, CadenceStatus.TestLead],
+      },
     },
   });
 
