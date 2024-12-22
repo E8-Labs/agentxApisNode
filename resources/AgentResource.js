@@ -144,9 +144,25 @@ async function getUserData(mainAgent, currentUser = null) {
     });
     agent.callsGt10 = callsGt10;
 
+    let hotleads = await db.LeadCallsSent.count({
+      where: {
+        agentId: ag.id,
+        hotlead: true,
+      },
+    });
+    agent.hotleads = hotleads;
+
+    let booked = await db.LeadCallsSent.count({
+      where: {
+        agentId: ag.id,
+        meetingscheduled: true,
+      },
+    });
+    agent.booked = booked;
+
     let durationText = "";
     if (totalDuration < 60) {
-      durationText = "Less than a min";
+      durationText = `${totalDuration} seconds`;
     } else {
       let min = parseInt(totalDuration / 60);
       let sec = totalDuration % 60;
@@ -189,6 +205,7 @@ async function getUserData(mainAgent, currentUser = null) {
     },
   });
   let qs = await KycResource(kycs);
+
   const AgentResource = {
     ...mainAgent.get(),
     agents: agentRes,
