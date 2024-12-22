@@ -145,18 +145,19 @@ export const AddLeads = async (req, res) => {
               lead.lastName = parts.length > 1 ? parts.slice(1).join(" ") : "";
             }
           }
-          lead.phone = lead.phone.replace(" ", "");
-          lead.phone = lead.phone.replace("-", "");
-          lead.phone = lead.phone.replace("(", "");
-          lead.phone = lead.phone.replace(")", "");
+          // lead.phone = lead.phone.replace(" ", "");
+          // lead.phone = lead.phone.replace("-", "");
+          // lead.phone = lead.phone.replace("(", "");
+          // lead.phone = lead.phone.replace(")", "");
+          lead.phone = lead.phone.replace(/[ \-\(\)]/g, "");
           if (!lead.phone.startsWith("1") && !lead.phone.startsWith("+")) {
-            console.log("Phone starts with 1");
-            lead.phone = "1" + lead.phone;
+            console.log("Phone doesn't start with 1");
+            lead.phone = "+1" + lead.phone;
           }
-          // if (!lead.phone.startsWith("+1")) {
-          //   console.log("Phone Not starts with +1");
-          //   lead.phone = "+1" + lead.phone;
-          // }
+          if (!lead.phone.startsWith("+1")) {
+            console.log("Phone Not starts with +1");
+            lead.phone = "+1" + lead.phone;
+          }
           console.log(lead);
 
           if (
