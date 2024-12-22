@@ -1053,7 +1053,7 @@ export const BuildAgent = async (req, res) => {
               { ...data, callbackNumber: null, liveTransferNumber: null },
               user
             );
-            data.prompt = inboundPromptText;
+            data.prompt = inboundPromptText; //uncomment if we want to push the prompt to synthflow
           }
           let createdInbound = await CreateAssistantSynthflow(
             data,
@@ -1062,12 +1062,14 @@ export const BuildAgent = async (req, res) => {
           );
           data.agentType = "outbound";
           if (createdOutboundPrompt) {
-            data.prompt = await getInboudPromptText(
-              createdOutboundPrompt,
-              { ...data, callbackNumber: null, liveTransferNumber: null },
-              user
-            );
-            // data.prompt = inboundPromptText;
+            //Uncomment if we want to push the prompt to synthflow
+            // data.prompt = await getInboudPromptText(
+            //   createdOutboundPrompt,
+            //   { ...data, callbackNumber: null, liveTransferNumber: null },
+            //   user
+            // );
+
+            data.prompt = null;
           }
           let createdOutbound = await CreateAssistantSynthflow(
             data,
@@ -1100,11 +1102,14 @@ export const BuildAgent = async (req, res) => {
             selectedObjective
           );
           // if(createdOutbound){
-          data.prompt = await getInboudPromptText(
-            created,
-            { ...data, callbackNumber: null, liveTransferNumber: null },
-            user
-          );
+          if (agentType == "inbound") {
+            //only push prompt for inbound
+            data.prompt = await getInboudPromptText(
+              created,
+              { ...data, callbackNumber: null, liveTransferNumber: null },
+              user
+            );
+          }
           // console.log("Prompt ");
           // console.log(data.prompt);
           // data.prompt = inboundPromptText;
