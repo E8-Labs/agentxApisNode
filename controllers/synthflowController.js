@@ -2725,6 +2725,7 @@ export const SetOutcomeforpreviousCalls = async (req, res) => {
           call.endCallReason
         );
         call.callOutcome = outcome;
+        console.log("Outcome 2728", outcome);
         await call.save();
       }
     }
