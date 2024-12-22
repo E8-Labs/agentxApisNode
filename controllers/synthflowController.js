@@ -2664,7 +2664,9 @@ const SetAllTagsFromIEAndCall = async (
   return tags;
 };
 const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
-  let status = "";
+  console.log("Fidning outcome for ", endCallReason);
+  console.log("Call status ", callStatus);
+  let status = endCallReason;
   let tags = [];
   // if (callStatus == "errored"){
 
