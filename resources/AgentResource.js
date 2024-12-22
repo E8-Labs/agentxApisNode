@@ -203,6 +203,7 @@ async function getUserData(mainAgent, currentUser = null) {
     where: {
       mainAgentId: mainAgent.id,
     },
+    order: [["id", "DESC"]],
   });
   let qs = await KycResource(kycs);
 
