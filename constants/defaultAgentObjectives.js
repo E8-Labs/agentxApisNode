@@ -30,7 +30,10 @@ export const AgentObjectives = [
     title: "Circle prospecting",
     details:
       "Call homeowners in a specific farm to inform them about recent property activities, and gauge their interest in selling or buying.",
-    prompt: null, //Prompts.CircleProspecting,
+    prompt: Prompts.CircleProspectingOutbound,
+    promptInbound: Prompts.CircleProspectingInbound,
+    objections: CommunityUpdateObjections,
+    guardrails: CommunityUpdateGuardrails,
   },
   {
     id: 3,
