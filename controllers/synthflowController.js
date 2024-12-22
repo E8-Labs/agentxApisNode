@@ -591,12 +591,16 @@ export const TestAI = async (req, res) => {
           lead,
           true // test is set to true
         );
+        let greeting = prompt.greeting;
+        greeting = greeting?.replace(/{agent_name}/g, agent.name);
+        greeting = greeting?.replace(/{brokerage_name}/g, user.brokerage);
         console.log("Calling Test AI with model", agent.modelId);
         let data = JSON.stringify({
           name: name,
           phone: phone,
           model: agent.modelId, //"1722652829145x214249543190325760",
           prompt: basePrompt,
+          greeting: greeting,
         });
         let response = await initiateCall(
           data,
