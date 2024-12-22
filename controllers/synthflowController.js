@@ -2327,10 +2327,17 @@ async function handleNewCall(
     status: data.call.status,
     batchId: null,
     pipelineId: pipeline?.id || null,
-    endCallReason,
+    endCallReason: endCallReason,
   });
 
-  await handleInfoExtractorValues(jsonIE, leadCad, lead, pipeline, dbCall);
+  await handleInfoExtractorValues(
+    jsonIE,
+    leadCad,
+    lead,
+    pipeline,
+    dbCall,
+    endCallReason
+  );
 
   return dbCall;
 }
@@ -2505,7 +2512,8 @@ async function handleInfoExtractorValues(
   leadCadence,
   lead,
   pipeline,
-  dbCall
+  dbCall,
+  endCallReason
 ) {
   try {
     await SetAllTagsFromIEAndCall(
@@ -2517,7 +2525,7 @@ async function handleInfoExtractorValues(
   } catch (error) {
     console.log("Error saving outcome");
   }
-  let outcome = GetOutcomeFromCall(json, dbCall.status, dbCall.endCallReason);
+  let outcome = GetOutcomeFromCall(json, dbCall.status, endCallReason);
   console.log("Outcome is this ", outcome);
   dbCall.callOutcome = outcome;
   await dbCall.save();
