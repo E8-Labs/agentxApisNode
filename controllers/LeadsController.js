@@ -156,9 +156,9 @@ export const AddLeads = async (req, res) => {
             console.log("Phone doesn't start with 1");
             lead.phone = "+1" + lead.phone;
           }
-          if (!lead.phone.startsWith("+1")) {
+          if (!lead.phone.startsWith("+") && lead.phone.startsWith("1")) {
             console.log("Phone Not starts with +1");
-            lead.phone = "+1" + lead.phone;
+            lead.phone = "+" + lead.phone;
           }
           console.log(lead);
 
