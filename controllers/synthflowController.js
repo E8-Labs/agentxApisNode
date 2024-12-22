@@ -2559,55 +2559,48 @@ async function handleInfoExtractorValues(
   }
 
   // if (canMoveToDefaultStage) {
+  if (moveToStage) {
+    if (json.hotlead || json.callbackrequested) {
+      console.log("It's a hotlead");
+      const hotLeadStage = await db.PipelineStages.findOne({
+        where: { identifier: "hot_lead", pipelineId: pipeline.id },
+      });
 
-  if (json.hotlead || json.callbackrequested) {
-    console.log("It's a hotlead");
-    const hotLeadStage = await db.PipelineStages.findOne({
-      where: { identifier: "hot_lead", pipelineId: pipeline.id },
-    });
+      moveToStage = hotLeadStage?.id || null;
+    } else if (json.notinterested || json.dnd || json.wrongnumber) {
+      tags.push("Not Interested");
+      const notInterestedStage = await db.PipelineStages.findOne({
+        where: { identifier: "not_interested", pipelineId: pipeline.id },
+      });
 
-    moveToStage = hotLeadStage?.id || null;
-  } else if (json.notinterested || json.dnd || json.wrongnumber) {
-    tags.push("Not Interested");
-    const notInterestedStage = await db.PipelineStages.findOne({
-      where: { identifier: "not_interested", pipelineId: pipeline.id },
-    });
-
-    moveToStage = notInterestedStage?.id || null;
-    Object.assign(leadCadence, {
-      dnd: json.dnd,
-      notinterested: json.notinterested,
-      wrongnumber: json.wrongnumber,
-    });
-    await leadCadence.save();
-  } else if (json.meetingscheduled) {
-    const bookedStage = await db.PipelineStages.findOne({
-      where: { identifier: "booked", pipelineId: pipeline.id },
-    });
-
-    moveToStage = bookedStage?.id || null;
-  } else if (
-    // json.callmeback ||
-    json.humancalldrop ||
-    // json.Busycallback ||
-    json.nodecisionmaker
-  ) {
-    const followUpStage = await db.PipelineStages.findOne({
-      where: { identifier: "follow_up", pipelineId: pipeline.id },
-    });
-
-    if (lead.stage < followUpStage.id) {
-      moveToStage = followUpStage?.id || null;
-      leadCadence.nodecisionmaker = json.nodecisionmaker;
+      moveToStage = notInterestedStage?.id || null;
+      Object.assign(leadCadence, {
+        dnd: json.dnd,
+        notinterested: json.notinterested,
+        wrongnumber: json.wrongnumber,
+      });
       await leadCadence.save();
+    } else if (
+      // json.callmeback ||
+      json.humancalldrop ||
+      // json.Busycallback ||
+      json.nodecisionmaker
+    ) {
+      const followUpStage = await db.PipelineStages.findOne({
+        where: { identifier: "follow_up", pipelineId: pipeline.id },
+      });
+
+      if (lead.stage < followUpStage.id) {
+        moveToStage = followUpStage?.id || null;
+        leadCadence.nodecisionmaker = json.nodecisionmaker;
+        await leadCadence.save();
+      }
     }
   }
 
   // }
-  if (moveToStage && !movedToPriorityStage && canMoveToDefaultStage) {
-    console.log(
-      "if moveToStage is not null and the lead hasn't moved to any priority stage && can move to Default Stage"
-    );
+  if (moveToStage) {
+    console.log("if moveToStage is not null ");
     // if moveToStage is not null and the lead hasn't moved to any priority stage && can move to Default Stage
     dbCall.movedToStage = moveToStage;
     dbCall.stage = lead.stage;
