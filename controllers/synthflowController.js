@@ -155,6 +155,8 @@ async function GetCompletePromptTextFrom(
   lead,
   test = false
 ) {
+  // console.log("Prompt ");
+  // console.log(prompt);
   let callScript = prompt.callScript;
   console.log("User ", user);
   let greeting = prompt.greeting;
@@ -186,6 +188,11 @@ async function GetCompletePromptTextFrom(
   } else {
   }
 
+  greeting = greeting.replace(/{First Name}/g, lead.firstName);
+  greeting = greeting.replace(/{Last Name}/g, lead.lastName);
+  greeting = greeting.replace(/{Phone Number}/g, lead.phone);
+  greeting = greeting.replace(/{Email}/g, lead.email);
+  greeting = greeting.replace(/{Address}/g, lead.address);
   greeting = greeting.replace(/{agent_name}/g, assistant.name);
   greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
 
@@ -202,6 +209,8 @@ async function GetCompletePromptTextFrom(
   callScript = callScript.replace(/{Email}/g, lead.email);
   callScript = callScript.replace(/{Address}/g, lead.address);
 
+  // console.log("Call script before");
+  // console.log(callScript);
   //Get UniqueColumns in Sheets
   let keys = [];
   if (test) {
@@ -209,6 +218,11 @@ async function GetCompletePromptTextFrom(
     let match;
 
     while ((match = regex.exec(callScript)) !== null) {
+      keys.push(match[1]); // Add the variable name (without braces) to the array
+    }
+
+    //greeting
+    while ((match = regex.exec(greeting)) !== null) {
       keys.push(match[1]); // Add the variable name (without braces) to the array
     }
   } else {
@@ -225,18 +239,34 @@ async function GetCompletePromptTextFrom(
     }
   }
 
+  console.log("Extra columns");
+  console.log(typeof lead.extraColumns);
   console.log("Obtained keys ", keys);
+  let extraColumns = JSON.parse(lead.extraColumns);
+
+  let extraColumsDic = {};
+  for (const col of extraColumns) {
+    let key = Object.keys(col)[0];
+    extraColumsDic[key] = col[key];
+  }
+  extraColumns = extraColumsDic;
+  console.log("Data json");
+  console.log(extraColumns);
   for (const key of keys) {
-    if (lead.extraColumns) {
-      let value = lead.extraColumns[key];
+    console.log(`Replacing key ${key} `);
+    if (extraColumns) {
+      let value = extraColumns[key];
+      console.log(`Replacing key ${key} with ${value}`);
       if (value) {
-        const regex = new RegExp(`\\\`${key}\\\``, "g"); // Create a dynamic regex to match `${key}`
+        const regex = new RegExp(`\\{${key}\\}`, "gi"); // Create a dynamic regex to match `${key}`
         //console.log(`replacing ${key} with ${value}`);
         callScript = callScript.replace(regex, value);
+        greeting = greeting.replace(regex, value);
       }
     }
   }
-
+  console.log("Greeting after replacing is ", greeting);
+  // return;
   let guardrails = await db.ObjectionAndGuradrails.findAll({
     where: {
       mainAgentId: assistant.mainAgentId,
@@ -314,7 +344,7 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
   `;
 
   text = `${text}\n\n${leadInfo}`;
-  return text;
+  return { callScript: text, greeting: greeting };
 }
 
 async function addCallTry(
@@ -455,7 +485,8 @@ export const MakeACall = async (
       name: Name,
       phone: PhoneNumber,
       model: assistant.modelId, //"1722652829145x214249543190325760",
-      prompt: basePrompt,
+      prompt: basePrompt.callScript,
+      greeting: basePrompt.greeting,
     });
     let res = await initiateCall(
       data,
@@ -591,17 +622,17 @@ export const TestAI = async (req, res) => {
           lead,
           true // test is set to true
         );
-        let greeting = prompt.greeting;
-        greeting = greeting?.replace(/{First Name}/g, lead.firstName);
-        greeting = greeting?.replace(/{agent_name}/g, agent.name);
-        greeting = greeting?.replace(/{brokerage_name}/g, user.brokerage);
+        // let greeting = prompt.greeting;
+        // greeting = greeting?.replace(/{First Name}/g, lead.firstName);
+        // greeting = greeting?.replace(/{agent_name}/g, agent.name);
+        // greeting = greeting?.replace(/{brokerage_name}/g, user.brokerage);
         console.log("Calling Test AI with model", agent.modelId);
         let data = JSON.stringify({
           name: name,
           phone: phone,
           model: agent.modelId, //"1722652829145x214249543190325760",
-          prompt: basePrompt,
-          greeting: greeting,
+          prompt: basePrompt.callScript,
+          greeting: basePrompt.greeting,
         });
         let response = await initiateCall(
           data,
@@ -977,7 +1008,7 @@ export const BuildAgent = async (req, res) => {
         // return;
         if (agentType == "both") {
           //create Agent Sythflow
-          // let p = GetCompletePromptTextFrom()
+
           let data = {
             userId: user.id,
             name: name,
