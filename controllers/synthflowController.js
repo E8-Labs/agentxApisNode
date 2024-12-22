@@ -2251,7 +2251,9 @@ export const WebhookSynthflow = async (req, res) => {
 // Helper Functions
 
 function logWebhookData(data, dataString) {
-  // console.log("Webhook data is", dataString);
+  const currentDate = new Date();
+  console.log(currentDate);
+  console.log("Webhook data is", dataString);
   console.log("Model Id", data.call.model_id);
 }
 
