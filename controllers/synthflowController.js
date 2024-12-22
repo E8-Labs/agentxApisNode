@@ -2224,7 +2224,13 @@ export const WebhookSynthflow = async (req, res) => {
 
       if (lead) {
         jsonIE = await extractIEAndStoreKycs(actions, lead, callId);
-        await processInfoExtractors(jsonIE, leadCadence, lead, dbCall);
+        await processInfoExtractors(
+          jsonIE,
+          leadCadence,
+          lead,
+          dbCall,
+          endCallReason
+        );
       }
     }
 
@@ -2452,7 +2458,13 @@ async function updateCallStatus(
   }
 }
 
-async function processInfoExtractors(jsonIE, leadCadence, lead, dbCall) {
+async function processInfoExtractors(
+  jsonIE,
+  leadCadence,
+  lead,
+  dbCall,
+  endCallReason
+) {
   const pipeline = await db.Pipeline.findByPk(leadCadence?.pipelineId);
   if (jsonIE) {
     await handleInfoExtractorValues(
@@ -2460,7 +2472,8 @@ async function processInfoExtractors(jsonIE, leadCadence, lead, dbCall) {
       leadCadence,
       lead,
       pipeline,
-      dbCall
+      dbCall,
+      endCallReason
     );
   }
 }
