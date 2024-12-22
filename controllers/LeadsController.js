@@ -151,7 +151,7 @@ export const AddLeads = async (req, res) => {
           // lead.phone = lead.phone.replace("-", "");
           // lead.phone = lead.phone.replace("(", "");
           // lead.phone = lead.phone.replace(")", "");
-          lead.phone = lead.phone.replace(/[ \-\(\)]/g, "");
+          lead.phone = String(lead.phone).replace(/[ \-\(\)]/g, "");
           if (!lead.phone.startsWith("1") && !lead.phone.startsWith("+")) {
             console.log("Phone doesn't start with 1");
             lead.phone = "+1" + lead.phone;
