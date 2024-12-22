@@ -582,7 +582,7 @@ export const GetLeads = async (req, res) => {
         const leads = await db.LeadModel.findAll({
           where: leadFilters,
           offset: offset,
-          limit: 500,
+          limit: 5,
           // attributes: ["id", "firstName", "lastName", "email", "phone", "stage"], // Adjust attributes as needed
           raw: true, // Return plain objects
         });
