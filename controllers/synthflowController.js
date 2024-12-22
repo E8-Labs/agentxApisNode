@@ -666,6 +666,7 @@ async function initiateCall(
   test = false
 ) {
   console.log("IS call test ", test);
+  console.log("Call data is ", data);
   try {
     let synthKey = process.env.SynthFlowApiKey;
 
