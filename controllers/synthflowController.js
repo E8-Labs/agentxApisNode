@@ -2521,6 +2521,7 @@ async function handleInfoExtractorValues(
   let moveToStage = null;
   //priority
   if (json.meetingscheduled) {
+    console.log("It's a booked lead");
     tags.push("Booked");
     const bookedStage = await db.PipelineStages.findOne({
       where: { identifier: "booked", pipelineId: pipeline.id },
@@ -2559,7 +2560,7 @@ async function handleInfoExtractorValues(
   }
 
   // if (canMoveToDefaultStage) {
-  if (moveToStage) {
+  if (!moveToStage) {
     if (json.hotlead || json.callbackrequested) {
       console.log("It's a hotlead");
       const hotLeadStage = await db.PipelineStages.findOne({
