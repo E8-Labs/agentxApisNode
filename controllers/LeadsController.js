@@ -131,6 +131,7 @@ export const AddLeads = async (req, res) => {
         ) {
           console.log("Lead not created ", lead);
         } else {
+          console.log("LeadPhone", lead.phone);
           if (
             typeof lead.lastName == "undefined" ||
             lead.lastName == null ||
