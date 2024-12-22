@@ -173,7 +173,7 @@ export const ListAvailableNumbers = async (req, res) => {
         const numbers = await twilioClient
           .availablePhoneNumbers(options.countryCode)
           .local.list(options);
-
+        console.log("Numbers ", numbers);
         // Format the response
         res.send({
           status: true,

@@ -7,6 +7,8 @@ import {
   RegisterUser,
   CheckPhoneExists,
   CheckEmailExists,
+  GetProfileMine,
+  GetTransactionsHistory,
 } from "../controllers/userController.js";
 
 import {
@@ -44,6 +46,13 @@ UserRouter.get("/apiKeys", verifyJwtToken, GetMyApiKeys);
 UserRouter.post("/createWebhook", verifyJwtToken, CreateWebhook);
 UserRouter.post("/deleteWebhook", verifyJwtToken, DeleteWebhook);
 UserRouter.get("/getWebhooks", verifyJwtToken, GetAllWebhooks);
+UserRouter.get("/myProfile", verifyJwtToken, GetProfileMine);
+UserRouter.get(
+  "/getTransactionsHistory",
+  verifyJwtToken,
+  GetTransactionsHistory
+);
+// getTransactionsHistory
 
 // UserRouter.post("/updateProfile", verifyJwtToken, uploadFiles, UpdateProfile);
 UserRouter.post("/checkPhoneNumber", CheckPhoneExists);

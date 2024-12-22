@@ -2207,6 +2207,7 @@ export const WebhookSynthflow = async (req, res) => {
         endCallReason
       );
     } else {
+      console.log("Call is in the db");
       const leadCadenceId = dbCall.leadCadenceId;
       const leadCadence = leadCadenceId
         ? await db.LeadCadence.findByPk(leadCadenceId)
@@ -2244,7 +2245,7 @@ export const WebhookSynthflow = async (req, res) => {
 // Helper Functions
 
 function logWebhookData(data, dataString) {
-  console.log("Webhook data is", dataString);
+  // console.log("Webhook data is", dataString);
   console.log("Model Id", data.call.model_id);
 }
 
@@ -2500,12 +2501,16 @@ async function handleInfoExtractorValues(
   pipeline,
   dbCall
 ) {
-  await SetAllTagsFromIEAndCall(
-    json,
-    dbCall.status,
-    dbCall.endCallReason,
-    lead
-  );
+  try {
+    await SetAllTagsFromIEAndCall(
+      json,
+      dbCall.status,
+      dbCall.endCallReason,
+      lead
+    );
+  } catch (error) {
+    console.log("Error saving outcome");
+  }
   let outcome = GetOutcomeFromCall(json, dbCall.status, dbCall.endCallReason);
   console.log("Outcome is this ", outcome);
   dbCall.callOutcome = outcome;

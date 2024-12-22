@@ -642,7 +642,7 @@ export async function AddCalendarCalDotCom(req, res) {
           await created.save();
         }
         // Return both calendars and event types
-        return res.send({ status: true, calendars, eventTypes });
+        return res.send({ status: true, data: created, calendars, eventTypes });
       } catch (error) {
         console.error("Error retrieving calendars or event types:", error);
         return res.send({
