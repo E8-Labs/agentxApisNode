@@ -489,6 +489,12 @@ export const DeleteList = async (req, res) => {
         });
       }
 
+      let leadDel = await db.LeadModel.destroy({
+        where: {
+          sheetId: sheet.id,
+        },
+      });
+
       res.send({
         status: true,
         message: `Sheet deleted`,
