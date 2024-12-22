@@ -19,7 +19,7 @@ import { AssignLeads } from "./pipelineController.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
 
-const limit = 5;
+const limit = 25;
 /**
  * Check for stage conflicts among agents.
  * @param {Array<number>} mainAgentIds - Array of agent IDs to check.
