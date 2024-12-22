@@ -2520,6 +2520,7 @@ async function handleInfoExtractorValues(
   var tags = [];
   let moveToStage = null;
   //priority
+  console.log("Booked IE ", json.meetingscheduled);
   if (json.meetingscheduled) {
     console.log("It's a booked lead");
     tags.push("Booked");
