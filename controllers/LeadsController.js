@@ -19,6 +19,7 @@ import { AssignLeads } from "./pipelineController.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
 
+const limit = 5;
 /**
  * Check for stage conflicts among agents.
  * @param {Array<number>} mainAgentIds - Array of agent IDs to check.
@@ -582,7 +583,7 @@ export const GetLeads = async (req, res) => {
         const leads = await db.LeadModel.findAll({
           where: leadFilters,
           offset: offset,
-          limit: 5,
+          limit: limit,
           // attributes: ["id", "firstName", "lastName", "email", "phone", "stage"], // Adjust attributes as needed
           raw: true, // Return plain objects
         });
@@ -862,7 +863,7 @@ export const GetCallLogs = async (req, res) => {
           where: filters,
           order: [["createdAt", "DESC"]],
           offset: offset,
-          limit: 500,
+          limit: limit,
           include: [
             {
               model: db.LeadModel,
