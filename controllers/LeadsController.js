@@ -775,6 +775,7 @@ export const GetLeadDetail = async (req, res) => {
     if (authData) {
       let userId = authData.user.id;
       let leadId = req.query.leadId;
+
       //   if(userId == null)
       let user = await db.User.findOne({
         where: {
@@ -783,6 +784,13 @@ export const GetLeadDetail = async (req, res) => {
       });
 
       let lead = await db.LeadModel.findByPk(leadId);
+      if (!lead) {
+        return res.send({
+          data: null,
+          message: "No such lead",
+          details: { leadId: leadId },
+        });
+      }
       console.log("Lead ", leadId);
       const cadenceFilters = {
         leadId: { [db.Sequelize.Op.in]: [leadId] },
