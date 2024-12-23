@@ -594,7 +594,7 @@ export const GetLeads = async (req, res) => {
 
     if (authData) {
       try {
-        const { sheetId, stageIds, fromDate, toDate } = req.query; // Fetching query parameters
+        const { sheetId, stageIds, fromDate, toDate, noStage } = req.query; // Fetching query parameters
         const userId = authData.user.id;
         let offset = Number(req.query.offset) || 0;
         // Validate the user
@@ -616,9 +616,18 @@ export const GetLeads = async (req, res) => {
           };
         }
         if (stageIds && stageIds != "") {
-          leadFilters.stage = {
-            [db.Sequelize.Op.in]: stageIds.split(",").map(Number),
-          };
+          if (noStage) {
+            leadFilters.stage = {
+              [db.Sequelize.Op.or]: [
+                { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) }, // Matches stage IDs
+                { [db.Sequelize.Op.is]: null }, // Matches null values
+              ],
+            };
+          } else {
+            leadFilters.stage = {
+              [db.Sequelize.Op.in]: stageIds.split(",").map(Number),
+            };
+          }
         }
 
         // Fetch leads first based on general filters
