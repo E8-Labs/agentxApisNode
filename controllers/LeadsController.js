@@ -819,16 +819,6 @@ export const GetLeadDetail = async (req, res) => {
       }
       console.log("Lead ", lead);
       delete lead.extraColumns;
-      lead = {
-        ...lead,
-        kycs: await db.LeadKycsExtracted.findAll({
-          where: {
-            leadId: lead.id,
-          },
-        }), //[{ question: "Who are you", answer: "I am salman" }],
-        stage: stage, // Use LeadCadence stage if available, else LeadModel stage
-        cadenceStatus: cadence ? cadence.status : null, // Cadence status or null
-      };
 
       const fixedKeys = [
         "firstName",
@@ -861,6 +851,17 @@ export const GetLeadDetail = async (req, res) => {
           isDefault: false,
         });
       }
+
+      lead = {
+        ...lead,
+        kycs: await db.LeadKycsExtracted.findAll({
+          where: {
+            leadId: lead.id,
+          },
+        }), //[{ question: "Who are you", answer: "I am salman" }],
+        stage: stage, // Use LeadCadence stage if available, else LeadModel stage
+        cadenceStatus: cadence ? cadence.status : null, // Cadence status or null
+      };
       let leadRes = await LeadResource(lead);
 
       return res.send({
