@@ -249,14 +249,22 @@ async function GetCompletePromptTextFrom(
   //   let key = Object.keys(col)[0];
   //   extraColumsDic[key] = col[key];
   // }
-  console.log();
-  if (extraColumns && typeof extraColumns === "object") {
+  if (!extraColumns || Object.keys(extraColumns).length === 0) {
+    console.warn("extraColumns is empty. Skipping iteration.");
+  } else if (Array.isArray(extraColumns)) {
     for (const col of extraColumns) {
       let key = Object.keys(col)[0];
       extraColumsDic[key] = col[key];
     }
+  } else if (typeof extraColumns === "object") {
+    for (const [key, value] of Object.entries(extraColumns)) {
+      extraColumsDic[key] = value;
+    }
   } else {
-    extraColumsDic = extraColumns;
+    console.error(
+      "extraColumns is not iterable or in an unexpected format:",
+      extraColumns
+    );
   }
 
   extraColumns = extraColumsDic;
