@@ -44,3 +44,7 @@ CronRunCadenceCallsSubsequentStagesCron.start();
 const CronPhone = nodeCron.schedule("0 0 * * *", PhoneNumberCron);
 CronPhone.start();
 // PhoneNumberCron();
+
+//Call status cron
+const CronCallOutcome = nodeCron.schedule("/30 * * * * *", PhoneNumberCron);
+CronCallOutcome.start();
