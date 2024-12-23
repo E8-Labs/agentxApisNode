@@ -2791,6 +2791,7 @@ const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
 };
 
 export const SetOutcomeforpreviousCalls = async () => {
+  console.log("Running outcome cron");
   try {
     let calls = await db.LeadCallsSent.findAll({
       where: {
@@ -2800,7 +2801,7 @@ export const SetOutcomeforpreviousCalls = async () => {
         ],
       },
     });
-
+    console.log("Calls to cal  Outcome is ", calls.length);
     if (calls && calls.length > 0) {
       for (const call of calls) {
         let callData = call.callData;
