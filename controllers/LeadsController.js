@@ -565,15 +565,21 @@ export const UpdateLeadStage = async (req, res) => {
 
       if (lead) {
         lead.stage = stageId;
+        await lead.save();
+        let resource = await LeadResource(lead);
+        res.send({
+          status: true,
+          message: `Lead updated`,
+          data: resource,
+        });
+      } else {
+        res.send({
+          status: false,
+          message: `No such lead`,
+          data: null,
+          leadId,
+        });
       }
-      await lead.save();
-      let resource = await LeadResource(lead);
-
-      res.send({
-        status: true,
-        message: `Lead updated`,
-        data: resource,
-      });
     } else {
       res.send({
         status: false,
