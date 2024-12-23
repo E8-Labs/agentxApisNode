@@ -309,12 +309,11 @@ Stick to this rule to maintain control and professionalism in call handling.
 
   //udpate the call script here
   let text = "";
-
+  text = `${text}\n\n${greeting}`;
   text = `${text}\n\n${prompt.objective}\n\n`;
   text = `${text}\n\n${companyAgentInfo}`;
   text = `${text}\n\n${prompt.personalCharacteristics}`;
   text = `${text}\n\n${prompt.communication}`;
-  text = `${text}\n\n${greeting}`;
   text = `${text}\n\n${callScript}`;
   // text = `${text}\n\n${prompt.booking}`;
   //check if the user have connected calendar for this agent
@@ -481,13 +480,13 @@ export const MakeACall = async (
     // //console.log("Base prompt being sent ", basePrompt);
     // //console.log("#############################################\n");
 
-    let data = JSON.stringify({
+    let data = {
       name: Name,
       phone: PhoneNumber,
       model: assistant.modelId, //"1722652829145x214249543190325760",
       prompt: basePrompt.callScript,
       greeting: basePrompt.greeting,
-    });
+    };
     let res = await initiateCall(
       data,
       leadCadence,
@@ -627,13 +626,13 @@ export const TestAI = async (req, res) => {
         // greeting = greeting?.replace(/{agent_name}/g, agent.name);
         // greeting = greeting?.replace(/{brokerage_name}/g, user.brokerage);
         console.log("Calling Test AI with model", agent.modelId);
-        let data = JSON.stringify({
+        let data = {
           name: name,
           phone: phone,
           model: agent.modelId, //"1722652829145x214249543190325760",
           prompt: basePrompt.callScript,
           greeting: basePrompt.greeting,
-        });
+        };
         let response = await initiateCall(
           data,
           cad,
