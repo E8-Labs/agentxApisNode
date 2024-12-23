@@ -169,6 +169,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
                 leadCadenceId: leadCad.id,
                 stage: lead.stage,
                 mainAgentId: mainAgent.id,
+                status: "error",
               },
             });
             console.log(
@@ -502,6 +503,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
                   leadCadenceId: leadCad.id,
                   stage: lead.stage,
                   mainAgentId: mainAgent.id,
+                  status: "error",
                 },
               });
               console.log(
@@ -585,6 +587,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               leadCadenceId: leadCad.id,
               stage: lead.stage,
               mainAgentId: mainAgent.id,
+              status: "error",
             },
           });
           console.log(
