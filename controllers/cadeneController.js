@@ -152,7 +152,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           Number(nextCadenceCall.waitTimeMinutes);
         console.log(`Total wait time for next call  ${waitTime} min`);
 
-        let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
+        let diff = calculateDifferenceInMinutes(lastCall.createdAt); // in minutes
         console.log(`Diff is ${diff}`);
         let agent = await db.AgentModel.findOne({
           where: {
@@ -445,7 +445,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           console.log(
             "CronRunCadenceCallsSubsequentStages: Don't send calls. Already sent calls for this lead cadence"
           );
-          let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
+          let diff = calculateDifferenceInMinutes(lastCall.createdAt); // in minutes
           console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
           if (
             diff * 60 >= 50 &&
@@ -483,7 +483,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             `CronRunCadenceCallsSubsequentStages: Total wait time for next call  ${waitTime} min`
           );
 
-          let diff = calculateDifferenceInMinutes(lastCall.callTriggerTime); // in minutes
+          let diff = calculateDifferenceInMinutes(lastCall.createdAt); // in minutes
           console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
           if (diff * 60 >= waitTime * 60 - 5) {
             console.log(
