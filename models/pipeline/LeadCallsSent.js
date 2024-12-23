@@ -183,7 +183,7 @@ const LeadCallsSent = (sequelize, Sequelize) => {
     callOutcome: {
       type: Sequelize.STRING,
       // allowNull: false,
-      defaultValue: "Completed",
+      defaultValue: "",
     },
   });
   LeadCallsSent.associate = (models) => {
