@@ -839,6 +839,7 @@ export const GetLeadDetail = async (req, res) => {
       );
       let keys = [];
       keys = mergeAndRemoveDuplicates(keys, dynamicKeysWithNonNullValues);
+      console.log(keys);
       let AllColumns = [
         { title: "Name", isDefault: true },
         { title: "Phone", isDefault: true },

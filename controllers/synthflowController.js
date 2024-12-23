@@ -1208,20 +1208,20 @@ export const UpdateAgent = async (req, res) => {
         );
         if (updated) {
           //console.log("Prompt updated");
-          if (agents) {
-            for (let i = 0; i < agents.length; i++) {
-              let a = agents[i];
-              if (a.agentType == "outbound") {
-                let updatedSynthflow = await UpdateAssistantSynthflow(a, {
-                  agent: {
-                    prompt: req.body.prompt,
-                    greeting: req.body.greeting,
-                  },
-                });
-              }
-              //console.log("Voice updated to agent on synthflow", a.modelId);
-            }
-          }
+          // if (agents) {
+          //   for (let i = 0; i < agents.length; i++) {
+          //     let a = agents[i];
+          //     if (a.agentType == "inbound") {
+          //       let updatedSynthflow = await UpdateAssistantSynthflow(a, {
+          //         agent: {
+          //           prompt: req.body.prompt,
+          //           greeting: req.body.greeting,
+          //         },
+          //       });
+          //     }
+          //     //console.log("Voice updated to agent on synthflow", a.modelId);
+          //   }
+          // }
         }
       }
       if (req.body.inboundPrompt || req.body.inboundGreeting) {
