@@ -14,6 +14,7 @@ import {
   CronRunCadenceCallsSubsequentStages,
 } from "./controllers/cadeneController.js";
 import { PhoneNumberCron } from "./controllers/twilioController.js";
+import { SetOutcomeforpreviousCalls } from "./controllers/synthflowController.js";
 
 //Concurrent Calls- Set Limit to 100
 //https://docs.synthflow.ai/docs/concurrency-calls
@@ -46,5 +47,8 @@ CronPhone.start();
 // PhoneNumberCron();
 
 //Call status cron
-const CronCallOutcome = nodeCron.schedule("/30 * * * * *", PhoneNumberCron);
+const CronCallOutcome = nodeCron.schedule(
+  "/30 * * * * *",
+  SetOutcomeforpreviousCalls
+);
 CronCallOutcome.start();

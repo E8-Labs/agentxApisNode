@@ -2791,39 +2791,43 @@ const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
 };
 
 export const SetOutcomeforpreviousCalls = async () => {
-  let calls = await db.LeadCallsSent.findAll({
-    where: {
-      [db.Sequelize.Op.or]: [
-        { callOutcome: "" }, // Matches empty string
-        { callOutcome: { [db.Sequelize.Op.is]: null } }, // Matches null values
-      ],
-    },
-  });
+  try {
+    let calls = await db.LeadCallsSent.findAll({
+      where: {
+        [db.Sequelize.Op.or]: [
+          { callOutcome: "" }, // Matches empty string
+          { callOutcome: { [db.Sequelize.Op.is]: null } }, // Matches null values
+        ],
+      },
+    });
 
-  if (calls && calls.length > 0) {
-    for (const call of calls) {
-      let callData = call.callData;
-      if (callData) {
-        let parsed = JSON.parse(callData);
-        let actions = parsed.executed_actions;
-        let lead = await db.LeadModel.findByPk(call.leadId);
-        let jsonIE = await extractIEAndStoreKycs(
-          actions,
-          lead,
-          call.synthflowCallId
-        );
+    if (calls && calls.length > 0) {
+      for (const call of calls) {
+        let callData = call.callData;
+        if (callData) {
+          let parsed = JSON.parse(callData);
+          let actions = parsed.executed_actions;
+          let lead = await db.LeadModel.findByPk(call.leadId);
+          let jsonIE = await extractIEAndStoreKycs(
+            actions,
+            lead,
+            call.synthflowCallId
+          );
 
-        let outcome = GetOutcomeFromCall(
-          jsonIE,
-          call.status,
-          call.endCallReason
-        );
-        call.callOutcome = outcome;
-        console.log("Outcome 2728", outcome);
-        await call.save();
+          let outcome = GetOutcomeFromCall(
+            jsonIE,
+            call.status,
+            call.endCallReason
+          );
+          call.callOutcome = outcome;
+          console.log("Outcome 2728", outcome);
+          await call.save();
+        }
       }
     }
+  } catch (error) {
+    console.log("error setting call status in function ", error);
   }
-  return res.send({ status: true, message: "All call status updated" });
+  // return res.send({ status: true, message: "All call status updated" });
 };
 // SetOutcomeforpreviousCalls();
