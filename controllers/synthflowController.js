@@ -249,6 +249,13 @@ async function GetCompletePromptTextFrom(
     let key = Object.keys(col)[0];
     extraColumsDic[key] = col[key];
   }
+  if (extraColumns && typeof extraColumns === "object") {
+    for (const col of extraColumns) {
+      let key = Object.keys(col)[0];
+      extraColumsDic[key] = col[key];
+    }
+  }
+
   extraColumns = extraColumsDic;
   console.log("Data json");
   console.log(extraColumns);
@@ -485,7 +492,7 @@ export const MakeACall = async (
       phone: PhoneNumber,
       model: assistant.modelId, //"1722652829145x214249543190325760",
       prompt: basePrompt.callScript,
-      // greeting: basePrompt.greeting,
+      greeting: basePrompt.greeting,
     };
     let res = await initiateCall(
       data,
@@ -631,7 +638,7 @@ export const TestAI = async (req, res) => {
           phone: phone,
           model: agent.modelId, //"1722652829145x214249543190325760",
           prompt: basePrompt.callScript,
-          // greeting: basePrompt.greeting,
+          greeting: basePrompt.greeting,
         };
         let response = await initiateCall(
           data,
