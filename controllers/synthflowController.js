@@ -2731,6 +2731,7 @@ const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
 
   // }
   if (callStatus == "completed") {
+    status = "Completed";
     if (jsonIE.hotlead) {
       status = "Hot Lead";
     }
