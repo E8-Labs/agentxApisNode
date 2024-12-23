@@ -9,6 +9,7 @@ import {
   CheckEmailExists,
   GetProfileMine,
   GetTransactionsHistory,
+  SendPhoneVerificationCode,
 } from "../controllers/userController.js";
 
 import {
@@ -37,6 +38,7 @@ const uploadMedia = multer().fields([
 
 let UserRouter = express.Router();
 
+UserRouter.post("/sendVerificationCode", SendPhoneVerificationCode);
 UserRouter.post("/login", LoginUser);
 UserRouter.post("/register", uploadFiles, RegisterUser);
 

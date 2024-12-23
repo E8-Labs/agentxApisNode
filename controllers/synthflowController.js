@@ -762,6 +762,7 @@ async function initiateCall(
           transcript: "",
           summary: "",
           status: "",
+          callOutcome: "",
           agentId: assistant.id,
           stage: lead?.stage,
           mainAgentId: mainAgentModel.id,
@@ -1325,8 +1326,8 @@ export const DeleteAgent = async (req, res) => {
         },
       });
 
-      let mainAgentId = req.body.mainAgentId;
-      let agent = await db.MainAgentModel.findByPk(mainAgentId);
+      let agentId = req.body.agentId;
+      let agent = await db.AgentModel.findByPk(agentId);
       if (!agent) {
         return res.send({
           status: false,
@@ -1337,35 +1338,49 @@ export const DeleteAgent = async (req, res) => {
 
       let agents = await db.AgentModel.findAll({
         where: {
-          mainAgentId: mainAgentId,
+          mainAgentId: agent.mainAgentId,
         },
       });
 
-      console.log("It has agents", agents);
-      for (const agent of agents) {
-        let del = await DeleteAssistantSynthflow(agent.modelId);
-        if (del) {
-          console.log("Agent deleted ", agent.modelId);
-        }
-      }
+      // console.log("It has agents", agents);
+      // for (const agent of agents) {
+      //   let del = await DeleteAssistantSynthflow(agent.modelId);
+      //   if (del) {
+      //     console.log("Agent deleted ", agent.modelId);
+      //   }
+      // }
 
       //Cal Delete
-      let calDel = await db.CalendarIntegration.destroy({
-        where: {
-          mainAgentId: mainAgentId,
-        },
-      });
 
-      let pcDel = await db.PipelineCadence.destroy({
-        where: {
-          mainAgentId: mainAgentId,
-        },
-      });
-      let del = await db.MainAgentModel.destroy({
-        where: {
-          id: mainAgentId,
-        },
-      });
+      //if this is the last agent then delete the main agent and cadene and everything
+      await agent.destroy();
+      if (agents.length == 1) {
+        await db.ObjectionAndGuradrails.destroy({
+          where: {
+            mainAgentId: agent.mainAgentId,
+          },
+        });
+        await db.AgentPromptModel.destroy({
+          where: {
+            mainAgentId: agent.mainAgentId,
+          },
+        });
+        let calDel = await db.CalendarIntegration.destroy({
+          where: {
+            mainAgentId: agent.mainAgentId,
+          },
+        });
+        let pcDel = await db.PipelineCadence.destroy({
+          where: {
+            mainAgentId: agent.mainAgentId,
+          },
+        });
+        let del = await db.MainAgentModel.destroy({
+          where: {
+            id: agent.mainAgentId,
+          },
+        });
+      }
 
       // let agentRes = await AgentResource(agent);
       return res.send({

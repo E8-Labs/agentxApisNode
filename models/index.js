@@ -51,6 +51,7 @@ import ScheduledBooking from "./pipeline/ScheduledBooking.js";
 import PaymentHistory from "./user/payment/paymentPlans.js";
 import PlanHistory from "./user/payment/PlanHistory.js";
 import LeadCallTriesModel from "./pipeline/LeadCallTriesModel.js";
+import PhoneVerificationCodeModel from "./user/PhoneVerificationCodeModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -92,6 +93,11 @@ db.UserPhoneNumbers.belongsTo(db.User, {
   foreignKey: "userId",
   as: "user",
 });
+
+db.PhoneVerificationCodeModel = PhoneVerificationCodeModel(
+  sequelize,
+  Sequelize
+);
 
 db.AgentRole = AgentRole(sequelize, Sequelize);
 db.MainAgentModel = MainAgentModel(sequelize, Sequelize);

@@ -95,6 +95,7 @@ export const RegisterUser = async (req, res) => {
   const email = req.body.email;
   const userType = req.body.userType;
   const phone = req.body.phone;
+  const verificationCode = req.body.verificationCode;
   const brokerage = req.body.brokerage;
   const averageTransactionPerYear = req.body.averageTransactionPerYear;
 
@@ -107,6 +108,25 @@ export const RegisterUser = async (req, res) => {
 
   //Website owners
   let website = req.body.website;
+
+  let dbCode = await db.PhoneVerificationCodeModel.findOne({
+    where: {
+      phone: {
+        [db.Sequelize.Op.like]: `%${phone}%`,
+      },
+      code: verificationCode,
+    },
+    order: [["createdAt", "DESC"]],
+  });
+  if (!dbCode) {
+    return res.send({
+      status: false,
+      message: "Invalid verification code",
+      data: null,
+    });
+  }
+
+  console.log("Db Code is ", dbCode);
 
   let u = await db.User.findOne({
     where: {
@@ -338,11 +358,11 @@ export const SendPhoneVerificationCode = async (req, res) => {
     },
   });
 
-  //console.log("User is ", user)
+  //User is trying to register
   if (user && !login) {
     res.send({ status: false, data: null, message: "Phone already taken" });
   } else {
-    const randomCode = generateRandomCode(5);
+    const randomCode = generateRandomCode(6);
     db.PhoneVerificationCodeModel.destroy({
       where: {
         phone: phone,
@@ -406,7 +426,7 @@ export const VerifyPhoneCode = async (req, res) => {
       //     return res.send({ status: false, data: null, message: "Incorrect code" })
       // }
       // if ((dbCode && dbCode.code === code) || (dbCode && code == "11222")) {
-      //send user data back. User logged in
+      // // send user data back. User logged in
       // await db.PhoneVerificationCodeModel.destroy({
       //     where: {
       //         phone: {
@@ -760,34 +780,26 @@ export const VerifyEmailCode = async (req, res) => {
 };
 
 export const sendSMS = async (to, body) => {
-  const smsApi = new ClickSend.SMSApi();
-  const smsMessage = new ClickSend.SmsMessage();
-  smsMessage.body = body;
-  smsMessage.to = to;
-  smsMessage.source = "sdk";
-
-  const smsMessages = new ClickSend.SmsMessageCollection();
-  smsMessages.messages = [smsMessage];
+  const client = twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN
+  );
 
   try {
-    const response = await smsApi.smsSend(smsMessages);
-    console.log("SMS sent:", response.body);
+    const message = await client.messages.create({
+      body: body, // The message body
+      to: to, // Recipient's phone number (in E.164 format, e.g., "+1234567890")
+      from: process.env.TWILIO_PHONE_NUMBER, // Your Twilio phone number (also in E.164 format)
+    });
+
+    console.log("SMS sent successfully:", message.sid);
+    return { status: true, message: "SMS sent successfully", sid: message.sid };
   } catch (error) {
-    console.error("Error sending SMS:", error);
+    console.error("Failed to send SMS:", error);
+    return {
+      status: false,
+      message: "Failed to send SMS",
+      error: error.message,
+    };
   }
-
-  // const client = twilio(accountSid, authToken);
-  // try {
-  //   const message = await client.messages.create({
-  //     body: body, // The message body
-  //     to: to, // Recipient's phone number (in E.164 format, e.g., "+1234567890")
-  //     from: process.env.TWILIO_PHONE_NUMBER, // Your Twilio phone number (also in E.164 format)
-  //   });
-
-  //   console.log('SMS sent successfully:', message.sid);
-  //   return { status: true, message: "SMS sent successfully", sid: message.sid };
-  // } catch (error) {
-  //   console.error('Failed to send SMS:', error);
-  //   return { status: false, message: "Failed to send SMS", error: error.message };
-  // }
 };
