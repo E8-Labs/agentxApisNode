@@ -2298,6 +2298,11 @@ export const WebhookSynthflow = async (req, res) => {
       jsonIE
     );
 
+    try {
+      SetOutcomeforpreviousCalls();
+    } catch (error) {
+      console.log("error updating outcome", error);
+    }
     return res.send({ status: true, message: "Webhook received" });
   } catch (error) {
     console.error("Error in WebhookSynthflow:", error);
@@ -2785,8 +2790,16 @@ const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
   return status;
 };
 
-export const SetOutcomeforpreviousCalls = async (req, res) => {
-  let calls = await db.LeadCallsSent.findAll();
+export const SetOutcomeforpreviousCalls = async () => {
+  let calls = await db.LeadCallsSent.findAll({
+    where: {
+      [db.Sequelize.Op.or]: [
+        { callOutcome: "" }, // Matches empty string
+        { callOutcome: { [db.Sequelize.Op.is]: null } }, // Matches null values
+      ],
+    },
+  });
+
   if (calls && calls.length > 0) {
     for (const call of calls) {
       let callData = call.callData;
