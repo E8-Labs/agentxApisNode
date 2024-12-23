@@ -617,7 +617,7 @@ export const GetLeads = async (req, res) => {
         }
         if (stageIds && stageIds != "") {
           console.log("No stage ", noStage);
-          if (noStage == "true" || noStage == 1) {
+          if (noStage == "true" || noStage == 1 || noStage == true) {
             leadFilters.stage = {
               [db.Sequelize.Op.or]: [
                 { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) }, // Matches stage IDs
@@ -738,7 +738,7 @@ export const GetLeads = async (req, res) => {
           { title: "Name", isDefault: true },
           { title: "Phone", isDefault: true },
           { title: "Stage", isDefault: true },
-          { title: "Date", isDefault: true },
+          // { title: "Date", isDefault: true },
         ];
         for (const key of keys) {
           AllColumns.push({
@@ -854,7 +854,7 @@ export const GetLeadDetail = async (req, res) => {
         { title: "Name", isDefault: true },
         { title: "Phone", isDefault: true },
         { title: "Stage", isDefault: true },
-        { title: "Date", isDefault: true },
+        // { title: "Date", isDefault: true },
       ];
       for (const key of keys) {
         AllColumns.push({
