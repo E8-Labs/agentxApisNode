@@ -7,6 +7,10 @@ const PhoneVerificationCodeModel = (sequelize, Sequelize) => {
     code: {
       type: Sequelize.STRING,
     },
+    status: {
+      type: Sequelize.STRING, // "active", "used"
+      defaultValue: "active",
+    },
   });
 
   return PasswordResetCode;
