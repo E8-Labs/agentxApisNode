@@ -245,15 +245,17 @@ async function GetCompletePromptTextFrom(
   let extraColumns = JSON.parse(lead.extraColumns);
 
   let extraColumsDic = {};
-  for (const col of extraColumns) {
-    let key = Object.keys(col)[0];
-    extraColumsDic[key] = col[key];
-  }
+  // for (const col of extraColumns) {
+  //   let key = Object.keys(col)[0];
+  //   extraColumsDic[key] = col[key];
+  // }
   if (extraColumns && typeof extraColumns === "object") {
     for (const col of extraColumns) {
       let key = Object.keys(col)[0];
       extraColumsDic[key] = col[key];
     }
+  } else {
+    extraColumsDic = extraColumns;
   }
 
   extraColumns = extraColumsDic;
