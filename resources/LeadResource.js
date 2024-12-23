@@ -97,6 +97,9 @@ async function getUserData(lead, currentUser = null) {
   let emails = await db.LeadEmailModel.findAll({
     where: {
       leadId: lead.id,
+      email: {
+        [db.Sequelize.Op.notLike]: "%Not Provided%",
+      },
     },
   });
   const LeadResource = {

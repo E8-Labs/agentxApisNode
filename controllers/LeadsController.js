@@ -548,6 +548,41 @@ export const GetSheets = async (req, res) => {
   });
 };
 
+export const UpdateLeadStage = async (req, res) => {
+  let { leadId, stageId } = req.body; // mainAgentId is the mainAgent id
+
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let lead = await db.LeadModel.findByPk(leadId);
+
+      if (lead) {
+        lead.stage = stageId;
+      }
+      await lead.save();
+      let resource = await LeadResource(lead);
+
+      res.send({
+        status: true,
+        message: `Lead updated`,
+        data: resource,
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+};
+
 export const GetLeads = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (error) {
@@ -731,6 +766,103 @@ export const GetLeads = async (req, res) => {
           message: "Server error",
         });
       }
+    }
+  });
+};
+
+export const GetLeadDetail = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let leadId = req.query.leadId;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let lead = await db.LeadModel.findByPk(leadId);
+      console.log("Lead ", leadId);
+      const cadenceFilters = {
+        leadId: { [db.Sequelize.Op.in]: [leadId] },
+        status: CadenceStatus.Started, // Only active cadences
+        // stage: { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) },
+      };
+      const cadences = await db.LeadCadence.findAll({
+        where: cadenceFilters,
+        attributes: ["leadId", "stage", "status"], // Adjust attributes as needed
+        raw: true, // Return plain objects
+      });
+      const cadenceMap = cadences.reduce((acc, cadence) => {
+        acc[cadence.leadId] = cadence;
+        return acc;
+      }, {});
+      const cadence = cadenceMap[lead.id];
+      let stage = await db.PipelineStages.findOne({
+        where: {
+          id: lead.stage,
+        },
+      });
+      let extra = lead.extraColumns;
+      if (extra) {
+        let js = JSON.parse(extra);
+        lead = { ...lead.get(), ...js };
+      }
+      console.log("Lead ", lead);
+      delete lead.extraColumns;
+      lead = {
+        ...lead,
+        kycs: await db.LeadKycsExtracted.findAll({
+          where: {
+            leadId: lead.id,
+          },
+        }), //[{ question: "Who are you", answer: "I am salman" }],
+        stage: stage, // Use LeadCadence stage if available, else LeadModel stage
+        cadenceStatus: cadence ? cadence.status : null, // Cadence status or null
+      };
+
+      const fixedKeys = [
+        "firstName",
+        "lastName",
+        "email",
+        "phone",
+        "id",
+        "userId",
+        "sheetId",
+        "extraColumns",
+        "columnMappings",
+        "updatedAt",
+        "createdAt",
+        "stage",
+      ];
+      const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
+        (key) => !fixedKeys.includes(key) && lead[key] !== null
+      );
+      let keys = [];
+      keys = mergeAndRemoveDuplicates(keys, dynamicKeysWithNonNullValues);
+      let AllColumns = [
+        { title: "Name", isDefault: true },
+        { title: "Phone", isDefault: true },
+        { title: "Stage", isDefault: true },
+        { title: "Date", isDefault: true },
+      ];
+      for (const key of keys) {
+        AllColumns.push({
+          title: key,
+          isDefault: false,
+        });
+      }
+      let leadRes = await LeadResource(lead);
+
+      return res.send({
+        status: true,
+        data: leadRes,
+        keys: keys,
+        columns: AllColumns,
+        message: "Lead  detail",
+      });
+    } else {
     }
   });
 };

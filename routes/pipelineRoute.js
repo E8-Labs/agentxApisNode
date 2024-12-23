@@ -16,6 +16,7 @@ import {
   UpdatePipelineStage,
   DeletePipeline,
   GetAgentCadence,
+  GetPipelineDetail,
 } from "../controllers/pipelineController.js";
 
 const uploadFiles = multer().fields([
@@ -97,6 +98,13 @@ PipelineRouter.post(
   verifyJwtToken,
   uploadMedia,
   CreatePipelineCadence
+);
+
+PipelineRouter.get(
+  "/getPipeline",
+  verifyJwtToken,
+  uploadMedia,
+  GetPipelineDetail
 );
 PipelineRouter.get("/getScheduledCalls", verifyJwtToken, GetScheduledCalls);
 

@@ -501,6 +501,32 @@ export const GetPipelines = async (req, res) => {
   });
 };
 
+export const GetPipelineDetail = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let pipelineId = req.query.pipelineId;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let pipeline = await db.Pipeline.findAll({
+        where: {
+          id: pipelineId,
+        },
+      });
+
+      return res.send({
+        status: true,
+        data: await PipelineResource(pipeline),
+        message: "Pipeline obtained",
+      });
+    }
+  });
+};
+
 export const CreatePipelineCadence = async (req, res) => {
   let { pipelineId, cadence, mainAgentId } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
