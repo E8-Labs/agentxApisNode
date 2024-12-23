@@ -616,7 +616,8 @@ export const GetLeads = async (req, res) => {
           };
         }
         if (stageIds && stageIds != "") {
-          if (noStage) {
+          console.log("No stage ", noStage);
+          if (noStage == true) {
             leadFilters.stage = {
               [db.Sequelize.Op.or]: [
                 { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) }, // Matches stage IDs
