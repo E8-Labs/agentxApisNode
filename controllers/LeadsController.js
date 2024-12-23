@@ -562,8 +562,10 @@ export const UpdateLeadStage = async (req, res) => {
       });
 
       let lead = await db.LeadModel.findOne({
-        id: leadId,
-        userId: user.id,
+        where: {
+          id: leadId,
+          userId: user.id,
+        },
       });
 
       if (lead) {
