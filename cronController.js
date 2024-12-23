@@ -48,7 +48,7 @@ CronPhone.start();
 
 //Call status cron
 const CronCallOutcome = nodeCron.schedule(
-  "/30 * * * * *",
+  "*/30 * * * * *",
   SetOutcomeforpreviousCalls
 );
 CronCallOutcome.start();
