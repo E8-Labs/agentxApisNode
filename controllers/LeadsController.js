@@ -624,6 +624,8 @@ export const GetLeads = async (req, res) => {
         // Build filters for leads
         const leadFilters = { sheetId };
         if (fromDate && toDate) {
+          let dates = [new Date(fromDate), new Date(toDate)];
+          console.log("Dates ", dates);
           leadFilters.createdAt = {
             [db.Sequelize.Op.between]: [new Date(fromDate), new Date(toDate)],
           };
