@@ -16,6 +16,7 @@ import {
   GetAgents,
   GetAgentCallActivity,
   AddObjectionOrGuardrail,
+  DeleteObjectionOrGuardrail,
   GetObjectionsAndGuardrails,
   TestAI,
   SetOutcomeforpreviousCalls,
@@ -104,6 +105,13 @@ AgentRouter.post(
   verifyJwtToken,
   uploadFiles,
   AddObjectionOrGuardrail
+);
+
+AgentRouter.post(
+  "/deleteObjectionGuardRail",
+  verifyJwtToken,
+  uploadFiles,
+  DeleteObjectionOrGuardrail
 );
 
 AgentRouter.get(

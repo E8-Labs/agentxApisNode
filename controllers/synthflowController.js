@@ -363,6 +363,8 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
   `;
 
   text = `${text}\n\n${leadInfo}`;
+
+  console.log("Script", text);
   return { callScript: text, greeting: greeting };
 }
 
@@ -1536,6 +1538,38 @@ export const GetObjectionsAndGuardrails = async (req, res) => {
         status: true,
         message: "Data obtained",
         data: { objections, guardrails },
+      });
+    }
+  });
+};
+
+export const DeleteObjectionOrGuardrail = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let id = req.body.id;
+      console.log("Objection to del", id);
+
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let kyc = await db.ObjectionAndGuradrails.findByPk(id);
+      let mainAgentId = kyc.mainAgentId;
+      if (kyc) {
+        await kyc.destroy();
+      }
+
+      let agent = await db.MainAgentModel.findByPk(mainAgentId);
+
+      let agentRes = await AgentResource(agent);
+
+      return res.send({
+        status: true,
+        message: "Objection deleted",
+        data: agentRes,
       });
     }
   });
