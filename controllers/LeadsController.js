@@ -629,6 +629,14 @@ export const GetLeads = async (req, res) => {
           });
         }
 
+        console.log("user data ", {
+          sheetId,
+          stageIds,
+          fromDate,
+          toDate,
+          noStage,
+        });
+
         // Build filters for leads
         const leadFilters = { sheetId };
         if (fromDate && toDate) {
