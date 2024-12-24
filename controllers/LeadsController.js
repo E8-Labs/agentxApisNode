@@ -254,6 +254,48 @@ export const AddLeads = async (req, res) => {
   });
 };
 
+export const DeleteLead = async (req, res) => {
+  let { leadId } = req.body; // mainAgentId is the mainAgent id
+
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let lead = await db.LeadModel.findByPk(leadId);
+
+      if (!lead) {
+        return res.send({
+          status: false,
+          message: "No such lead",
+        });
+      }
+
+      let leadDel = await db.LeadModel.destroy({
+        where: {
+          id: leadId,
+        },
+      });
+
+      res.send({
+        status: true,
+        message: `Lead deleted`,
+        data: null,
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+};
+
 export const postDataToWebhook = async (
   user,
   data,

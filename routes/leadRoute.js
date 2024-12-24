@@ -15,6 +15,7 @@ import {
   DeleteLeadTag,
   GetLeadDetail,
   UpdateLeadStage,
+  DeleteLead,
 } from "../controllers/LeadsController.js";
 
 const uploadFiles = multer().fields([
@@ -30,6 +31,7 @@ const uploadMedia = multer().fields([
 let LeadRouter = express.Router();
 
 LeadRouter.post("/addLeads", verifyJwtToken, AddLeads);
+LeadRouter.post("/deleteLead", verifyJwtToken, DeleteLead);
 LeadRouter.post("/updateLeadStage", verifyJwtToken, UpdateLeadStage);
 LeadRouter.get("/leadDetail", verifyJwtToken, GetLeadDetail);
 LeadRouter.post("/addLeadNote", verifyJwtToken, uploadFiles, AddLeadNote);
