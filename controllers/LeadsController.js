@@ -225,18 +225,19 @@ export const AddLeads = async (req, res) => {
 
       //call the api for webhook of this user
       if (dbLeads.length > 0) {
-        let webhooks = await db.WebhookModel.findAll({
-          where: {
-            userId: user.id,
-            action: WebhookTypes.TypeNewLeadAdded,
-          },
-        });
-        console.log("Found webhooks ", webhooks.length);
-        if (webhooks && webhooks.length > 0) {
-          for (const webhook of webhooks) {
-            postDataToWebhook(webhook.url, leadsRes);
-          }
-        }
+        await postDataToWebhook(user, leadsRes, WebhookTypes.TypeNewLeadAdded);
+        // let webhooks = await db.WebhookModel.findAll({
+        //   where: {
+        //     userId: user.id,
+        //     action: WebhookTypes.TypeNewLeadAdded,
+        //   },
+        // });
+        // console.log("Found webhooks ", webhooks.length);
+        // if (webhooks && webhooks.length > 0) {
+        //   for (const webhook of webhooks) {
+        //     postDataToWebhook(webhook.url, leadsRes);
+        //   }
+        // }
       }
       res.send({
         status: true,
@@ -253,25 +254,32 @@ export const AddLeads = async (req, res) => {
   });
 };
 
-const postDataToWebhook = async (url, data) => {
-  // const url = "https://hooks.zapier.com/hooks/catch/6841430/2sxlm";
-  // const data = {
-  //   key1: "value1",
-  //   key2: "value2",
-  //   nested: {
-  //     key3: "value3",
-  //   },
-  // };
-
-  try {
-    const response = await axios.post(url, data, {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    console.log("Response from Zapier:", response.data);
-  } catch (error) {
-    console.error("Error posting to Zapier:", error.message);
+export const postDataToWebhook = async (
+  user,
+  data,
+  action = WebhookTypes.TypeNewLeadAdded
+) => {
+  let webhooks = await db.WebhookModel.findAll({
+    where: {
+      userId: user.id,
+      action: action, //WebhookTypes.TypeNewLeadAdded,
+    },
+  });
+  console.log("Found webhooks ", webhooks.length);
+  if (webhooks && webhooks.length > 0) {
+    for (const webhook of webhooks) {
+      // postDataToWebhook(webhook.url, leadsRes);
+      try {
+        const response = await axios.post(webhook.url, data, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        console.log("Response from Zapier:", response.data);
+      } catch (error) {
+        console.error("Error posting to Zapier:", error.message);
+      }
+    }
   }
 };
 

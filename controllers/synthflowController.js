@@ -29,9 +29,12 @@ import {
 import {
   GetColumnsInSheet,
   mergeAndRemoveDuplicates,
+  postDataToWebhook,
 } from "./LeadsController.js";
 import dbConfig from "../config/dbConfig.js";
 import { pipeline } from "stream";
+import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
+import LeadResource from "../resources/LeadResource.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -2751,7 +2754,18 @@ async function handleInfoExtractorValues(
     dbCall.stage = lead.stage;
     await dbCall.save();
     lead.stage = moveToStage;
+
     await lead.save();
+
+    try {
+      let user = await db.User.findByPk(pipeline.userId);
+      if (user) {
+        let leadRes = await LeadResource(lead);
+        await postDataToWebhook(user, leadRes, WebhookTypes.TypeStageChange);
+      }
+    } catch (error) {
+      console.log("Exception ", error);
+    }
   }
 }
 
