@@ -621,6 +621,36 @@ export async function AddCalendarCalDotCom(req, res) {
             eventId15Min = actualEventTypes[0].id;
           }
         }
+        if (!eventId15Min) {
+          return res.send({
+            status: true,
+            message: "No event ids found",
+            data: null,
+          });
+        }
+
+        //check if there is already a calendar for this agent
+        let cal = await db.CalendarIntegration.findOne({
+          where: {
+            mainAgentId: mainAgentId,
+          },
+        });
+        if (cal) {
+          cal.eventId = eventId;
+          cal.apiKey = apiKey;
+          cal.timeZone = timeZone;
+          cal.title = title;
+          await cal.save();
+
+          return res.send({
+            status: true,
+            message: "Calendar updated",
+            data: cal,
+            calendars,
+            eventTypes,
+          });
+        }
+
         let created = await db.CalendarIntegration.create({
           type: calendarType,
           apiKey: apiKey,
