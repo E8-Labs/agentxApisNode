@@ -2819,12 +2819,7 @@ const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
   // }
   if (callStatus == "completed") {
     status = "Completed";
-    if (jsonIE.hotlead) {
-      status = "Hot Lead";
-    }
-    if (jsonIE.meetingscheduled) {
-      status = "Booked";
-    }
+
     if (jsonIE.notinterested) {
       status = "Not Interested";
     }
@@ -2840,6 +2835,12 @@ const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
     if (jsonIE.Busycallback) {
       // tags.push("Busy");
       status = "Busy";
+    }
+    if (jsonIE.hotlead) {
+      status = "Hot Lead";
+    }
+    if (jsonIE.meetingscheduled) {
+      status = "Booked";
     }
   } else if (callStatus == "busy") {
     status = "Busy";

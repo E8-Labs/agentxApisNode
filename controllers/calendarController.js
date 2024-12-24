@@ -353,13 +353,15 @@ export async function ScheduleEvent(req, res) {
 
   let lead = await db.LeadModel.findOne({
     where: {
-      email: user_email,
+      phone: lead_phone,
+      userId: user.id,
     },
   });
   if (!lead) {
     lead = await db.LeadModel.findOne({
       where: {
-        phone: lead_phone,
+        email: user_email,
+        userId: user.id,
       },
     });
   }

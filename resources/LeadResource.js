@@ -78,6 +78,7 @@ async function getUserData(lead, currentUser = null) {
     where: {
       leadId: lead.id,
     },
+    order: [["createdAt", "DESC"]],
   });
   let formattedCalls = [];
   if (callActivity && callActivity.length > 0) {
