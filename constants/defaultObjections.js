@@ -10,7 +10,7 @@ export const CommunityUpdateObjections = [
       "No problem, I understand everyone’s busy. I can make this really quick – I just wanted to let you know about a recent update regarding property values in your area. It only takes a minute, and I can call back at a better time if you’d prefer!",
   },
   {
-    title: "I don’t have time right now.",
+    title: "I already work with an agent.",
     description:
       "That’s fantastic! It sounds like you’re well taken care of. I’m happy to just keep you updated on the local market trends and property values so that you and your agent can make well-informed decisions whenever the time is right.",
   },
@@ -105,7 +105,7 @@ export const ExpiredListingObjections = [
       "No problem, I understand everyone’s busy. I can make this really quick – I just wanted to let you know about a recent update regarding property values in your area. It only takes a minute, and I can call back at a better time if you’d prefer!",
   },
   {
-    title: "I don’t have time right now.",
+    title: "I already work with an agent.",
     description:
       "That’s fantastic! It sounds like you’re well taken care of. I’m happy to just keep you updated on the local market trends and property values so that you and your agent can make well-informed decisions whenever the time is right.",
   },
