@@ -326,6 +326,7 @@ Stick to this rule to maintain control and professionalism in call handling.
   //console.log("New Objection Text is ", objectionPromptText);
 
   //udpate the call script here
+  //Test greeting
   greeting = `Important: Make sure you use this greeting & disregard if you have any other. \n##Greeting: "${greeting}"`;
   let text = "";
   text = `${text}\n\n${greeting}`;
