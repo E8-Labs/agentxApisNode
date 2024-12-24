@@ -24,6 +24,16 @@ const ScheduledBooking = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: false,
     },
+    date: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      defaultValue: "",
+    },
+    time: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      defaultValue: "",
+    },
   });
 
   return ScheduledBooking;

@@ -403,6 +403,8 @@ export async function ScheduleEvent(req, res) {
           leadId: lead.id,
           mainAgentId: mainAgentId,
           datetime: startTimeISO,
+          date: date,
+          time: time,
         });
       }
       return res.send({
