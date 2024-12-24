@@ -94,6 +94,13 @@ async function getUserData(lead, currentUser = null) {
       };
     });
   }
+
+  let scheduled = await db.ScheduledBooking.findOne({
+    where: {
+      leadId: lead.id,
+    },
+    order: [["createdAt", "DESC"]],
+  });
   let emails = await db.LeadEmailModel.findAll({
     where: {
       leadId: lead.id,
@@ -102,6 +109,18 @@ async function getUserData(lead, currentUser = null) {
       },
     },
   });
+
+  let cad = await db.LeadCadence.findOne({
+    where: {
+      leadId: lead.id,
+    },
+
+    order: [["createdAt", "DESC"]],
+  });
+  let pipeline = null;
+  if (cad) {
+    pipeline = await db.Pipeline.findByPk(cad.pipelineId);
+  }
   const LeadResource = {
     ...leadData,
     tags: tags, //{ ...tags, ...sheetTagsArray },
@@ -109,6 +128,8 @@ async function getUserData(lead, currentUser = null) {
     notes: notes,
     callActivity: formattedCalls,
     emails: emails,
+    booking: scheduled,
+    pipeline: pipeline,
     // sheetTagsArray,
   };
 
