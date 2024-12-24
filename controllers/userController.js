@@ -409,7 +409,7 @@ export const SendPhoneVerificationCode = async (req, res) => {
     try {
       let sent = await sendSMS(
         phone,
-        `This is your verification code for voice.ai ${randomCode}`
+        `This is your verification code for AgentX ${randomCode}`
       );
       res.send({ status: true, message: "Code sent", code: sent });
     } catch (error) {
