@@ -79,7 +79,7 @@ export const DeleteWebhook = async (req, res) => {
       return res.send({
         status: true,
         message: "Webhook deleted",
-        data: created,
+        data: null,
       });
     } else {
       return res(401).send({
