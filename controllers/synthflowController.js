@@ -2791,8 +2791,6 @@ const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
       // tags.push("Busy");
       status = "Busy";
     }
-  } else if (endCallReason == "undefined") {
-    status = callStatus;
   } else if (callStatus == "busy") {
     status = "Busy";
   } else if (callStatus == "failed") {
@@ -2801,6 +2799,8 @@ const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
     status = "Voicemail";
   } else if (callStatus == "no-answer") {
     status = "No answer";
+  } else if (endCallReason == "undefined") {
+    status = callStatus;
   }
   return status;
 };
@@ -2814,6 +2814,12 @@ export const SetOutcomeforpreviousCalls = async () => {
           { callOutcome: "" }, // Matches empty string
           { callOutcome: { [db.Sequelize.Op.is]: null } }, // Matches null values
         ],
+        duration: {
+          [db.Sequelize.Op.ne]: null,
+        },
+        callData: {
+          [db.Sequelize.Op.ne]: null,
+        },
       },
     });
     console.log("Calls to cal  Outcome is ", calls.length);
