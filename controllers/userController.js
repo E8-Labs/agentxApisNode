@@ -375,6 +375,7 @@ function generateRandomCode(length) {
 
 export const SendPhoneVerificationCode = async (req, res) => {
   let phone = req.body.phone;
+  console.log(`Phone number is ${phone}`);
   let login = req.body.login || false;
   if (phone == null || phone == "") {
     return res.send({
