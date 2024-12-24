@@ -2760,7 +2760,7 @@ async function handleInfoExtractorValues(
     try {
       let user = await db.User.findByPk(pipeline.userId);
       if (user) {
-        let leadRes = await LeadResource(lead);
+        let leadRes = await LeadResource([lead]);
         await postDataToWebhook(user, leadRes, WebhookTypes.TypeStageChange);
       }
     } catch (error) {
