@@ -121,7 +121,8 @@ export const RegisterUser = async (req, res) => {
   const phone = req.body.phone;
   const verificationCode = req.body.verificationCode;
   const brokerage = req.body.brokerage;
-  const averageTransactionPerYear = req.body.averageTransactionPerYear;
+  const averageTransactionPerYear =
+    Number(req.body.averageTransactionPerYear) || 0;
 
   //Solar Rep
   let projectSizeKw = req.body.projectSizeKw;
