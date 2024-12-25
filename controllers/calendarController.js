@@ -84,7 +84,8 @@ export async function CheckCalendarAvailability(req, res) {
     // Query the calendar API for availability
     let data = await fetchAvailableSlotsForNext15Days(
       calIntegration.apiKey,
-      calIntegration.eventId
+      calIntegration.eventId,
+      calIntegration.timeZone
     );
     console.log(data);
     // let formatted = "";
@@ -139,7 +140,11 @@ const formatAvailableSlots = (data) => {
 
   return slotsString;
 };
-const fetchAvailableSlotsForNext15Days = async (apiKey, eventTypeId) => {
+const fetchAvailableSlotsForNext15Days = async (
+  apiKey,
+  eventTypeId,
+  timeZone
+) => {
   const today = new Date();
   const startTime = today.toISOString(); // Today's date in ISO format
 
@@ -156,6 +161,7 @@ const fetchAvailableSlotsForNext15Days = async (apiKey, eventTypeId) => {
         startTime: startTime, // Start today
         endTime: endTime.toISOString(), // End 15 days from today
         eventTypeId: eventTypeId, // Replace with your actual eventTypeId
+        timeZone: timeZone,
       },
     });
     console.log(JSON.stringify(response.data));
@@ -383,7 +389,7 @@ export async function ScheduleEvent(req, res) {
     attendee: {
       name: lead?.name || lead_name || "Caller",
       email: user_email || "salman@e8-labs.com",
-      timeZone: "America/New_York", // Ensure it's a valid IANA time-zone
+      timeZone: calIntegration.timeZone, // Ensure it's a valid IANA time-zone
       language: "en", // Ensure this is a string
     },
     // guests: [user.email], // Add any other guests here if needed
