@@ -283,7 +283,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       newLeads.push(l);
     }
   }
-  failedSimulation;
+
   console.log(
     `CronRunCadenceCallsSubsequentStages: Before Filter Found ${leadCadence.length} leads to start subsequent calls`
   );

@@ -158,7 +158,7 @@ const fetchAvailableSlotsForNext15Days = async (apiKey, eventTypeId) => {
         eventTypeId: eventTypeId, // Replace with your actual eventTypeId
       },
     });
-    console.log(response.data);
+    console.log(JSON.stringify(response.data));
     return response.data;
   } catch (error) {
     console.error(error.response ? error.response.data : error.message);
