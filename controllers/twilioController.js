@@ -50,7 +50,7 @@ export const ListUsersAvailablePhoneNumbers = async (req, res) => {
             where: {
               userId: userId, // Filter by userId
               phoneStatus: "active", // only active phone numbers
-              phoneNumber: {
+              phone: {
                 [db.Sequelize.Op.notLike]: `${process.env.GlobalPhoneNumber}%`,
               },
             },
