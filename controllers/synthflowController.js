@@ -2820,14 +2820,20 @@ const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
   if (callStatus == "completed") {
     status = "Completed";
 
-    if (jsonIE.notinterested) {
-      status = "Not Interested";
+    if (endCallReason == "human_goodbye") {
+      status = "Human Goodbye";
+    }
+    if (endCallReason == "agent_goodbye") {
+      status = "Agent Goodbye";
     }
     if (endCallReason == "voicemail") {
       status = "Voicemail";
     }
     if (endCallReason == "human_pick_up_cut_off" || jsonIE.humancalldrop) {
       status = "Hangup";
+    }
+    if (jsonIE.notinterested) {
+      status = "Not Interested";
     }
     if (jsonIE.dnd) {
       status = "Busy";

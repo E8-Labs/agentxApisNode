@@ -307,6 +307,7 @@ export const postDataToWebhook = async (
       action: action, //WebhookTypes.TypeNewLeadAdded,
     },
   });
+  console.log("Action ", action);
   console.log("Found webhooks ", webhooks.length);
   if (webhooks && webhooks.length > 0) {
     for (const webhook of webhooks) {
@@ -624,6 +625,8 @@ export const UpdateLeadStage = async (req, res) => {
         lead.stage = stageId;
         await lead.save();
         let resource = await LeadResource(lead);
+
+        postDataToWebhook(user, [resource], WebhookTypes.TypeStageChange);
         res.send({
           status: true,
           message: `Lead updated`,
