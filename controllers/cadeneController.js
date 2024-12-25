@@ -254,7 +254,9 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 };
 
 export const CronRunCadenceCallsSubsequentStages = async () => {
-  console.log("Running cron CronRunCadenceCallsSubsequentStages");
+  console.log(
+    "CronRunCadenceCallsSubsequentStages: Running cron CronRunCadenceCallsSubsequentStages"
+  );
   //Find Cadences to run for leads in the initial State (New Lead)
   //Step-1 Find all leadCadences which are not completed. All leads which are Started should be pushed
 
@@ -267,6 +269,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
   let newLeads = [];
 
   for (const l of leadCadence) {
+    console.log("CronRunCadenceCallsSubsequentStages:Lead Cad Line 270 ", l.id);
     let mainAgentId = l.mainAgentId;
     //check if this agent isa ctive in lead's current stage
     let lead = await db.LeadModel.findByPk(l.leadId);
@@ -279,7 +282,13 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       },
     });
     if (pCad) {
-      console.log("This leadCad has active cadence rn");
+      console.log(
+        "CronRunCadenceCallsSubsequentStages:Pipe Cad Line 283 ",
+        pCad.id
+      );
+      console.log(
+        "CronRunCadenceCallsSubsequentStages:This leadCad has active cadence rn"
+      );
       newLeads.push(l);
     }
   }
@@ -298,17 +307,20 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
     );
     return;
   } else {
-    console.log("Leads found ");
+    console.log("CronRunCadenceCallsSubsequentStages:Leads found ");
     leadCadence.map((item) => {
-      console.log("Lead ID ", item.leadId);
-      console.log("Cad ID ", item.id);
-      console.log("Batch ID ", item.batchId);
+      console.log("CronRunCadenceCallsSubsequentStages:Lead ID ", item.leadId);
+      console.log("CronRunCadenceCallsSubsequentStages:Cad ID ", item.id);
+      console.log(
+        "CronRunCadenceCallsSubsequentStages:Batch ID ",
+        item.batchId
+      );
     });
   }
 
   for (let i = 0; i < leadCadence.length; i++) {
     console.log(
-      `______________________ Iteration ${i} Start ______________________`
+      `CronRunCadenceCallsSubsequentStages:______________________ Iteration ${i} Start ______________________`
     );
     let leadCad = leadCadence[i];
     let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
@@ -327,15 +339,24 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
     const dbDate = new Date(batch.startTime); // Date from the database
     const currentDate = new Date(); // Current date and time
 
-    console.log(`Batch Start Time ${batch.id} `, dbDate.getTime());
-    console.log("Current Time ", currentDate.getTime());
+    console.log(
+      `CronRunCadenceCallsSubsequentStages:Batch Start Time ${batch.id} `,
+      dbDate.getTime()
+    );
+    console.log(
+      "CronRunCadenceCallsSubsequentStages:Current Time ",
+      currentDate.getTime()
+    );
     if (dbDate.getTime() >= currentDate.getTime()) {
       // console.log("The database date is greater than or equal to the current date.");
       console.log(
-        `This cadence ${batch.id} batch start time is in future`,
+        `CronRunCadenceCallsSubsequentStages:This cadence ${batch.id} batch start time is in future`,
         dbDate.getTime()
       );
-      console.log("Current Date ", currentDate.getTime());
+      console.log(
+        "CronRunCadenceCallsSubsequentStages:Current Date ",
+        currentDate.getTime()
+      );
       continue;
     }
 
@@ -361,7 +382,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       // return;
     } else {
       console.log(
-        `Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${lead.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
+        `CronRunCadenceCallsSubsequentStages:Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${lead.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
       );
 
       // continue;
@@ -390,7 +411,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         order: [["createdAt", "ASC"]],
       });
       console.log(
-        `Calls for ${leadCad.id} at stage ${lead.stage}`,
+        `CronRunCadenceCallsSubsequentStages:Calls for ${leadCad.id} at stage ${lead.stage}`,
         calls.length
       );
 
@@ -401,7 +422,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           calls.length
         );
         if (lastCall.status == null || lastCall.duration == null) {
-          console.log("Last call is not complete so not placing next call");
+          console.log(
+            "CronRunCadenceCallsSubsequentStages:Last call is not complete so not placing next call"
+          );
           continue;
         }
         //
@@ -418,7 +441,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           if (lead.stage != lastCall.stage) {
             //last call moved the lead to new stage
             console.log(
-              "last call moved the lead to new stage",
+              "CronRunCadenceCallsSubsequentStages:last call moved the lead to new stage",
               lastCall.movedToStage
             );
           }
@@ -428,7 +451,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           else if (lastCall.movedToStage != null) {
           }
         } else if (!callsStatusesToRecall.includes(lastCall.status)) {
-          console.log("Last call completed with status", lastCall.status);
+          console.log(
+            "CronRunCadenceCallsSubsequentStages:Last call completed with status",
+            lastCall.status
+          );
           // console.log("So recalling")
           continue;
         }
@@ -437,7 +463,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         //   "Last call completed with one of these statuses",
         //   callsStatusesToRecall
         // );
-        console.log("So recalling");
+        console.log("CronRunCadenceCallsSubsequentStages:So recalling");
         //Check the calls on this stage and see how many are sent on the current stage lead is at
         let callsOnThisStage = await db.LeadCallsSent.findAll({
           where: {
@@ -445,8 +471,13 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             stage: lead.stage,
           },
         });
-        console.log("Total Cals ", calls.length);
-        console.log(`Calls on ${lead.stage} ${callsOnThisStage.length}`);
+        console.log(
+          "CronRunCadenceCallsSubsequentStages:Total Cals ",
+          calls.length
+        );
+        console.log(
+          `CronRunCadenceCallsSubsequentStages:Calls on ${lead.stage} ${callsOnThisStage.length}`
+        );
         if (callsOnThisStage.length == callCadence.length) {
           //Don't send calls
           //All calls are sent to this lead already so we have to determine whether we push it to the next stage or do what?
@@ -516,7 +547,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
                 },
               });
               console.log(
-                `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
+                `CronRunCadenceCallsSubsequentStages:Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
               );
 
               if (tries < 3) {
@@ -545,7 +576,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               //if you want to simulate
               //let called = await MakeACall(leadCad, true, calls);
             } catch (error) {
-              console.log("Error Sending Call ", error);
+              console.log(
+                "CronRunCadenceCallsSubsequentStages:Error Sending Call ",
+                error
+              );
             }
             // let sent = await db.LeadCallsSent.create({
             //   leadId: leadCad.leadId,
@@ -627,7 +661,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           //if you want to simulate
           //let called = await MakeACall(leadCad, true, calls);
         } catch (error) {
-          console.log("Error Sending Call ", error);
+          console.log(
+            "CronRunCadenceCallsSubsequentStages:Error Sending Call ",
+            error
+          );
         }
 
         // let sent = await db.LeadCallsSent.create({
@@ -643,7 +680,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       }
     }
     console.log(
-      `______________________ Iteration ${i} END ______________________`
+      `CronRunCadenceCallsSubsequentStages:______________________ Iteration ${i} END ______________________`
     );
   }
 };
