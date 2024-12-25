@@ -231,10 +231,25 @@ export const RegisterUser = async (req, res) => {
     for (let i = 0; i < agentService.length; i++) {
       let service = agentService[i];
       console.log("Adding Service", service);
-      let created = await db.UserServicesModel.create({
-        userId: user.id,
-        agentService: service,
+      let dbService = await db.AgentService.findOne({
+        where: {
+          id: service,
+        },
       });
+      if (!dbService) {
+        dbService = await db.AgentService.create({
+          userId: user.id,
+          title: "Other",
+          description: service,
+        });
+      }
+
+      if (dbService) {
+        let created = await db.UserServicesModel.create({
+          userId: user.id,
+          agentService: dbService.id,
+        });
+      }
     }
   }
   if (areaOfFocus && areaOfFocus.length > 0) {
@@ -242,10 +257,24 @@ export const RegisterUser = async (req, res) => {
     for (let i = 0; i < areaOfFocus.length; i++) {
       let service = areaOfFocus[i];
       console.log("Adding Focus", service);
-      let created = await db.UserFocusModel.create({
-        userId: user.id,
-        areaOfFocus: service,
+      let dbFocus = await db.AreaOfFocus.findOne({
+        where: {
+          id: service,
+        },
       });
+      if (!dbFocus) {
+        dbFocus = await db.AreaOfFocus.create({
+          userId: user.id,
+          title: "Other",
+          description: service,
+        });
+      }
+      if (dbFocus) {
+        let created = await db.UserFocusModel.create({
+          userId: user.id,
+          areaOfFocus: dbFocus.id,
+        });
+      }
     }
   }
 

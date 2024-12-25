@@ -28,25 +28,20 @@ const PipelineStageResource = async (user, currentUser = null) => {
 };
 
 async function getUserData(pipelineStage, currentUser = null) {
-  //   console.log("Type of kyc is ", typeof kyc);
+  let hasLeads = false;
 
-  //   let cadence = await db.PipelineCadence
-
-  //   let calls = await db.CadenceCalls.findAll({
-  //     where: {
-  //       pipelineCadenceId: cadence.id,
-  //     },
-  //   });
-
-  //   let stage = await db.Stages.findOne({
-  //     where: {
-  //       id: pipelineStage.stageId,
-  //     },
-  //   });
+  let leadCount = await db.LeadModel.count({
+    where: {
+      stage: pipelineStage.id,
+    },
+  });
+  if (leadCount > 0) {
+    hasLeads = true;
+  }
 
   const PipelineStageResource = {
     ...pipelineStage.get(),
-    // stage: stage,
+    hasLeads: hasLeads,
   };
 
   return PipelineStageResource;
