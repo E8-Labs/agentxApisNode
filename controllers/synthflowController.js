@@ -161,7 +161,7 @@ async function GetCompletePromptTextFrom(
   // console.log("Prompt ");
   // console.log(prompt);
   let callScript = prompt.callScript;
-  console.log("User ", user);
+  // console.log("User ", user);
   let greeting = prompt.greeting;
   let companyAgentInfo = prompt.companyAgentInfo;
   companyAgentInfo = companyAgentInfo.replace(/{agent_name}/g, assistant.name);
@@ -367,7 +367,7 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
 
   text = `${text}\n\n${leadInfo}`;
 
-  console.log("Script", text);
+  // console.log("Script", text);
   return { callScript: text, greeting: greeting };
 }
 
