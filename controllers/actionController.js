@@ -110,7 +110,8 @@ function GetActionApiData(user, assistant, type = "kb") {
       http_mode: "GET", // Set to tomorrow's date
       url:
         "https://www.blindcircle.com/agentx/api/calendar/getAvailability?mainAgentId=" +
-        assistant.mainAgentId,
+        assistant.mainAgentId +
+        `&agentId=${assistant.id}`,
       run_action_before_call_start: true,
       name: `Check Availability For ${user.name}`,
       description:
@@ -291,12 +292,22 @@ export async function AttachInfoExtractor(mainAgentId, actionIds) {
   return true;
 }
 
-export async function CreateAndAttachCalendarAction(user, mainAgent) {
+export async function CreateAndAttachCalendarAction(
+  user,
+  mainAgent,
+  agentId = null
+) {
   let assistants = await db.AgentModel.findAll({
     where: {
       mainAgentId: mainAgent.id,
     },
   });
+  if (agentId) {
+    let agent = await db.AgentModel.findByPk(agentId);
+    if (agent) {
+      assistants = [agent];
+    }
+  }
   let actionIds = [];
   if (assistants) {
     for (const assistant of assistants) {
@@ -350,7 +361,8 @@ function GetCalendarActionApiData(user, assistant) {
     url:
       "https://www.blindcircle.com/agentx/api/calendar/schedule?modelId=" +
       assistant.id +
-      `&mainAgentId=${assistant.mainAgentId}`,
+      `&mainAgentId=${assistant.mainAgentId}` +
+      `&agentId=${assistant.id}`,
     run_action_before_call_start: false,
     name: `Book Appointment With ${user.name}`,
     description:

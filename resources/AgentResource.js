@@ -191,6 +191,15 @@ async function getUserData(mainAgent, currentUser = null) {
         };
       }
     }
+
+    let calendar = await db.CalendarIntegration.findOne({
+      where: {
+        mainAgentId: mainAgent.id,
+        agentId: agent.id,
+      },
+      order: [["id", "DESC"]],
+    });
+    agent.calendar = calendar;
     agentRes.push(agent);
   }
 
@@ -199,12 +208,7 @@ async function getUserData(mainAgent, currentUser = null) {
       mainAgentId: mainAgent.id,
     },
   });
-  let calendar = await db.CalendarIntegration.findOne({
-    where: {
-      mainAgentId: mainAgent.id,
-    },
-    order: [["id", "DESC"]],
-  });
+
   let qs = await KycResource(kycs);
 
   const AgentResource = {
@@ -220,7 +224,7 @@ async function getUserData(mainAgent, currentUser = null) {
     guardrails,
     objections,
     kyc: qs,
-    calendar: calendar,
+    // calendar: calendar,
     alreadyAssignedGlobal:
       alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
     // calls: calls,

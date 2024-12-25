@@ -10,6 +10,20 @@ const ScheduledBooking = (sequelize, Sequelize) => {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+    agentId: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      references: {
+        model: "AgentModels",
+        key: "id",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    },
+    data: {
+      type: Sequelize.TEXT("medium"),
+      allowNull: true,
+    },
     leadId: {
       type: Sequelize.INTEGER,
       allowNull: false,

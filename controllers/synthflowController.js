@@ -1360,8 +1360,19 @@ export const DeleteAgent = async (req, res) => {
       //Cal Delete
 
       //if this is the last agent then delete the main agent and cadene and everything
-      await agent.destroy();
+      let calDel = await db.CalendarIntegration.destroy({
+        where: {
+          mainAgentId: agent.mainAgentId,
+          agentId: {
+            [db.Sequelize.Op.or]: [
+              { [db.Sequelize.Op.eq]: null },
+              { [db.Sequelize.Op.eq]: agent.id },
+            ],
+          },
+        },
+      });
       if (agents.length == 1) {
+        console.log("Agents Length is 1");
         await db.ObjectionAndGuradrails.destroy({
           where: {
             mainAgentId: agent.mainAgentId,
@@ -1372,11 +1383,7 @@ export const DeleteAgent = async (req, res) => {
             mainAgentId: agent.mainAgentId,
           },
         });
-        let calDel = await db.CalendarIntegration.destroy({
-          where: {
-            mainAgentId: agent.mainAgentId,
-          },
-        });
+
         let pcDel = await db.PipelineCadence.destroy({
           where: {
             mainAgentId: agent.mainAgentId,
@@ -1387,6 +1394,9 @@ export const DeleteAgent = async (req, res) => {
             id: agent.mainAgentId,
           },
         });
+        await agent.destroy();
+      } else {
+        await agent.destroy();
       }
 
       // let agentRes = await AgentResource(agent);

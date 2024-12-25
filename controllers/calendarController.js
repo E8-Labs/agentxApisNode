@@ -55,6 +55,7 @@ function getTomorrowDate() {
 export async function CheckCalendarAvailability(req, res) {
   // const { agentId } = req.body;
   const mainAgentId = req.query.mainAgentId;
+  const agentId = req.query.agentId || null;
 
   // if (!date || !time) {
   //   return res.status(400).send({
@@ -64,8 +65,12 @@ export async function CheckCalendarAvailability(req, res) {
   // }
 
   // Retrieve calendar integration for the main agent
+  let filter = { mainAgentId: mainAgentId };
+  if (agentId) {
+    filter.agentId = agentId;
+  }
   const calIntegration = await db.CalendarIntegration.findOne({
-    where: { mainAgentId: mainAgentId },
+    where: filter,
   });
 
   if (!calIntegration) {
@@ -287,6 +292,7 @@ export async function ScheduleEvent(req, res) {
   });
 
   let mainAgentId = req.query.mainAgentId;
+
   let modelId = req.query.modelId || null;
   if (!modelId) {
     return res.send({
@@ -314,8 +320,13 @@ export async function ScheduleEvent(req, res) {
   });
 
   let user = await db.User.findByPk(mainAgent.userId);
+
+  let filter = { mainAgentId: mainAgentId };
+  if (agent) {
+    filter.agentId = agent.id;
+  }
   let calIntegration = await db.CalendarIntegration.findOne({
-    where: { mainAgentId: mainAgent.id },
+    where: filter,
   });
   if (!calIntegration) {
     return res.send({
@@ -404,6 +415,8 @@ export async function ScheduleEvent(req, res) {
         await db.ScheduledBooking.create({
           leadId: lead.id,
           mainAgentId: mainAgentId,
+          agentId: agent.id,
+          data: JSON.stringify(responseData),
           datetime: startTimeISO,
           date: date,
           time: time,
@@ -601,6 +614,7 @@ export async function AddCalendarCalDotCom(req, res) {
       let timeZone = req.body.timeZone; // for calDotCom
       let eventId = req.body.eventId || null;
       let mainAgentId = req.body.mainAgentId;
+      let agentId = req.body.agentId || null;
       let mainAgent = await db.MainAgentModel.findByPk(mainAgentId);
       let title = req.body.title;
       try {
@@ -634,10 +648,12 @@ export async function AddCalendarCalDotCom(req, res) {
         }
 
         //check if there is already a calendar for this agent
+        let filter = { mainAgentId: mainAgentId };
+        if (agentId) {
+          filter.agentId = agentId;
+        }
         let cal = await db.CalendarIntegration.findOne({
-          where: {
-            mainAgentId: mainAgentId,
-          },
+          where: filter,
         });
         if (cal) {
           cal.eventId = eventId;
@@ -655,28 +671,75 @@ export async function AddCalendarCalDotCom(req, res) {
           });
         }
 
-        let created = await db.CalendarIntegration.create({
-          type: calendarType,
-          apiKey: apiKey,
-          userId: userId,
-          eventId: eventId15Min,
-          mainAgentId: mainAgentId,
-          title: title,
-          timeZone: timeZone,
-        });
+        let calendar = null;
+        if (agentId) {
+          let created = await db.CalendarIntegration.create({
+            type: calendarType,
+            apiKey: apiKey,
+            userId: userId,
+            eventId: eventId15Min,
+            mainAgentId: mainAgentId,
+            title: title,
+            agentId: agentId,
+            timeZone: timeZone,
+          });
+          calendar = created;
+          //add action
+          let actionResult = await CreateAndAttachCalendarAction(
+            user,
+            mainAgent,
+            agentId
+          );
+          if (actionResult) {
+            console.log("Action Create Result ", actionResult);
+            let ids = actionResult.data;
+            created.data = JSON.stringify(ids);
+            await created.save();
+          }
+        } else {
+          let agents = await db.AgentModel.findAll({
+            where: {
+              mainAgentId: mainAgentId,
+            },
+          });
+          if (agents && agents.length > 0) {
+            for (const agent of agents) {
+              let created = await db.CalendarIntegration.create({
+                type: calendarType,
+                apiKey: apiKey,
+                userId: userId,
+                eventId: eventId15Min,
+                mainAgentId: mainAgentId,
+                title: title,
+                agentId: agent.id,
+                timeZone: timeZone,
+              });
+              calendar = created;
+              //add action
+              let actionResult = await CreateAndAttachCalendarAction(
+                user,
+                mainAgent,
+                agent.id
+              );
+              if (actionResult) {
+                console.log("Action Create Result ", actionResult);
+                let ids = actionResult.data;
+                created.data = JSON.stringify(ids);
+                await created.save();
+              }
+            }
+          }
+        }
 
         console.log("Available Event Types:", eventTypes);
 
-        //add action
-        let actionResult = await CreateAndAttachCalendarAction(user, mainAgent);
-        if (actionResult) {
-          console.log("Action Create Result ", actionResult);
-          let ids = actionResult.data;
-          created.data = JSON.stringify(ids);
-          await created.save();
-        }
         // Return both calendars and event types
-        return res.send({ status: true, data: created, calendars, eventTypes });
+        return res.send({
+          status: true,
+          data: calendar,
+          calendars,
+          eventTypes,
+        });
       } catch (error) {
         console.error("Error retrieving calendars or event types:", error);
         return res.send({

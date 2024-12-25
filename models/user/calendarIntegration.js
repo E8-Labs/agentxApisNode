@@ -39,6 +39,14 @@ const CalendarIntegration = (sequelize, Sequelize) => {
         key: "id",
       },
     },
+    agentId: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      references: {
+        model: "AgentModels", //
+        key: "id",
+      },
+    },
     userId: {
       type: Sequelize.INTEGER,
       allowNull: true,
