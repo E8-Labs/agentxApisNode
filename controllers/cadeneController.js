@@ -297,6 +297,13 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       `CronRunCadenceCallsSubsequentStages: Found No new leads to start subsequent calls today`
     );
     return;
+  } else {
+    console.log("Leads found ");
+    leadCadence.map((item) => {
+      console.log("Lead ID ", item.leadId);
+      console.log("Cad ID ", item.id);
+      console.log("Batch ID ", item.batchId);
+    });
   }
 
   for (let i = 0; i < leadCadence.length; i++) {
@@ -320,10 +327,12 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
     const dbDate = new Date(batch.startTime); // Date from the database
     const currentDate = new Date(); // Current date and time
 
+    console.log(`Batch Start Time ${batch.id} `, dbDate.getTime());
+    console.log("Current Time ", currentDate.getTime());
     if (dbDate.getTime() >= currentDate.getTime()) {
       // console.log("The database date is greater than or equal to the current date.");
       console.log(
-        "This cadence batch start time is in future",
+        `This cadence ${batch.id} batch start time is in future`,
         dbDate.getTime()
       );
       console.log("Current Date ", currentDate.getTime());
