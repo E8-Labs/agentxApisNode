@@ -394,6 +394,20 @@ export async function ScheduleEvent(req, res) {
   const pacificTime = convertToPacificTime(startTimeISO);
 
   console.log("Pacific Time:", pacificTime);
+
+  const localDateTime = DateTime.fromFormat(
+    `${date} ${time}`,
+    "yyyy-MM-dd HH:mm",
+    {
+      zone: calIntegration.timeZone,
+    }
+  );
+
+  // Convert to UTC
+  const utcDateTime = localDateTime.toUTC();
+
+  console.log("Local Time:", localDateTime.toString()); // Pacific Time
+  console.log("UTC Time:", utcDateTime.toString()); // UTC Time
   // return;
   // Consider the calendar is cal.com
   let apiKey = calIntegration.apiKey;
@@ -414,7 +428,7 @@ export async function ScheduleEvent(req, res) {
     });
   }
   let inputData = {
-    start: startTimeISO, // Use combined ISO date-time string for the start time
+    start: utcDateTime.toISO(), // Use combined ISO date-time string for the start time
     eventTypeId: eventTypeId,
     // lengthInMinutes: 30,
     attendee: {
