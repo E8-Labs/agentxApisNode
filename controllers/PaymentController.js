@@ -69,8 +69,8 @@ export const AddPaymentMethod = async (req, res) => {
       try {
         let added = await addPaymentMethod(user, source);
         return res.send({
-          status: true,
-          message: "Payment method added",
+          status: data.status,
+          message: data.status ? "Payment method added" : data.error,
           data: added,
         });
       } catch (error) {
@@ -83,7 +83,7 @@ export const AddPaymentMethod = async (req, res) => {
     } else {
       return res.send({
         status: false,
-        message: "Pipeline creation failed",
+        message: "Error adding card",
         data: null,
       });
     }
