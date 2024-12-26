@@ -66,12 +66,20 @@ export const AddPaymentMethod = async (req, res) => {
         },
       });
 
-      let added = await addPaymentMethod(user, source);
-      return res.send({
-        status: true,
-        message: "Payment method added",
-        data: added,
-      });
+      try {
+        let added = await addPaymentMethod(user, source);
+        return res.send({
+          status: true,
+          message: "Payment method added",
+          data: added,
+        });
+      } catch (error) {
+        return res.send({
+          status: false,
+          message: error.message,
+          data: null,
+        });
+      }
     } else {
       return res.send({
         status: false,
