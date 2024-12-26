@@ -1044,6 +1044,72 @@ export const GetUniqueColumns = async (req, res) => {
   });
 };
 
+export const GetUniqueTags = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      // let l = req.body.sheetId || null;
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let leads = await db.LeadModel.findAll({
+        where: {
+          userId: user.id,
+        },
+      });
+      let leadIds = [];
+      if (leads && leads.length > 0) leadIds = leads.map((lead) => lead.id);
+      let keys = [];
+      let leadTags = await db.LeadTagsModel.findAll({
+        where: {
+          leadId: {
+            [db.Sequelize.Op.in]: leadIds,
+          },
+        },
+      });
+
+      keys = [...keys, ...leadTags];
+
+      let pipelineIds = [];
+      let pipelines = await db.Pipeline.findAll({
+        where: {
+          userId: user.id,
+        },
+      });
+      if (pipelines && pipelines.length > 0) {
+        pipelineIds = pipelines.map((pipeline) => pipeline.id);
+      }
+      let stageTags = await db.StageTagModel.findAll({
+        where: {
+          pipelineStageId: {
+            [db.Sequelize.Op.in]: pipelineIds,
+          },
+        },
+      });
+      keys = [...keys, ...stageTags];
+
+      let tags = [];
+      if (keys && keys.length > 0) {
+        keys.map((key) => {
+          if (!tags.includes(key.tag)) {
+            tags.push(key.tag);
+          }
+        });
+      }
+
+      return res.send({
+        status: true,
+        data: tags,
+        message: "Tags list",
+      });
+    } else {
+    }
+  });
+};
+
 export const GetCallLogs = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {

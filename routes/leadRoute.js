@@ -16,6 +16,7 @@ import {
   GetLeadDetail,
   UpdateLeadStage,
   DeleteLead,
+  GetUniqueTags,
 } from "../controllers/LeadsController.js";
 
 const uploadFiles = multer().fields([
@@ -48,5 +49,7 @@ LeadRouter.get(
   uploadFiles,
   GetUniqueColumns
 );
+
+LeadRouter.get("/getTagsList", verifyJwtToken, GetUniqueTags);
 
 export default LeadRouter;
