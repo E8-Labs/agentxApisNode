@@ -164,13 +164,44 @@ const fetchAvailableSlotsForNext15Days = async (
         timeZone: timeZone,
       },
     });
-    console.log(JSON.stringify(response.data));
-    return response.data;
+    const data = await response.data.data;
+    // console.log(JSON.stringify(data));
+    // Convert each slot to the desired time zone
+    const convertedSlots = await processSlots(response, timeZone);
+    console.log("Slots in Converted ", convertedSlots);
+    return { data: { slots: convertedSlots } }; //}response.data;
   } catch (error) {
     console.error(error.response ? error.response.data : error.message);
     return null;
   }
 };
+
+async function processSlots(response, timeZone) {
+  const data = response.data.data;
+  console.log(JSON.stringify(data));
+
+  // Initialize an array to store converted slots
+  const convertedSlots = [];
+
+  // Iterate over each date in the `slots` object
+  Object.keys(data.slots).forEach((dateKey) => {
+    const slotsForDate = data.slots[dateKey];
+
+    // Process each slot in the array for the current date
+    slotsForDate.forEach((slot) => {
+      const utcDateTime = DateTime.fromISO(slot.time, { zone: "utc" });
+      const localDateTime = utcDateTime.setZone(timeZone);
+
+      // Add the converted slot to the result array
+      convertedSlots.push({
+        // originalUTC: slot.time,
+        localTime: localDateTime.toISO(),
+      });
+    });
+  });
+
+  return convertedSlots;
+}
 function getParsedTime(time) {
   const timeFormats = [
     "HH:mm",

@@ -371,7 +371,7 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
   return { callScript: text, greeting: greeting };
 }
 
-async function addCallTry(
+export async function addCallTry(
   leadCadence,
   lead,
   assistant,

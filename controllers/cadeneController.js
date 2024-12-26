@@ -12,7 +12,7 @@ dotenv.config();
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 
 import { calculateDifferenceInMinutes } from "../utils/dateutil.js";
-import { MakeACall } from "../controllers/synthflowController.js";
+import { addCallTry, MakeACall } from "../controllers/synthflowController.js";
 import { BatchStatus } from "../models/pipeline/CadenceBatchModel.js";
 
 //Concurrent Calls- Set Limit to 100
@@ -687,6 +687,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       );
     } catch (error) {
       console.log(`CronRunCadenceCallsSubsequentStages: Error cron `, error);
+      // await addCallTry(leadCadence, lead, assistant, calls, batchId, "success");
     }
   }
 };
