@@ -319,368 +319,374 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
   }
 
   for (let i = 0; i < leadCadence.length; i++) {
-    console.log(
-      `CronRunCadenceCallsSubsequentStages:______________________ Iteration ${i} Start ______________________`
-    );
-    let leadCad = leadCadence[i];
-    let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
-    let lead = await db.LeadModel.findByPk(leadCad.leadId);
-    let mainAgent = await db.MainAgentModel.findByPk(leadCad.mainAgentId);
-    // console.log("Main Agent", mainAgent);
-    let pipelineStageForLead = await db.PipelineStages.findByPk(lead.stage);
-    // console.log(
-    //   `Found Lead ${lead.firstName} at stage ${pipelineStageForLead.stageTitle} in Pipeline ${pipeline.title} Assigned to ${mainAgent.name}`
-    // );
-    // console.log("###############################################################################################################\n")
-    //Since this would be the first stage lead, no calls have been sent to him as of now. We will not check
-    //for last call time and wait for that amount of time
-
-    let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
-    const dbDate = new Date(batch.startTime); // Date from the database
-    const currentDate = new Date(); // Current date and time
-
-    console.log(
-      `CronRunCadenceCallsSubsequentStages:Batch Start Time ${batch.id} `,
-      dbDate.getTime()
-    );
-    console.log(
-      "CronRunCadenceCallsSubsequentStages:Current Time ",
-      currentDate.getTime()
-    );
-    if (dbDate.getTime() >= currentDate.getTime()) {
-      // console.log("The database date is greater than or equal to the current date.");
+    try {
       console.log(
-        `CronRunCadenceCallsSubsequentStages:This cadence ${batch.id} batch start time is in future`,
+        `CronRunCadenceCallsSubsequentStages:______________________ Iteration ${i} Start ______________________`
+      );
+      let leadCad = leadCadence[i];
+      let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
+      let lead = await db.LeadModel.findByPk(leadCad.leadId);
+      let mainAgent = await db.MainAgentModel.findByPk(leadCad.mainAgentId);
+      // console.log("Main Agent", mainAgent);
+      let pipelineStageForLead = await db.PipelineStages.findByPk(lead.stage);
+      // console.log(
+      //   `Found Lead ${lead.firstName} at stage ${pipelineStageForLead.stageTitle} in Pipeline ${pipeline.title} Assigned to ${mainAgent.name}`
+      // );
+      // console.log("###############################################################################################################\n")
+      //Since this would be the first stage lead, no calls have been sent to him as of now. We will not check
+      //for last call time and wait for that amount of time
+
+      let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
+      const dbDate = new Date(batch.startTime); // Date from the database
+      const currentDate = new Date(); // Current date and time
+
+      console.log(
+        `CronRunCadenceCallsSubsequentStages:Batch Start Time ${batch.id} `,
         dbDate.getTime()
       );
       console.log(
-        "CronRunCadenceCallsSubsequentStages:Current Date ",
+        "CronRunCadenceCallsSubsequentStages:Current Time ",
         currentDate.getTime()
       );
-      continue;
-    }
-
-    if (batch.status != BatchStatus.Active) {
-      console.log(
-        "CronRunCadenceCallsSubsequentStages: Cadence is paused for this batch",
-        batch.id
-      );
-      continue;
-    }
-
-    let cadence = await db.PipelineCadence.findOne({
-      where: {
-        mainAgentId: mainAgent.id,
-        pipelineId: pipeline.id,
-        stage: lead.stage,
-      },
-    });
-    if (!cadence) {
-      console.log(
-        `CronRunCadenceCallsSubsequentStages: Cadence have no active leads ${leadCad.mainAgentId} | ${lead.stage} | ${leadCad.pipelineId}`
-      );
-      // return;
-    } else {
-      console.log(
-        `CronRunCadenceCallsSubsequentStages:Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${lead.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
-      );
-
-      // continue;
-      //Get Call Schedule for the lead Stage
-      let callCadence = await db.CadenceCalls.findAll({
-        where: {
-          pipelineCadenceId: cadence.id,
-        },
-      });
-
-      console.log(
-        "CronRunCadenceCallsSubsequentStages: Found schedule",
-        callCadence.length
-      );
-
-      //decide should we send call or not?
-      //If initial call then check when the leadCadence was created and find the difference between lead cadence creation & Now.
-      //If the distance is greater than the next call duration then make that call.
-
-      //Checking number of calls sent to this lead
-      let calls = await db.LeadCallsSent.findAll({
-        where: {
-          leadCadenceId: leadCad.id,
-          // stage: lead.stage,
-        },
-        order: [["createdAt", "ASC"]],
-      });
-      console.log(
-        `CronRunCadenceCallsSubsequentStages:Calls for ${leadCad.id} at stage ${lead.stage}`,
-        calls.length
-      );
-
-      if (calls && calls.length > 0) {
-        let lastCall = calls[calls.length - 1];
+      if (dbDate.getTime() >= currentDate.getTime()) {
+        // console.log("The database date is greater than or equal to the current date.");
         console.log(
-          "CronRunCadenceCallsSubsequentStages: Calls sent to this lead ",
-          calls.length
+          `CronRunCadenceCallsSubsequentStages:This cadence ${batch.id} batch start time is in future`,
+          dbDate.getTime()
         );
-        if (lastCall.status == null || lastCall.duration == null) {
-          console.log(
-            "CronRunCadenceCallsSubsequentStages:Last call is not complete so not placing next call"
-          );
-          continue;
-        }
-        //
-        let callsStatusesToRecall = [
-          "failed",
-          "no-answer",
-          "busy",
-          "hangup_on_voicemail",
-        ];
+        console.log(
+          "CronRunCadenceCallsSubsequentStages:Current Date ",
+          currentDate.getTime()
+        );
+        continue;
+      }
 
-        if (lastCall.status == "completed") {
-          // last call completed with status completed
-          //but didn't move the lead to any stage so should call again
-          if (lead.stage != lastCall.stage) {
-            //last call moved the lead to new stage
-            console.log(
-              "CronRunCadenceCallsSubsequentStages:last call moved the lead to new stage",
-              lastCall.movedToStage
-            );
-          }
-          if (lastCall.movedToStage == null) {
-          }
-          //but moved the lead to any stage so should call again
-          else if (lastCall.movedToStage != null) {
-          }
-        } else if (!callsStatusesToRecall.includes(lastCall.status)) {
-          console.log(
-            "CronRunCadenceCallsSubsequentStages:Last call completed with status",
-            lastCall.status
-          );
-          // console.log("So recalling")
-          continue;
-        }
+      if (batch.status != BatchStatus.Active) {
+        console.log(
+          "CronRunCadenceCallsSubsequentStages: Cadence is paused for this batch",
+          batch.id
+        );
+        continue;
+      }
 
-        // console.log(
-        //   "Last call completed with one of these statuses",
-        //   callsStatusesToRecall
-        // );
-        console.log("CronRunCadenceCallsSubsequentStages:So recalling");
-        //Check the calls on this stage and see how many are sent on the current stage lead is at
-        let callsOnThisStage = await db.LeadCallsSent.findAll({
+      let cadence = await db.PipelineCadence.findOne({
+        where: {
+          mainAgentId: mainAgent.id,
+          pipelineId: pipeline.id,
+          stage: lead.stage,
+        },
+      });
+      if (!cadence) {
+        console.log(
+          `CronRunCadenceCallsSubsequentStages: Cadence have no active leads ${leadCad.mainAgentId} | ${lead.stage} | ${leadCad.pipelineId}`
+        );
+        // return;
+      } else {
+        console.log(
+          `CronRunCadenceCallsSubsequentStages:Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${lead.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
+        );
+
+        // continue;
+        //Get Call Schedule for the lead Stage
+        let callCadence = await db.CadenceCalls.findAll({
           where: {
-            leadCadenceId: leadCad.id,
-            stage: lead.stage,
+            pipelineCadenceId: cadence.id,
           },
         });
+
         console.log(
-          "CronRunCadenceCallsSubsequentStages:Total Cals ",
+          "CronRunCadenceCallsSubsequentStages: Found schedule",
+          callCadence.length
+        );
+
+        //decide should we send call or not?
+        //If initial call then check when the leadCadence was created and find the difference between lead cadence creation & Now.
+        //If the distance is greater than the next call duration then make that call.
+
+        //Checking number of calls sent to this lead
+        let calls = await db.LeadCallsSent.findAll({
+          where: {
+            leadCadenceId: leadCad.id,
+            // stage: lead.stage,
+          },
+          order: [["createdAt", "ASC"]],
+        });
+        console.log(
+          `CronRunCadenceCallsSubsequentStages:Calls for ${leadCad.id} at stage ${lead.stage}`,
           calls.length
         );
-        console.log(
-          `CronRunCadenceCallsSubsequentStages:Calls on ${lead.stage} ${callsOnThisStage.length}`
-        );
-        if (callsOnThisStage.length == callCadence.length) {
-          //Don't send calls
-          //All calls are sent to this lead already so we have to determine whether we push it to the next stage or do what?
-          //We can either move the lead cadence to the next stage or leave it to the outcome of the call.
-          //If we want the outcome to be determined based on call log first then wait for call log else
+
+        if (calls && calls.length > 0) {
+          let lastCall = calls[calls.length - 1];
           console.log(
-            "CronRunCadenceCallsSubsequentStages: Don't send calls. Already sent calls for this lead cadence"
+            "CronRunCadenceCallsSubsequentStages: Calls sent to this lead ",
+            calls.length
           );
-          let diff = calculateDifferenceInMinutes(lastCall.createdAt); // in minutes
-          console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
-          if (
-            diff * 60 >= 50 &&
-            lastCall.status != "" &&
-            lastCall.duration != null
-          ) {
-            //60 * 24
-            // greater than total minutes in a day = 60 * 24
-            //move to next stage for now
+          if (lastCall.status == null || lastCall.duration == null) {
             console.log(
-              "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
+              "CronRunCadenceCallsSubsequentStages:Last call is not complete so not placing next call"
             );
-            console.log("Last Call ID ", lastCall.id);
-            lead.stage = cadence.moveToStage;
-            let saved = await lead.save();
-            console.log(
-              "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
-            );
+            continue;
           }
-          // return;
-        } else {
-          //Get the next call from callCadence to be sent
-          console.log(
-            "CronRunCadenceCallsSubsequentStages: Next call to be sent is ",
-            calls.length + 1
-          );
+          //
+          let callsStatusesToRecall = [
+            "failed",
+            "no-answer",
+            "busy",
+            "hangup_on_voicemail",
+          ];
 
-          let nextCadenceCall = callCadence[callsOnThisStage.length];
-
-          let waitTime =
-            Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
-            Number(nextCadenceCall.waitTimeHours) * 60 +
-            Number(nextCadenceCall.waitTimeMinutes);
-          console.log(
-            `CronRunCadenceCallsSubsequentStages: Total wait time for next call  ${waitTime} min`
-          );
-
-          let diff = calculateDifferenceInMinutes(lastCall.createdAt); // in minutes
-          console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
-          if (diff * 60 >= waitTime * 60 - 5) {
-            console.log(
-              "CronRunCadenceCallsSubsequentStages: Next call should be placed for",
-              leadCad.id
-            );
-            let agent = await db.AgentModel.findOne({
-              where: {
-                mainAgentId: leadCad.mainAgentId,
-                agentType: "outbound",
-              },
-            });
-            try {
-              let tries = await db.LeadCallTriesModel.count({
-                where: {
-                  leadCadenceId: leadCad.id,
-                  stage: lead.stage,
-                  mainAgentId: mainAgent.id,
-                  status: "error",
-                },
-              });
+          if (lastCall.status == "completed") {
+            // last call completed with status completed
+            //but didn't move the lead to any stage so should call again
+            if (lead.stage != lastCall.stage) {
+              //last call moved the lead to new stage
               console.log(
-                `CronRunCadenceCallsSubsequentStages:Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
-              );
-
-              if (tries < 3) {
-                let called = await MakeACall(
-                  leadCad,
-                  simulate,
-                  calls,
-                  batch.id
-                );
-              } else {
-                //set cad errored
-                leadCad.status = CadenceStatus.Errored;
-                let saved = await leadCad?.save();
-
-                lead.stage = null;
-                await lead.save();
-                let called = await MakeACall(
-                  leadCad,
-                  simulate,
-                  calls,
-                  batch.id,
-                  true
-                ); //maxTriesReached = true
-              }
-              // let called = await MakeACall(leadCad, simulate, calls, batch.id);
-              //if you want to simulate
-              //let called = await MakeACall(leadCad, true, calls);
-            } catch (error) {
-              console.log(
-                "CronRunCadenceCallsSubsequentStages:Error Sending Call ",
-                error
+                "CronRunCadenceCallsSubsequentStages:last call moved the lead to new stage",
+                lastCall.movedToStage
               );
             }
-            // let sent = await db.LeadCallsSent.create({
-            //   leadId: leadCad.leadId,
-            //   leadCadenceId: leadCad.id,
-            //   mainAgentId: leadCad.mainAgentId,
-            //   callTriggerTime: new Date(),
-            //   agentId: agent?.id,
-            //   synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
-            //   stage: leadCad.stage,
-            //   status: "",
-            // });
-            //+ 1 because one new call is sent just now
-            if (calls.length + 1 == callCadence.length) {
-              // we will not move the lead to new stage after we setup webhook from synthflow.
-              //There we will add this logic. This is just for testing now.
+            if (lastCall.movedToStage == null) {
+            }
+            //but moved the lead to any stage so should call again
+            else if (lastCall.movedToStage != null) {
+            }
+          } else if (!callsStatusesToRecall.includes(lastCall.status)) {
+            console.log(
+              "CronRunCadenceCallsSubsequentStages:Last call completed with status",
+              lastCall.status
+            );
+            // console.log("So recalling")
+            continue;
+          }
+
+          // console.log(
+          //   "Last call completed with one of these statuses",
+          //   callsStatusesToRecall
+          // );
+          console.log("CronRunCadenceCallsSubsequentStages:So recalling");
+          //Check the calls on this stage and see how many are sent on the current stage lead is at
+          let callsOnThisStage = await db.LeadCallsSent.findAll({
+            where: {
+              leadCadenceId: leadCad.id,
+              stage: lead.stage,
+            },
+          });
+          console.log(
+            "CronRunCadenceCallsSubsequentStages:Total Cals ",
+            calls.length
+          );
+          console.log(
+            `CronRunCadenceCallsSubsequentStages:Calls on ${lead.stage} ${callsOnThisStage.length}`
+          );
+          if (callsOnThisStage.length == callCadence.length) {
+            //Don't send calls
+            //All calls are sent to this lead already so we have to determine whether we push it to the next stage or do what?
+            //We can either move the lead cadence to the next stage or leave it to the outcome of the call.
+            //If we want the outcome to be determined based on call log first then wait for call log else
+            console.log(
+              "CronRunCadenceCallsSubsequentStages: Don't send calls. Already sent calls for this lead cadence"
+            );
+            let diff = calculateDifferenceInMinutes(lastCall.createdAt); // in minutes
+            console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
+            if (
+              diff * 60 >= 50 &&
+              lastCall.status != "" &&
+              lastCall.duration != null
+            ) {
+              //60 * 24
+              // greater than total minutes in a day = 60 * 24
+              //move to next stage for now
               console.log(
-                "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
+                "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
               );
+              console.log("Last Call ID ", lastCall.id);
               lead.stage = cadence.moveToStage;
               let saved = await lead.save();
               console.log(
                 "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
               );
             }
+            // return;
           } else {
+            //Get the next call from callCadence to be sent
             console.log(
-              "CronRunCadenceCallsSubsequentStages: Difference is small so next call can not be placed"
+              "CronRunCadenceCallsSubsequentStages: Next call to be sent is ",
+              calls.length + 1
             );
-          }
-        }
-      } else {
-        //This will never be satisfied for this cron
-        console.log(
-          "CronRunCadenceCallsSubsequentStages: Started: No call already sent"
-        );
 
-        //send call after checking whether the first call wait time is already passed
-        //calculate time with initial leadCadence creation and now.
-        let agent = await db.AgentModel.findOne({
-          where: {
-            mainAgentId: leadCad.mainAgentId,
-            agentType: "outbound",
-          },
-        });
-        try {
-          let tries = await db.LeadCallTriesModel.count({
+            let nextCadenceCall = callCadence[callsOnThisStage.length];
+
+            let waitTime =
+              Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
+              Number(nextCadenceCall.waitTimeHours) * 60 +
+              Number(nextCadenceCall.waitTimeMinutes);
+            console.log(
+              `CronRunCadenceCallsSubsequentStages: Total wait time for next call  ${waitTime} min`
+            );
+
+            let diff = calculateDifferenceInMinutes(lastCall.createdAt); // in minutes
+            console.log(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
+            if (diff * 60 >= waitTime * 60 - 5) {
+              console.log(
+                "CronRunCadenceCallsSubsequentStages: Next call should be placed for",
+                leadCad.id
+              );
+              let agent = await db.AgentModel.findOne({
+                where: {
+                  mainAgentId: leadCad.mainAgentId,
+                  agentType: "outbound",
+                },
+              });
+              try {
+                let tries = await db.LeadCallTriesModel.count({
+                  where: {
+                    leadCadenceId: leadCad.id,
+                    stage: lead.stage,
+                    mainAgentId: mainAgent.id,
+                    status: "error",
+                  },
+                });
+                console.log(
+                  `CronRunCadenceCallsSubsequentStages:Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
+                );
+
+                if (tries < 3) {
+                  let called = await MakeACall(
+                    leadCad,
+                    simulate,
+                    calls,
+                    batch.id
+                  );
+                } else {
+                  //set cad errored
+                  leadCad.status = CadenceStatus.Errored;
+                  let saved = await leadCad?.save();
+
+                  lead.stage = null;
+                  await lead.save();
+                  let called = await MakeACall(
+                    leadCad,
+                    simulate,
+                    calls,
+                    batch.id,
+                    true
+                  ); //maxTriesReached = true
+                }
+                // let called = await MakeACall(leadCad, simulate, calls, batch.id);
+                //if you want to simulate
+                //let called = await MakeACall(leadCad, true, calls);
+              } catch (error) {
+                console.log(
+                  "CronRunCadenceCallsSubsequentStages:Error Sending Call ",
+                  error
+                );
+              }
+              // let sent = await db.LeadCallsSent.create({
+              //   leadId: leadCad.leadId,
+              //   leadCadenceId: leadCad.id,
+              //   mainAgentId: leadCad.mainAgentId,
+              //   callTriggerTime: new Date(),
+              //   agentId: agent?.id,
+              //   synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
+              //   stage: leadCad.stage,
+              //   status: "",
+              // });
+              //+ 1 because one new call is sent just now
+              if (calls.length + 1 == callCadence.length) {
+                // we will not move the lead to new stage after we setup webhook from synthflow.
+                //There we will add this logic. This is just for testing now.
+                console.log(
+                  "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
+                );
+                lead.stage = cadence.moveToStage;
+                let saved = await lead.save();
+                console.log(
+                  "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
+                );
+              }
+            } else {
+              console.log(
+                "CronRunCadenceCallsSubsequentStages: Difference is small so next call can not be placed"
+              );
+            }
+          }
+        } else {
+          //This will never be satisfied for this cron
+          console.log(
+            "CronRunCadenceCallsSubsequentStages: Started: No call already sent"
+          );
+
+          //send call after checking whether the first call wait time is already passed
+          //calculate time with initial leadCadence creation and now.
+          let agent = await db.AgentModel.findOne({
             where: {
-              leadCadenceId: leadCad.id,
-              stage: lead.stage,
-              mainAgentId: mainAgent.id,
-              status: "error",
+              mainAgentId: leadCad.mainAgentId,
+              agentType: "outbound",
             },
           });
-          console.log(
-            `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
-          );
+          try {
+            let tries = await db.LeadCallTriesModel.count({
+              where: {
+                leadCadenceId: leadCad.id,
+                stage: lead.stage,
+                mainAgentId: mainAgent.id,
+                status: "error",
+              },
+            });
+            console.log(
+              `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
+            );
 
-          if (tries < 3) {
-            let called = await MakeACall(leadCad, simulate, calls, batch.id);
-            if (called.status) {
-              console.log("CronRunCadenceCallsSubsequentStages: CallSent now");
+            if (tries < 3) {
+              let called = await MakeACall(leadCad, simulate, calls, batch.id);
+              if (called.status) {
+                console.log(
+                  "CronRunCadenceCallsSubsequentStages: CallSent now"
+                );
+              }
+            } else {
+              //set cad errored
+              leadCad.status = CadenceStatus.Errored;
+              let saved = await leadCad?.save();
+
+              lead.stage = null;
+              await lead.save();
+              let called = await MakeACall(
+                leadCad,
+                simulate,
+                calls,
+                batch.id,
+                true
+              ); //maxTriesReached = true
             }
-          } else {
-            //set cad errored
-            leadCad.status = CadenceStatus.Errored;
-            let saved = await leadCad?.save();
 
-            lead.stage = null;
-            await lead.save();
-            let called = await MakeACall(
-              leadCad,
-              simulate,
-              calls,
-              batch.id,
-              true
-            ); //maxTriesReached = true
+            //if you want to simulate
+            //let called = await MakeACall(leadCad, true, calls);
+          } catch (error) {
+            console.log(
+              "CronRunCadenceCallsSubsequentStages:Error Sending Call ",
+              error
+            );
           }
 
-          //if you want to simulate
-          //let called = await MakeACall(leadCad, true, calls);
-        } catch (error) {
-          console.log(
-            "CronRunCadenceCallsSubsequentStages:Error Sending Call ",
-            error
-          );
+          // let sent = await db.LeadCallsSent.create({
+          //   leadId: leadCad.leadId,
+          //   leadCadenceId: leadCad.id,
+          //   mainAgentId: leadCad.mainAgentId,
+          //   agentId: agent?.id,
+          //   callTriggerTime: new Date(),
+          //   synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
+          //   stage: leadCad.stage,
+          //   status: "",
+          // });
         }
-
-        // let sent = await db.LeadCallsSent.create({
-        //   leadId: leadCad.leadId,
-        //   leadCadenceId: leadCad.id,
-        //   mainAgentId: leadCad.mainAgentId,
-        //   agentId: agent?.id,
-        //   callTriggerTime: new Date(),
-        //   synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
-        //   stage: leadCad.stage,
-        //   status: "",
-        // });
       }
+      console.log(
+        `CronRunCadenceCallsSubsequentStages:______________________ Iteration ${i} END ______________________`
+      );
+    } catch (error) {
+      console.log(`CronRunCadenceCallsSubsequentStages: Error cron `, error);
     }
-    console.log(
-      `CronRunCadenceCallsSubsequentStages:______________________ Iteration ${i} END ______________________`
-    );
   }
 };
