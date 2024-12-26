@@ -12,15 +12,18 @@ import {
   UpdateKyc,
   GetKyc,
   DeleteKyc,
-  WebhookSynthflow,
   GetAgents,
   GetAgentCallActivity,
   AddObjectionOrGuardrail,
   DeleteObjectionOrGuardrail,
   GetObjectionsAndGuardrails,
   TestAI,
-  SetOutcomeforpreviousCalls,
 } from "../controllers/synthflowController.js";
+
+import {
+  SetOutcomeforpreviousCalls,
+  WebhookSynthflow,
+} from "../controllers/WebhookSynthflowController.js";
 
 import {
   ListAvailableNumbers,

@@ -28,6 +28,44 @@ const LeadResource = async (user, currentUser = null) => {
   }
 };
 
+async function getLatestAndUniqueKycs(leadId) {
+  // Find the latest `callId` for the given `leadId`
+  const latestCallId = await db.LeadKycsExtracted.max("callId", {
+    where: { leadId },
+  });
+
+  if (!latestCallId) {
+    return []; // No data available for the given `leadId`
+  }
+
+  // Fetch KYCs for the latest `callId`
+  const latestCallKycs = await db.LeadKycsExtracted.findAll({
+    where: {
+      leadId,
+      callId: latestCallId,
+    },
+  });
+
+  // Fetch all KYCs for the `leadId`
+  const allKycs = await db.LeadKycsExtracted.findAll({
+    where: { leadId },
+    order: [["updatedAt", "DESC"]], // Ensure the latest entries come first
+  });
+
+  // Deduplicate KYCs by `question`, keeping the latest entry
+  const uniqueKycsMap = new Map();
+  allKycs.forEach((kyc) => {
+    if (!uniqueKycsMap.has(kyc.question)) {
+      uniqueKycsMap.set(kyc.question, kyc);
+    }
+  });
+
+  // Extract unique KYCs from the map
+  const uniqueKycs = Array.from(uniqueKycsMap.values());
+
+  return uniqueKycs;
+}
+
 async function getUserData(lead, currentUser = null) {
   console.log("Type of user is ", typeof user);
   //   let totalYapScore = 0;
@@ -56,11 +94,11 @@ async function getUserData(lead, currentUser = null) {
   //   tags.push(t);
   // }
 
-  let kycs = await db.LeadKycsExtracted.findAll({
-    where: {
-      leadId: lead.id,
-    },
-  });
+  let kycs = await getLatestAndUniqueKycs(lead.id); //await db.LeadKycsExtracted.findAll({
+  //   where: {
+  //     leadId: lead.id,
+  //   },
+  // });
   let leadData = null;
   try {
     leadData = lead.get();

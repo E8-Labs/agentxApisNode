@@ -573,9 +573,9 @@ export const CheckPhoneExists = async (req, res) => {
   });
 
   if (user) {
-    res.send({ status: false, data: null, message: "Phone already taken" });
+    res.send({ status: false, data: null, message: "Phone taken" });
   } else {
-    res.send({ status: true, data: null, message: "Phone available" });
+    res.send({ status: true, data: null, message: "Available" });
   }
 };
 
@@ -674,9 +674,9 @@ export const CheckEmailExists = async (req, res) => {
   });
 
   if (user) {
-    res.send({ status: false, data: null, message: "Email already taken" });
+    res.send({ status: false, data: null, message: "Email taken" });
   } else {
-    res.send({ status: true, data: null, message: "email available" });
+    res.send({ status: true, data: null, message: "Available" });
   }
 };
 
