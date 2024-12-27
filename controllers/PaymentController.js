@@ -108,7 +108,7 @@ export const GetPaymentmethods = async (req, res) => {
     } else {
       return res.send({
         status: false,
-        message: "Pipeline creation failed",
+        message: "Unauthenticated user",
         data: null,
       });
     }
