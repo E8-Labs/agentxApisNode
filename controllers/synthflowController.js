@@ -470,6 +470,8 @@ export const MakeACall = async (
 
     return { status: true, data: sent };
   }
+
+  let user = await db.User.findByPk(assistant.userid);
   let canMakeCalls = await CanMakeCalls(user);
   if (canMakeCalls.status == false) {
     await addCallTry(leadCadence, lead, assistant, calls, batchId, "error"); //errored
@@ -506,7 +508,7 @@ export const MakeACall = async (
     };
   }
 
-  let user = await db.User.findByPk(mainAgentModel.userId);
+  // let user = await db.User.findByPk(mainAgentModel.userId);
   //console.log("Calling assistant", assistant.name);
   //console.log("Model ", assistant.modelId);
   try {
