@@ -471,7 +471,7 @@ export const MakeACall = async (
     return { status: true, data: sent };
   }
 
-  let user = await db.User.findByPk(assistant.userid);
+  let user = await db.User.findByPk(assistant.userId);
   let canMakeCalls = await CanMakeCalls(user);
   if (canMakeCalls.status == false) {
     await addCallTry(leadCadence, lead, assistant, calls, batchId, "error"); //errored
