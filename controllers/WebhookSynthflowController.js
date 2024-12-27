@@ -436,6 +436,7 @@ async function handleInfoExtractorValues(
   );
   let canMoveToDefaultStage = true;
   let movedToPriorityStage = false;
+  let movedToCustom = false;
   var tags = [];
   let moveToStage = null;
   //priority
@@ -471,16 +472,20 @@ async function handleInfoExtractorValues(
           await dbCall.save();
           lead.stage = stage.id;
           await lead.save();
+          movedToCustom = true;
           console.log(`Successfully moved to ${stageIdentifier}`, json[csIE]);
         }
 
         break;
       }
     }
+    if (movedToCustom) {
+      return;
+    }
   }
 
   // if (canMoveToDefaultStage) {
-  if (!moveToStage) {
+  if (moveToStage == null && !movedToCustom) {
     if (json.hotlead || json.callbackrequested) {
       console.log("It's a hotlead");
       const hotLeadStage = await db.PipelineStages.findOne({
@@ -520,7 +525,7 @@ async function handleInfoExtractorValues(
   }
 
   // }
-  if (moveToStage) {
+  if (moveToStage && !movedToCustom) {
     console.log("if moveToStage is not null ");
     // if moveToStage is not null and the lead hasn't moved to any priority stage && can move to Default Stage
     dbCall.movedToStage = moveToStage;
