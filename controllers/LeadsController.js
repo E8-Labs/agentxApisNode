@@ -167,13 +167,17 @@ export const AddLeads = async (req, res) => {
             (lead.phone.length == 12 && lead.phone.startsWith("+"))
           ) {
             // only push the lead if the number is valid
-            let createdLead = await db.LeadModel.create({
-              ...lead,
-              extraColumns: JSON.stringify(extraColumns),
-              userId: userId,
-              sheetId: sheet.id,
-            });
-            dbLeads.push(createdLead);
+            try {
+              let createdLead = await db.LeadModel.create({
+                ...lead,
+                extraColumns: JSON.stringify(extraColumns),
+                userId: userId,
+                sheetId: sheet.id,
+              });
+              dbLeads.push(createdLead);
+            } catch (error) {
+              console.log("Error adding one lead", error);
+            }
           }
           // if (!lead.phone.startsWith("+") && lead.phone.startsWith("1")) {
           // }
