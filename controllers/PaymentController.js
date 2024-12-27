@@ -34,6 +34,7 @@ import {
   addPaymentMethod,
   chargeUser,
   getPaymentMethods,
+  SetDefaultCard,
 } from "../utils/stripe.js";
 import {
   PayAsYouGoPlans,
@@ -104,6 +105,35 @@ export const GetPaymentmethods = async (req, res) => {
         status: true,
         message: "Payment methods",
         data: added.data,
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "Unauthenticated user",
+        data: null,
+      });
+    }
+  });
+};
+
+export const SetDefaultPaymentmethod = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let paymentMethodId = req.body.paymentMethodId;
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let added = await SetDefaultCard(paymentMethodId, user.id);
+      return res.send({
+        status: added.status,
+        message: added.status
+          ? "Payment method set as default"
+          : "Payment method could not be set as default",
+        data: added,
       });
     } else {
       return res.send({

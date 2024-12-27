@@ -22,6 +22,7 @@ import {
   AddPaymentMethod,
   SubscribePayasyougoPlan,
   GetPaymentmethods,
+  SetDefaultPaymentmethod,
 } from "../controllers/PaymentController.js";
 
 import { GenerateApiKey, GetMyApiKeys } from "../controllers/apiController.js";
@@ -70,5 +71,10 @@ UserRouter.post("/checkEmailExists", CheckEmailExists);
 //Payment
 UserRouter.post("/addPaymentMethod", verifyJwtToken, AddPaymentMethod);
 UserRouter.post("/subscribePlan", verifyJwtToken, SubscribePayasyougoPlan);
+UserRouter.post(
+  "/setDefaultPaymentMethod",
+  verifyJwtToken,
+  SetDefaultPaymentmethod
+);
 UserRouter.get("/getPaymentMethods", verifyJwtToken, GetPaymentmethods);
 export default UserRouter;

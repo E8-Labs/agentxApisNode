@@ -320,3 +320,48 @@ export const chargeUser = async (userId, amount, description) => {
     };
   }
 };
+
+export async function SetDefaultCard(paymentMethodId, userId) {
+  // const { userId, paymentMethodId } = req.body;
+  const stripe = getStripeClient();
+  try {
+    // Retrieve the user's Stripe customer ID
+    const stripeCustomerId = await getStripeCustomerId(userId);
+
+    if (!stripeCustomerId) {
+      return {
+        status: false,
+        message: "Stripe customer not found.",
+      };
+    }
+
+    // Retrieve the payment method to ensure it exists
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+
+    if (!paymentMethod || paymentMethod.customer !== stripeCustomerId) {
+      return {
+        status: false,
+        message: "Invalid payment method for this customer.",
+      };
+    }
+
+    // Update the customer's default payment method
+    await stripe.customers.update(stripeCustomerId, {
+      invoice_settings: {
+        default_payment_method: paymentMethodId,
+      },
+    });
+
+    return {
+      status: true,
+      message: "Default payment method updated successfully.",
+    };
+  } catch (error) {
+    console.error("Error setting default card:", error.message);
+    return {
+      status: false,
+      message: "Failed to set default card.",
+      error: error.message,
+    };
+  }
+}
