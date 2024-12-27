@@ -471,6 +471,7 @@ async function handleInfoExtractorValues(
           dbCall.stage = lead.stage;
           await dbCall.save();
           lead.stage = stage.id;
+          moveToStage = stage.id || null;
           await lead.save();
           movedToCustom = true;
           console.log(`Successfully moved to ${stageIdentifier}`, json[csIE]);
