@@ -34,6 +34,7 @@ import {
   addPaymentMethod,
   chargeUser,
   getPaymentMethods,
+  SetDefaultCard,
 } from "../utils/stripe.js";
 import {
   PayAsYouGoPlans,
@@ -71,7 +72,7 @@ export const AddPaymentMethod = async (req, res) => {
         return res.send({
           status: added.status,
           message: added.status ? "Payment method added" : added.error,
-          data: added,
+          data: added.data,
         });
       } catch (error) {
         return res.send({
@@ -108,7 +109,36 @@ export const GetPaymentmethods = async (req, res) => {
     } else {
       return res.send({
         status: false,
-        message: "Pipeline creation failed",
+        message: "Unauthenticated user",
+        data: null,
+      });
+    }
+  });
+};
+
+export const SetDefaultPaymentmethod = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let paymentMethodId = req.body.paymentMethodId;
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let added = await SetDefaultCard(paymentMethodId, user.id);
+      return res.send({
+        status: added.status,
+        message: added.status
+          ? "Payment method set as default"
+          : "Payment method could not be set as default",
+        data: added,
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "Unauthenticated user",
         data: null,
       });
     }
@@ -179,6 +209,22 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             data: null,
           });
         } else {
+          let lastPlan = null;
+          if (history && history.length > 0) {
+            lastPlan = history[0];
+          }
+          if (lastPlan) {
+            if (
+              lastPlan.type == foundPlan.type &&
+              lastPlan.status == "active"
+            ) {
+              return res.send({
+                status: false,
+                message: "Already subscribed to this plan",
+                data: null,
+              });
+            }
+          }
           let price = foundPlan.price * 100; //cents
           let charge = await chargeUser(
             user.id,
@@ -187,7 +233,6 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           );
           if (charge && charge.status) {
             if (history.length > 0) {
-              let lastPlan = history[0];
               if (lastPlan.type != foundPlan.type) {
                 //user updated his plan
                 await db.PlanHistory.update(

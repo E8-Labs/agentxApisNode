@@ -653,3 +653,61 @@ export async function GetUserConnectedCalendars(req, res) {
     }
   });
 }
+
+export async function GetCalendarSchedule(req, res) {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      try {
+        let apiKey = req.body.apiKey;
+        let userId = authData.user.id;
+        let user = await db.User.findByPk(userId);
+
+        if (!apiKey) {
+          return res.status(400).send({
+            status: false,
+            message: "API key is required.",
+          });
+        }
+
+        // Make the API call to Cal.com to get schedules
+        const response = await fetch("https://cal.com/api/v2/schedules", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "cal-api-version": "2024-06-11",
+          },
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          return res.status(response.status).send({
+            status: false,
+            message: "Failed to fetch schedules from Cal.com.",
+            error: errorData,
+          });
+        }
+
+        const data = await response.json();
+
+        // Return schedules
+        return res.send({
+          status: true,
+          data: data,
+        });
+      } catch (err) {
+        console.error("Error fetching schedules:", err);
+        return res.status(500).send({
+          status: false,
+          message: "Internal server error.",
+          error: err.message,
+        });
+      }
+    } else {
+      return res.send({
+        status: false,
+        data: null,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+}

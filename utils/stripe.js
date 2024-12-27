@@ -121,19 +121,31 @@ export const addPaymentMethod = async (user, token) => {
     await stripe.paymentIntents.cancel(authorization.id);
 
     // Set the payment method as the default if none exists
+
     const customer = await stripe.customers.retrieve(stripeCustomerId);
+    let isDefault = false;
     if (!customer.invoice_settings.default_payment_method) {
       await stripe.customers.update(stripeCustomerId, {
         invoice_settings: {
           default_payment_method: paymentMethod.id,
         },
       });
+      isDefault = true;
     }
+
+    const formattedMethod = {
+      id: paymentMethod.id,
+      brand: paymentMethod.card.brand,
+      last4: paymentMethod.card.last4,
+      exp_month: paymentMethod.card.exp_month,
+      exp_year: paymentMethod.card.exp_year,
+      isDefault: isDefault, //method.id === defaultPaymentMethodId, // Check if it's the default method
+    };
 
     return {
       status: true,
       message: "Payment method added successfully.",
-      paymentMethodId: paymentMethod.id,
+      data: formattedMethod,
     };
   } catch (error) {
     console.error("Error adding payment method:", error.message);
@@ -156,6 +168,7 @@ export const getPaymentMethods = async (userId, environment) => {
     const paymentMethodsResponse = await stripe.paymentMethods.list({
       customer: stripeCustomerId,
       type: "card",
+      limit: 20,
     });
 
     const paymentMethods = paymentMethodsResponse.data;
@@ -320,3 +333,48 @@ export const chargeUser = async (userId, amount, description) => {
     };
   }
 };
+
+export async function SetDefaultCard(paymentMethodId, userId) {
+  // const { userId, paymentMethodId } = req.body;
+  const stripe = getStripeClient();
+  try {
+    // Retrieve the user's Stripe customer ID
+    const stripeCustomerId = await getStripeCustomerId(userId);
+
+    if (!stripeCustomerId) {
+      return {
+        status: false,
+        message: "Stripe customer not found.",
+      };
+    }
+
+    // Retrieve the payment method to ensure it exists
+    const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+
+    if (!paymentMethod || paymentMethod.customer !== stripeCustomerId) {
+      return {
+        status: false,
+        message: "Invalid payment method for this customer.",
+      };
+    }
+
+    // Update the customer's default payment method
+    await stripe.customers.update(stripeCustomerId, {
+      invoice_settings: {
+        default_payment_method: paymentMethodId,
+      },
+    });
+
+    return {
+      status: true,
+      message: "Default payment method updated successfully.",
+    };
+  } catch (error) {
+    console.error("Error setting default card:", error.message);
+    return {
+      status: false,
+      message: "Failed to set default card.",
+      error: error.message,
+    };
+  }
+}

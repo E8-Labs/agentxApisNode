@@ -7,6 +7,7 @@ import {
   ScheduleEvent,
   CheckCalendarAvailability,
   GetUserConnectedCalendars,
+  GetCalendarSchedule,
 } from "../controllers/calendarController.js";
 
 import { GenerateApiKey, GetMyApiKeys } from "../controllers/apiController.js";
@@ -36,6 +37,13 @@ CalendarRouter.get(
   verifyJwtToken,
   uploadFiles,
   GetUserConnectedCalendars
+);
+
+CalendarRouter.post(
+  "/getScheduleForCalendar",
+  verifyJwtToken,
+  uploadFiles,
+  GetCalendarSchedule
 );
 
 export default CalendarRouter;
