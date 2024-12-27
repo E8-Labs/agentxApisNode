@@ -209,6 +209,22 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             data: null,
           });
         } else {
+          let lastPlan = null;
+          if (history && history.length > 0) {
+            lastPlan = history[0];
+          }
+          if (lastPlan) {
+            if (
+              lastPlan.type == foundPlan.type &&
+              lastPlan.status == "active"
+            ) {
+              return res.send({
+                status: false,
+                message: "Already subscribed to this plan",
+                data: null,
+              });
+            }
+          }
           let price = foundPlan.price * 100; //cents
           let charge = await chargeUser(
             user.id,
@@ -217,7 +233,6 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           );
           if (charge && charge.status) {
             if (history.length > 0) {
-              let lastPlan = history[0];
               if (lastPlan.type != foundPlan.type) {
                 //user updated his plan
                 await db.PlanHistory.update(
