@@ -687,6 +687,9 @@ export const TestAI = async (req, res) => {
           prompt: basePrompt.callScript,
           greeting: basePrompt.greeting,
         };
+
+        console.log("Payload is ");
+        console.log(JSON.stringify(data));
         let response = await initiateCall(
           data,
           cad,
