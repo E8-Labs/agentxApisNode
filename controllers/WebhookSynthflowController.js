@@ -35,10 +35,14 @@ import dbConfig from "../config/dbConfig.js";
 import { pipeline } from "stream";
 import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
 import LeadResource from "../resources/LeadResource.js";
+import { PayAsYouGoPlans } from "../models/user/payment/paymentPlans.js";
+import { ReChargeUserAccount } from "./PaymentController.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Main Webhook Function
+
+const MinimumAvailableSecToCharge = 120;
 export const WebhookSynthflow = async (req, res) => {
   try {
     const data = req.body;
@@ -93,6 +97,20 @@ export const WebhookSynthflow = async (req, res) => {
           dbCall,
           endCallReason
         );
+      }
+    }
+
+    let assistant = await db.AgentModel.findOne({
+      where: {
+        modelId: modelId,
+      },
+    });
+    if (assistant) {
+      let user = await db.User.findByPk(assistant.userId);
+      user.totalSecondsAvailable = user.totalSecondsAvailable - duration;
+      await user.save();
+      if (user.totalSecondsAvailable <= MinimumAvailableSecToCharge) {
+        let charged = await ReChargeUserAccount(user);
       }
     }
 
