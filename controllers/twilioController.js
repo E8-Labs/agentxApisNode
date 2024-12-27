@@ -323,14 +323,14 @@ export const PurchasePhoneNumber = async (req, res) => {
     try {
       const userId = authData.user.id;
       const environment = process.env.ENVIRONMENT || "Sandbox";
+      console.log("Live env so acutall purchasing number", environment);
 
       // Charge user for phone number
       const phoneNumberCost = 200; // Monthly cost in cents
       let charge = await chargeUser(
         userId,
         phoneNumberCost,
-        `Purchase of phone number ${phoneNumber}`,
-        environment
+        `Purchase of phone number ${phoneNumber}`
       );
 
       // Proceed with Twilio phone number purchase
@@ -340,7 +340,7 @@ export const PurchasePhoneNumber = async (req, res) => {
         //   console.log("Sandbox environment so not actually buying number");
         //   purchasedNumber = { sid: `PHSID${phoneNumber}` };
         // } else {
-        console.log("Live env so acutall purchasing number");
+
         purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
           phoneNumber,
         });
