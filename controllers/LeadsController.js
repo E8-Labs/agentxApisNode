@@ -74,7 +74,7 @@ export const AddLeads = async (req, res) => {
     console.log("Check data");
     console.log(checkData);
     if (checkData.status == false) {
-      return res.send(checkData);
+      return res.status(403).send(checkData);
     }
   }
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
