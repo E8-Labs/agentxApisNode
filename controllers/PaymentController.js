@@ -72,7 +72,7 @@ export const AddPaymentMethod = async (req, res) => {
         return res.send({
           status: added.status,
           message: added.status ? "Payment method added" : added.error,
-          data: added,
+          data: added.data,
         });
       } catch (error) {
         return res.send({
