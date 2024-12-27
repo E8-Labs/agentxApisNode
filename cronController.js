@@ -14,7 +14,7 @@ import {
   CronRunCadenceCallsSubsequentStages,
 } from "./controllers/cadeneController.js";
 import { PhoneNumberCron } from "./controllers/twilioController.js";
-import { SetOutcomeforpreviousCalls } from "./controllers/synthflowController.js";
+import { SetOutcomeforpreviousCalls } from "./controllers/WebhookSynthflowController.js";
 
 //Concurrent Calls- Set Limit to 100
 //https://docs.synthflow.ai/docs/concurrency-calls
