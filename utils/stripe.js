@@ -168,6 +168,7 @@ export const getPaymentMethods = async (userId, environment) => {
     const paymentMethodsResponse = await stripe.paymentMethods.list({
       customer: stripeCustomerId,
       type: "card",
+      limit: 20,
     });
 
     const paymentMethods = paymentMethodsResponse.data;
