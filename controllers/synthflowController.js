@@ -35,6 +35,8 @@ import dbConfig from "../config/dbConfig.js";
 import { pipeline } from "stream";
 import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
 import LeadResource from "../resources/LeadResource.js";
+import { chargeUser } from "../utils/stripe.js";
+import { ReChargeUserAccount } from "./PaymentController.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -402,6 +404,27 @@ export async function addCallTry(
   }
 }
 
+export async function CanMakeCalls(user) {
+  let canMake = true;
+
+  let plan = await db.PlanHistory.findOne({
+    where: {
+      userId: user.id,
+      status: "active",
+    },
+    order: [["createdAt", "DESC"]],
+  });
+  if (!plan) {
+    return { status: false, message: "User is not subscribed to any plan" };
+  }
+  if (user.totalSecondsAvailable <= 120) {
+    let charge = await ReChargeUserAccount(user);
+    return { status: false, message: "User have no balance" };
+  }
+
+  return { status: true, message: "User cab be charged" };
+}
+
 export const MakeACall = async (
   leadCadence,
   simulate = false,
@@ -438,14 +461,20 @@ export const MakeACall = async (
       callTriggerTime: new Date(),
       synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`,
       stage: lead.stage,
-      status: "failed",
-      endCallReason: "Max Tries unsuccessfull",
+      status: "success",
+      endCallReason: "no-answer", //MaxTriesReached
       duration: 50,
       batchId: batchId,
     });
     await addCallTry(leadCadence, lead, assistant, calls, batchId, "success"); //errored
 
     return { status: true, data: sent };
+  }
+  let canMakeCalls = await CanMakeCalls(user);
+  if (canMakeCalls.status == false) {
+    await addCallTry(leadCadence, lead, assistant, calls, batchId, "error"); //errored
+
+    return { status: false, data: sent };
   }
   if (maxTriesReached) {
     // If user has tried 3 times and call errored or wasn't successfull then we add a call with status maxTries Failed

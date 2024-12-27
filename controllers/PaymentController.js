@@ -257,3 +257,48 @@ export const SubscribePayasyougoPlan = async (req, res) => {
     }
   });
 };
+
+export async function ReChargeUserAccount(user) {
+  console.log("Charge user here ", user.id);
+  console.log("Total Seconds less than ", 120);
+
+  let lastPlan = await db.PlanHistory.findOne({
+    where: { userId: user.id, status: "active" },
+    ordre: [["createdAt", "DESC"]],
+  });
+
+  if (lastPlan) {
+    console.log("There is a last plan");
+    let foundPlan = null;
+    console.log(PayAsYouGoPlans);
+    PayAsYouGoPlans.map((p) => {
+      if (p.type == lastPlan.type) {
+        foundPlan = p;
+      }
+    });
+    let price = foundPlan.price * 100; //cents
+    let charge = await chargeUser(
+      user.id,
+      price,
+      "Charging for plan " + foundPlan.type
+    );
+    console.log("Charge ", charge);
+    if (charge && charge.status) {
+      console.log("Charged for plan ", foundPlan);
+      let historyCreated = await db.PaymentHistory.create({
+        title: `Payment for ${foundPlan.type}`,
+        description: `Payment for ${foundPlan.type}`,
+        type: foundPlan.type,
+        price: foundPlan.price,
+        userId: user.id,
+      });
+      user.totalSecondsAvailable += foundPlan.duration;
+      await user.save();
+      return charge;
+    }
+    return null;
+  } else {
+    console.log("There is no plan");
+    return null;
+  }
+}

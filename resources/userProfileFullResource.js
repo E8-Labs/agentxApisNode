@@ -59,6 +59,7 @@ async function getUserData(user, currentUser = null) {
     alreadyAssignedGlobal:
       alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
     availableMinutes: user.totalSecondsAvailable / 60,
+    totalSecondsAvailable: user.totalSecondsAvailable,
   };
 
   return UserFullResource;
