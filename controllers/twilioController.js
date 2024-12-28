@@ -708,6 +708,57 @@ export const PhoneNumberCron = async () => {
   }
 };
 
+export const DeleteNumber = async (req, res) => {
+  console.log("ACCOUNT SSID ", process.env.TWILIO_ACCOUNT_SID);
+  const { phone } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      try {
+        let phoneNumber = await db.UserPhoneNumbers.findOne({
+          where: {
+            userId: userId,
+            phoneNumber: phone,
+          },
+        });
+        if (!phoneNumber) {
+          return res.send({
+            status: false,
+            message: "No such phone number",
+          });
+        }
+
+        //Release the phone number from twilio
+        let del = await twilioClient.incomingPhoneNumbers.remove(
+          phoneNumber.phoneSid
+        );
+
+        //delete the numbe form our database
+        await phoneNumber.destroy();
+
+        // Format the response
+        res.send({
+          status: true,
+          message: "Available phone numbers",
+          data: null,
+        });
+      } catch (error) {
+        console.log(error);
+        res.send({
+          status: false,
+          message: "Error fetching available numbers",
+          error: error.message,
+        });
+      }
+    } else {
+      res.send({
+        status: false,
+        message: "Unauthenticated User",
+        data: null,
+      });
+    }
+  });
+};
+
 export const ReleaseNumberCron = async () => {
   console.log("Starting Twilio number synchronization...");
 
