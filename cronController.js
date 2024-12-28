@@ -16,6 +16,8 @@ import {
 import { PhoneNumberCron } from "./controllers/twilioController.js";
 import { SetOutcomeforpreviousCalls } from "./controllers/WebhookSynthflowController.js";
 
+import { ReleaseNumberCron } from "./controllers/twilioController.js";
+
 //Concurrent Calls- Set Limit to 100
 //https://docs.synthflow.ai/docs/concurrency-calls
 
@@ -52,3 +54,7 @@ const CronCallOutcome = nodeCron.schedule(
   SetOutcomeforpreviousCalls
 );
 CronCallOutcome.start();
+
+//Release Number cron
+const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
+CronReleaseNumber.start();
