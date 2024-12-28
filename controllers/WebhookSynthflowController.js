@@ -236,7 +236,9 @@ async function handleNewCall(
 }
 
 async function findOrCreateSheet(assistant, sheetName) {
-  let sheet = await db.LeadSheetModel.findOne({ where: { sheetName } });
+  let sheet = await db.LeadSheetModel.findOne({
+    where: { sheetName, userId: assistant.userId },
+  });
   if (!sheet) {
     sheet = await db.LeadSheetModel.create({
       userId: assistant.userId,
@@ -287,6 +289,13 @@ async function findOrCreateLeadCadence(lead, assistant, jsonIE) {
     const pipelineCadence = await db.PipelineCadence.findOne({
       where: { mainAgentId: assistant.mainAgentId },
     });
+    console.log(
+      "Pipeline Cadence Found in findOrCreateLeadCadence",
+      pipelineCadence
+    );
+    if (!pipelineCadence) {
+      return null;
+    }
 
     leadCad = await db.LeadCadence.create({
       status: CadenceStatus.Started,
@@ -415,6 +424,10 @@ async function handleInfoExtractorValues(
   dbCall,
   endCallReason
 ) {
+  if (!pipeline) {
+    //If no pipeline then we can not assign stage.
+    return null;
+  }
   try {
     await SetAllTagsFromIEAndCall(
       json,

@@ -707,3 +707,51 @@ export const PhoneNumberCron = async () => {
     );
   }
 };
+
+export const ReleaseNumberCron = async () => {
+  console.log("Starting Twilio number synchronization...");
+
+  try {
+    // Step 1: Fetch purchased numbers from Twilio
+    const twilioNumbers = await twilioClient.incomingPhoneNumbers.list();
+    const twilioPhoneSids = twilioNumbers.map((num) => num.sid);
+
+    console.log(`Fetched ${twilioPhoneSids.length} phone numbers from Twilio.`);
+
+    // Step 2: Fetch all active numbers from the database
+    const databaseNumbers = await db.UserPhoneNumbers.findAll({
+      where: {
+        phoneStatus: "active",
+      },
+    });
+
+    const databasePhoneSids = databaseNumbers.map((num) => ({
+      id: num.id,
+      phoneSid: num.phoneSid,
+    }));
+
+    console.log(
+      `Fetched ${databasePhoneSids.length} active numbers from the database.`
+    );
+
+    // Step 3: Find numbers in the database that are not in Twilio
+    const numbersNotInTwilio = databasePhoneSids.filter(
+      (dbNum) => !twilioPhoneSids.includes(dbNum.phoneSid)
+    );
+
+    console.log(`Found ${numbersNotInTwilio.length} numbers not in Twilio.`);
+
+    // Step 4: Update the status of numbers not in Twilio to "inactive"
+    for (const dbNum of numbersNotInTwilio) {
+      await db.UserPhoneNumbers.update(
+        { phoneStatus: "inactive" },
+        { where: { id: dbNum.id } }
+      );
+      console.log(`Set phone number with SID ${dbNum.phoneSid} to inactive.`);
+    }
+
+    console.log("Twilio number synchronization completed.");
+  } catch (error) {
+    console.error("Error during Twilio number synchronization:", error.message);
+  }
+};
