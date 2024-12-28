@@ -501,8 +501,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
                 "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
               );
               console.log("Last Call ID ", lastCall.id);
-              lead.stage = cadence.moveToStage;
-              let saved = await lead.save();
+              if (cadence.moveToStage != null) {
+                lead.stage = cadence.moveToStage;
+                let saved = await lead.save();
+              }
               console.log(
                 "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
               );
@@ -599,8 +601,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
                 console.log(
                   "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
                 );
-                lead.stage = cadence.moveToStage;
-                let saved = await lead.save();
+                if (cadence.moveToStage != null) {
+                  lead.stage = cadence.moveToStage;
+                  let saved = await lead.save();
+                }
                 console.log(
                   "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
                 );
