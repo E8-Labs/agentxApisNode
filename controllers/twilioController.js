@@ -731,10 +731,19 @@ export const DeleteNumber = async (req, res) => {
         let del = await twilioClient.incomingPhoneNumbers.remove(
           phoneNumber.phoneSid
         );
-
+        console.log("Relase number response ", del);
         //delete the numbe form our database
         await phoneNumber.destroy();
-
+        let updated = await db.AgentModel.update(
+          {
+            phoneNumber: "",
+          },
+          {
+            where: {
+              phoneNumber: phone,
+            },
+          }
+        );
         // Format the response
         res.send({
           status: true,

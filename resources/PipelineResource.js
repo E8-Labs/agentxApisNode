@@ -54,6 +54,7 @@ async function getUserData(pipeline, currentUser = null) {
         [db.Sequelize.Op.in]: [CadenceStatus.Started, CadenceStatus.TestLead],
       },
     },
+    group: ["leadId"], // Group by leadId to ensure uniqueness
   });
 
   let leads = [];

@@ -23,6 +23,7 @@ import {
   SubscribePayasyougoPlan,
   GetPaymentmethods,
   SetDefaultPaymentmethod,
+  CancelPlan,
 } from "../controllers/PaymentController.js";
 
 import { GenerateApiKey, GetMyApiKeys } from "../controllers/apiController.js";
@@ -76,5 +77,7 @@ UserRouter.post(
   verifyJwtToken,
   SetDefaultPaymentmethod
 );
+
+UserRouter.post("/cancelPlan", verifyJwtToken, CancelPlan);
 UserRouter.get("/getPaymentMethods", verifyJwtToken, GetPaymentmethods);
 export default UserRouter;

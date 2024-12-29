@@ -303,6 +303,51 @@ export const SubscribePayasyougoPlan = async (req, res) => {
   });
 };
 
+export const CancelPlan = async (req, res) => {
+  // console.log("ACCOUNT SSID ", process.env.TWILIO_ACCOUNT_SID);
+  // const { phone } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      try {
+        let userId = authData.user.id;
+        let user = await db.User.findByPk(userId);
+        let plan = await db.PlanHistory.findOne({
+          where: {
+            userId: user.id,
+            status: "active",
+          },
+        });
+
+        plan.status = "inactive";
+        await plan.save();
+
+        //delete the numbe form our database
+
+        // Format the response
+        let useRes = await UserProfileFullResource(user);
+        res.send({
+          status: true,
+          message: "Plan cancelled",
+          data: useRes,
+        });
+      } catch (error) {
+        console.log(error);
+        res.send({
+          status: false,
+          message: "Error cancelling plan",
+          error: error.message,
+        });
+      }
+    } else {
+      res.send({
+        status: false,
+        message: "Unauthenticated User",
+        data: null,
+      });
+    }
+  });
+};
+
 export async function ReChargeUserAccount(user) {
   console.log("Charge user here ", user.id);
   console.log("Total Seconds less than ", 120);
