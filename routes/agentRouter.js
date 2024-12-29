@@ -31,6 +31,7 @@ import {
   ListUsersAvailablePhoneNumbers,
   AssignPhoneNumber,
   ReleasePhoneNumber,
+  DeleteNumber,
 } from "../controllers/twilioController.js";
 
 import { GetDashboardData } from "../controllers/DashboardController.js";
@@ -90,6 +91,13 @@ AgentRouter.post(
   verifyJwtToken,
   uploadFiles,
   ReleasePhoneNumber
+);
+
+AgentRouter.post(
+  "/deletePhoneNumber",
+  verifyJwtToken,
+  uploadFiles,
+  DeleteNumber
 );
 
 //Kycs
