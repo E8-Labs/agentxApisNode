@@ -155,6 +155,14 @@ const AgentModel = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    full_profile_image: {
+      type: Sequelize.STRING,
+      defaultValue: "",
+    },
+    thumb_profile_image: {
+      type: Sequelize.STRING,
+      defaultValue: "",
+    },
   });
 
   return AgentModel;

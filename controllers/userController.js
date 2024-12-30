@@ -329,14 +329,15 @@ export const UpdateProfile = async (req, res) => {
 
       let name = req.body.name || user.name;
       let email = req.body.email || user.email;
-      // let city = req.body.city || user.city;
-      // let state = req.body.state || user.state;
-
-      // user.city = city || "";
-      // user.state = state || "";
-      // user.username = username;
+      let farm = req.body.farm || user.farm;
+      let brokerage = req.body.brokerage || user.brokerage;
+      let averageTransactionPerYear =
+        req.body.averageTransactionPerYear || user.averageTransactionPerYear;
+      user.farm = farm || "";
+      user.brokerage = brokerage || "";
+      user.averageTransactionPerYear = averageTransactionPerYear;
       user.name = name;
-      user.email = email;
+      // user.email = email;
 
       let image = null; //user.full_profile_image;
       let thumbnail = null; //user.profile_image;
@@ -356,15 +357,7 @@ export const UpdateProfile = async (req, res) => {
           "image/jpeg",
           "profile_images"
         );
-        // Ensure directories exist
-        // let dir = process.env.DocsDir; // e.g., /var/www/neo/neoapis/uploads
-        // const docsDir = path.join(dir + "/images");
-        // ensureDirExists(docsDir);
 
-        // // Save the PDF file
-        // const docPath = path.join(docsDir, mediaFilename);
-        // fs.writeFileSync(docPath, mediaBuffer);
-        // image = `http://185.28.22.219/whaty/uploads/images/${mediaFilename}`;
         console.log("Pdf uploaded is ", image);
 
         thumbnail = await createThumbnailAndUpload(
@@ -373,14 +366,14 @@ export const UpdateProfile = async (req, res) => {
           "images"
         );
 
-        // If the file is a PDF, extract text from it using pdf-extraction
-        if (mediaType.includes("image")) {
-        }
         user.full_profile_image = image;
-        user.profile_image = thumbnail;
+        user.thumb_profile_image = thumbnail;
       }
       if (req.body.timeZone) {
         user.timeZone = req.body.timeZone;
+      }
+      if (req.body.fcm_token) {
+        user.fcm_token = req.body.fcm_token;
       }
       let userUpdated = await user.save();
       if (userUpdated) {
