@@ -35,41 +35,41 @@ import { NotificationTypes } from "./models/user/NotificationModel.js";
 
 // CronRunCadenceCallsSubsequentStages();
 
-// const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
-//   "*/1 * * * *",
-//   CronRunCadenceCallsFirstBatch
-// );
-// CronRunCadenceCallsFirstBatchCron.start();
+const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
+  "*/1 * * * *",
+  CronRunCadenceCallsFirstBatch
+);
+CronRunCadenceCallsFirstBatchCron.start();
 
-// const CronRunCadenceCallsSubsequentStagesCron = nodeCron.schedule(
-//   "*/1 * * * *",
-//   CronRunCadenceCallsSubsequentStages
-// );
-// CronRunCadenceCallsSubsequentStagesCron.start();
+const CronRunCadenceCallsSubsequentStagesCron = nodeCron.schedule(
+  "*/1 * * * *",
+  CronRunCadenceCallsSubsequentStages
+);
+CronRunCadenceCallsSubsequentStagesCron.start();
 
 // Schedule a cron job to run every day at midnight
 // cron.schedule("0 0 * * *", PhoneNumberCron);
 
 //Testing every min
-// const CronPhone = nodeCron.schedule("0 0 * * *", PhoneNumberCron);
-// CronPhone.start();
-// PhoneNumberCron();
+const CronPhone = nodeCron.schedule("0 0 * * *", PhoneNumberCron);
+CronPhone.start();
+PhoneNumberCron();
 
 //Call status cron
-// const CronCallOutcome = nodeCron.schedule(
-//   "*/59 * * * * *",
-//   SetOutcomeforpreviousCalls
-// );
-// CronCallOutcome.start();
+const CronCallOutcome = nodeCron.schedule(
+  "*/59 * * * * *",
+  SetOutcomeforpreviousCalls
+);
+CronCallOutcome.start();
 
-// //Release Number cron
-// const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
-// CronReleaseNumber.start();
+//Release Number cron
+const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
+CronReleaseNumber.start();
 
-// const NotificationSendingCron = nodeCron.schedule(
-//   "*/30 * * * * *",
-//   NotificationCron
-// );
-// NotificationSendingCron.start();
+const NotificationSendingCron = nodeCron.schedule(
+  "*/30 * * * * *",
+  NotificationCron
+);
+NotificationSendingCron.start();
 
-NotificationCron();
+// NotificationCron();
