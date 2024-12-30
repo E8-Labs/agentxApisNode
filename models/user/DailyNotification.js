@@ -1,4 +1,4 @@
-const DailyNotificationModel = (sequelize, Sequelize) => {
+export const DailyNotificationModel = (sequelize, Sequelize) => {
   const DailyNotificationModel = sequelize.define("DailyNotificationModel", {
     userId: {
       type: Sequelize.INTEGER,

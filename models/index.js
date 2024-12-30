@@ -54,6 +54,7 @@ import LeadCallTriesModel from "./pipeline/LeadCallTriesModel.js";
 import PhoneVerificationCodeModel from "./user/PhoneVerificationCodeModel.js";
 
 import NotificationModel from "./user/NotificationModel.js";
+import { DailyNotificationModel } from "./user/DailyNotification.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
