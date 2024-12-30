@@ -327,7 +327,7 @@ export const CancelPlan = async (req, res) => {
           },
         });
 
-        plan.status = "inactive";
+        plan.status = "cancelled";
         await plan.save();
 
         //delete the numbe form our database
