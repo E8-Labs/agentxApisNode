@@ -54,17 +54,22 @@ async function getUserData(pipeline, currentUser = null) {
         [db.Sequelize.Op.in]: [CadenceStatus.Started, CadenceStatus.TestLead],
       },
     },
-    group: ["leadId"], // Group by leadId to ensure uniqueness
+    // group: ["leadId"], // Group by leadId to ensure uniqueness
   });
 
   let leads = [];
+  let leadIds = [];
   for (let i = 0; i < leadCadences.length; i++) {
     let lc = leadCadences[i];
+    if (!leadIds.includes(lc.leadId)) {
+      leadIds.push(lc.leadId);
+      let leadRes = await LeadCadenceResource(lc);
+      leads.push(leadRes);
+    }
     // let leadId = lc.leadId;
     // let lead = await db.LeadModel.findByPk(leadId);
     // if (lead) {
-    let leadRes = await LeadCadenceResource(lc);
-    leads.push(leadRes);
+
     // }
   }
 
