@@ -7,7 +7,7 @@ export const NotificationTypes = {
   PaymentFailed: "PaymentFailed",
   //   MeetingBooked: "MeetingBooked",
   InviteAccepted: "InviteAccepted",
-  CallsMadeByAgent: "RallsMadeByAgent",
+  CallsMadeByAgent: "CallsMadeByAgent",
   RedeemedAgentXCode: "RedeemedAgentXCode", // 30 min added for using AgentX Code
   Redeemed60Min: "Redeemed60Min", // 60 min added for using Abort Plan Cancellation
 };

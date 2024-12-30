@@ -102,7 +102,7 @@ db.PhoneVerificationCodeModel = PhoneVerificationCodeModel(
 );
 
 db.NotificationModel = NotificationModel(sequelize, Sequelize);
-
+db.DailyNotificationModel = DailyNotificationModel(sequelize, Sequelize);
 db.AgentRole = AgentRole(sequelize, Sequelize);
 db.MainAgentModel = MainAgentModel(sequelize, Sequelize);
 db.AgentPromptModel = AgentPromptModel(sequelize, Sequelize);
