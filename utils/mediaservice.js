@@ -37,6 +37,8 @@ export const uploadMedia = (
   mime = "image/jpeg",
   folder = "media"
 ) => {
+  const resolvedDocsDir = path.resolve(process.env.DocsDir);
+  console.log("Resolved DocsDir Path:", resolvedDocsDir);
   return new Promise((resolve, reject) => {
     try {
       let dir = process.env.DocsDir; // e.g., /var/www/neo/neoapis/uploads
@@ -72,7 +74,7 @@ export const uploadMedia = (
 
       const docPath = path.join(docsDir, fieldname);
       fs.writeFileSync(docPath, fileContent);
-      let image = `https://www.blindcircle.com/agentx/uploads/${folder}/${fieldname}`;
+      let image = `https://www.blindcircle.com/agentxtest/uploads/${folder}/${fieldname}`;
       console.log("File uploaded is ", image);
 
       resolve(image);

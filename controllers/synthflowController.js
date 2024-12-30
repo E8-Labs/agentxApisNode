@@ -1383,6 +1383,7 @@ export const UploadAgentImage = async (req, res) => {
       let image = null; //user.full_profile_image;
       let thumbnail = null; //user.profile_image;
       //check profile image
+
       if (req.files && req.files.media) {
         let file = req.files.media[0];
 
@@ -1398,7 +1399,7 @@ export const UploadAgentImage = async (req, res) => {
           "image/jpeg",
           "agent_images"
         );
-
+        // https://www.blindcircle.com/agentxtest/uploads/agent_images/2024-12-30_1d32f8bc-43a9-4e5b-ab39-0ca38ad55dfc_agent_profile_1735590758961.jpg
         // console.log("Pdf uploaded is ", image);
 
         thumbnail = await createThumbnailAndUpload(
