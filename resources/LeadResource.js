@@ -154,6 +154,12 @@ async function getUserData(lead, currentUser = null) {
       },
     },
   });
+  if (emails && emails.length > 0) {
+    if (leadData.email == null || leadData.email == "") {
+      leadData.email = emails[0];
+      emails.pop(0);
+    }
+  }
 
   let cad = await db.LeadCadence.findOne({
     where: {
