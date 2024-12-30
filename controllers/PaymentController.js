@@ -34,6 +34,7 @@ import {
   addPaymentMethod,
   chargeUser,
   getPaymentMethods,
+  RedeemGiftOnAbortPlanCancellation,
   SetDefaultCard,
 } from "../utils/stripe.js";
 import {
@@ -48,8 +49,10 @@ import {
 const User = db.User;
 const Op = db.Sequelize.Op;
 
+const TotalRedeemableSeconds = 30 * 60;
+
 export const AddPaymentMethod = async (req, res) => {
-  let { source } = req.body; // mainAgentId is the mainAgent id
+  let { source, inviteCode } = req.body; // mainAgentId is the mainAgent id
   console.log("Source is ", source);
   if (!source) {
     return res.send({
@@ -69,6 +72,11 @@ export const AddPaymentMethod = async (req, res) => {
 
       try {
         let added = await addPaymentMethod(user, source);
+
+        if (inviteCode && user.inviteCodeUsed == null) {
+          user.inviteCodeUsed = inviteCode;
+          await user.save();
+        }
         return res.send({
           status: added.status,
           message: added.status ? "Payment method added" : added.error,
@@ -229,7 +237,8 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           let charge = await chargeUser(
             user.id,
             price,
-            "Charging for plan " + foundPlan.type
+            "Charging for plan " + foundPlan.type,
+            foundPlan.type
           );
           if (charge && charge.status) {
             if (history.length > 0) {
@@ -348,6 +357,48 @@ export const CancelPlan = async (req, res) => {
   });
 };
 
+export const RedeemAbortCancellationReward = async (req, res) => {
+  // console.log("ACCOUNT SSID ", process.env.TWILIO_ACCOUNT_SID);
+  // const { phone } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      try {
+        let userId = authData.user.id;
+        let user = await db.User.findByPk(userId);
+        let plan = await db.PlanHistory.findOne({
+          where: {
+            userId: user.id,
+            status: "active",
+          },
+        });
+
+        await RedeemGiftOnAbortPlanCancellation(user);
+
+        // Format the response
+        let useRes = await UserProfileFullResource(user);
+        res.send({
+          status: true,
+          message: "Reward on plan abort cancellation redeemed",
+          data: useRes,
+        });
+      } catch (error) {
+        console.log(error);
+        res.send({
+          status: false,
+          message: "Error redeeming reward",
+          error: error.message,
+        });
+      }
+    } else {
+      res.send({
+        status: false,
+        message: "Unauthenticated User",
+        data: null,
+      });
+    }
+  });
+};
+
 export async function ReChargeUserAccount(user) {
   console.log("Charge user here ", user.id);
   console.log("Total Seconds less than ", 120);
@@ -370,7 +421,8 @@ export async function ReChargeUserAccount(user) {
     let charge = await chargeUser(
       user.id,
       price,
-      "Charging for plan " + foundPlan.type
+      "Charging for plan " + foundPlan.type,
+      foundPlan.type
     );
     console.log("Charge ", charge);
     if (charge && charge.status) {

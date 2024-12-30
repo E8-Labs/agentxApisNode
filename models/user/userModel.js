@@ -62,6 +62,11 @@ const User = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    inviteCodeRedeemed: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
 
     plan_status: {
       type: Sequelize.ENUM,
@@ -82,7 +87,12 @@ const User = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: 0,
     },
-
+    cancelPlanRedemptions: {
+      // To track if and how many times the user redeemed cancel plan gift minutes
+      type: Sequelize.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
     projectSizeKw: {
       type: Sequelize.STRING,
       allowNull: true,

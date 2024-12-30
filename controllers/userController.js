@@ -112,6 +112,16 @@ export const LoginUser = async (req, res) => {
   }
 };
 
+function generateAlphaNumericInviteCode(length = 6) {
+  const characters =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let inviteCode = "";
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    inviteCode += characters[randomIndex];
+  }
+  return inviteCode;
+}
 export const RegisterUser = async (req, res) => {
   console.log("Data", req.body);
   const name = req.body.name;
@@ -213,8 +223,7 @@ export const RegisterUser = async (req, res) => {
     phone: phone,
     averageTransactionPerYear: averageTransactionPerYear,
     brokerage: brokerage,
-    // agentService: agentService[0],
-    // areaOfFocus: areaOfFocus[0],
+    myInviteCode: generateAlphaNumericInviteCode(),
     farm: farm,
     projectSizeKw: projectSizeKw,
     areaOfService: areaOfService,
@@ -398,7 +407,7 @@ export const RegisterUser = async (req, res) => {
 //   });
 // };
 
-function generateRandomCode(length) {
+export function generateRandomCode(length = 7) {
   let result = "";
   const characters = "0123456789";
   const charactersLength = characters.length;
