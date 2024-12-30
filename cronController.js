@@ -114,21 +114,7 @@ const NotificationSendingCron = nodeCron.schedule(
             `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
           );
           //send notification
-          try {
-            await db.DailyNotificationModel.create({
-              userId: u.id,
-            });
-            await AddNotification(
-              u,
-              null,
-              NotificationTypes.TotalHotlead,
-              null,
-              null,
-              null
-            );
-          } catch (error) {
-            console.log("Error adding not ");
-          }
+          SendNotificationsForHotlead(u);
         } else {
           console.log(
             `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
@@ -139,3 +125,36 @@ const NotificationSendingCron = nodeCron.schedule(
   }
 );
 NotificationSendingCron.start();
+
+async function SendNotificationsForHotlead(user) {
+  try {
+    let agentsAssignedToCadence = await db.PipelineCadence.findAll();
+    let ids = [];
+    if (agentsAssignedToCadence && agentsAssignedToCadence.length > 0) {
+      ids = agentsAssignedToCadence.map((agent) => agent.id);
+    }
+    let agents = await db.AgentModel.findAll({
+      where: {
+        userId: user.id,
+        id: {
+          [db.Sequelize.Op.in]: ids,
+        },
+      },
+    });
+    await db.DailyNotificationModel.create({
+      userId: u.id,
+    });
+    for (const agent of agents) {
+      await AddNotification(
+        u,
+        null,
+        NotificationTypes.TotalHotlead,
+        null,
+        agent,
+        null
+      );
+    }
+  } catch (error) {
+    console.log("Error adding not ");
+  }
+}
