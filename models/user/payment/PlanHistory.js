@@ -26,6 +26,10 @@ const PlanHistory = (sequelize, Sequelize) => {
       values: ["active", "cancelled"],
       defaultValue: "active",
     },
+    environment: {
+      type: Sequelize.STRING,
+      defaultValue: "Sandbox",
+    },
   });
 
   return PlanHistory;

@@ -188,6 +188,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
       let history = await db.PlanHistory.findAll({
         where: {
           userId: user.id,
+          // environment: process.env.ENV
         },
         order: [["createdAt", "DESC"]],
       });

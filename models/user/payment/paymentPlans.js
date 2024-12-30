@@ -28,6 +28,10 @@ const PaymentHistory = (sequelize, Sequelize) => {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+    environment: {
+      type: Sequelize.STRING,
+      defaultValue: "Sandbox",
+    },
   });
 
   return PaymentHistory;
