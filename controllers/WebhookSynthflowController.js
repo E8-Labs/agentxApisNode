@@ -21,7 +21,7 @@ import {
 } from "../config/defaultInfoExtractors.js";
 import { AgentObjectives } from "../constants/defaultAgentObjectives.js";
 import AgentPromptModel from "../models/user/agentPromptModel.js";
-import { userInfo } from "os";
+// import { userInfo } from "os";
 import {
   CommunityUpdateObjections,
   CommunityUpdateGuardrails,
@@ -37,6 +37,8 @@ import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
 import LeadResource from "../resources/LeadResource.js";
 import { PayAsYouGoPlans } from "../models/user/payment/paymentPlans.js";
 import { ReChargeUserAccount } from "./PaymentController.js";
+import { AddNotification } from "./NotificationController.js";
+import { NotificationTypes } from "../models/user/NotificationModel.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -536,6 +538,18 @@ async function handleInfoExtractorValues(
         await leadCadence.save();
       }
     }
+  }
+  if (json.hotlead) {
+    let user = await db.User.findByPk(lead.userId);
+    // let agent = awa
+    await AddNotification(
+      user,
+      null,
+      NotificationTypes.Hotlead,
+      lead,
+      null,
+      null
+    );
   }
 
   // }

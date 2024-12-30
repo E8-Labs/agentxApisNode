@@ -53,6 +53,13 @@ async function getUserData(user, currentUser = null) {
     order: [["createdAt", "DESC"]],
     limit: 1,
   });
+
+  let unread = await db.NotificationModel.count({
+    where: {
+      userId: user.id,
+      isSeen: false,
+    },
+  });
   const UserFullResource = {
     ...user.get(),
     plan: planHistory && planHistory.length > 0 ? planHistory[0] : null,
@@ -60,6 +67,7 @@ async function getUserData(user, currentUser = null) {
       alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
     availableMinutes: user.totalSecondsAvailable / 60,
     totalSecondsAvailable: user.totalSecondsAvailable,
+    unread: unread,
   };
 
   return UserFullResource;

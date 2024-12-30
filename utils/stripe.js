@@ -2,6 +2,8 @@ import Stripe from "stripe";
 import db from "../models/index.js"; // Your database models
 import { generateRandomCode } from "../controllers/userController.js";
 import { constants } from "../constants/constants.js";
+import { AddNotification } from "../controllers/NotificationController.js";
+import { NotificationTypes } from "../models/user/NotificationModel.js";
 
 // Initialize Stripe for both environments
 const stripeTest = new Stripe(process.env.STRIPE_TEST_SECRET_KEY);
@@ -280,6 +282,14 @@ export async function RedeemCodeOnPlanSubscription(user) {
     if (user.myInviteCode == null || user.myInviteCode == "") {
       user.myInviteCode = generateRandomCode();
     }
+    await AddNotification(
+      user,
+      null,
+      NotificationTypes.RedeemedAgentXCode,
+      null,
+      null,
+      inviteCodeUsed
+    );
     await user.save();
   } else {
     console.log("Invite code already redeemed");
@@ -343,15 +353,15 @@ export const chargeUser = async (
       automatic_payment_methods: {
         enabled: false, // Disable automatic payment method handling
       },
-      //   return_url: `${process.env.FRONTEND_URL}/payment-result`, // Optional for redirect-based methods
     });
+
     console.log("Payment ", paymentIntent);
 
-    if (paymentIntent && paymentIntent.status) {
-      //if paymentIntent.status == succeeded
-      if (type != "PhonePurchase") {
-        let user = await db.User.findByPk(userId);
-        await RedeemCodeOnPlanSubscription(user);
+    if (paymentIntent && paymentIntent.status === "succeeded") {
+      // Payment succeeded
+      if (type !== "PhonePurchase") {
+        const user = await db.User.findByPk(userId);
+        await RedeemCodeOnPlanSubscription(user); //1656
       }
 
       return {
@@ -359,20 +369,92 @@ export const chargeUser = async (
         message: "PaymentIntent created successfully.",
         paymentIntent,
       };
-    } else {
+    } else if (paymentIntent && paymentIntent.status === "requires_action") {
+      // Handle 3D Secure authentication
+      console.log("Additional authentication is required.");
       return {
         status: false,
-        message: "PaymentIntent could not be processed",
+        message: "Additional authentication is required.",
+        paymentIntent,
+      };
+    } else {
+      // Handle other statuses (e.g., requires_payment_method, canceled, etc.)
+      console.log(`Payment failed with status: ${paymentIntent.status}`);
+      return {
+        status: false,
+        message: `Payment failed with status: ${paymentIntent.status}`,
         paymentIntent,
       };
     }
   } catch (error) {
-    console.error("Error charging user:", error.message);
-    return {
-      status: false,
-      message: "Failed to create PaymentIntent.",
-      error: error.message,
-    };
+    // Catch and log Stripe errors
+    if (error.type === "StripeCardError") {
+      // Card errors
+      console.error("Card error:", error.message);
+      try {
+        let user = await db.User.findByPk(userId);
+        await AddNotification(
+          user,
+          null,
+          NotificationTypes.PaymentFailed,
+          null,
+          null,
+          null
+        );
+      } catch (error) {
+        console.log("Error creating payment not ", error);
+      }
+      return {
+        status: false,
+        message: "Card payment failed.",
+        reason: error.code, // Stripe error code (e.g., 'card_declined')
+        error: error.message,
+      };
+    } else if (error.type === "StripeInvalidRequestError") {
+      // Invalid requests
+      console.error("Invalid request:", error.message);
+      return {
+        status: false,
+        message: "Invalid payment request.",
+        reason: error.code,
+        error: error.message,
+      };
+    } else if (error.type === "StripeAPIError") {
+      // API errors
+      console.error("API error:", error.message);
+      return {
+        status: false,
+        message: "Payment service error.",
+        reason: error.code,
+        error: error.message,
+      };
+    } else if (error.type === "StripeConnectionError") {
+      // Connection issues
+      console.error("Connection error:", error.message);
+      return {
+        status: false,
+        message: "Connection to payment service failed.",
+        reason: error.code,
+        error: error.message,
+      };
+    } else if (error.type === "StripeAuthenticationError") {
+      // Authentication with Stripe's API failed
+      console.error("Authentication error:", error.message);
+      return {
+        status: false,
+        message: "Authentication with payment service failed.",
+        reason: error.code,
+        error: error.message,
+      };
+    } else {
+      // Generic error handling
+      console.error("Unhandled error:", error.message);
+      return {
+        status: false,
+        message: "An unexpected error occurred.",
+        error: error.message,
+      };
+    }
   }
 };
 
