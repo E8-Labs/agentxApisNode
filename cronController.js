@@ -61,19 +61,38 @@ CronCallOutcome.start();
 const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
 CronReleaseNumber.start();
 
-const TimezoneCron = nodeCron.schedule("*/30 * * * * *", async () => {
-  let date = new Date().toISOString();
-  console.log("Current time server ", date);
+const NotificationSendingCron = nodeCron.schedule(
+  "*/30 * * * * *",
+  async () => {
+    let date = new Date().toISOString();
+    console.log("Current time server ", date);
 
-  let users = await db.User.findAll();
+    let users = await db.User.findAll();
 
-  for (const u of users) {
-    let timeZone = u.timeZone || "America/Los_Angeles";
-    console.log("User Time zone is ", timeZone);
-    if (timeZone) {
-      let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
-      console.log("TIme in user timezone", timeInUserTimeZone);
+    for (const u of users) {
+      let timeZone = u.timeZone || "America/Los_Angeles";
+      console.log("User Time zone is ", timeZone);
+      if (timeZone) {
+        let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
+        console.log("TIme in user timezone", timeInUserTimeZone);
+        const userDateTime = DateTime.fromFormat(
+          timeInUserTimeZone,
+          "yyyy-MM-dd HH:mm:ss",
+          { zone: timeZone }
+        );
+        const ninePM = userDateTime.set({ hour: 21, minute: 0, second: 0 });
+
+        if (userDateTime > ninePM) {
+          console.log(
+            `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
+          );
+        } else {
+          console.log(
+            `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
+          );
+        }
+      }
     }
   }
-});
-TimezoneCron.start();
+);
+NotificationSendingCron.start();
