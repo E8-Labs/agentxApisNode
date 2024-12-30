@@ -10,6 +10,7 @@ import {
   GetProfileMine,
   GetTransactionsHistory,
   SendPhoneVerificationCode,
+  UpdateProfile,
 } from "../controllers/userController.js";
 
 import { GetNotifications } from "../controllers/NotificationController.js";
@@ -89,4 +90,5 @@ UserRouter.post(
 );
 UserRouter.get("/getPaymentMethods", verifyJwtToken, GetPaymentmethods);
 UserRouter.get("/notifications", verifyJwtToken, GetNotifications);
+UserRouter.post("/updateProfile", verifyJwtToken, UpdateProfile);
 export default UserRouter;
