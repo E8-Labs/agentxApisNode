@@ -3,6 +3,7 @@ import JWT from "jsonwebtoken";
 import { DateTime } from "luxon";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import NotificationResource from "../resources/NotificationResource.js";
+import { convertUTCToTimezone } from "../utils/dateutil.js";
 
 async function GetNotificationTitle(
   user,
@@ -146,8 +147,8 @@ export const NotificationCron = async () => {
   let notSent = await db.DailyNotificationModel.findAll({
     where: {
       createdAt: {
-        [Op.gte]: startOfToday, // Greater than or equal to the start of the day
-        [Op.lt]: endOfToday, // Less than the end of the day
+        [db.Sequelize.Op.gte]: startOfToday, // Greater than or equal to the start of the day
+        [db.Sequelize.Op.lt]: endOfToday, // Less than the end of the day
       },
     },
   });
