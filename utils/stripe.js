@@ -1,5 +1,7 @@
 import Stripe from "stripe";
 import db from "../models/index.js"; // Your database models
+import { generateRandomCode } from "../controllers/userController.js";
+import { constants } from "../constants/constants.js";
 
 // Initialize Stripe for both environments
 const stripeTest = new Stripe(process.env.STRIPE_TEST_SECRET_KEY);
@@ -267,6 +269,36 @@ export const getUserDefaultPaymentMethod = async (userId) => {
   }
 };
 
+export async function RedeemCodeOnPlanSubscription(user) {
+  const TotalRedeemableSeconds = constants.RedeemCodeSeconds;
+  let inviteCodeUsed = user.inviteCodeUsed || null;
+  let inviteCodeRedeemed = user.inviteCodeRedeemed || false;
+  if (!inviteCodeRedeemed && inviteCodeUsed != null && inviteCodeUsed != "") {
+    console.log("Redeeming invite code");
+    user.totalSecondsAvailable += TotalRedeemableSeconds;
+    user.inviteCodeRedeemed = true;
+    if (user.myInviteCode == null || user.myInviteCode == "") {
+      user.myInviteCode = generateRandomCode();
+    }
+    await user.save();
+  } else {
+    console.log("Invite code already redeemed");
+  }
+}
+
+export async function RedeemGiftOnAbortPlanCancellation(user) {
+  const TotalRedeemableSeconds = constants.GiftDontCancelPlanSeconds;
+  let countRedemptions = user.cancelPlanRedemptions || 0;
+  if (countRedemptions == 0) {
+    console.log("Redeeming Cancelltation abort reward");
+    user.totalSecondsAvailable += TotalRedeemableSeconds;
+    user.cancelPlanRedemptions += 1;
+
+    await user.save();
+  } else {
+    console.log("Cancelltation abort reward already redeemed");
+  }
+}
 /**
  * Charge a user using their payment method.
  * @param {number} userId - The ID of the user.
@@ -275,7 +307,12 @@ export const getUserDefaultPaymentMethod = async (userId) => {
  * @param {string} environment - The environment ("Sandbox" or "Production").
  * @returns {Object} - PaymentIntent details or an error message.
  */
-export const chargeUser = async (userId, amount, description) => {
+export const chargeUser = async (
+  userId,
+  amount,
+  description,
+  type = "PhonePurchase"
+) => {
   const stripe = getStripeClient();
 
   try {
@@ -312,6 +349,11 @@ export const chargeUser = async (userId, amount, description) => {
 
     if (paymentIntent && paymentIntent.status) {
       //if paymentIntent.status == succeeded
+      if (type != "PhonePurchase") {
+        let user = await db.User.findByPk(userId);
+        await RedeemCodeOnPlanSubscription(user);
+      }
+
       return {
         status: true,
         message: "PaymentIntent created successfully.",
