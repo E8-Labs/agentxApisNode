@@ -124,6 +124,7 @@ function generateAlphaNumericInviteCode(length = 6) {
 }
 export const RegisterUser = async (req, res) => {
   console.log("Data", req.body);
+  const timeZone = req.body.timeZone;
   const name = req.body.name;
   const farm = req.body.farm || "";
   const email = req.body.email;
@@ -231,6 +232,7 @@ export const RegisterUser = async (req, res) => {
     website: website,
     projectsPerYear: projectsPerYear,
     primaryClientType: primaryClientType,
+    timeZone: timeZone,
   });
   let customerId = await generateStripeCustomerId(user.id);
   console.log("Stripe Custome Id Generated in Register");
@@ -316,96 +318,83 @@ export const RegisterUser = async (req, res) => {
   return res.send({ status: true, message: "User registered", data: result });
 };
 
-// export const UpdateProfile = async (req, res) => {
-//   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
-//     if (authData) {
-//       let userId = authData.user.id;
+export const UpdateProfile = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
 
-//       console.log("Update User ", authData.user.email);
-//       console.log("Update data ", req);
-//       let user = await db.User.findByPk(userId);
+      console.log("Update User ", authData.user.email);
+      console.log("Update data ", req);
+      let user = await db.User.findByPk(userId);
 
-//       let username = req.body.username || user.username;
-//       let name = req.body.name || user.name;
-//       let email = req.body.email || user.email;
-//       let city = req.body.city || user.city;
-//       let state = req.body.state || user.state;
+      let name = req.body.name || user.name;
+      let email = req.body.email || user.email;
+      // let city = req.body.city || user.city;
+      // let state = req.body.state || user.state;
 
-//       let business_website = req.body.business_website || user.business_website;
-//       let business_industry =
-//         req.body.business_industry || user.business_industry;
-//       let business_address = req.body.business_address || user.business_address;
-//       let about_business = req.body.about_business || user.about_business;
-//       let business_employees =
-//         req.body.business_employees || user.business_employees;
+      // user.city = city || "";
+      // user.state = state || "";
+      // user.username = username;
+      user.name = name;
+      user.email = email;
 
-//       user.business_employees = business_employees;
-//       user.business_website = business_website;
-//       user.business_industry = business_industry;
-//       user.about_business = about_business;
-//       user.business_address = business_address;
+      let image = null; //user.full_profile_image;
+      let thumbnail = null; //user.profile_image;
+      //check profile image
+      if (req.files && req.files.media) {
+        let file = req.files.media[0];
 
-//       user.city = city || "";
-//       user.state = state || "";
-//       user.username = username;
-//       user.name = name;
-//       user.email = email;
+        const mediaBuffer = file.buffer;
+        const mediaType = file.mimetype;
+        const mediaExt = path.extname(file.originalname);
+        const mediaFilename = `${Date.now()}${mediaExt}`;
+        console.log("There is a file uploaded");
 
-//       let image = null; //user.full_profile_image;
-//       let thumbnail = null; //user.profile_image;
-//       //check profile image
-//       if (req.files && req.files.media) {
-//         let file = req.files.media[0];
+        image = await uploadMedia(
+          `profile_${fieldname}`,
+          mediaBuffer,
+          "image/jpeg",
+          "profile_images"
+        );
+        // Ensure directories exist
+        // let dir = process.env.DocsDir; // e.g., /var/www/neo/neoapis/uploads
+        // const docsDir = path.join(dir + "/images");
+        // ensureDirExists(docsDir);
 
-//         const mediaBuffer = file.buffer;
-//         const mediaType = file.mimetype;
-//         const mediaExt = path.extname(file.originalname);
-//         const mediaFilename = `${Date.now()}${mediaExt}`;
-//         console.log("There is a file uploaded");
+        // // Save the PDF file
+        // const docPath = path.join(docsDir, mediaFilename);
+        // fs.writeFileSync(docPath, mediaBuffer);
+        // image = `http://185.28.22.219/whaty/uploads/images/${mediaFilename}`;
+        console.log("Pdf uploaded is ", image);
 
-//         image = await uploadMedia(
-//           `profile_${fieldname}`,
-//           mediaBuffer,
-//           "image/jpeg",
-//           "profile_images"
-//         );
-//         // Ensure directories exist
-//         // let dir = process.env.DocsDir; // e.g., /var/www/neo/neoapis/uploads
-//         // const docsDir = path.join(dir + "/images");
-//         // ensureDirExists(docsDir);
+        thumbnail = await createThumbnailAndUpload(
+          mediaBuffer,
+          mediaFilename,
+          "images"
+        );
 
-//         // // Save the PDF file
-//         // const docPath = path.join(docsDir, mediaFilename);
-//         // fs.writeFileSync(docPath, mediaBuffer);
-//         // image = `http://185.28.22.219/whaty/uploads/images/${mediaFilename}`;
-//         console.log("Pdf uploaded is ", image);
-
-//         thumbnail = await createThumbnailAndUpload(
-//           mediaBuffer,
-//           mediaFilename,
-//           "images"
-//         );
-
-//         // If the file is a PDF, extract text from it using pdf-extraction
-//         if (mediaType.includes("image")) {
-//         }
-//         user.full_profile_image = image;
-//         user.profile_image = thumbnail;
-//       }
-
-//       let userUpdated = await user.save();
-//       if (userUpdated) {
-//         res.send({
-//           status: true,
-//           data: await UserProfileFullResource(user),
-//           message: "User role updated",
-//         });
-//       }
-//     } else {
-//       res.send({ status: false, data: null, message: "Unauthenticated user" });
-//     }
-//   });
-// };
+        // If the file is a PDF, extract text from it using pdf-extraction
+        if (mediaType.includes("image")) {
+        }
+        user.full_profile_image = image;
+        user.profile_image = thumbnail;
+      }
+      if (req.body.timeZone) {
+        user.timeZone = req.body.timeZone;
+      }
+      let userUpdated = await user.save();
+      if (userUpdated) {
+        res.send({
+          status: true,
+          data: await UserProfileFullResource(user),
+          message: "User profile updated",
+        });
+      }
+    } else {
+      res.send({ status: false, data: null, message: "Unauthenticated user" });
+    }
+  });
+};
 
 export function generateRandomCode(length = 7) {
   let result = "";
