@@ -17,6 +17,7 @@ import {
   AddObjectionOrGuardrail,
   DeleteObjectionOrGuardrail,
   GetObjectionsAndGuardrails,
+  UploadAgentImage,
   TestAI,
 } from "../controllers/synthflowController.js";
 
@@ -39,7 +40,7 @@ import { GetDashboardData } from "../controllers/DashboardController.js";
 
 const uploadFiles = multer().fields([
   { name: "media", maxCount: 1 },
-  { name: "driver_license", maxCount: 1 },
+  // { name: "driver_license", maxCount: 1 },
 ]);
 
 const uploadMedia = multer().fields([
@@ -53,6 +54,12 @@ AgentRouter.get("/dashboard", verifyJwtToken, uploadFiles, GetDashboardData);
 
 AgentRouter.post("/buildAgent", verifyJwtToken, uploadFiles, BuildAgent);
 AgentRouter.post("/updateAgent", verifyJwtToken, uploadFiles, UpdateAgent);
+AgentRouter.post(
+  "/updateAgentProfileImage",
+  verifyJwtToken,
+  uploadFiles,
+  UploadAgentImage
+);
 AgentRouter.post("/deleteAgent", verifyJwtToken, uploadFiles, DeleteAgent);
 
 AgentRouter.post("/testAi", verifyJwtToken, uploadFiles, TestAI);

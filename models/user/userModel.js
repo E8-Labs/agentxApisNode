@@ -13,9 +13,14 @@ const User = (sequelize, Sequelize) => {
     email: {
       type: Sequelize.STRING,
     },
-    // password: {
-    //   type: Sequelize.STRING,
-    // },
+    full_profile_image: {
+      type: Sequelize.STRING,
+      defaultValue: "",
+    },
+    thumb_profile_image: {
+      type: Sequelize.STRING,
+      defaultValue: "",
+    },
     // agentService: {
     //   type: Sequelize.INTEGER,
     //   allowNull: true,
@@ -121,6 +126,10 @@ const User = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
       defaultValue: "America/Los_Angeles",
+    },
+    fcm_token: {
+      type: Sequelize.STRING,
+      allowNull: true,
     },
   });
 
