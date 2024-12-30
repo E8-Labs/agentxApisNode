@@ -129,30 +129,44 @@ NotificationSendingCron.start();
 async function SendNotificationsForHotlead(user) {
   try {
     let agentsAssignedToCadence = await db.PipelineCadence.findAll();
-    let ids = [];
+    let mainAgentIds = [];
     if (agentsAssignedToCadence && agentsAssignedToCadence.length > 0) {
-      ids = agentsAssignedToCadence.map((agent) => agent.id);
+      mainAgentIds = agentsAssignedToCadence.map((agent) => agent.mainAgentId);
     }
+
+    console.log("Assigned agents ", mainAgentIds);
+    // let ids = [];
     let agents = await db.AgentModel.findAll({
       where: {
         userId: user.id,
-        id: {
-          [db.Sequelize.Op.in]: ids,
+        mainAgentId: {
+          [db.Sequelize.Op.in]: mainAgentIds,
         },
       },
     });
+    console.log("Total subaagents ", agents?.length);
     await db.DailyNotificationModel.create({
       userId: u.id,
     });
     for (const agent of agents) {
-      await AddNotification(
-        u,
-        null,
-        NotificationTypes.TotalHotlead,
-        null,
-        agent,
-        null
-      );
+      let hotleads = await db.LeadCallsSent.count({
+        where: {
+          agentId: agent.id,
+          hotlead: true,
+        },
+      });
+      if (hotleads > 0) {
+        await AddNotification(
+          u,
+          null,
+          NotificationTypes.TotalHotlead,
+          null,
+          agent,
+          null
+        );
+      } else {
+        console.log("Hotleads are less than 1");
+      }
     }
   } catch (error) {
     console.log("Error adding not ");
