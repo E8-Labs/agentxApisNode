@@ -2,6 +2,7 @@ import moment from "moment-timezone";
 import axios from "axios";
 import chalk from "chalk";
 import nodemailer from "nodemailer";
+import db from "./models/index.js";
 // console.log(import.meta.url);
 import nodeCron from "node-cron";
 
