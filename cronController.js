@@ -19,6 +19,8 @@ import { SetOutcomeforpreviousCalls } from "./controllers/WebhookSynthflowContro
 
 import { ReleaseNumberCron } from "./controllers/twilioController.js";
 import { convertUTCToTimezone } from "./utils/dateutil.js";
+import { AddNotification } from "./controllers/NotificationController.js";
+import { NotificationTypes } from "./models/user/NotificationModel.js";
 
 //Concurrent Calls- Set Limit to 100
 //https://docs.synthflow.ai/docs/concurrency-calls
@@ -66,8 +68,33 @@ const NotificationSendingCron = nodeCron.schedule(
   async () => {
     let date = new Date().toISOString();
     console.log("Current time server ", date);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0); // Set to start of day
 
-    let users = await db.User.findAll();
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999); // Set to end of day
+
+    let notSent = await db.DailyNotificationModel.findAll({
+      where: {
+        createdAt: {
+          [Op.gte]: startOfToday, // Greater than or equal to the start of the day
+          [Op.lt]: endOfToday, // Less than the end of the day
+        },
+      },
+    });
+
+    let userIds = [];
+    if (notSent && notSent.length > 0) {
+      userIds = notSent.map((not) => not.userId);
+    }
+
+    let users = await db.User.findAll({
+      where: {
+        userId: {
+          [db.Sequelize.Op.notIn]: userIds,
+        },
+      },
+    });
 
     for (const u of users) {
       let timeZone = u.timeZone || "America/Los_Angeles";
@@ -86,6 +113,22 @@ const NotificationSendingCron = nodeCron.schedule(
           console.log(
             `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
           );
+          //send notification
+          try {
+            await db.DailyNotificationModel.create({
+              userId: u.id,
+            });
+            await AddNotification(
+              u,
+              null,
+              NotificationTypes.TotalHotlead,
+              null,
+              null,
+              null
+            );
+          } catch (error) {
+            console.log("Error adding not ");
+          }
         } else {
           console.log(
             `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
