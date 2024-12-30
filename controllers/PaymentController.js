@@ -276,6 +276,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               }
             }
           }
+
           let price = foundPlan.price * 100; //cents
           let charge = await chargeUser(
             user.id,
