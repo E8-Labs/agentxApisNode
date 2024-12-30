@@ -41,6 +41,7 @@ import {
   PayAsYouGoPlans,
   PayAsYouGoPlanTypes,
 } from "../models/user/payment/paymentPlans.js";
+import { constants } from "../constants/constants.js";
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
 // import { admin } from "../services/firebase-admin.js";
@@ -48,8 +49,6 @@ import {
 
 const User = db.User;
 const Op = db.Sequelize.Op;
-
-const TotalRedeemableSeconds = 30 * 60;
 
 export const AddPaymentMethod = async (req, res) => {
   let { source, inviteCode } = req.body; // mainAgentId is the mainAgent id
@@ -228,11 +227,56 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             ) {
               return res.send({
                 status: false,
-                message: "Already subscribed to this plan",
+                message: "Already subscribed to to this plan",
                 data: null,
               });
             }
+            await db.PlanHistory.update(
+              { status: "cancelled" },
+              { where: { userId: user.id } }
+            ); //set all previous plans as cancelled
+            let planHistory = await db.PlanHistory.create({
+              userId: user.id,
+              type: foundPlan.type,
+              price: foundPlan.price,
+              status: "active",
+            });
+            if (user.totalSecondsAvailable < constants.MinThresholdSeconds) {
+              //charge user
+              console.log(
+                "Charging user as the minutes available is less than min threshold"
+              );
+              let price = foundPlan.price * 100; //cents
+              let charge = await chargeUser(
+                user.id,
+                price,
+                "Charging for plan " + foundPlan.type,
+                foundPlan.type
+              );
+              if (charge && charge.status) {
+                let historyCreated = await db.PaymentHistory.create({
+                  title: `Payment for ${foundPlan.type}`,
+                  description: `Payment for ${foundPlan.type}`,
+                  type: foundPlan.type,
+                  price: foundPlan.price,
+                  userId: user.id,
+                });
+                return res.send({
+                  status: true,
+                  message: "Plan Upgraded",
+                  data: historyCreated,
+                });
+              } else {
+                console.log("Charge is ", charge);
+                return res.send({
+                  status: false,
+                  message: "Error upgrading ",
+                  data: null,
+                });
+              }
+            }
           }
+
           let price = foundPlan.price * 100; //cents
           let charge = await chargeUser(
             user.id,
