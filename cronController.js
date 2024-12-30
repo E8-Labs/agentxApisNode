@@ -65,7 +65,7 @@ const TimezoneCron = nodeCron.schedule("*/30 * * * * *", async () => {
 
   let users = await db.User.findAll();
 
-  for (u of users) {
+  for (const u of users) {
     let timeZone = u.timeZone || "America/Los_Angeles";
     console.log("User Time zone is ", timeZone);
     if (timeZone) {
