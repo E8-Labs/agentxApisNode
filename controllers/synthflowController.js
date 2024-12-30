@@ -332,9 +332,9 @@ Stick to this rule to maintain control and professionalism in call handling.
 
   //udpate the call script here
   //Test greeting
-  greeting = `##Greeting: "${greeting}"`;
+  greeting = `"${greeting}"`;
   let text = "";
-  text = `${text}\n\n${greeting}`;
+  // text = `${text}\n\n${greeting}`;
   text = `${text}\n\n${prompt.objective}\n\n`;
   text = `${text}\n\n${companyAgentInfo}`;
   text = `${text}\n\n${prompt.personalCharacteristics}`;
