@@ -90,51 +90,48 @@ export const GetDashboardData = async (req, res) => {
       }
 
       // Initialize stats for prior period
-      let priorStats = {
-        totalDuration: 0,
-        totalCalls: 0,
-        totalCallsGt10: 0,
-        hotLeads: 0,
-        meetingScheduled: 0,
-      };
+      // let priorStats = {
+      //   totalDuration: 0,
+      //   totalCalls: 0,
+      //   totalCallsGt10: 0,
+      //   hotLeads: 0,
+      //   meetingScheduled: 0,
+      // };
 
-      // Calculate stats for prior period
-      for (const call of callsInPriorPeriod) {
-        priorStats.totalDuration += call.duration || 0;
-        priorStats.totalCalls += 1;
-        if (call.duration > 10) priorStats.totalCallsGt10 += 1;
-        if (call.hotlead) priorStats.hotLeads += 1;
-        if (call.meetingscheduled) priorStats.meetingScheduled += 1;
-      }
+      // // Calculate stats for prior period
+      // for (const call of callsInPriorPeriod) {
+      //   priorStats.totalDuration += call.duration || 0;
+      //   priorStats.totalCalls += 1;
+      //   if (call.duration > 10) priorStats.totalCallsGt10 += 1;
+      //   if (call.hotlead) priorStats.hotLeads += 1;
+      //   if (call.meetingscheduled) priorStats.meetingScheduled += 1;
+      // }
 
       // Calculate percentage changes
-      const calculatePercentageChange = (current, prior) =>
-        prior === 0
-          ? current > 0
-            ? 100
-            : 0
-          : ((current - prior) / prior) * 100;
+      const calculatePercentageChange = (currentData, total) =>
+        total === 0 ? (currentData > 0 ? 100 : 0) : (currentData / total) * 100;
 
       const statsComparison = {
-        durationChange: calculatePercentageChange(
-          stats.totalDuration,
-          priorStats.totalDuration
-        ),
-        callsChange: calculatePercentageChange(
-          stats.totalCalls,
-          priorStats.totalCalls
-        ),
+        durationChange: 0, //calculatePercentageChange(
+        //   stats.totalDuration,
+        //   priorStats.totalDuration
+        // ),
+        callsChange: 0,
+        // calculatePercentageChange(
+        //   stats.totalCallsGt10,
+        //   priorStats.totalCalls
+        // ),
         callsGt10Change: calculatePercentageChange(
           stats.totalCallsGt10,
-          priorStats.totalCallsGt10
+          stats.totalCalls
         ),
         hotLeadsChange: calculatePercentageChange(
           stats.hotLeads,
-          priorStats.hotLeads
+          stats.totalCalls
         ),
         bookingChange: calculatePercentageChange(
           stats.meetingScheduled,
-          priorStats.meetingScheduled
+          stats.totalCalls
         ),
       };
 

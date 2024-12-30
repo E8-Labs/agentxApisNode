@@ -39,7 +39,7 @@ async function GetNotificationTitle(
   }
 
   if (type == NotificationTypes.MeetingBooked) {
-    title = `${lead.firstName} booked a meeting`;
+    title = `${lead.firstName} booked a meeting 🗓️`;
   }
 
   return title;
