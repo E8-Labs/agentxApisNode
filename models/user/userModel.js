@@ -120,6 +120,7 @@ const User = (sequelize, Sequelize) => {
     timeZone: {
       type: Sequelize.STRING,
       allowNull: true,
+      defaultValue: "America/Los_Angeles",
     },
   });
 
