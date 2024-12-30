@@ -53,6 +53,8 @@ import PlanHistory from "./user/payment/PlanHistory.js";
 import LeadCallTriesModel from "./pipeline/LeadCallTriesModel.js";
 import PhoneVerificationCodeModel from "./user/PhoneVerificationCodeModel.js";
 
+import NotificationModel from "./user/NotificationModel.js";
+
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
   dbConfig.MYSQL_DB_USER,
@@ -98,6 +100,8 @@ db.PhoneVerificationCodeModel = PhoneVerificationCodeModel(
   sequelize,
   Sequelize
 );
+
+db.NotificationModel = NotificationModel(sequelize, Sequelize);
 
 db.AgentRole = AgentRole(sequelize, Sequelize);
 db.MainAgentModel = MainAgentModel(sequelize, Sequelize);

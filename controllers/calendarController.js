@@ -17,6 +17,8 @@ import {
 import { parse, isValid, format } from "date-fns";
 
 import { DateTime } from "luxon";
+import { AddNotification } from "./NotificationController.js";
+import { NotificationTypes } from "../models/user/NotificationModel.js";
 
 const convertToPacificTime = (isoString) => {
   // Parse the ISO string with the original timezone offset
@@ -434,6 +436,15 @@ export async function ScheduleEvent(req, res) {
     const responseData = await response.json();
     if (response.ok) {
       console.log("Event scheduled successfully:", responseData);
+
+      await AddNotification(
+        user,
+        null,
+        NotificationTypes.MeetingBooked,
+        lead,
+        agent,
+        null
+      );
       if (lead) {
         console.log("Lead was found so creating event");
         await db.ScheduledBooking.create({

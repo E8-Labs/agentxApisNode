@@ -12,6 +12,8 @@ import {
   SendPhoneVerificationCode,
 } from "../controllers/userController.js";
 
+import { GetNotifications } from "../controllers/NotificationController.js";
+
 import {
   CreateWebhook,
   GetAllWebhooks,
@@ -86,4 +88,5 @@ UserRouter.post(
   RedeemAbortCancellationReward
 );
 UserRouter.get("/getPaymentMethods", verifyJwtToken, GetPaymentmethods);
+UserRouter.get("/notifications", verifyJwtToken, GetNotifications);
 export default UserRouter;
