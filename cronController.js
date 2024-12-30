@@ -19,7 +19,10 @@ import { SetOutcomeforpreviousCalls } from "./controllers/WebhookSynthflowContro
 
 import { ReleaseNumberCron } from "./controllers/twilioController.js";
 import { convertUTCToTimezone } from "./utils/dateutil.js";
-import { AddNotification } from "./controllers/NotificationController.js";
+import {
+  AddNotification,
+  NotificationCron,
+} from "./controllers/NotificationController.js";
 import { NotificationTypes } from "./models/user/NotificationModel.js";
 
 //Concurrent Calls- Set Limit to 100
@@ -32,143 +35,41 @@ import { NotificationTypes } from "./models/user/NotificationModel.js";
 
 // CronRunCadenceCallsSubsequentStages();
 
-const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
-  "*/1 * * * *",
-  CronRunCadenceCallsFirstBatch
-);
-CronRunCadenceCallsFirstBatchCron.start();
+// const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
+//   "*/1 * * * *",
+//   CronRunCadenceCallsFirstBatch
+// );
+// CronRunCadenceCallsFirstBatchCron.start();
 
-const CronRunCadenceCallsSubsequentStagesCron = nodeCron.schedule(
-  "*/1 * * * *",
-  CronRunCadenceCallsSubsequentStages
-);
-CronRunCadenceCallsSubsequentStagesCron.start();
+// const CronRunCadenceCallsSubsequentStagesCron = nodeCron.schedule(
+//   "*/1 * * * *",
+//   CronRunCadenceCallsSubsequentStages
+// );
+// CronRunCadenceCallsSubsequentStagesCron.start();
 
 // Schedule a cron job to run every day at midnight
 // cron.schedule("0 0 * * *", PhoneNumberCron);
 
 //Testing every min
-const CronPhone = nodeCron.schedule("0 0 * * *", PhoneNumberCron);
-CronPhone.start();
+// const CronPhone = nodeCron.schedule("0 0 * * *", PhoneNumberCron);
+// CronPhone.start();
 // PhoneNumberCron();
 
 //Call status cron
-const CronCallOutcome = nodeCron.schedule(
-  "*/59 * * * * *",
-  SetOutcomeforpreviousCalls
-);
-CronCallOutcome.start();
+// const CronCallOutcome = nodeCron.schedule(
+//   "*/59 * * * * *",
+//   SetOutcomeforpreviousCalls
+// );
+// CronCallOutcome.start();
 
-//Release Number cron
-const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
-CronReleaseNumber.start();
+// //Release Number cron
+// const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
+// CronReleaseNumber.start();
 
-const NotificationSendingCron = nodeCron.schedule(
-  "*/30 * * * * *",
-  async () => {
-    let date = new Date().toISOString();
-    console.log("Current time server ", date);
-    const startOfToday = new Date();
-    startOfToday.setHours(0, 0, 0, 0); // Set to start of day
+// const NotificationSendingCron = nodeCron.schedule(
+//   "*/30 * * * * *",
+//   NotificationCron
+// );
+// NotificationSendingCron.start();
 
-    const endOfToday = new Date();
-    endOfToday.setHours(23, 59, 59, 999); // Set to end of day
-
-    let notSent = await db.DailyNotificationModel.findAll({
-      where: {
-        createdAt: {
-          [Op.gte]: startOfToday, // Greater than or equal to the start of the day
-          [Op.lt]: endOfToday, // Less than the end of the day
-        },
-      },
-    });
-
-    let userIds = [];
-    if (notSent && notSent.length > 0) {
-      userIds = notSent.map((not) => not.userId);
-    }
-
-    let users = await db.User.findAll({
-      where: {
-        userId: {
-          [db.Sequelize.Op.notIn]: userIds,
-        },
-      },
-    });
-
-    for (const u of users) {
-      let timeZone = u.timeZone || "America/Los_Angeles";
-      console.log("User Time zone is ", timeZone);
-      if (timeZone) {
-        let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
-        console.log("TIme in user timezone", timeInUserTimeZone);
-        const userDateTime = DateTime.fromFormat(
-          timeInUserTimeZone,
-          "yyyy-MM-dd HH:mm:ss",
-          { zone: timeZone }
-        );
-        const ninePM = userDateTime.set({ hour: 21, minute: 0, second: 0 });
-
-        if (userDateTime > ninePM) {
-          console.log(
-            `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
-          );
-          //send notification
-          SendNotificationsForHotlead(u);
-        } else {
-          console.log(
-            `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
-          );
-        }
-      }
-    }
-  }
-);
-NotificationSendingCron.start();
-
-async function SendNotificationsForHotlead(user) {
-  try {
-    let agentsAssignedToCadence = await db.PipelineCadence.findAll();
-    let mainAgentIds = [];
-    if (agentsAssignedToCadence && agentsAssignedToCadence.length > 0) {
-      mainAgentIds = agentsAssignedToCadence.map((agent) => agent.mainAgentId);
-    }
-
-    console.log("Assigned agents ", mainAgentIds);
-    // let ids = [];
-    let agents = await db.AgentModel.findAll({
-      where: {
-        userId: user.id,
-        mainAgentId: {
-          [db.Sequelize.Op.in]: mainAgentIds,
-        },
-      },
-    });
-    console.log("Total subaagents ", agents?.length);
-    await db.DailyNotificationModel.create({
-      userId: u.id,
-    });
-    for (const agent of agents) {
-      let hotleads = await db.LeadCallsSent.count({
-        where: {
-          agentId: agent.id,
-          hotlead: true,
-        },
-      });
-      if (hotleads > 0) {
-        await AddNotification(
-          u,
-          null,
-          NotificationTypes.TotalHotlead,
-          null,
-          agent,
-          null
-        );
-      } else {
-        console.log("Hotleads are less than 1");
-      }
-    }
-  } catch (error) {
-    console.log("Error adding not ");
-  }
-}
+NotificationCron();

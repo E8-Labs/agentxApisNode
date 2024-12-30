@@ -1,5 +1,6 @@
 import db from "../models/index.js";
 import JWT from "jsonwebtoken";
+import { DateTime } from "luxon";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import NotificationResource from "../resources/NotificationResource.js";
 
@@ -132,3 +133,109 @@ export const GetNotifications = async (req, res) => {
     }
   });
 };
+
+export const NotificationCron = async () => {
+  let date = new Date().toISOString();
+  console.log("Current time server ", date);
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0); // Set to start of day
+
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999); // Set to end of day
+
+  let notSent = await db.DailyNotificationModel.findAll({
+    where: {
+      createdAt: {
+        [Op.gte]: startOfToday, // Greater than or equal to the start of the day
+        [Op.lt]: endOfToday, // Less than the end of the day
+      },
+    },
+  });
+
+  let userIds = [];
+  if (notSent && notSent.length > 0) {
+    userIds = notSent.map((not) => not.userId);
+  }
+
+  let users = await db.User.findAll({
+    where: {
+      userId: {
+        [db.Sequelize.Op.notIn]: userIds,
+      },
+    },
+  });
+
+  for (const u of users) {
+    let timeZone = u.timeZone || "America/Los_Angeles";
+    console.log("User Time zone is ", timeZone);
+    if (timeZone) {
+      let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
+      console.log("TIme in user timezone", timeInUserTimeZone);
+      const userDateTime = DateTime.fromFormat(
+        timeInUserTimeZone,
+        "yyyy-MM-dd HH:mm:ss",
+        { zone: timeZone }
+      );
+      const ninePM = userDateTime.set({ hour: 21, minute: 0, second: 0 });
+
+      if (userDateTime > ninePM) {
+        console.log(
+          `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
+        );
+        //send notification
+        SendNotificationsForHotlead(u);
+      } else {
+        console.log(
+          `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
+        );
+      }
+    }
+  }
+};
+
+async function SendNotificationsForHotlead(user) {
+  try {
+    let agentsAssignedToCadence = await db.PipelineCadence.findAll();
+    let mainAgentIds = [];
+    if (agentsAssignedToCadence && agentsAssignedToCadence.length > 0) {
+      mainAgentIds = agentsAssignedToCadence.map((agent) => agent.mainAgentId);
+    }
+
+    console.log("Assigned agents ", mainAgentIds);
+    // let ids = [];
+    let agents = await db.AgentModel.findAll({
+      where: {
+        userId: user.id,
+        mainAgentId: {
+          [db.Sequelize.Op.in]: mainAgentIds,
+        },
+      },
+    });
+    console.log("Total subaagents ", agents?.length);
+    await db.DailyNotificationModel.create({
+      userId: u.id,
+    });
+    for (const agent of agents) {
+      let hotleads = await db.LeadCallsSent.count({
+        where: {
+          agentId: agent.id,
+          hotlead: true,
+        },
+      });
+      if (hotleads > 0) {
+        await AddNotification(
+          u,
+          null,
+          NotificationTypes.TotalHotlead,
+          null,
+          agent,
+          null
+        );
+      } else {
+        console.log("Hotleads are less than 1");
+      }
+    }
+  } catch (error) {
+    console.log("Error adding not ");
+  }
+}
