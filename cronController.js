@@ -17,6 +17,7 @@ import { PhoneNumberCron } from "./controllers/twilioController.js";
 import { SetOutcomeforpreviousCalls } from "./controllers/WebhookSynthflowController.js";
 
 import { ReleaseNumberCron } from "./controllers/twilioController.js";
+import { convertUTCToTimezone } from "./utils/dateutil.js";
 
 //Concurrent Calls- Set Limit to 100
 //https://docs.synthflow.ai/docs/concurrency-calls
@@ -50,7 +51,7 @@ CronPhone.start();
 
 //Call status cron
 const CronCallOutcome = nodeCron.schedule(
-  "*/30 * * * * *",
+  "*/59 * * * * *",
   SetOutcomeforpreviousCalls
 );
 CronCallOutcome.start();
@@ -58,3 +59,19 @@ CronCallOutcome.start();
 //Release Number cron
 const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
 CronReleaseNumber.start();
+
+const TimezoneCron = nodeCron.schedule("*/30 * * * * *", async () => {
+  console.log("Current time server ", new Date());
+
+  let users = await db.User.findAll();
+
+  for (u of users) {
+    let timeZone = u.timeZone || "America/Los_Angeles";
+    console.log("User Time zone is ", timeZone);
+    if (timeZone) {
+      let timeInUserTimeZone = convertUTCToTimezone(new Date(), timeZone);
+      console.log("TIme in user timezone", timeInUserTimeZone);
+    }
+  }
+});
+TimezoneCron.start();
