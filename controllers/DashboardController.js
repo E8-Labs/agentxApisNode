@@ -112,11 +112,12 @@ export const GetDashboardData = async (req, res) => {
         total === 0 ? (currentData > 0 ? 100 : 0) : (currentData / total) * 100;
 
       const statsComparison = {
-        // durationChange: calculatePercentageChange(
+        durationChange: 0, //calculatePercentageChange(
         //   stats.totalDuration,
         //   priorStats.totalDuration
         // ),
-        // callsChange: calculatePercentageChange(
+        callsChange: 0,
+        // calculatePercentageChange(
         //   stats.totalCallsGt10,
         //   priorStats.totalCalls
         // ),
