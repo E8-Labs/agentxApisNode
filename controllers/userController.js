@@ -124,6 +124,7 @@ function generateAlphaNumericInviteCode(length = 6) {
 }
 export const RegisterUser = async (req, res) => {
   console.log("Data", req.body);
+  const timeZone = req.body.timeZone;
   const name = req.body.name;
   const farm = req.body.farm || "";
   const email = req.body.email;
@@ -231,6 +232,7 @@ export const RegisterUser = async (req, res) => {
     website: website,
     projectsPerYear: projectsPerYear,
     primaryClientType: primaryClientType,
+    timeZone: timeZone,
   });
   let customerId = await generateStripeCustomerId(user.id);
   console.log("Stripe Custome Id Generated in Register");
