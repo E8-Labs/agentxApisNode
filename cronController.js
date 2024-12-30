@@ -62,7 +62,8 @@ const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
 CronReleaseNumber.start();
 
 const TimezoneCron = nodeCron.schedule("*/30 * * * * *", async () => {
-  console.log("Current time server ", new Date());
+  let date = new Date().toISOString();
+  console.log("Current time server ", date);
 
   let users = await db.User.findAll();
 
@@ -70,7 +71,7 @@ const TimezoneCron = nodeCron.schedule("*/30 * * * * *", async () => {
     let timeZone = u.timeZone || "America/Los_Angeles";
     console.log("User Time zone is ", timeZone);
     if (timeZone) {
-      let timeInUserTimeZone = convertUTCToTimezone(new Date(), timeZone);
+      let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
       console.log("TIme in user timezone", timeInUserTimeZone);
     }
   }
