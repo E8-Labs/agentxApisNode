@@ -275,6 +275,12 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   data: null,
                 });
               }
+            } else {
+              return res.send({
+                status: true,
+                message: "Plan Upgraded",
+                data: null,
+              });
             }
           }
 
