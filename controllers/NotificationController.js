@@ -20,8 +20,11 @@ async function GetNotificationTitle(
   if (type == NotificationTypes.RedeemedAgentXCode) {
     title = `30 minutes added for using (${code})`;
   }
+  if (type == NotificationTypes.LeadCalledBack) {
+    title = `${lead?.firstName || "New Lead"} called back`;
+  }
   if (type == NotificationTypes.NoCallsIn3Days) {
-    title = `Your calls have stopped for 3 days`;
+    title = `Your  calls have stopped for 3 days`;
   }
   if (type == NotificationTypes.PaymentFailed) {
     title = `Urgent! Payment method failed`;

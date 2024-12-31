@@ -67,7 +67,9 @@ export const WebhookSynthflow = async (req, res) => {
       where: { synthflowCallId: callId },
     });
     let jsonIE;
+    let inbound = false;
     if (!dbCall) {
+      inbound = true;
       console.log("Call is not already in the table.");
       dbCall = await handleNewCall(
         data,
@@ -190,6 +192,22 @@ async function handleNewCall(
     sheet,
     leadData
   );
+  //Send Notification for inbound Call
+  try {
+    let user = await db.User.findByPk(assistant.userId);
+    await AddNotification(
+      user,
+      null,
+      NotificationTypes.LeadCalledBack,
+      null,
+      null,
+      null,
+      0,
+      0
+    );
+  } catch (error) {
+    console.log("errir sending notification");
+  }
   const jsonIE = lead
     ? await extractIEAndStoreKycs(actions, lead, callId)
     : null;

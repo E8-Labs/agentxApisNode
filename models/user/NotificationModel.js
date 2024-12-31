@@ -6,6 +6,7 @@ export const NotificationTypes = {
   MeetingBooked: "MeetingBooked",
   PaymentFailed: "PaymentFailed",
   NoCallsIn3Days: "NoCallsIn3Days",
+  LeadCalledBack: "LeadCalledBack",
   InviteAccepted: "InviteAccepted",
   CallsMadeByAgent: "CallsMadeByAgent",
   RedeemedAgentXCode: "RedeemedAgentXCode", // 30 min added for using AgentX Code
