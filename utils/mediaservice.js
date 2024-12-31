@@ -74,7 +74,11 @@ export const uploadMedia = (
 
       const docPath = path.join(docsDir, fieldname);
       fs.writeFileSync(docPath, fileContent);
-      let image = `https://www.blindcircle.com/agentxtest/uploads/${folder}/${fieldname}`;
+      const BaseUrl =
+        process.env.Environment == "Sandbox"
+          ? "https://www.blindcircle.com/agentxtest/uploads/"
+          : "https://www.blindcircle.com/agentx/uploads/";
+      let image = `${BaseUrl}${folder}/${fieldname}`;
       console.log("File uploaded is ", image);
 
       resolve(image);
