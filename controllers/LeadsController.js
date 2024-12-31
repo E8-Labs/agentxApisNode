@@ -712,8 +712,8 @@ export const GetLeads = async (req, res) => {
           const adjustedToDate = new Date(toDate);
           adjustedToDate.setDate(adjustedToDate.getDate() + 1);
 
-          const adjustedFromDate = new Date(toDate);
-          adjustedFromDate.setDate(adjustedToDate.getDate() - 1);
+          const adjustedFromDate = new Date(fromDate);
+          adjustedFromDate.setDate(adjustedFromDate.getDate() - 1);
           let dates = [adjustedFromDate, adjustedToDate];
           console.log("Dates ", dates);
           leadFilters.createdAt = {
