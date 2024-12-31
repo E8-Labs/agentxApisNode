@@ -1410,14 +1410,18 @@ export const UploadAgentImage = async (req, res) => {
 
         agent.full_profile_image = image;
         agent.thumb_profile_image = thumbnail;
+        await agent.save();
+        return res.send({
+          status: true,
+          message: "Agent profile updated",
+          data: agent,
+        });
+      } else {
+        return res.send({
+          status: false,
+          message: "No image provided",
+        });
       }
-
-      await agent.save();
-      return res.send({
-        status: true,
-        message: "Agent profile updated",
-        data: agent,
-      });
     } else {
       return res.send({
         status: false,
