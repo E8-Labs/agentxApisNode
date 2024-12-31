@@ -29,7 +29,9 @@ const LeadModel = (sequelize, Sequelize) => {
       //what's the status
       type: Sequelize.STRING,
       allowNull: true,
+      defaultValue: "active", // deleted
     },
+
     address: {
       //Address. Google map picker
       type: Sequelize.STRING,
