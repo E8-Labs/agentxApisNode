@@ -709,11 +709,12 @@ export const GetLeads = async (req, res) => {
         // Build filters for leads
         const leadFilters = { sheetId, status: "active" };
         if (fromDate && toDate) {
-          const adjustedToDate = new Date(toDate);
-          adjustedToDate.setDate(adjustedToDate.getDate() + 1);
-
           const adjustedFromDate = new Date(fromDate);
-          adjustedFromDate.setDate(adjustedFromDate.getDate() - 1);
+          adjustedFromDate.setHours(0, 0, 0, 0);
+
+          // Set endDate to the end of the day (23:59:59.999)
+          const adjustedToDate = new Date(toDate);
+          adjustedToDate.setHours(23, 59, 59, 999);
           let dates = [adjustedFromDate, adjustedToDate];
           console.log("Dates ", dates);
           leadFilters.createdAt = {
@@ -1179,11 +1180,12 @@ export const GetCallLogs = async (req, res) => {
         }
 
         if (startDate && endDate) {
-          const adjustedToDate = new Date(startDate);
-          adjustedToDate.setDate(adjustedToDate.getDate() + 1);
+          const adjustedFromDate = new Date(startDate);
+          adjustedFromDate.setHours(0, 0, 0, 0);
 
-          const adjustedFromDate = new Date(endDate);
-          adjustedFromDate.setDate(adjustedFromDate.getDate() - 1);
+          // Set endDate to the end of the day (23:59:59.999)
+          const adjustedToDate = new Date(endDate);
+          adjustedToDate.setHours(23, 59, 59, 999);
           let dates = [adjustedFromDate, adjustedToDate];
           console.log("Dates ", dates);
 
