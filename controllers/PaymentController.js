@@ -82,6 +82,7 @@ export const AddPaymentMethod = async (req, res) => {
           data: added.data,
         });
       } catch (error) {
+        console.log("Error ", error);
         return res.send({
           status: false,
           message: error.message,
