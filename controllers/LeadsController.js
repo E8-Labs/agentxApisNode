@@ -711,7 +711,8 @@ export const GetLeads = async (req, res) => {
           let dates = [new Date(fromDate), new Date(toDate)];
           console.log("Dates ", dates);
           leadFilters.createdAt = {
-            [db.Sequelize.Op.between]: [new Date(fromDate), new Date(toDate)],
+            [db.Sequelize.Op.gte]: new Date(fromDate),
+            [db.Sequelize.Op.lte]: new Date(toDate),
           };
         }
         if (stageIds && stageIds != "") {
