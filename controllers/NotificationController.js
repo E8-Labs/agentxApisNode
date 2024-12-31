@@ -20,6 +20,12 @@ async function GetNotificationTitle(
   if (type == NotificationTypes.RedeemedAgentXCode) {
     title = `30 minutes added for using (${code})`;
   }
+  if (type == NotificationTypes.NoCallsIn3Days) {
+    title = `Your calls have stopped for 3 days`;
+  }
+  if (type == NotificationTypes.PaymentFailed) {
+    title = `Urgent! Payment method failed`;
+  }
   if (type == NotificationTypes.Redeemed60Min) {
     title = `60 minutes added for aborting plan cancellation`;
   }
@@ -37,7 +43,7 @@ async function GetNotificationTitle(
   if (type == NotificationTypes.CallsMadeByAgent) {
     //calculate hotleads today.
 
-    title = `You have made ${totalCalls} calls today `;
+    title = `You have called ${totalCalls} leads today `;
   }
   if (type == NotificationTypes.MeetingBooked) {
     title = `${lead.firstName} booked a meeting 🗓️`;
@@ -258,7 +264,10 @@ async function SendNotificationsForHotlead(user) {
     });
 
     const last24Hours = new Date();
-    last24Hours.setHours(last24Hours.getHours() - 240);
+    last24Hours.setHours(last24Hours.getHours() - 24);
+
+    const last72Hours = new Date();
+    last72Hours.setHours(last72Hours.getHours() - 72);
 
     let hotleads = await db.LeadCallsSent.count({
       where: {
@@ -283,6 +292,33 @@ async function SendNotificationsForHotlead(user) {
         },
       },
     });
+
+    if (totalCalls == 0) {
+      totalCalls = await db.LeadCallsSent.count({
+        where: {
+          agentId: {
+            [db.Sequelize.Op.in]: ids,
+          },
+
+          createdAt: {
+            [db.Sequelize.Op.gte]: last72Hours,
+          },
+        },
+      });
+      if (totalCalls == 0) {
+        //send No Calls in 3 days not NoCallsIn3Days
+        await AddNotification(
+          user,
+          null,
+          NotificationTypes.NoCallsIn3Days,
+          null,
+          null,
+          null,
+          0,
+          0
+        );
+      }
+    }
 
     console.log(`Calls made by ${user.name} | ${totalCalls}`);
     if (totalCalls > 1) {
