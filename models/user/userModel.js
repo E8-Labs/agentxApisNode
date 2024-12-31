@@ -131,6 +131,12 @@ const User = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+
+    isTrial: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   });
 
   return User;

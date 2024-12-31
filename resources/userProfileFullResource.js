@@ -60,6 +60,25 @@ async function getUserData(user, currentUser = null) {
       isSeen: false,
     },
   });
+
+  //if the user is on trial or not
+  let isTrial = false;
+
+  //Fetch the first two plans
+
+  let plans = await db.PlanHistory.findAll({
+    where: {
+      userId: user.id,
+    },
+    limit: 2,
+    order: [["createdAt", "ASC"]],
+  });
+
+  if (plans) {
+    if (plans.length == 1 && plans[0].type == PayAsYouGoPlanTypes.Plan30Min) {
+      //check history is empty. If history is empty then trial other wise
+    }
+  }
   const UserFullResource = {
     ...user.get(),
     plan: planHistory && planHistory.length > 0 ? planHistory[0] : null,
