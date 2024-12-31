@@ -353,7 +353,7 @@ export const DeletePipelineStage = async (req, res) => {
       if (moveToStage) {
         let cadUpdate = await db.PipelineCadence.update(
           {
-            moveToStage: moveToStage,
+            moveToStage: null,
           },
           {
             where: {
@@ -392,6 +392,7 @@ export const DeletePipelineStage = async (req, res) => {
             },
           }
         );
+
         let cadUpdatedStageId = await db.PipelineCadence.destroy({
           where: {
             pipelineId: pipelineId,
