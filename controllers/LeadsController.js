@@ -708,11 +708,15 @@ export const GetLeads = async (req, res) => {
         // Build filters for leads
         const leadFilters = { sheetId, status: "active" };
         if (fromDate && toDate) {
-          let dates = [new Date(fromDate), new Date(toDate)];
+          const adjustedToDate = new Date(toDate);
+          adjustedToDate.setDate(adjustedToDate.getDate() + 1);
+
+          const adjustedFromDate = new Date(toDate);
+          adjustedFromDate.setDate(adjustedToDate.getDate() - 1);
+          let dates = [adjustedFromDate, adjustedToDate];
           console.log("Dates ", dates);
           leadFilters.createdAt = {
-            [db.Sequelize.Op.gte]: new Date(fromDate),
-            [db.Sequelize.Op.lte]: new Date(toDate),
+            [db.Sequelize.Op.between]: dates,
           };
         }
         if (stageIds && stageIds != "") {
