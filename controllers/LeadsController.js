@@ -307,7 +307,7 @@ export const DeleteLead = async (req, res) => {
       res.send({
         status: true,
         message: `Lead deleted`,
-        data: leadDel,
+        data: null,
       });
     } else {
       res.send({
