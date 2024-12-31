@@ -703,6 +703,7 @@ export const GetLeads = async (req, res) => {
           fromDate,
           toDate,
           noStage,
+          offset,
         });
 
         // Build filters for leads
