@@ -1179,8 +1179,16 @@ export const GetCallLogs = async (req, res) => {
         }
 
         if (startDate && endDate) {
+          const adjustedToDate = new Date(startDate);
+          adjustedToDate.setDate(adjustedToDate.getDate() + 1);
+
+          const adjustedFromDate = new Date(endDate);
+          adjustedFromDate.setDate(adjustedFromDate.getDate() - 1);
+          let dates = [adjustedFromDate, adjustedToDate];
+          console.log("Dates ", dates);
+
           filters.createdAt = {
-            [Op.between]: [new Date(startDate), new Date(endDate)],
+            [Op.between]: dates,
           };
         }
 

@@ -363,17 +363,12 @@ export const DeletePipelineStage = async (req, res) => {
           }
         );
 
-        let cadUpdatedStageId = await db.PipelineCadence.update(
-          {
-            stage: moveToStage,
+        let cadUpdatedStageId = await db.PipelineCadence.destroy({
+          where: {
+            pipelineId: pipelineId,
+            stage: stageId,
           },
-          {
-            where: {
-              pipelineId: pipelineId,
-              stage: stageId,
-            },
-          }
-        );
+        });
 
         //Update Lead Cadence to moveToStage if they are on the deleted stage
         let leadCadUpdate = await db.LeadModel.update(
@@ -403,12 +398,15 @@ export const DeletePipelineStage = async (req, res) => {
             stage: stageId,
           },
         });
-        let cadUpdate = await db.PipelineCadence.destroy({
-          where: {
-            pipelineId: pipelineId,
-            moveToStage: stageId,
-          },
-        });
+        let cadUpdate = await db.PipelineCadence.update(
+          { moveToStage: null },
+          {
+            where: {
+              pipelineId: pipelineId,
+              moveToStage: stageId,
+            },
+          }
+        );
       }
 
       //Delete Action created
