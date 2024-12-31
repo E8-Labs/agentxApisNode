@@ -260,7 +260,7 @@ export const AddLeads = async (req, res) => {
 
 export const DeleteLead = async (req, res) => {
   let { leadId } = req.body; // mainAgentId is the mainAgent id
-
+  let isPipeline = req.body.isPipeline || false;
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -280,16 +280,34 @@ export const DeleteLead = async (req, res) => {
         });
       }
 
-      let leadDel = await db.LeadModel.destroy({
-        where: {
-          id: leadId,
+      if (!isPipeline) {
+        let leadDel = await db.LeadModel.update(
+          { status: "deleted" },
+          {
+            where: {
+              id: leadId,
+            },
+          }
+        );
+      }
+      // else{
+      //Pause cadence for this lead as well.
+      await db.LeadCadence.update(
+        {
+          status: CadenceStatus.Paused,
         },
-      });
+        {
+          where: {
+            leadId: leadId,
+          },
+        }
+      );
+      // }
 
       res.send({
         status: true,
         message: `Lead deleted`,
-        data: null,
+        data: leadDel,
       });
     } else {
       res.send({
@@ -622,6 +640,7 @@ export const UpdateLeadStage = async (req, res) => {
         where: {
           id: leadId,
           userId: user.id,
+          status: "active",
         },
       });
 
@@ -687,7 +706,7 @@ export const GetLeads = async (req, res) => {
         });
 
         // Build filters for leads
-        const leadFilters = { sheetId };
+        const leadFilters = { sheetId, status: "active" };
         if (fromDate && toDate) {
           let dates = [new Date(fromDate), new Date(toDate)];
           console.log("Dates ", dates);
@@ -972,6 +991,7 @@ export async function GetColumnsInSheet(sheetId) {
   let leads = await db.LeadModel.findAll({
     where: {
       sheetId: sheetId,
+      status: "active",
     },
   });
 
@@ -1062,6 +1082,7 @@ export const GetUniqueTags = async (req, res) => {
       let leads = await db.LeadModel.findAll({
         where: {
           userId: user.id,
+          status: "active",
         },
       });
       let leadIds = [];
