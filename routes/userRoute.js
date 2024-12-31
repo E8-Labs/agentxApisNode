@@ -13,7 +13,10 @@ import {
   UpdateProfile,
 } from "../controllers/userController.js";
 
-import { GetNotifications } from "../controllers/NotificationController.js";
+import {
+  GetNotifications,
+  ReadAllNotifications,
+} from "../controllers/NotificationController.js";
 
 import {
   CreateWebhook,
@@ -89,6 +92,9 @@ UserRouter.post(
   RedeemAbortCancellationReward
 );
 UserRouter.get("/getPaymentMethods", verifyJwtToken, GetPaymentmethods);
-UserRouter.get("/notifications", verifyJwtToken, GetNotifications);
+
 UserRouter.post("/updateProfile", verifyJwtToken, UpdateProfile);
+
+UserRouter.get("/notifications", verifyJwtToken, GetNotifications);
+UserRouter.post("/readAllNotifications", verifyJwtToken, ReadAllNotifications);
 export default UserRouter;

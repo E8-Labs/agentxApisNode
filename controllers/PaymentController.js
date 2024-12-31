@@ -211,6 +211,10 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             status: "active",
           });
 
+          //set user trial mode
+          user.isTrial = true;
+          await user.save();
+
           return res.send({
             status: true,
             message: "Successfully subscribed to plan",
@@ -222,16 +226,19 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             lastPlan = history[0];
           }
           if (lastPlan) {
+            console.log("Found plan 229");
             if (
               lastPlan.type == foundPlan.type &&
               lastPlan.status == "active"
             ) {
+              console.log("Same plan");
               return res.send({
                 status: false,
                 message: "Already subscribed to to this plan",
                 data: null,
               });
             }
+            console.log("Update Plan");
             await db.PlanHistory.update(
               { status: "cancelled" },
               { where: { userId: user.id } }
@@ -242,6 +249,9 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               price: foundPlan.price,
               status: "active",
             });
+            console.log(
+              `User ${user.name} has ${user.totalSecondsAvailable} seconds`
+            );
             if (user.totalSecondsAvailable < constants.MinThresholdSeconds) {
               //charge user
               console.log(
@@ -262,6 +272,8 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   price: foundPlan.price,
                   userId: user.id,
                 });
+                user.totalSecondsAvailable += foundPlan.duration;
+                await user.save();
                 return res.send({
                   status: true,
                   message: "Plan Upgraded",
@@ -275,6 +287,13 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   data: null,
                 });
               }
+            } else {
+              console.log("Not charging users");
+              return res.send({
+                status: true,
+                message: "Plan Upgraded",
+                data: null,
+              });
             }
           }
 

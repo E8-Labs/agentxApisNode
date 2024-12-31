@@ -357,6 +357,12 @@ export const chargeUser = async (
 
     console.log("Payment ", paymentIntent);
 
+    if (type != "PhonePurchase") {
+      // set the user trial mode false
+      let user = await db.User.findByPk(userId);
+      user.isTrial = false;
+      await user.save();
+    }
     if (paymentIntent && paymentIntent.status === "succeeded") {
       // Payment succeeded
       if (type !== "PhonePurchase") {

@@ -11,7 +11,9 @@ async function GetNotificationTitle(
   type,
   lead = null,
   agent = null,
-  code = null
+  code = null,
+  hotleads = 0,
+  totalCalls = 0
 ) {
   let title = "";
 
@@ -25,19 +27,18 @@ async function GetNotificationTitle(
     title = `${fromUser.name} accepted your invite`;
   }
   if (type == NotificationTypes.Hotlead) {
-    title = `${lead.firstName} is a hotlead`;
+    title = `${lead.firstName} is a hotlead 🔥`;
   }
   if (type == NotificationTypes.TotalHotlead) {
     //calculate hotleads today.
-    let hotleads = await db.LeadCallsSent.count({
-      where: {
-        agentId: agent.id,
-        hotlead: true,
-      },
-    });
+
     title = `You have ${hotleads} hotleads today 🔥`;
   }
+  if (type == NotificationTypes.CallsMadeByAgent) {
+    //calculate hotleads today.
 
+    title = `You have made ${totalCalls} calls today `;
+  }
   if (type == NotificationTypes.MeetingBooked) {
     title = `${lead.firstName} booked a meeting 🗓️`;
   }
@@ -60,7 +61,9 @@ export const AddNotification = async (
   type,
   lead = null,
   agent = null,
-  code = null
+  code = null,
+  hotleads = 0,
+  totalCalls = 0
 ) => {
   console.log("Data in add not ", { user, fromUser, type, lead, agent, code });
   try {
@@ -70,7 +73,9 @@ export const AddNotification = async (
       type,
       lead,
       agent,
-      code
+      code,
+      hotleads,
+      totalCalls
     );
     console.log("Not Title is ", title);
     let not = await db.NotificationModel.create({
@@ -135,108 +140,225 @@ export const GetNotifications = async (req, res) => {
   });
 };
 
-export const NotificationCron = async () => {
-  let date = new Date().toISOString();
-  console.log("Current time server ", date);
-  const startOfToday = new Date();
-  startOfToday.setHours(0, 0, 0, 0); // Set to start of day
+export const ReadAllNotifications = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
 
-  const endOfToday = new Date();
-  endOfToday.setHours(23, 59, 59, 999); // Set to end of day
-
-  let notSent = await db.DailyNotificationModel.findAll({
-    where: {
-      createdAt: {
-        [db.Sequelize.Op.gte]: startOfToday, // Greater than or equal to the start of the day
-        [db.Sequelize.Op.lt]: endOfToday, // Less than the end of the day
-      },
-    },
-  });
-
-  let userIds = [];
-  if (notSent && notSent.length > 0) {
-    userIds = notSent.map((not) => not.userId);
-  }
-
-  let users = await db.User.findAll({
-    where: {
-      userId: {
-        [db.Sequelize.Op.notIn]: userIds,
-      },
-    },
-  });
-
-  for (const u of users) {
-    let timeZone = u.timeZone || "America/Los_Angeles";
-    console.log("User Time zone is ", timeZone);
-    if (timeZone) {
-      let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
-      console.log("TIme in user timezone", timeInUserTimeZone);
-      const userDateTime = DateTime.fromFormat(
-        timeInUserTimeZone,
-        "yyyy-MM-dd HH:mm:ss",
-        { zone: timeZone }
+      let nots = await db.NotificationModel.update(
+        {
+          isSeen: true,
+        },
+        {
+          where: {
+            userId: user.id,
+          },
+        }
       );
-      const ninePM = userDateTime.set({ hour: 21, minute: 0, second: 0 });
 
-      if (userDateTime > ninePM) {
-        console.log(
-          `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
+      res.send({
+        status: true,
+        message: `Notifications seen`,
+        data: null,
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+};
+
+export const NotificationCron = async () => {
+  try {
+    let date = new Date().toISOString();
+    console.log("Current time server ", date);
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0); // Set to start of day
+
+    const endOfToday = new Date();
+    endOfToday.setHours(23, 59, 59, 999); // Set to end of day
+
+    let notSent = await db.DailyNotificationModel.findAll({
+      where: {
+        createdAt: {
+          [db.Sequelize.Op.gte]: startOfToday, // Greater than or equal to the start of the day
+          [db.Sequelize.Op.lt]: endOfToday, // Less than the end of the day
+        },
+      },
+    });
+
+    let userIds = [];
+    if (notSent && notSent.length > 0) {
+      userIds = notSent.map((not) => not.userId);
+    }
+
+    let users = await db.User.findAll({
+      where: {
+        id: {
+          [db.Sequelize.Op.notIn]: userIds,
+        },
+      },
+    });
+    console.log("Users to send daily notificaitons", users.length);
+
+    for (const u of users) {
+      let timeZone = u.timeZone || "America/Los_Angeles";
+      console.log("User Time zone is ", timeZone);
+      if (timeZone) {
+        let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
+        console.log("TIme in user timezone", timeInUserTimeZone);
+        const userDateTime = DateTime.fromFormat(
+          timeInUserTimeZone,
+          "yyyy-MM-dd HH:mm:ss",
+          { zone: timeZone }
         );
-        //send notification
-        SendNotificationsForHotlead(u);
-      } else {
-        console.log(
-          `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
-        );
+        const ninePM = userDateTime.set({ hour: 21, minute: 0, second: 0 });
+
+        if (userDateTime > ninePM) {
+          console.log(
+            `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
+          );
+          //send notification
+          SendNotificationsForHotlead(u);
+        } else {
+          console.log(
+            `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
+          );
+        }
       }
     }
+  } catch (error) {
+    console.log("Error in Not Cron ", error);
   }
 };
 
 async function SendNotificationsForHotlead(user) {
   try {
-    let agentsAssignedToCadence = await db.PipelineCadence.findAll();
-    let mainAgentIds = [];
-    if (agentsAssignedToCadence && agentsAssignedToCadence.length > 0) {
-      mainAgentIds = agentsAssignedToCadence.map((agent) => agent.mainAgentId);
-    }
-
-    console.log("Assigned agents ", mainAgentIds);
-    // let ids = [];
+    let ids = [];
     let agents = await db.AgentModel.findAll({
       where: {
         userId: user.id,
-        mainAgentId: {
-          [db.Sequelize.Op.in]: mainAgentIds,
+      },
+    });
+
+    if (agents && agents.length > 0) {
+      ids = agents.map((item) => item.id);
+    }
+
+    await db.DailyNotificationModel.create({
+      userId: user.id,
+    });
+
+    const last24Hours = new Date();
+    last24Hours.setHours(last24Hours.getHours() - 240);
+
+    let hotleads = await db.LeadCallsSent.count({
+      where: {
+        agentId: {
+          [db.Sequelize.Op.in]: ids,
+        },
+        hotlead: true,
+        createdAt: {
+          [db.Sequelize.Op.gte]: last24Hours,
         },
       },
     });
-    console.log("Total subaagents ", agents?.length);
-    await db.DailyNotificationModel.create({
-      userId: u.id,
-    });
-    for (const agent of agents) {
-      let hotleads = await db.LeadCallsSent.count({
-        where: {
-          agentId: agent.id,
-          hotlead: true,
+
+    let totalCalls = await db.LeadCallsSent.count({
+      where: {
+        agentId: {
+          [db.Sequelize.Op.in]: ids,
         },
-      });
-      if (hotleads > 0) {
-        await AddNotification(
-          u,
-          null,
-          NotificationTypes.TotalHotlead,
-          null,
-          agent,
-          null
-        );
-      } else {
-        console.log("Hotleads are less than 1");
-      }
+
+        createdAt: {
+          [db.Sequelize.Op.gte]: last24Hours,
+        },
+      },
+    });
+
+    console.log(`Calls made by ${user.name} | ${totalCalls}`);
+    if (totalCalls > 1) {
+      await AddNotification(
+        user,
+        null,
+        NotificationTypes.CallsMadeByAgent,
+        null,
+        null,
+        null,
+        0,
+        totalCalls
+      );
+    }
+    if (hotleads > 1) {
+      await AddNotification(
+        user,
+        null,
+        NotificationTypes.TotalHotlead,
+        null,
+        null,
+        null,
+        hotleads,
+        0
+      );
+    } else {
+      // console.log("Hotleads are less than 1");
     }
   } catch (error) {
-    console.log("Error adding not ");
+    console.log("Error adding not ", error);
   }
 }
+
+// async function SendNotificationsForHotlead(user) {
+//   try {
+//     let agentsAssignedToCadence = await db.PipelineCadence.findAll();
+//     let mainAgentIds = [];
+//     if (agentsAssignedToCadence && agentsAssignedToCadence.length > 0) {
+//       mainAgentIds = agentsAssignedToCadence.map((agent) => agent.mainAgentId);
+//     }
+
+//     console.log("Assigned agents ", mainAgentIds);
+//     // let ids = [];
+//     let agents = await db.AgentModel.findAll({
+//       where: {
+//         userId: user.id,
+//         mainAgentId: {
+//           [db.Sequelize.Op.in]: mainAgentIds,
+//         },
+//       },
+//     });
+//     console.log("Total subaagents ", agents?.length);
+//     await db.DailyNotificationModel.create({
+//       userId: u.id,
+//     });
+//     for (const agent of agents) {
+//       let hotleads = await db.LeadCallsSent.count({
+//         where: {
+//           agentId: agent.id,
+//           hotlead: true,
+//         },
+//       });
+//       if (hotleads > 0) {
+//         await AddNotification(
+//           u,
+//           null,
+//           NotificationTypes.TotalHotlead,
+//           null,
+//           agent,
+//           null
+//         );
+//       } else {
+//         console.log("Hotleads are less than 1");
+//       }
+//     }
+//   } catch (error) {
+//     console.log("Error adding not ");
+//   }
+// }

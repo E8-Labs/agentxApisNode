@@ -307,7 +307,7 @@ export const DeleteLead = async (req, res) => {
       res.send({
         status: true,
         message: `Lead deleted`,
-        data: leadDel,
+        data: null,
       });
     } else {
       res.send({
@@ -709,11 +709,12 @@ export const GetLeads = async (req, res) => {
         // Build filters for leads
         const leadFilters = { sheetId, status: "active" };
         if (fromDate && toDate) {
-          const adjustedToDate = new Date(toDate);
-          adjustedToDate.setDate(adjustedToDate.getDate() + 1);
+          const adjustedFromDate = new Date(fromDate);
+          adjustedFromDate.setHours(0, 0, 0, 0);
 
-          const adjustedFromDate = new Date(toDate);
-          adjustedFromDate.setDate(adjustedToDate.getDate() - 1);
+          // Set endDate to the end of the day (23:59:59.999)
+          const adjustedToDate = new Date(toDate);
+          adjustedToDate.setHours(23, 59, 59, 999);
           let dates = [adjustedFromDate, adjustedToDate];
           console.log("Dates ", dates);
           leadFilters.createdAt = {
@@ -1179,8 +1180,17 @@ export const GetCallLogs = async (req, res) => {
         }
 
         if (startDate && endDate) {
+          const adjustedFromDate = new Date(startDate);
+          adjustedFromDate.setHours(0, 0, 0, 0);
+
+          // Set endDate to the end of the day (23:59:59.999)
+          const adjustedToDate = new Date(endDate);
+          adjustedToDate.setHours(23, 59, 59, 999);
+          let dates = [adjustedFromDate, adjustedToDate];
+          console.log("Dates ", dates);
+
           filters.createdAt = {
-            [Op.between]: [new Date(startDate), new Date(endDate)],
+            [Op.between]: dates,
           };
         }
 
