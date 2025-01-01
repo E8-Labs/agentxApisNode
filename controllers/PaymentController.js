@@ -189,7 +189,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
       let history = await db.PlanHistory.findAll({
         where: {
           userId: user.id,
-          // environment: process.env.ENV
+          environment: process.env.Environment,
         },
         order: [["createdAt", "DESC"]],
       });
@@ -210,6 +210,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             type: foundPlan.type,
             price: foundPlan.price,
             status: "active",
+            environment: process.env.Environment,
           });
 
           //set user trial mode
@@ -249,6 +250,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               type: foundPlan.type,
               price: foundPlan.price,
               status: "active",
+              environment: process.env.Environment,
             });
             console.log(
               `User ${user.name} has ${user.totalSecondsAvailable} seconds`
@@ -272,6 +274,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   type: foundPlan.type,
                   price: foundPlan.price,
                   userId: user.id,
+                  environment: process.env.Environment,
                 });
                 user.totalSecondsAvailable += foundPlan.duration;
                 await user.save();
@@ -324,6 +327,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   type: foundPlan.type,
                   price: foundPlan.price,
                   status: "active",
+                  environment: process.env.Environment,
                 });
               }
             } else {
@@ -332,6 +336,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                 type: foundPlan.type,
                 price: foundPlan.price,
                 status: "active",
+                environment: process.env.Environment,
               });
             }
             let TotalSeconds = foundPlan.duration;
@@ -343,6 +348,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               type: foundPlan.type,
               price: foundPlan.price,
               userId: user.id,
+              environment: process.env.Environment,
             });
 
             return res.send({
@@ -498,6 +504,7 @@ export async function ReChargeUserAccount(user) {
         type: foundPlan.type,
         price: foundPlan.price,
         userId: user.id,
+        environment: process.env.Environment,
       });
       user.totalSecondsAvailable += foundPlan.duration;
       await user.save();
