@@ -18,6 +18,7 @@ import LeadModel from "../models/lead/lead.js";
 import { AssignLeads } from "./pipelineController.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
+import LeadImportantCallResource from "../resources/LeadImportantCallResource.js";
 
 const limit = 500;
 /**
@@ -1263,6 +1264,91 @@ export const GetCallLogs = async (req, res) => {
         data: leadSheets,
         message: "Lead Sheets List",
       });
+    } else {
+      return res.status(403).json({ success: false, error: "Unauthorized" });
+    }
+  });
+};
+
+export const GetImportantCalls = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let offset = Number(req.query.offset) || 0;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      console.log("user ", user.id);
+
+      try {
+        // Query to fetch call logs
+        let agentIds = [];
+        let agents = await db.AgentModel.findAll({
+          where: {
+            userId: user.id,
+          },
+        });
+        if (agents && agents.length > 0) {
+          agentIds = agents.map((agent) => agent.id);
+        }
+
+        console.log("Agent ids ", agents.length);
+        const callLogs = await db.LeadCallsSent.findAll({
+          where: {
+            agentId: {
+              [db.Sequelize.Op.in]: agentIds,
+            },
+            call_review_worthy: true,
+          },
+          order: [["createdAt", "DESC"]],
+          offset: offset,
+          limit: limit,
+          include: [
+            {
+              model: db.LeadModel,
+              as: "LeadModel",
+              where: {
+                userId,
+              },
+            },
+            {
+              model: db.PipelineStages,
+              as: "PipelineStages",
+            },
+          ],
+        });
+
+        let leadIds = [];
+        if (callLogs && callLogs.length > 0) {
+          leadIds = callLogs.map((call) => call.leadId);
+          console.log("Lead ids ", leadIds);
+          let leads = await db.LeadModel.findAll({
+            where: {
+              id: {
+                [db.Sequelize.Op.in]: leadIds,
+              },
+            },
+          });
+
+          let leadsRes = await LeadImportantCallResource(leads);
+          return res.send({
+            status: true,
+            data: leadsRes,
+            message: "Lead important calls",
+          });
+        } else {
+          return res.send({
+            status: false,
+            data: null,
+            message: "Lead important calls",
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching call logs:", error);
+        return res.status(500).json({ success: false, error: "Server error" });
+      }
     } else {
       return res.status(403).json({ success: false, error: "Unauthorized" });
     }
