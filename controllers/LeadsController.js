@@ -550,16 +550,22 @@ export const DeleteList = async (req, res) => {
       let sheet = await db.LeadSheetModel.findByPk(sheetId);
 
       if (sheet) {
-        await db.LeadModel.destroy({
-          where: {
-            sheetId: sheetId,
-          },
-        });
-        await db.LeadSheetModel.destroy({
-          where: {
-            id: sheetId,
-          },
-        });
+        await db.LeadModel.udpate(
+          { status: "deleted" },
+          {
+            where: {
+              sheetId: sheetId,
+            },
+          }
+        );
+        await db.LeadSheetModel.update(
+          { status: "deleted" },
+          {
+            where: {
+              id: sheetId,
+            },
+          }
+        );
       }
 
       let leadDel = await db.LeadModel.destroy({
@@ -596,6 +602,7 @@ export const GetSheets = async (req, res) => {
       let leadSheets = await db.LeadSheetModel.findAll({
         where: {
           userId: userId,
+          status: "active",
         },
         include: [
           {

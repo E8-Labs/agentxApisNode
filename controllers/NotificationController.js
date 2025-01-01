@@ -116,6 +116,12 @@ export const GetNotifications = async (req, res) => {
           id: userId,
         },
       });
+      if (!user) {
+        res.send({
+          status: false,
+          message: "Unauthenticated user",
+        });
+      }
 
       let nots = await db.NotificationModel.findAll({
         where: {
