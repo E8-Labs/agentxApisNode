@@ -5,6 +5,11 @@ const LeadSheetModel = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: "",
     },
+    status: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: "active",
+    },
 
     userId: {
       type: Sequelize.INTEGER,

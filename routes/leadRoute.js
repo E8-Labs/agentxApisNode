@@ -9,6 +9,7 @@ import {
   GetLeads,
   GetUniqueColumns,
   GetCallLogs,
+  GetImportantCalls,
   DeleteList,
   AddLeadNote,
   AddLeadTag,
@@ -43,6 +44,7 @@ LeadRouter.post("/deleteList", verifyJwtToken, DeleteList);
 LeadRouter.get("/getLeads", verifyJwtToken, uploadFiles, GetLeads);
 LeadRouter.get("/getSheets", verifyJwtToken, uploadFiles, GetSheets);
 LeadRouter.get("/callLogs", verifyJwtToken, GetCallLogs);
+LeadRouter.get("/importantCalls", verifyJwtToken, GetImportantCalls);
 LeadRouter.get(
   "/getUniqueColumns",
   verifyJwtToken,
