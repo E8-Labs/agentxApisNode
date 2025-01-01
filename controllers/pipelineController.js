@@ -217,7 +217,7 @@ export const CreatePipelineStage = async (req, res) => {
         order: order,
         advancedConfig: advanced ? JSON.stringify(advanced) : null,
         actionId: actionId,
-        identifier: stageTitle.toLowerCase(),
+        identifier: "custom_stage_" + stageTitle.toLowerCase(),
       });
 
       if (tags) {
@@ -345,7 +345,12 @@ export const DeletePipelineStage = async (req, res) => {
 
       let pipeline = await db.Pipeline.findByPk(pipelineId);
       let stage = await db.PipelineStages.findByPk(stageId);
-
+      if (stage.identifier == "new_lead") {
+        return res.send({
+          status: false,
+          message: "New Lead stage can not be deleted",
+        });
+      }
       //Check whether this stage have active cadence or assigned agents.
       //Then use the logics accordingly.
 

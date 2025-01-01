@@ -280,10 +280,10 @@ async function GetCompletePromptTextFrom(
   console.log("Data json");
   console.log(extraColumns);
   for (const key of keys) {
-    console.log(`Replacing key ${key} `);
+    // console.log(`Replacing key ${key} `);
     if (extraColumns) {
       let value = extraColumns[key];
-      console.log(`Replacing key ${key} with ${value}`);
+      // console.log(`Replacing key ${key} with ${value}`);
       if (value) {
         const regex = new RegExp(`\\{${key}\\}`, "gi"); // Create a dynamic regex to match `${key}`
         //console.log(`replacing ${key} with ${value}`);
@@ -292,7 +292,7 @@ async function GetCompletePromptTextFrom(
       }
     }
   }
-  console.log("Greeting after replacing is ", greeting);
+  // console.log("Greeting after replacing is ", greeting);
   // return;
   let guardrails = await db.ObjectionAndGuradrails.findAll({
     where: {
@@ -387,6 +387,15 @@ export async function addCallTry(
   callId = null
 ) {
   try {
+    console.log("Line 390", {
+      leadCadence,
+      lead,
+      assistant,
+      calls,
+      batchId,
+      status,
+      callId,
+    });
     let callTry = await db.LeadCallTriesModel.create({
       leadId: leadCadence?.leadId,
       leadCadenceId: leadCadence?.id,
@@ -402,8 +411,10 @@ export async function addCallTry(
       status: status,
       batchId: batchId,
     });
+    console.log("Line 406", callTry);
     return callTry;
   } catch (error) {
+    console.log("Error adding call try ", error);
     return null;
   }
 }
@@ -828,8 +839,9 @@ async function initiateCall(
         };
       }
     } else {
+      console.log("Adding call try error ");
       await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
-      console.log("Call Failed with", json);
+      console.log("Call Failed with line 834", json);
       if (json.status == "error") {
         if (leadCadence) {
           // leadCadence.status = CadenceStatus.Errored;
@@ -1856,7 +1868,7 @@ export const AddKyc = async (req, res) => {
               if (kyc.category == "urgency") {
                 kycSellerUrgencyText = `${kycSellerUrgencyText}\n{${kyc.question}}`;
               }
-              console.log("replacing kyc ", kycSellerText);
+              // console.log("replacing kyc ", kycSellerText);
             } else {
               newBuyerKycCount += 1;
               kycBuyerText = `${kycBuyerText}\n{${kyc.question}}`;
@@ -1919,10 +1931,10 @@ export const AddKyc = async (req, res) => {
             kycBuyerBefore.length == 0 &&
             newBuyerKycCount > 0
           ) {
-            console.log(
-              "No Buyer kyc already added replacing buyer",
-              kycBuyerText
-            );
+            // console.log(
+            //   "No Buyer kyc already added replacing buyer",
+            //   kycBuyerText
+            // );
             kycBuyerText = `Buyer Motivation:\n${kycBuyerMotivationText}\nBuyer Need:\n${kycBuyerNeedsText}\nuyer Urgency:\n${kycBuyerUrgencyText}\n`;
             for (let p of prompts) {
               let callScript = p.callScript;
@@ -1937,10 +1949,10 @@ export const AddKyc = async (req, res) => {
             kycSellerBefore.length == 0 &&
             newSellerKycCount > 0
           ) {
-            console.log(
-              "No seller kyc already added replacing seller",
-              kycSellerText
-            );
+            // console.log(
+            //   "No seller kyc already added replacing seller",
+            //   kycSellerText
+            // );
             kycSellerText = `Seller Motivation:\n${kycSellerMotivationText}\nSeller Need:\n${kycSellerNeedsText}\nSeller Urgency:\n${kycSellerUrgencyText}\n`;
             for (let p of prompts) {
               let callScript = p.callScript;

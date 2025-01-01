@@ -96,7 +96,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       console.log("Main Agent", mainAgent);
       let pipelineStageForLead = await db.PipelineStages.findByPk(lead.stage);
       console.log(
-        `Found Lead ${lead.firstName} at stage ${pipelineStageForLead.stageTitle} in Pipeline ${pipeline.title} Assigned to ${mainAgent.name}`
+        `Found Lead ${lead?.firstName} at stage ${pipelineStageForLead?.stageTitle} in Pipeline ${pipeline?.title} Assigned to ${mainAgent?.name}`
       );
       // console.log("###############################################################################################################\n")
       //Since this would be the first stage lead, no calls have been sent to him as of now. We will not check
@@ -185,13 +185,13 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 
               lead.stage = null;
               await lead.save();
-              let called = await MakeACall(
-                leadCad,
-                simulate,
-                calls,
-                batch.id,
-                true
-              ); //maxTriesReached = true
+              // let called = await MakeACall(
+              //   leadCad,
+              //   simulate,
+              //   calls,
+              //   batch.id,
+              //   true
+              // ); //maxTriesReached = true
             }
             //if you want to simulate
             //let called = await MakeACall(leadCad, true, calls);
@@ -222,25 +222,46 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           },
         });
         try {
-          let called = await MakeACall(leadCad, simulate, calls, batch.id);
-          console.log("First Call initiated", called);
-          if (called.status) {
-            //set the lead cadence status to Started so that next time it don't get pushed to the funnel
-            // leadCad.callTriggerTime = new Date();
-            // leadCad.status = CadenceStatus.Started;
-            let updated = await db.LeadCadence.update(
-              {
-                status: CadenceStatus.Started,
-                callTriggerTime: new Date(),
-              },
-              {
-                where: {
-                  batchId: leadCad.batchId,
+          let tries = await db.LeadCallTriesModel.count({
+            where: {
+              leadCadenceId: leadCad.id,
+              stage: lead.stage,
+              mainAgentId: mainAgent.id,
+              status: "error",
+            },
+          });
+          console.log(
+            `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
+          );
+          if (tries < 3) {
+            let called = await MakeACall(leadCad, simulate, calls, batch.id);
+            console.log("First Call initiated", called);
+            if (called.status) {
+              //set the lead cadence status to Started so that next time it don't get pushed to the funnel
+              // leadCad.callTriggerTime = new Date();
+              // leadCad.status = CadenceStatus.Started;
+              let updated = await db.LeadCadence.update(
+                {
+                  status: CadenceStatus.Started,
+                  callTriggerTime: new Date(),
                 },
-              }
-            );
-            // let saved = await leadCad.save();
+                {
+                  where: {
+                    batchId: leadCad.batchId,
+                  },
+                }
+              );
+              // let saved = await leadCad.save();
+            }
+          } else {
+            //set cad errored
+            leadCad.status = CadenceStatus.Errored;
+            let saved = await leadCad?.save();
+
+            lead.stage = null;
+            await lead.save();
           }
+
           //if you want to simulate
           //let called = await MakeACall(leadCad, true, calls);
         } catch (error) {
