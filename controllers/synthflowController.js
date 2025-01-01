@@ -411,7 +411,7 @@ export async function addCallTry(
       status: status,
       batchId: batchId,
     });
-    console.log("Line 406");
+    console.log("Line 406", callTry);
     return callTry;
   } catch (error) {
     console.log("Error adding call try ", error);
