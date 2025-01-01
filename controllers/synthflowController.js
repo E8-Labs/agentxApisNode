@@ -387,6 +387,15 @@ export async function addCallTry(
   callId = null
 ) {
   try {
+    console.log("Line 390", {
+      leadCadence,
+      lead,
+      assistant,
+      calls,
+      batchId,
+      status,
+      callId,
+    });
     let callTry = await db.LeadCallTriesModel.create({
       leadId: leadCadence?.leadId,
       leadCadenceId: leadCadence?.id,
@@ -402,9 +411,10 @@ export async function addCallTry(
       status: status,
       batchId: batchId,
     });
+    console.log("Line 406");
     return callTry;
   } catch (error) {
-    console.log("Error adding call try ");
+    console.log("Error adding call try ", error);
     return null;
   }
 }
