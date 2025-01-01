@@ -441,10 +441,10 @@ export const SendPhoneVerificationCode = async (req, res) => {
     });
     try {
       if (testNumbers.includes(phone)) {
-        let sent = await sendSMS(
-          phone,
-          `This is your verification code for AgentX ${randomCode}`
-        );
+        // let sent = await sendSMS(
+        //   phone,
+        //   `This is your verification code for AgentX ${randomCode}`
+        // );
         res.send({ status: true, message: "Code sent", code: null });
       } else {
         let sent = await sendSMS(
