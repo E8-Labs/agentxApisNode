@@ -404,6 +404,7 @@ export async function addCallTry(
     });
     return callTry;
   } catch (error) {
+    console.log("Error adding call try ");
     return null;
   }
 }
