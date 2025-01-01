@@ -401,6 +401,13 @@ export function generateRandomCode(length = 7) {
 
 export const SendPhoneVerificationCode = async (req, res) => {
   let phone = req.body.phone;
+  let testNumbers = [
+    "+14086799068",
+    "923058191079",
+    "923281575712",
+    "923011958712",
+  ];
+
   console.log(`Phone number is ${phone}`);
   let login = req.body.login || false;
   if (phone == null || phone == "") {
@@ -433,11 +440,19 @@ export const SendPhoneVerificationCode = async (req, res) => {
       code: `${randomCode}`,
     });
     try {
-      let sent = await sendSMS(
-        phone,
-        `This is your verification code for AgentX ${randomCode}`
-      );
-      res.send({ status: true, message: "Code sent", code: sent });
+      if (testNumbers.includes(phone)) {
+        let sent = await sendSMS(
+          phone,
+          `This is your verification code for AgentX ${randomCode}`
+        );
+        res.send({ status: true, message: "Code sent", code: null });
+      } else {
+        let sent = await sendSMS(
+          phone,
+          `This is your verification code for AgentX ${randomCode}`
+        );
+        res.send({ status: true, message: "Code sent", code: null });
+      }
     } catch (error) {
       console.log("Exception email", error);
     }
