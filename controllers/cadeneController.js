@@ -96,7 +96,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       console.log("Main Agent", mainAgent);
       let pipelineStageForLead = await db.PipelineStages.findByPk(lead.stage);
       console.log(
-        `Found Lead ${lead.firstName} at stage ${pipelineStageForLead.stageTitle} in Pipeline ${pipeline.title} Assigned to ${mainAgent.name}`
+        `Found Lead ${lead?.firstName} at stage ${pipelineStageForLead?.stageTitle} in Pipeline ${pipeline?.title} Assigned to ${mainAgent?.name}`
       );
       // console.log("###############################################################################################################\n")
       //Since this would be the first stage lead, no calls have been sent to him as of now. We will not check
