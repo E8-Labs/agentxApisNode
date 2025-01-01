@@ -55,6 +55,9 @@ export const GetDashboardData = async (req, res) => {
         where: {
           mainAgentId: { [db.Sequelize.Op.in]: agentIds },
           createdAt: { [db.Sequelize.Op.between]: [startDate, today] },
+          // duration: {
+          //   [db.Sequelize.Op.gte]: 10
+          // }
         },
       });
 
@@ -70,6 +73,7 @@ export const GetDashboardData = async (req, res) => {
       // Initialize stats
       let stats = {
         totalDuration: 0,
+        totalDurationGt10: 0,
         totalCalls: 0,
         totalCallsGt10: 0,
         notInterested: 0,
@@ -144,8 +148,8 @@ export const GetDashboardData = async (req, res) => {
       };
 
       let avDuration = 0;
-      if (callsInCurrentPeriod && callsInCurrentPeriod.length > 0) {
-        avDuration = stats.totalDuration / callsInCurrentPeriod.length;
+      if (stats.totalCallsGt10 > 0) {
+        avDuration = stats.totalDurationGt10 / stats.totalCallsGt10;
       }
       let formattedAvDuration = formatDuration(avDuration);
 

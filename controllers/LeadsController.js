@@ -551,7 +551,7 @@ export const DeleteList = async (req, res) => {
       let sheet = await db.LeadSheetModel.findByPk(sheetId);
 
       if (sheet) {
-        await db.LeadModel.udpate(
+        await db.LeadModel.update(
           { status: "deleted" },
           {
             where: {
