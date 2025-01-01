@@ -567,19 +567,18 @@ export const DeleteList = async (req, res) => {
             },
           }
         );
+        return res.send({
+          status: true,
+          message: `Sheet deleted`,
+          data: null,
+        });
+      } else {
+        return res.send({
+          status: false,
+          message: `No such sheet`,
+          data: null,
+        });
       }
-
-      let leadDel = await db.LeadModel.destroy({
-        where: {
-          sheetId: sheet.id,
-        },
-      });
-
-      res.send({
-        status: true,
-        message: `Sheet deleted`,
-        data: null,
-      });
     } else {
       res.send({
         status: false,
