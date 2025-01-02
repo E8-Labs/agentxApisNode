@@ -295,6 +295,14 @@ export const DeleteLead = async (req, res) => {
           },
         }
       );
+      let leadUpdated = await db.LeadModel.update(
+        { stage: null },
+        {
+          where: {
+            id: leadId,
+          },
+        }
+      );
       // }
 
       res.send({
@@ -549,7 +557,7 @@ export const DeleteList = async (req, res) => {
 
       if (sheet) {
         await db.LeadModel.update(
-          { status: "deleted" },
+          { status: "deleted", stage: null },
           {
             where: {
               sheetId: sheetId,
