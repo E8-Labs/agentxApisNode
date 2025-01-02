@@ -55,6 +55,7 @@ import PhoneVerificationCodeModel from "./user/PhoneVerificationCodeModel.js";
 
 import NotificationModel from "./user/NotificationModel.js";
 import { DailyNotificationModel } from "./user/DailyNotification.js";
+import TeamModel from "./user/team/TeamModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -95,6 +96,16 @@ db.User.hasMany(db.UserPhoneNumbers, {
 db.UserPhoneNumbers.belongsTo(db.User, {
   foreignKey: "userId",
   as: "user",
+});
+
+db.TeamModel = TeamModel(sequelize, Sequelize);
+db.User.hasMany(db.TeamModel, {
+  foreignKey: "invitingUserId",
+  as: "InvitingUser",
+});
+db.User.hasMany(db.TeamModel, {
+  foreignKey: "invitedUserId",
+  as: "InvitedUser",
 });
 
 db.PhoneVerificationCodeModel = PhoneVerificationCodeModel(

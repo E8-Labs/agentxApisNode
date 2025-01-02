@@ -123,6 +123,17 @@ export const GetNotifications = async (req, res) => {
         });
       }
 
+      let notsUpdated = await db.NotificationModel.update(
+        {
+          isSeen: true,
+        },
+        {
+          where: {
+            userId: user.id,
+          },
+        }
+      );
+
       let nots = await db.NotificationModel.findAll({
         where: {
           userId: user.id,
