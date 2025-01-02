@@ -591,7 +591,7 @@ export const GetSheets = async (req, res) => {
     if (authData) {
       let userId = authData.user.id;
       let admin = req.admin;
-      console.log("Admin is ", admin.id);
+      console.log("Admin is ", admin?.id);
       console.log("Current User is ", userId);
 
       let user = await db.User.findOne({

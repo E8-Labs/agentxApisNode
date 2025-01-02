@@ -81,6 +81,7 @@ export const verifyJwtTokenWithTeam = async (req, response, next) => {
     });
     let user = authData.user;
     if (user.userRole == UserRole.Invitee) {
+      req.admin = user;
       console.log("User is invited");
       let invite = await db.TeamModel.findOne({
         where: {
@@ -93,6 +94,8 @@ export const verifyJwtTokenWithTeam = async (req, response, next) => {
         req.admin = admin;
         console.log("Found admin", admin);
       }
+    } else {
+      req.admin = user;
     }
     next();
   } else if (typeof apiKeyHeaders !== "undefined") {
