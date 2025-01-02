@@ -20,6 +20,8 @@ export async function GetTeamIds(user) {
         teamIds.push(team.invitingUserId);
       }
     });
+  } else {
+    teamIds.push(user.id);
   }
 
   return teamIds;
