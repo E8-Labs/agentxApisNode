@@ -66,6 +66,7 @@ app.use((req, res, next) => {
 const allowedOrigins = [
   "https://agentx-umber.vercel.app",
   "http://localhost:3000",
+  "https://ai.myagentx.com",
   "https://yet-another-allowed-origin.com",
 ];
 
