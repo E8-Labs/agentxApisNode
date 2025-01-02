@@ -41,11 +41,13 @@ import {
   createThumbnailAndUpload,
   uploadMedia,
 } from "../utils/mediaservice.js";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 //Generate Prompt
 
+//user is admin user
 async function getInboudPromptText(prompt, assistant, user) {
   let callScript = prompt.callScript;
 
@@ -157,6 +159,7 @@ Stick to this rule to maintain control and professionalism in call handling.
 
   return text;
 }
+//user is admin user
 async function GetCompletePromptTextFrom(
   prompt,
   user,
@@ -419,6 +422,7 @@ export async function addCallTry(
   }
 }
 
+//user is admin user
 export async function CanMakeCalls(user) {
   let canMake = true;
 
@@ -588,6 +592,8 @@ export const TestAI = async (req, res) => {
         },
       });
 
+      let admin = await GetTeamAdminFor(user);
+
       let agent = await db.AgentModel.findByPk(agentId);
       if (!agent) {
         return res.send({
@@ -687,7 +693,7 @@ export const TestAI = async (req, res) => {
       try {
         let basePrompt = await GetCompletePromptTextFrom(
           prompt,
-          user,
+          admin,
           agent,
           lead,
           true // test is set to true
@@ -928,6 +934,7 @@ export async function GetVoices(req, res) {
   }
 }
 
+//user = admin of the account
 async function CreatePromptForAgent(
   user,
   mainAgent,
@@ -985,6 +992,7 @@ async function CreatePromptForAgent(
   }
 }
 
+//Updated for Team Flow
 export const BuildAgent = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -994,6 +1002,8 @@ export const BuildAgent = async (req, res) => {
           id: userId,
         },
       });
+
+      let admin = await GetTeamAdminFor(user);
       console.log("BuildAgent", req.body);
 
       const name = req.body.name;
@@ -1085,7 +1095,7 @@ export const BuildAgent = async (req, res) => {
           //create Agent Sythflow
 
           let data = {
-            userId: user.id,
+            userId: admin.id,
             name: name,
             agentRole: agentRole,
             agentObjective,
@@ -1098,7 +1108,7 @@ export const BuildAgent = async (req, res) => {
             // prompt: selectedObjective.prompt,
           };
           let createdOutboundPrompt = await CreatePromptForAgent(
-            user,
+            admin,
             mainAgent,
             name,
             CUStatus,
@@ -1109,7 +1119,7 @@ export const BuildAgent = async (req, res) => {
             selectedObjective
           );
           let createdInboundPrompt = await CreatePromptForAgent(
-            user,
+            admin,
             mainAgent,
             name,
             CUStatus,
@@ -1126,7 +1136,7 @@ export const BuildAgent = async (req, res) => {
             inboundPromptText = await getInboudPromptText(
               createdInboundPrompt,
               { ...data, callbackNumber: null, liveTransferNumber: null },
-              user
+              admin
             );
             data.prompt = inboundPromptText; //uncomment if we want to push the prompt to synthflow
           }
@@ -1153,7 +1163,7 @@ export const BuildAgent = async (req, res) => {
           );
         } else {
           let data = {
-            userId: user.id,
+            userId: admin.id,
             name: name,
             agentRole: agentRole,
             agentObjective,
@@ -1166,7 +1176,7 @@ export const BuildAgent = async (req, res) => {
             // prompt: selectedObjective.prompt,
           };
           let created = await CreatePromptForAgent(
-            user,
+            admin,
             mainAgent,
             name,
             CUStatus,
@@ -1182,7 +1192,7 @@ export const BuildAgent = async (req, res) => {
             data.prompt = await getInboudPromptText(
               created,
               { ...data, callbackNumber: null, liveTransferNumber: null },
-              user
+              admin
             );
           }
           // console.log("Prompt ");
@@ -1215,6 +1225,7 @@ export const BuildAgent = async (req, res) => {
   });
 };
 
+//Updated For team flow
 export const UpdateAgent = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -1224,6 +1235,7 @@ export const UpdateAgent = async (req, res) => {
           id: userId,
         },
       });
+      let admin = await GetTeamAdminFor(user);
 
       let mainAgentId = req.body.mainAgentId;
       let agent = await db.MainAgentModel.findByPk(mainAgentId);
@@ -1535,6 +1547,7 @@ export const DeleteAgent = async (req, res) => {
   });
 };
 
+//Updated For Team Flow
 export const GetAgents = async (req, res) => {
   let { agentType, pipelineId } = req.query;
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -1547,9 +1560,14 @@ export const GetAgents = async (req, res) => {
         },
       });
 
+      let teamIds = await GetTeamIds(user);
+      let admin = await GetTeamAdminFor(user);
+
       let agents = await db.MainAgentModel.findAll({
         where: {
-          userId: user.id,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
         },
         order: [["createdAt", "DESC"]],
       });
@@ -1562,11 +1580,12 @@ export const GetAgents = async (req, res) => {
             message: "No such pipeline",
           });
         }
-        if (pipeline.userId != user.id) {
+        if (!teamIds.includes(pipeline.userId)) {
+          //Old condition before team logic: pipeline.userId != user.id
           return res.status(403).send({
             status: false,
             data: null,
-            message: "This pipeline doesn't belong to this user",
+            message: "This pipeline doesn't belong to this team",
           });
         }
         let cadenceAgents = await db.PipelineCadence.findAll({

@@ -2,7 +2,7 @@
 
 import express from "express";
 import multer from "multer";
-import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
+import { verifyJwtTokenWithTeam } from "../middleware/jwtmiddleware.js";
 const uploadFiles = multer().fields([{ name: "media", maxCount: 1 }]);
 
 import {
@@ -12,10 +12,10 @@ import {
 
 let teamRouter = express.Router();
 
-teamRouter.get("/getTeamMembers", verifyJwtToken, GetTeamMembers);
+teamRouter.get("/getTeamMembers", verifyJwtTokenWithTeam, GetTeamMembers);
 teamRouter.post(
   "/inviteTeamMember",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   InviteTeamMember
 );

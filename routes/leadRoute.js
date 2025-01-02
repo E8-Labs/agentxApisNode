@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 
-import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
+import { verifyJwtTokenWithTeam } from "../middleware/jwtmiddleware.js";
 import {
   AddLeads,
   GetSheets,
@@ -32,26 +32,36 @@ const uploadMedia = multer().fields([
 
 let LeadRouter = express.Router();
 
-LeadRouter.post("/addLeads", verifyJwtToken, AddLeads);
-LeadRouter.post("/deleteLead", verifyJwtToken, DeleteLead);
-LeadRouter.post("/updateLeadStage", verifyJwtToken, UpdateLeadStage);
-LeadRouter.get("/leadDetail", verifyJwtToken, GetLeadDetail);
-LeadRouter.post("/addLeadNote", verifyJwtToken, uploadFiles, AddLeadNote);
-LeadRouter.post("/addLeadTag", verifyJwtToken, uploadFiles, AddLeadTag);
-LeadRouter.post("/deleteLeadTag", verifyJwtToken, uploadFiles, DeleteLeadTag);
-LeadRouter.post("/addSmartList", verifyJwtToken, AddSmartList);
-LeadRouter.post("/deleteList", verifyJwtToken, DeleteList);
-LeadRouter.get("/getLeads", verifyJwtToken, uploadFiles, GetLeads);
-LeadRouter.get("/getSheets", verifyJwtToken, uploadFiles, GetSheets);
-LeadRouter.get("/callLogs", verifyJwtToken, GetCallLogs);
-LeadRouter.get("/importantCalls", verifyJwtToken, GetImportantCalls);
+LeadRouter.post("/addLeads", verifyJwtTokenWithTeam, AddLeads);
+LeadRouter.post("/deleteLead", verifyJwtTokenWithTeam, DeleteLead);
+LeadRouter.post("/updateLeadStage", verifyJwtTokenWithTeam, UpdateLeadStage);
+LeadRouter.get("/leadDetail", verifyJwtTokenWithTeam, GetLeadDetail);
+LeadRouter.post(
+  "/addLeadNote",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  AddLeadNote
+);
+LeadRouter.post("/addLeadTag", verifyJwtTokenWithTeam, uploadFiles, AddLeadTag);
+LeadRouter.post(
+  "/deleteLeadTag",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  DeleteLeadTag
+);
+LeadRouter.post("/addSmartList", verifyJwtTokenWithTeam, AddSmartList);
+LeadRouter.post("/deleteList", verifyJwtTokenWithTeam, DeleteList);
+LeadRouter.get("/getLeads", verifyJwtTokenWithTeam, uploadFiles, GetLeads);
+LeadRouter.get("/getSheets", verifyJwtTokenWithTeam, uploadFiles, GetSheets);
+LeadRouter.get("/callLogs", verifyJwtTokenWithTeam, GetCallLogs);
+LeadRouter.get("/importantCalls", verifyJwtTokenWithTeam, GetImportantCalls);
 LeadRouter.get(
   "/getUniqueColumns",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   GetUniqueColumns
 );
 
-LeadRouter.get("/getTagsList", verifyJwtToken, GetUniqueTags);
+LeadRouter.get("/getTagsList", verifyJwtTokenWithTeam, GetUniqueTags);
 
 export default LeadRouter;

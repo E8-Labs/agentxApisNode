@@ -19,6 +19,7 @@ import { parse, isValid, format } from "date-fns";
 import { DateTime } from "luxon";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 
 const convertToPacificTime = (isoString) => {
   // Parse the ISO string with the original timezone offset
@@ -332,7 +333,8 @@ export async function ScheduleEvent(req, res) {
   });
 
   let user = await db.User.findByPk(mainAgent.userId);
-
+  let admin = await GetTeamAdminFor(user);
+  let teamIds = await GetTeamIds(user);
   let filter = { mainAgentId: mainAgentId };
   if (agent) {
     filter.agentId = agent.id;
@@ -391,14 +393,18 @@ export async function ScheduleEvent(req, res) {
   let lead = await db.LeadModel.findOne({
     where: {
       phone: lead_phone,
-      userId: user.id,
+      userId: {
+        [db.Sequelize.Op.in]: teamIds,
+      },
     },
   });
   if (!lead) {
     lead = await db.LeadModel.findOne({
       where: {
         email: user_email,
-        userId: user.id,
+        userId: {
+          [db.Sequelize.Op.in]: teamIds,
+        },
       },
     });
   }
@@ -634,6 +640,8 @@ export async function GetUserConnectedCalendars(req, res) {
     if (authData) {
       let userId = authData.user.id;
       let user = await db.User.findByPk(userId);
+      let admin = await GetTeamAdminFor(user);
+      let teamIds = await GetTeamIds(user);
       const calendars = await db.CalendarIntegration.findAll({
         attributes: [
           "title",
@@ -646,7 +654,9 @@ export async function GetUserConnectedCalendars(req, res) {
           ], // Example: Fetch the latest createdAt if needed
         ],
         where: {
-          userId: userId,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
         },
         group: ["apiKey", "eventId", "title", "timeZone"], // Group by unique apiKey and eventId
         order: [

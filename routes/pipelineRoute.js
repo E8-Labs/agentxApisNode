@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 
-import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
+import { verifyJwtTokenWithTeam } from "../middleware/jwtmiddleware.js";
 import {
   CreatePipeline,
   CreatePipelineCadence,
@@ -33,81 +33,85 @@ let PipelineRouter = express.Router();
 
 PipelineRouter.post(
   "/getAgentCadence",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadMedia,
   GetAgentCadence
 );
 PipelineRouter.post(
   "/createPipeline",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadMedia,
   CreatePipeline
 );
 PipelineRouter.post(
   "/updatePipeline",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadMedia,
   UpdatePipeline
 );
 PipelineRouter.post(
   "/createStage",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadMedia,
   CreatePipelineStage
 );
 
 PipelineRouter.post(
   "/deletePipeline",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadMedia,
   DeletePipeline
 );
 
 PipelineRouter.post(
   "/updateStage",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadMedia,
   UpdatePipelineStage
 );
 PipelineRouter.post(
   "/reorderStages",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadMedia,
   ReorderPipelineStages
 );
 PipelineRouter.post(
   "/deletePipelineStage",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadMedia,
   DeletePipelineStage
 );
 PipelineRouter.post(
   "/pauseAgentCadence",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadMedia,
   PausePipelineCadenceForAnAgent
 );
 PipelineRouter.post(
   "/assignLeadsToPipeline",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadMedia,
   AssignLeadsToPipelineAndAgents
 );
 PipelineRouter.post(
   "/createPipelineCadence",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadMedia,
   CreatePipelineCadence
 );
 
 PipelineRouter.get(
   "/getPipeline",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadMedia,
   GetPipelineDetail
 );
-PipelineRouter.get("/getScheduledCalls", verifyJwtToken, GetScheduledCalls);
+PipelineRouter.get(
+  "/getScheduledCalls",
+  verifyJwtTokenWithTeam,
+  GetScheduledCalls
+);
 
-PipelineRouter.get("/getPipelines", verifyJwtToken, GetPipelines);
+PipelineRouter.get("/getPipelines", verifyJwtTokenWithTeam, GetPipelines);
 
 export default PipelineRouter;

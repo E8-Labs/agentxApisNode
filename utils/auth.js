@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import { UserRole } from "../models/user/userModel.js";
 
 export async function GetTeamIds(user) {
   let teams = await db.TeamModel.findAll({
@@ -22,4 +23,15 @@ export async function GetTeamIds(user) {
   }
 
   return teamIds;
+}
+
+export async function GetTeamAdminFor(user) {
+  let admin = user;
+  if (user.userRole == UserRole.Invitee) {
+    let invite = await db.TeamModel.findOne({
+      where: { invitedUserId: user.id },
+    });
+    admin = await db.User.findByPk(invite.invitingUserId);
+  }
+  return admin;
 }

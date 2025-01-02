@@ -364,7 +364,7 @@ function GetCalendarActionApiData(user, assistant) {
       `&mainAgentId=${assistant.mainAgentId}` +
       `&agentId=${assistant.id}`,
     run_action_before_call_start: false,
-    name: `Book Appointment With ${user.name}`,
+    name: `Book Appointment With ${assistant.name}`,
     description:
       "Use the Create a Booking action to schedule a meeting, appointment, or event directly in the user's calendar. Ensure the booking aligns with the user's preferences and availability to avoid conflicts.",
     speech_while_using_the_tool: "One second, let me check the calendar",

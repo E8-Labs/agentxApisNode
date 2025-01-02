@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 
-import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
+import { verifyJwtTokenWithTeam } from "../middleware/jwtmiddleware.js";
 import {
   AddCalendarCalDotCom,
   ScheduleEvent,
@@ -26,7 +26,7 @@ let CalendarRouter = express.Router();
 
 CalendarRouter.post(
   "/createCalendar",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   AddCalendarCalDotCom
 );
@@ -34,14 +34,14 @@ CalendarRouter.get("/getAvailability", uploadFiles, CheckCalendarAvailability);
 CalendarRouter.post("/schedule", uploadFiles, ScheduleEvent);
 CalendarRouter.get(
   "/calendars",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   GetUserConnectedCalendars
 );
 
 CalendarRouter.post(
   "/getScheduleForCalendar",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   GetCalendarSchedule
 );

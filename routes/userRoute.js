@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 
-import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
+import { verifyJwtTokenWithTeam } from "../middleware/jwtmiddleware.js";
 import {
   LoginUser,
   RegisterUser,
@@ -51,21 +51,21 @@ UserRouter.post("/sendVerificationCode", SendPhoneVerificationCode);
 UserRouter.post("/login", LoginUser);
 UserRouter.post("/register", uploadFiles, RegisterUser);
 
-UserRouter.post("/generateApiKey", verifyJwtToken, GenerateApiKey);
-UserRouter.get("/apiKeys", verifyJwtToken, GetMyApiKeys);
+UserRouter.post("/generateApiKey", verifyJwtTokenWithTeam, GenerateApiKey);
+UserRouter.get("/apiKeys", verifyJwtTokenWithTeam, GetMyApiKeys);
 
-UserRouter.post("/createWebhook", verifyJwtToken, CreateWebhook);
-UserRouter.post("/deleteWebhook", verifyJwtToken, DeleteWebhook);
-UserRouter.get("/getWebhooks", verifyJwtToken, GetAllWebhooks);
-UserRouter.get("/myProfile", verifyJwtToken, GetProfileMine);
+UserRouter.post("/createWebhook", verifyJwtTokenWithTeam, CreateWebhook);
+UserRouter.post("/deleteWebhook", verifyJwtTokenWithTeam, DeleteWebhook);
+UserRouter.get("/getWebhooks", verifyJwtTokenWithTeam, GetAllWebhooks);
+UserRouter.get("/myProfile", verifyJwtTokenWithTeam, GetProfileMine);
 UserRouter.get(
   "/getTransactionsHistory",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   GetTransactionsHistory
 );
 // getTransactionsHistory
 
-// UserRouter.post("/updateProfile", verifyJwtToken, uploadFiles, UpdateProfile);
+// UserRouter.post("/updateProfile", verifyJwtTokenWithTeam, uploadFiles, UpdateProfile);
 UserRouter.post("/checkPhoneNumber", CheckPhoneExists);
 // UserRouter.post("/checkUsernameExists", CheckUsernameExists);
 // UserRouter.get("/getProfileFromUsername", GetProfileWithUsername);
@@ -77,24 +77,32 @@ UserRouter.post("/checkEmailExists", CheckEmailExists);
 // UserRouter.post("/verifyEmail", VerifyEmailCode);
 
 //Payment
-UserRouter.post("/addPaymentMethod", verifyJwtToken, AddPaymentMethod);
-UserRouter.post("/subscribePlan", verifyJwtToken, SubscribePayasyougoPlan);
+UserRouter.post("/addPaymentMethod", verifyJwtTokenWithTeam, AddPaymentMethod);
+UserRouter.post(
+  "/subscribePlan",
+  verifyJwtTokenWithTeam,
+  SubscribePayasyougoPlan
+);
 UserRouter.post(
   "/setDefaultPaymentMethod",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   SetDefaultPaymentmethod
 );
 
-UserRouter.post("/cancelPlan", verifyJwtToken, CancelPlan);
+UserRouter.post("/cancelPlan", verifyJwtTokenWithTeam, CancelPlan);
 UserRouter.post(
   "/redeemAbortCancelReward",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   RedeemAbortCancellationReward
 );
-UserRouter.get("/getPaymentMethods", verifyJwtToken, GetPaymentmethods);
+UserRouter.get("/getPaymentMethods", verifyJwtTokenWithTeam, GetPaymentmethods);
 
-UserRouter.post("/updateProfile", verifyJwtToken, UpdateProfile);
+UserRouter.post("/updateProfile", verifyJwtTokenWithTeam, UpdateProfile);
 
-UserRouter.get("/notifications", verifyJwtToken, GetNotifications);
-UserRouter.post("/readAllNotifications", verifyJwtToken, ReadAllNotifications);
+UserRouter.get("/notifications", verifyJwtTokenWithTeam, GetNotifications);
+UserRouter.post(
+  "/readAllNotifications",
+  verifyJwtTokenWithTeam,
+  ReadAllNotifications
+);
 export default UserRouter;
