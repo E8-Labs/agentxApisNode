@@ -54,6 +54,12 @@ const User = (sequelize, Sequelize) => {
       allowNull: true,
       defaultValue: UserTypes.RealEstateAgent,
     },
+    userRole: {
+      // Main AgentX account, Invitee
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: UserRole.AgentX,
+    },
     averageTransactionPerYear: {
       // we store full size image here
       type: Sequelize.DOUBLE,
@@ -153,4 +159,10 @@ export const UserTypes = {
   InsuranceAgent: "InsuranceAgent",
   RecruiterAgent: "RecruiterAgent",
   TaxAgent: "TaxAgent",
+};
+
+export const UserRole = {
+  AgentX: "AgentX",
+  Invitee: "Invitee",
+  Admin: "Admin",
 };

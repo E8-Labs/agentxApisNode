@@ -1,5 +1,5 @@
 export const constants = {
-  RedeemCodeSeconds: 60 * 60, // Seconds
+  RedeemCodeSeconds: 30 * 60, // Seconds
   GiftDontCancelPlanSeconds: 30 * 60, // Seconds
   MinThresholdSeconds: 2 * 60,
 };

@@ -275,8 +275,22 @@ export async function RedeemCodeOnPlanSubscription(user) {
   const TotalRedeemableSeconds = constants.RedeemCodeSeconds;
   let inviteCodeUsed = user.inviteCodeUsed || null;
   let inviteCodeRedeemed = user.inviteCodeRedeemed || false;
+
+  let invitingUser = await db.User.findOne({
+    where: {
+      myInviteCode: user.inviteCodeUsed,
+    },
+  });
+  if (!invitingUser) {
+    console.log("Invite code already redeemed");
+    return;
+  }
   if (!inviteCodeRedeemed && inviteCodeUsed != null && inviteCodeUsed != "") {
     console.log("Redeeming invite code");
+
+    invitingUser.totalSecondsAvailable += TotalRedeemableSeconds;
+    await invitingUser.save();
+
     user.totalSecondsAvailable += TotalRedeemableSeconds;
     user.inviteCodeRedeemed = true;
     if (user.myInviteCode == null || user.myInviteCode == "") {
@@ -357,16 +371,13 @@ export const chargeUser = async (
 
     console.log("Payment ", paymentIntent);
 
-    if (type != "PhonePurchase") {
-      // set the user trial mode false
-      let user = await db.User.findByPk(userId);
-      user.isTrial = false;
-      await user.save();
-    }
     if (paymentIntent && paymentIntent.status === "succeeded") {
       // Payment succeeded
       if (type !== "PhonePurchase") {
-        const user = await db.User.findByPk(userId);
+        let user = await db.User.findByPk(userId);
+
+        user.isTrial = false;
+        await user.save();
         await RedeemCodeOnPlanSubscription(user); //1656
       }
 

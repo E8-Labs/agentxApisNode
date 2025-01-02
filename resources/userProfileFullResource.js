@@ -37,6 +37,18 @@ async function getUserData(user, currentUser = null) {
     limit: 1,
   });
 
+  let services = await db.UserServicesModel.findAll({
+    where: {
+      userId: user.id,
+    },
+  });
+
+  let focusAreas = await db.UserFocusModel.findAll({
+    where: {
+      userId: user.id,
+    },
+  });
+
   let unread = await db.NotificationModel.count({
     where: {
       userId: user.id,
@@ -52,6 +64,8 @@ async function getUserData(user, currentUser = null) {
     availableMinutes: user.totalSecondsAvailable / 60,
     totalSecondsAvailable: user.totalSecondsAvailable,
     unread: unread,
+    focusAreas,
+    services,
   };
 
   return UserFullResource;
