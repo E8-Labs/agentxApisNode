@@ -601,7 +601,7 @@ export const GetSheets = async (req, res) => {
       });
 
       let teamIds = await GetTeamIds(user);
-
+      console.log("Team ids ", teamId);
       // teamIds = [...teamIds, ...userIds];
       let leadSheets = await db.LeadSheetModel.findAll({
         where: {
