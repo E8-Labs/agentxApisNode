@@ -32,6 +32,15 @@ const PaymentHistory = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       defaultValue: "Sandbox",
     },
+    phone: {
+      // if Phone number purchase then add phone
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    transactionId: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return PaymentHistory;

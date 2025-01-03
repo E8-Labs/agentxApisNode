@@ -50,6 +50,10 @@ import { constants } from "../constants/constants.js";
 const User = db.User;
 const Op = db.Sequelize.Op;
 
+export const GetTitleForPlan = (plan) => {
+  return plan.duration / 60 + " Mins Purchased";
+};
+
 export const AddPaymentMethod = async (req, res) => {
   let { source, inviteCode } = req.body; // mainAgentId is the mainAgent id
   console.log("Source is ", source);
@@ -269,15 +273,17 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               );
               if (charge && charge.status) {
                 let historyCreated = await db.PaymentHistory.create({
-                  title: `Payment for ${foundPlan.type}`,
+                  title: GetTitleForPlan(foundPlan),
                   description: `Payment for ${foundPlan.type}`,
                   type: foundPlan.type,
                   price: foundPlan.price,
                   userId: user.id,
                   environment: process.env.Environment,
+                  transactionId: charge.paymentIntent.id,
                 });
                 user.totalSecondsAvailable += foundPlan.duration;
                 await user.save();
+
                 return res.send({
                   status: true,
                   message: "Plan Upgraded",
@@ -328,6 +334,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   price: foundPlan.price,
                   status: "active",
                   environment: process.env.Environment,
+                  transactionId: charge.paymentIntent.id,
                 });
               }
             } else {
@@ -343,7 +350,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             user.totalSecondsAvailable += TotalSeconds;
             let saved = await user.save();
             let historyCreated = await db.PaymentHistory.create({
-              title: `Payment for ${foundPlan.type}`,
+              title: GetTitleForPlan(foundPlan),
               description: `Payment for ${foundPlan.type}`,
               type: foundPlan.type,
               price: foundPlan.price,
@@ -488,6 +495,7 @@ export async function ReChargeUserAccount(user) {
         foundPlan = p;
       }
     });
+
     let price = foundPlan.price * 100; //cents
     let charge = await chargeUser(
       user.id,
@@ -499,12 +507,13 @@ export async function ReChargeUserAccount(user) {
     if (charge && charge.status) {
       console.log("Charged for plan ", foundPlan);
       let historyCreated = await db.PaymentHistory.create({
-        title: `Payment for ${foundPlan.type}`,
+        title: GetTitleForPlan(foundPlan), //`Payment for ${foundPlan.type}`,
         description: `Payment for ${foundPlan.type}`,
         type: foundPlan.type,
         price: foundPlan.price,
         userId: user.id,
         environment: process.env.Environment,
+        transactionId: charge.paymentIntent.id,
       });
       user.totalSecondsAvailable += foundPlan.duration;
       await user.save();

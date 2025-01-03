@@ -564,6 +564,25 @@ export const DeleteList = async (req, res) => {
             },
           }
         );
+        const leads = await db.LeadModel.findAll({
+          where: {
+            sheetId: sheetId,
+          },
+        });
+        let leadIds = [];
+        if (leads.length > 0) {
+          leadIds = leads.map((lead) => lead.id);
+        }
+        await db.LeadCadence.update(
+          { status: "Paused" },
+          {
+            where: {
+              leadId: {
+                [db.Sequelize.Op.in]: leadIds,
+              },
+            },
+          }
+        );
         await db.LeadSheetModel.update(
           { status: "deleted" },
           {
