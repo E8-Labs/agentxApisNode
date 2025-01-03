@@ -67,7 +67,7 @@ export function InviteTeamMember(req, res) {
         return res.send({
           status: true,
           message: "Invite sent",
-          data: invite,
+          data: await TeamResource(invite),
         });
       }
     } else {

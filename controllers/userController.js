@@ -17,6 +17,8 @@ import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import { generateStripeCustomerId } from "../utils/stripe.js";
 import { UserRole } from "../models/user/userModel.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
+import { AddNotification } from "./NotificationController.js";
+import { NotificationTypes } from "../models/user/NotificationModel.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -99,17 +101,34 @@ export const LoginUser = async (req, res) => {
     let customerId = await generateStripeCustomerId(user.id);
     console.log("Stripe Custome Id Generated in Login");
     if (user.userRole == UserRole.Invitee) {
-      let invite = await db.TeamModel.update(
-        {
-          status: "Accepted",
-          invitedUserId: user.id,
+      let invite = await db.TeamModel.findOne({
+        where: {
+          phone: phone,
         },
-        {
-          where: {
-            phone: phone,
-          },
+      });
+      if (invite) {
+        if (invite.status == "Pending") {
+          //send Notification
+          try {
+            let toUser = await db.User.findByPk(invite.invitingUserId);
+            await AddNotification(
+              toUser,
+              user,
+              NotificationTypes.InviteAccepted,
+              null,
+              null,
+              null,
+              null,
+              null
+            );
+          } catch (error) {
+            console.log("Error sending not Invite", error);
+          }
         }
-      );
+
+        invite.status = "Accepted";
+        invite.invitedUserId = user.id;
+      }
     }
     // bcrypt.compare(password, user.password, async function (err, result) {
     // result == true
