@@ -875,7 +875,9 @@ export const GetLeads = async (req, res) => {
             "updatedAt",
             "createdAt",
             "stage",
+            "status",
           ];
+          // delete lead.status;
           const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
             (key) => !fixedKeys.includes(key) && lead[key] !== null
           );
@@ -889,25 +891,13 @@ export const GetLeads = async (req, res) => {
           // { title: "Date", isDefault: true },
         ];
         for (const key of keys) {
+          // if(key != "status"){
           AllColumns.push({
             title: key,
             isDefault: false,
           });
+          // }
         }
-
-        // leadsWithCadence = leads.map(async (lead) => {
-        //   const cadence = cadenceMap[lead.id];
-        //   let stage = await db.PipelineStages.findOne({
-        //     where: {
-        //       id: cadence ? cadence.stage : lead.stage,
-        //     },
-        //   });
-        //   return {
-        //     ...lead,
-        //     stage: stage, // Use LeadCadence stage if available, else LeadModel stage
-        //     cadenceStatus: cadence ? cadence.status : null, // Cadence status or null
-        //   };
-        // });
 
         let reso = await LeadResource(leadsWithCadence);
         return res.send({
