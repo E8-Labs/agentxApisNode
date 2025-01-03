@@ -476,7 +476,7 @@ export async function ScheduleEvent(req, res) {
           mainAgentId: mainAgentId,
           agentId: agent.id,
           data: JSON.stringify(responseData),
-          datetime: startTimeISO,
+          datetime: utcDateTime.toISO(),
           date: date,
           time: time,
         });
@@ -497,7 +497,7 @@ export async function ScheduleEvent(req, res) {
       });
     }
   } catch (error) {
-    console.error("Error scheduling event:", error.message);
+    console.error("Error scheduling event:", error);
     return res.send({
       status: false,
       message: "Meeting cannot be scheduled",
