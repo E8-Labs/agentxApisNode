@@ -181,6 +181,7 @@ async function getUserData(lead, currentUser = null) {
   if (cad) {
     pipeline = await db.Pipeline.findByPk(cad.pipelineId);
   }
+  delete leadData.status;
   const LeadResource = {
     ...leadData,
     tags: tags, //{ ...tags, ...sheetTagsArray },
