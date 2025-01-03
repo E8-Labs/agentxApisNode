@@ -180,6 +180,14 @@ export const AddLeads = async (req, res) => {
                 sheetId: sheet.id,
               });
               dbLeads.push(createdLead);
+              if (tags) {
+                for (const tag of tags) {
+                  let tagCreated = await db.LeadTagsModel.create({
+                    tag: tag,
+                    leadId: createdLead.id,
+                  });
+                }
+              }
             } catch (error) {
               console.log("Error adding one lead", error);
             }
