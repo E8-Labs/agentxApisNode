@@ -2223,6 +2223,7 @@ export async function CreateAssistantSynthflow(
   mainAgent,
   timezone = constants.DefaultTimezone
 ) {
+  console.log("Timezone passed ", timezone);
   let synthKey = process.env.SynthFlowApiKey;
   // console.log("Inside 1", agentData.prompt);
   const options = {
