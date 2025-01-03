@@ -160,7 +160,13 @@ async function getUserData(lead, currentUser = null) {
   if (emails && emails.length > 0) {
     if (leadData.email == null || leadData.email == "") {
       leadData.email = emails[0].email;
-      emails.pop(0);
+      let newEmails = [];
+      emails.map((item, index) => {
+        if (index > 0) {
+          newEmails.push(item);
+        }
+      });
+      emails = newEmails;
     }
   }
 
