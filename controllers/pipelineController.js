@@ -857,6 +857,44 @@ export const PausePipelineCadenceForAnAgent = async (req, res) => {
   });
 };
 
+//Updated For Team
+export const ResumePipelineCadenceForAnAgent = async (req, res) => {
+  let { mainAgentId, batchId } = req.body; // mainAgentId is the mainAgent id
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let batchPaused = await db.CadenceBatchModel.update(
+        {
+          status: BatchStatus.Active,
+        },
+        {
+          where: {
+            id: batchId,
+          },
+        }
+      );
+
+      return res.send({
+        status: true,
+        message: "Pipeline cadence paused for batch",
+        // data: pipeline ? await PipelineResource(pipeline) : null,
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "Pipeline pausing failed",
+        data: null,
+      });
+    }
+  });
+};
+
 //Scheduled calls | Updated For Team
 export const GetScheduledCalls = async (req, res) => {
   const { mainAgentId, scheduled } = req.query;

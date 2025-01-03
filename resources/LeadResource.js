@@ -89,10 +89,12 @@ async function getUserData(lead, currentUser = null) {
       sheetId: lead.sheetId,
     },
   });
-  let sheetTagsArray = sheetTags.map((tag) => tag.tag);
-  // for (let t of sheetTagsArray) {
-  //   tags.push(t);
-  // }
+  if (sheetTags && sheetTags.length > 0) {
+    let sheetTagsArray = sheetTags.map((tag) => tag.tag);
+    for (let t of sheetTagsArray) {
+      tags.push(t);
+    }
+  }
 
   let kycs = await getLatestAndUniqueKycs(lead.id); //await db.LeadKycsExtracted.findAll({
   //   where: {
@@ -158,7 +160,13 @@ async function getUserData(lead, currentUser = null) {
   if (emails && emails.length > 0) {
     if (leadData.email == null || leadData.email == "") {
       leadData.email = emails[0].email;
-      emails.pop(0);
+      let newEmails = [];
+      emails.map((item, index) => {
+        if (index > 0) {
+          newEmails.push(item);
+        }
+      });
+      emails = newEmails;
     }
   }
 
