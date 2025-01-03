@@ -498,26 +498,27 @@ export const AddLeadTag = async (req, res) => {
 };
 //Updated For Team
 export const DeleteLeadTag = async (req, res) => {
-  let { tagId, tag } = req.body; // mainAgentId is the mainAgent id
+  let { tag, leadId } = req.body; // mainAgentId is the mainAgent id
 
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
       //   if(userId == null)
-      if (tagId || tag) {
-        if (tagId) {
-          let deleted = await db.LeadTagsModel.destroy({
-            where: {
-              id: tagId,
-            },
-          });
-        } else {
-          let deleted = await db.LeadTagsModel.destroy({
-            where: {
-              tag: tag,
-            },
-          });
-        }
+      if (leadId && tag) {
+        // if (tagId) {
+        let deleted = await db.LeadTagsModel.destroy({
+          where: {
+            leadId: leadId,
+            tag: tag,
+          },
+        });
+        // } else {
+        //   let deleted = await db.LeadTagsModel.destroy({
+        //     where: {
+        //       tag: tag,
+        //     },
+        //   });
+        // }
         res.send({
           status: true,
           message: `Tag deleted`,
