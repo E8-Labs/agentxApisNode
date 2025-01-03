@@ -30,7 +30,7 @@ const LeadCadenceResource = async (user, currentUser = null) => {
 };
 
 async function getUserData(leadCadence, currentUser = null) {
-  const subscriptionDetails = await getSubscriptionDetails(user);
+  // const subscriptionDetails = await getSubscriptionDetails(user);
 
   let agent = await db.MainAgentModel.findByPk(leadCadence.mainAgentId);
   let lead = await db.LeadModel.findByPk(leadCadence.leadId);
