@@ -9,6 +9,7 @@ import {
   AssignLeadsToPipelineAndAgents,
   UpdatePipeline,
   PausePipelineCadenceForAnAgent,
+  ResumePipelineCadenceForAnAgent,
   GetScheduledCalls,
   CreatePipelineStage,
   ReorderPipelineStages,
@@ -86,6 +87,12 @@ PipelineRouter.post(
   verifyJwtTokenWithTeam,
   uploadMedia,
   PausePipelineCadenceForAnAgent
+);
+PipelineRouter.post(
+  "/resumeAgentCadence",
+  verifyJwtTokenWithTeam,
+  uploadMedia,
+  ResumePipelineCadenceForAnAgent
 );
 PipelineRouter.post(
   "/assignLeadsToPipeline",

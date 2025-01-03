@@ -53,6 +53,7 @@ export function InviteTeamMember(req, res) {
           phone: phone,
           email: email,
           invitingUserId: user.id,
+          status: "Pending",
         });
 
         //Create a corresponding user in the db with role invitee
