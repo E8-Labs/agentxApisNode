@@ -364,20 +364,23 @@ function GetCalendarActionApiData(user, assistant) {
       `&mainAgentId=${assistant.mainAgentId}` +
       `&agentId=${assistant.id}`,
     run_action_before_call_start: false,
-    name: `Book Appointment With ${user.name}`,
+    name: `Book Appointment With ${assistant.name}`,
     description:
       "Use the Create a Booking action to schedule a meeting, appointment, or event directly in the user's calendar. Ensure the booking aligns with the user's preferences and availability to avoid conflicts.",
     speech_while_using_the_tool: "One second, let me check the calendar",
     variables_during_the_call: [
       {
         name: `date`,
-        description: "The date on which the meeting would be scheduled",
-        example: "User says he wants to schedule a meeting on Nov 11 2025.",
+        description:
+          "The date (ISO 8601 format) on which the meeting would be scheduled i-e if user provides Nov 5 2025 then you would send 2025-11-05 in the action",
+        example:
+          "User says he wants to schedule a meeting on Nov 05 2025. ISO 8601 converted is 2025-11-05",
         type: "string",
       },
       {
         name: `time`,
-        description: "The time at which the meeting would take place",
+        description:
+          "The time (ISO 8601 format)  at which the meeting would take place ",
         example: "9:00 pm",
         type: "string",
       },
@@ -406,11 +409,11 @@ function GetCalendarActionApiData(user, assistant) {
     query_parameters: [
       {
         key: "date",
-        value: "02-20-2025",
+        value: "2025-02-20",
       },
       {
         key: "time",
-        value: "9:00 pm",
+        value: "9:00 PM",
       },
       {
         key: "user_email",

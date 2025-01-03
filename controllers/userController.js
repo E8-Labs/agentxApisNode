@@ -15,6 +15,8 @@ console.log(import.meta.url);
 
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import { generateStripeCustomerId } from "../utils/stripe.js";
+import { UserRole } from "../models/user/userModel.js";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -96,6 +98,19 @@ export const LoginUser = async (req, res) => {
   } else {
     let customerId = await generateStripeCustomerId(user.id);
     console.log("Stripe Custome Id Generated in Login");
+    if (user.userRole == UserRole.Invitee) {
+      let invite = await db.TeamModel.update(
+        {
+          status: "Accepted",
+          invitedUserId: user.id,
+        },
+        {
+          where: {
+            phone: phone,
+          },
+        }
+      );
+    }
     // bcrypt.compare(password, user.password, async function (err, result) {
     // result == true
     // if (result) {
@@ -638,12 +653,15 @@ export const GetTransactionsHistory = async (req, res) => {
         },
       });
 
+      let teamIds = await GetTeamIds(user);
       let history = await db.PaymentHistory.findAll({
         where: {
-          userId: userId,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
         },
       });
-      let resource = await UserProfileFullResource(user);
+      // let resource = await UserProfileFullResource(user);
       res.send({
         status: true,
         message: "User payment history",

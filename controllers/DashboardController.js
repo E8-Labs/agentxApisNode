@@ -11,6 +11,7 @@ import axios from "axios";
 import chalk from "chalk";
 import nodemailer from "nodemailer";
 console.log(import.meta.url);
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 
@@ -37,7 +38,16 @@ export const GetDashboardData = async (req, res) => {
 
       // Fetch user and agents
       let user = await db.User.findOne({ where: { id: userId } });
-      let agents = await db.MainAgentModel.findAll({ where: { userId } });
+      let teamIds = await GetTeamIds(user);
+
+      let agents = await db.MainAgentModel.findAll({
+        where: {
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
+        },
+      });
+
       let agentIds = agents.map((agent) => agent.id);
 
       // Calculate date ranges

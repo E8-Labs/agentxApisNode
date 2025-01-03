@@ -347,6 +347,7 @@ export const PurchasePhoneNumber = async (req, res) => {
         // }
 
         if (!purchasedNumber || !purchasedNumber.sid) {
+          //return the charge
           return res.status(500).send({
             status: false,
             message: "Failed to purchase phone number.",
@@ -364,11 +365,13 @@ export const PurchasePhoneNumber = async (req, res) => {
           ),
         });
         let planHistory = await db.PaymentHistory.create({
-          title: "Phone Number Purchase",
+          title: `${phoneNumber} Purchased`,
           description: `Monthly charge for phone number ${phoneNumber}`,
           userId: userId,
           type: "PhonePurchase",
           price: 2,
+          phone: phoneNumber,
+          transactionId: charge.paymentIntent.id,
         });
 
         return res.send({
@@ -376,7 +379,7 @@ export const PurchasePhoneNumber = async (req, res) => {
           message: "Phone number purchased successfully.",
           data: {
             phoneNumber,
-            phoneSid: purchasedNumber.sid,
+            phoneSid: purchasedNumber?.sid,
           },
         });
       } else {
@@ -647,11 +650,12 @@ export const PhoneNumberCron = async () => {
 
         if (chargeResult.status) {
           let planHistory = await db.PaymentHistory.create({
-            title: "Phone Number Purchase",
+            title: `${phoneNumber.phone} Purchased`,
             description: `Monthly charge for phone number ${phoneNumber.phone}`,
             userId: phoneNumber.userId,
             type: "PhonePurchase",
             price: PhoneNumberPrice,
+            transactionId: chargeResult.paymentIntent.id,
           });
           // Successful charge: update the next billing date
           phoneNumber.nextBillingDate = new Date(

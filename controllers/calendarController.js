@@ -19,6 +19,8 @@ import { parse, isValid, format } from "date-fns";
 import { DateTime } from "luxon";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
+import { WriteToFile } from "../services/FileService.js";
 
 const convertToPacificTime = (isoString) => {
   // Parse the ISO string with the original timezone offset
@@ -296,12 +298,18 @@ function getParsedDate(date) {
 }
 
 export async function ScheduleEvent(req, res) {
+  WriteToFile(
+    "------------------------------Scheduling Event Start-------------------------------"
+  );
   let { user_email, date, time, lead_name, lead_phone } = req.body;
-  console.log("Schedule meeting with date and time: ", {
-    user_email,
-    date,
-    time,
-  });
+  WriteToFile("Schedule meeting with date and time: ");
+  WriteToFile(
+    JSON.stringify({
+      user_email,
+      date,
+      time,
+    })
+  );
 
   let mainAgentId = req.query.mainAgentId;
 
@@ -319,10 +327,17 @@ export async function ScheduleEvent(req, res) {
   });
 
   if (!agent) {
+    WriteToFile(
+      JSON.stringify({
+        status: false,
+        message: "Meeting cannot be scheduled",
+        data: "Meeting cannot be scheduled",
+      })
+    );
     return res.send({
       status: false,
-      message: "Meeting cannot be scheduled",
-      data: "Meeting cannot be scheduled",
+      message: "Meeting cannot be scheduled: NO Agent",
+      data: "Meeting cannot be scheduled: NO Agent",
     });
   }
   let mainAgent = await db.MainAgentModel.findOne({
@@ -332,7 +347,8 @@ export async function ScheduleEvent(req, res) {
   });
 
   let user = await db.User.findByPk(mainAgent.userId);
-
+  let admin = await GetTeamAdminFor(user);
+  let teamIds = await GetTeamIds(user);
   let filter = { mainAgentId: mainAgentId };
   if (agent) {
     filter.agentId = agent.id;
@@ -343,8 +359,8 @@ export async function ScheduleEvent(req, res) {
   if (!calIntegration) {
     return res.send({
       status: false,
-      message: "Meeting cannot be scheduled",
-      data: "Meeting cannot be scheduled",
+      message: "Meeting cannot be scheduled: NO Calendar",
+      data: "Meeting cannot be scheduled: NO Calendar",
     });
   }
 
@@ -352,7 +368,7 @@ export async function ScheduleEvent(req, res) {
   let parsedDate = getParsedDate(date).data;
   // Parse the time
   let parsedTime = getParsedTime(time).data;
-  console.log(`Parsed Date: ${parsedDate} Time: ${parsedTime}`);
+  WriteToFile(`Parsed Date: ${parsedDate} Time: ${parsedTime}`);
   if (!parsedDate || !parsedTime) {
     return res.send({
       status: false,
@@ -364,14 +380,18 @@ export async function ScheduleEvent(req, res) {
   // Combine parsed date and time into a single Date object
 
   parsedDate.setHours(parsedTime.getHours(), parsedTime.getMinutes(), 0, 0);
-  console.log(`Parsed Date: ${parsedDate} `);
-  const startTimeISO = format(parsedDate, "yyyy-MM-dd'T'HH:mm:ssXXX");
-  const pacificTime = convertToPacificTime(startTimeISO);
+  WriteToFile(`Parsed Date: ${parsedDate} `);
+  const startDateISO = format(parsedDate, "yyyy-MM-dd");
+  const pacificTime = convertToPacificTime(startDateISO);
 
-  console.log("Pacific Time:", pacificTime);
+  WriteToFile(`Start Time ISO:, ${startDateISO}`);
+  WriteToFile(`Pacific Time:, ${pacificTime}`);
 
+  // const localDateTime = DateTime.fromISO(startTimeISO, {
+  //   zone: calIntegration.timeZone,
+  // });
   const localDateTime = DateTime.fromFormat(
-    `${date} ${time}`,
+    `${startDateISO} ${time}`,
     "yyyy-MM-dd HH:mm",
     {
       zone: calIntegration.timeZone,
@@ -381,8 +401,8 @@ export async function ScheduleEvent(req, res) {
   // Convert to UTC
   const utcDateTime = localDateTime.toUTC();
 
-  console.log("Local Time:", localDateTime.toString()); // Pacific Time
-  console.log("UTC Time:", utcDateTime.toString()); // UTC Time
+  WriteToFile(`Local Time:, ${localDateTime.toString()}`); // Pacific Time
+  WriteToFile(`UTC Time:, ${utcDateTime.toString()}`); // UTC Time
   // return;
   // Consider the calendar is cal.com
   let apiKey = calIntegration.apiKey;
@@ -391,14 +411,18 @@ export async function ScheduleEvent(req, res) {
   let lead = await db.LeadModel.findOne({
     where: {
       phone: lead_phone,
-      userId: user.id,
+      userId: {
+        [db.Sequelize.Op.in]: teamIds,
+      },
     },
   });
   if (!lead) {
     lead = await db.LeadModel.findOne({
       where: {
         email: user_email,
-        userId: user.id,
+        userId: {
+          [db.Sequelize.Op.in]: teamIds,
+        },
       },
     });
   }
@@ -421,7 +445,7 @@ export async function ScheduleEvent(req, res) {
     metadata: {}, // Ensure metadata is an object
   };
 
-  console.log("Data sent to schedule ", JSON.stringify(inputData));
+  WriteToFile(`Data sent to schedule , ${JSON.stringify(inputData)}`);
   try {
     const response = await fetch(`${CAL_API_URL}/bookings`, {
       method: "POST",
@@ -435,7 +459,7 @@ export async function ScheduleEvent(req, res) {
 
     const responseData = await response.json();
     if (response.ok) {
-      console.log("Event scheduled successfully:", responseData);
+      WriteToFile(`Event scheduled successfully: , ${responseData}`);
 
       await AddNotification(
         user,
@@ -446,7 +470,7 @@ export async function ScheduleEvent(req, res) {
         null
       );
       if (lead) {
-        console.log("Lead was found so creating event");
+        WriteToFile("Lead was found so creating event");
         await db.ScheduledBooking.create({
           leadId: lead.id,
           mainAgentId: mainAgentId,
@@ -456,6 +480,8 @@ export async function ScheduleEvent(req, res) {
           date: date,
           time: time,
         });
+      } else {
+        WriteToFile("CalendarController: No lead found for adding a booking");
       }
       return res.send({
         status: true,
@@ -463,7 +489,7 @@ export async function ScheduleEvent(req, res) {
         data: responseData,
       });
     } else {
-      console.error("Error scheduling event:", JSON.stringify(responseData));
+      WriteToFile(`Error scheduling event: ${JSON.stringify(responseData)}`);
       return res.send({
         status: false,
         message: "Meeting cannot be scheduled",
@@ -634,6 +660,8 @@ export async function GetUserConnectedCalendars(req, res) {
     if (authData) {
       let userId = authData.user.id;
       let user = await db.User.findByPk(userId);
+      let admin = await GetTeamAdminFor(user);
+      let teamIds = await GetTeamIds(user);
       const calendars = await db.CalendarIntegration.findAll({
         attributes: [
           "title",
@@ -646,7 +674,9 @@ export async function GetUserConnectedCalendars(req, res) {
           ], // Example: Fetch the latest createdAt if needed
         ],
         where: {
-          userId: userId,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
         },
         group: ["apiKey", "eventId", "title", "timeZone"], // Group by unique apiKey and eventId
         order: [

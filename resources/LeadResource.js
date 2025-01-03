@@ -151,6 +151,7 @@ async function getUserData(lead, currentUser = null) {
       leadId: lead.id,
       email: {
         [db.Sequelize.Op.notLike]: "%Not Provided%",
+        [db.Sequelize.Op.ne]: lead.email,
       },
     },
   });

@@ -2,7 +2,7 @@
 
 import express from "express";
 import multer from "multer";
-import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
+import { verifyJwtTokenWithTeam } from "../middleware/jwtmiddleware.js";
 const uploadFiles = multer().fields([{ name: "media", maxCount: 1 }]);
 
 import {
@@ -20,7 +20,12 @@ actionRouter.get("/getCustomActionData", GetKb);
 actionRouter.get("/getKb", GetKb); // used by auto generated custom actions
 
 actionRouter.get("/checkAvailability", CheckCalendarAvailability);
-actionRouter.post("/addCalendar", verifyJwtToken, uploadFiles, AddCalendar);
+actionRouter.post(
+  "/addCalendar",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  AddCalendar
+);
 actionRouter.post("/bookAppointment", ScheduleEvent);
 
 export default actionRouter;

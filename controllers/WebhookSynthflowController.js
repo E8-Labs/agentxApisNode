@@ -39,6 +39,7 @@ import { PayAsYouGoPlans } from "../models/user/payment/paymentPlans.js";
 import { ReChargeUserAccount } from "./PaymentController.js";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
+import { GetTeamAdminFor } from "../utils/auth.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -416,9 +417,16 @@ async function extractIEAndStoreKycs(extractors, lead, callId) {
 
           if (!emailFound) {
             console.log("New email added");
+
             await db.LeadEmailModel.create({ email: answer, leadId: lead.id });
           }
         } else if (question !== "prospectname") {
+          let found = await db.InfoExtractorModel.findOne({
+            where: { identifier: question },
+          });
+          if (found) {
+            question = found.question;
+          }
           await db.LeadKycsExtracted.create({
             question,
             answer,
@@ -559,6 +567,7 @@ async function handleInfoExtractorValues(
   }
   if (json.hotlead) {
     let user = await db.User.findByPk(lead.userId);
+    let admin = await GetTeamAdminFor(user);
     // let agent = awa
     await AddNotification(
       user,

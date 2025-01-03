@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 
-import { verifyJwtToken } from "../middleware/jwtmiddleware.js";
+import { verifyJwtTokenWithTeam } from "../middleware/jwtmiddleware.js";
 import {
   CreateAssistantSynthflow,
   BuildAgent,
@@ -50,100 +50,124 @@ const uploadMedia = multer().fields([
 
 let AgentRouter = express.Router();
 
-AgentRouter.get("/dashboard", verifyJwtToken, uploadFiles, GetDashboardData);
+AgentRouter.get(
+  "/dashboard",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetDashboardData
+);
 
-AgentRouter.post("/buildAgent", verifyJwtToken, uploadFiles, BuildAgent);
-AgentRouter.post("/updateAgent", verifyJwtToken, uploadFiles, UpdateAgent);
+AgentRouter.post(
+  "/buildAgent",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  BuildAgent
+);
+AgentRouter.post(
+  "/updateAgent",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  UpdateAgent
+);
 AgentRouter.post(
   "/updateAgentProfileImage",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   UploadAgentImage
 );
-AgentRouter.post("/deleteAgent", verifyJwtToken, uploadFiles, DeleteAgent);
+AgentRouter.post(
+  "/deleteAgent",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  DeleteAgent
+);
 
-AgentRouter.post("/testAi", verifyJwtToken, uploadFiles, TestAI);
+AgentRouter.post("/testAi", verifyJwtTokenWithTeam, uploadFiles, TestAI);
 
-AgentRouter.get("/getAgents", verifyJwtToken, uploadFiles, GetAgents);
-AgentRouter.get("/getAgentCallActivity", verifyJwtToken, GetAgentCallActivity);
+AgentRouter.get("/getAgents", verifyJwtTokenWithTeam, uploadFiles, GetAgents);
+AgentRouter.get(
+  "/getAgentCallActivity",
+  verifyJwtTokenWithTeam,
+  GetAgentCallActivity
+);
 
 AgentRouter.get(
   "/findPhoneNumbers",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   ListAvailableNumbers
 );
 AgentRouter.get(
   "/listUsersAvailablePhoneNumbers",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   ListUsersAvailablePhoneNumbers
 );
 AgentRouter.get("/voices", uploadFiles, GetVoices);
 AgentRouter.post(
   "/purchasePhone",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   PurchasePhoneNumber
 );
 AgentRouter.post(
   "/assignPhoneNumber",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   AssignPhoneNumber
 );
 
 AgentRouter.post(
   "/releasePhoneNumber",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   ReleasePhoneNumber
 );
 
 AgentRouter.post(
   "/deletePhoneNumber",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   DeleteNumber
 );
 
 //Kycs
-AgentRouter.get("/getKycs", verifyJwtToken, uploadFiles, GetKyc);
+AgentRouter.get("/getKycs", verifyJwtTokenWithTeam, uploadFiles, GetKyc);
 //Add Kyc
-AgentRouter.post("/addKyc", verifyJwtToken, uploadFiles, AddKyc);
+AgentRouter.post("/addKyc", verifyJwtTokenWithTeam, uploadFiles, AddKyc);
 //Update Kyc
-AgentRouter.post("/updateKyc", verifyJwtToken, uploadFiles, UpdateKyc);
+AgentRouter.post("/updateKyc", verifyJwtTokenWithTeam, uploadFiles, UpdateKyc);
 
-AgentRouter.post("/deleteKyc", verifyJwtToken, uploadFiles, DeleteKyc);
+AgentRouter.post("/deleteKyc", verifyJwtTokenWithTeam, uploadFiles, DeleteKyc);
 
 AgentRouter.post("/updateCallStatusForAll", SetOutcomeforpreviousCalls);
 
 AgentRouter.post(
   "/addObjectionGuardRail",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   AddObjectionOrGuardrail
 );
 
 AgentRouter.post(
   "/deleteObjectionGuardRail",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   DeleteObjectionOrGuardrail
 );
 
 AgentRouter.get(
   "/getObjectionsAndGuardrails",
-  verifyJwtToken,
+  verifyJwtTokenWithTeam,
   uploadFiles,
   GetObjectionsAndGuardrails
 );
 
 AgentRouter.post("/webhook_synthflow", WebhookSynthflow);
 
-// UserRouter.post("/register", verifyJwtToken, uploadFiles, RegisterUser);
+// UserRouter.post("/register", verifyJwtTokenWithTeam, uploadFiles, RegisterUser);
 
-// UserRouter.post("/updateProfile", verifyJwtToken, uploadFiles, UpdateProfile);
+// UserRouter.post("/updateProfile", verifyJwtTokenWithTeam, uploadFiles, UpdateProfile);
 // UserRouter.post("/checkPhoneNumber", CheckPhoneExists);
 // UserRouter.post("/checkUsernameExists", CheckUsernameExists);
 // UserRouter.get("/getProfileFromUsername", GetProfileWithUsername);

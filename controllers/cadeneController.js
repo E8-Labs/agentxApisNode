@@ -185,28 +185,12 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 
               lead.stage = null;
               await lead.save();
-              // let called = await MakeACall(
-              //   leadCad,
-              //   simulate,
-              //   calls,
-              //   batch.id,
-              //   true
-              // ); //maxTriesReached = true
             }
             //if you want to simulate
             //let called = await MakeACall(leadCad, true, calls);
           } catch (error) {
             console.log("Error Sending Call ", error);
           }
-          // let sent = await db.LeadCallsSent.create({
-          //   leadId: leadCad.leadId,
-          //   leadCadenceId: leadCad.id,
-          //   mainAgentId: leadCad.mainAgentId,
-          //   agentId: agent?.id,
-          //   callTriggerTime: new Date(),
-          //   synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCad.id}-${leadCad.stage}`,
-          //   stage: leadCad.stage,
-          // });
         } else {
           console.log("Difference is small so next call can not be placed");
         }

@@ -19,6 +19,7 @@ import { AssignLeads } from "./pipelineController.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
 import LeadImportantCallResource from "../resources/LeadImportantCallResource.js";
+import { GetTeamIds } from "../utils/auth.js";
 
 const limit = 500;
 /**
@@ -67,6 +68,7 @@ export const checkStageConflicts = async (mainAgentIds) => {
   }
 };
 
+//Updated For Team
 export const AddLeads = async (req, res) => {
   let { sheetName, columnMappings, leads, tags } = req.body; // mainAgentId is the mainAgent id
   if (req.body.mainAgentIds) {
@@ -87,11 +89,13 @@ export const AddLeads = async (req, res) => {
           id: userId,
         },
       });
-
+      let teamIds = await GetTeamIds(user);
       let sheet = await db.LeadSheetModel.findOne({
         where: {
           sheetName: sheetName,
-          userId: user.id,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
         },
       });
       if (!sheet) {
@@ -231,18 +235,6 @@ export const AddLeads = async (req, res) => {
       //call the api for webhook of this user
       if (dbLeads.length > 0) {
         await postDataToWebhook(user, leadsRes, WebhookTypes.TypeNewLeadAdded);
-        // let webhooks = await db.WebhookModel.findAll({
-        //   where: {
-        //     userId: user.id,
-        //     action: WebhookTypes.TypeNewLeadAdded,
-        //   },
-        // });
-        // console.log("Found webhooks ", webhooks.length);
-        // if (webhooks && webhooks.length > 0) {
-        //   for (const webhook of webhooks) {
-        //     postDataToWebhook(webhook.url, leadsRes);
-        //   }
-        // }
       }
       res.send({
         status: true,
@@ -258,7 +250,7 @@ export const AddLeads = async (req, res) => {
     }
   });
 };
-
+//Updated For Team
 export const DeleteLead = async (req, res) => {
   let { leadId } = req.body; // mainAgentId is the mainAgent id
   let isPipeline = req.body.isPipeline || false;
@@ -303,6 +295,14 @@ export const DeleteLead = async (req, res) => {
           },
         }
       );
+      let leadUpdated = await db.LeadModel.update(
+        { stage: null },
+        {
+          where: {
+            id: leadId,
+          },
+        }
+      );
       // }
 
       res.send({
@@ -324,9 +324,12 @@ export const postDataToWebhook = async (
   data,
   action = WebhookTypes.TypeNewLeadAdded
 ) => {
+  let ids = await GetTeamIds(user);
   let webhooks = await db.WebhookModel.findAll({
     where: {
-      userId: user.id,
+      userId: {
+        [db.Sequelize.Op.in]: ids,
+      },
       action: action, //WebhookTypes.TypeNewLeadAdded,
     },
   });
@@ -349,7 +352,7 @@ export const postDataToWebhook = async (
   }
 };
 
-//Or sheet
+//Or sheet: Updated For Team
 export const AddSmartList = async (req, res) => {
   let { sheetName, columns, tags } = req.body; // mainAgentId is the mainAgent id
 
@@ -426,7 +429,7 @@ export const AddSmartList = async (req, res) => {
   });
 };
 
-//Or sheet
+//Or sheet: Updated For Team
 export const AddLeadNote = async (req, res) => {
   let { leadId, note } = req.body; // mainAgentId is the mainAgent id
 
@@ -493,6 +496,7 @@ export const AddLeadTag = async (req, res) => {
     }
   });
 };
+//Updated For Team
 export const DeleteLeadTag = async (req, res) => {
   let { tagId, tag } = req.body; // mainAgentId is the mainAgent id
 
@@ -535,6 +539,7 @@ export const DeleteLeadTag = async (req, res) => {
   });
 };
 
+//Updated For Team
 export const DeleteList = async (req, res) => {
   let { sheetId } = req.body; // mainAgentId is the mainAgent id
 
@@ -552,10 +557,29 @@ export const DeleteList = async (req, res) => {
 
       if (sheet) {
         await db.LeadModel.update(
-          { status: "deleted" },
+          { status: "deleted", stage: null },
           {
             where: {
               sheetId: sheetId,
+            },
+          }
+        );
+        const leads = await db.LeadModel.findAll({
+          where: {
+            sheetId: sheetId,
+          },
+        });
+        let leadIds = [];
+        if (leads.length > 0) {
+          leadIds = leads.map((lead) => lead.id);
+        }
+        await db.LeadCadence.update(
+          { status: "Paused" },
+          {
+            where: {
+              leadId: {
+                [db.Sequelize.Op.in]: leadIds,
+              },
             },
           }
         );
@@ -588,20 +612,29 @@ export const DeleteList = async (req, res) => {
   });
 };
 
+//Updated For Team
 export const GetSheets = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
-      //   if(userId == null)
+      let admin = req.admin;
+      console.log("Admin is ", admin?.id);
+      console.log("Current User is ", userId);
+
       let user = await db.User.findOne({
         where: {
           id: userId,
         },
       });
 
+      let teamIds = await GetTeamIds(user);
+      console.log("Team ids ", teamIds);
+      // teamIds = [...teamIds, ...userIds];
       let leadSheets = await db.LeadSheetModel.findAll({
         where: {
-          userId: userId,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
           status: "active",
         },
         include: [
@@ -627,7 +660,7 @@ export const GetSheets = async (req, res) => {
     }
   });
 };
-
+//Updated For Team
 export const UpdateLeadStage = async (req, res) => {
   let { leadId, stageId } = req.body; // mainAgentId is the mainAgent id
 
@@ -646,7 +679,7 @@ export const UpdateLeadStage = async (req, res) => {
       let lead = await db.LeadModel.findOne({
         where: {
           id: leadId,
-          userId: user.id,
+          // userId: user.id,
           status: "active",
         },
       });
@@ -679,6 +712,7 @@ export const UpdateLeadStage = async (req, res) => {
   });
 };
 
+//Updated For Team
 export const GetLeads = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (error) {
@@ -893,7 +927,7 @@ export const GetLeads = async (req, res) => {
     }
   });
 };
-
+//Updated For Team
 export const GetLeadDetail = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -1000,7 +1034,7 @@ export const GetLeadDetail = async (req, res) => {
     }
   });
 };
-
+//Updated For Team
 export async function GetColumnsInSheet(sheetId) {
   let leads = await db.LeadModel.findAll({
     where: {
@@ -1043,6 +1077,7 @@ export function mergeAndRemoveDuplicates(array1, array2) {
   // Concatenate array1 and unique elements of array2
   return array1.concat(uniqueArray2);
 }
+//Updated For Team
 export const GetUniqueColumns = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -1054,6 +1089,7 @@ export const GetUniqueColumns = async (req, res) => {
           id: userId,
         },
       });
+      let teamIds = await GetTeamIds(user);
       let keys = [];
       if (sheetId) {
         keys = await GetColumnsInSheet(sheetId);
@@ -1061,7 +1097,9 @@ export const GetUniqueColumns = async (req, res) => {
         // let sheetIds = []
         let sheets = await db.LeadSheetModel.findAll({
           where: {
-            userId: user.id,
+            userId: {
+              [db.Sequelize.Op.in]: teamIds,
+            },
           },
         });
         if (sheets && sheets.length > 0) {
@@ -1081,7 +1119,7 @@ export const GetUniqueColumns = async (req, res) => {
     }
   });
 };
-
+//Updated For Team
 export const GetUniqueTags = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -1093,9 +1131,12 @@ export const GetUniqueTags = async (req, res) => {
           id: userId,
         },
       });
+      let teamIds = await GetTeamIds(user);
       let leads = await db.LeadModel.findAll({
         where: {
-          userId: user.id,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
           status: "active",
         },
       });
@@ -1115,7 +1156,9 @@ export const GetUniqueTags = async (req, res) => {
       let pipelineIds = [];
       let pipelines = await db.Pipeline.findAll({
         where: {
-          userId: user.id,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
         },
       });
       if (pipelines && pipelines.length > 0) {
@@ -1268,7 +1311,7 @@ export const GetCallLogs = async (req, res) => {
     }
   });
 };
-
+//Updated For Team
 export const GetImportantCalls = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -1279,6 +1322,7 @@ export const GetImportantCalls = async (req, res) => {
           id: userId,
         },
       });
+      let teamIds = await GetTeamIds(user);
       console.log("user ", user.id);
 
       try {
@@ -1286,7 +1330,9 @@ export const GetImportantCalls = async (req, res) => {
         let agentIds = [];
         let agents = await db.AgentModel.findAll({
           where: {
-            userId: user.id,
+            userId: {
+              [db.Sequelize.Op.in]: teamIds,
+            },
           },
         });
         if (agents && agents.length > 0) {
@@ -1309,7 +1355,9 @@ export const GetImportantCalls = async (req, res) => {
               model: db.LeadModel,
               as: "LeadModel",
               where: {
-                userId,
+                userId: {
+                  [db.Sequelize.Op.in]: teamIds,
+                },
               },
             },
             {

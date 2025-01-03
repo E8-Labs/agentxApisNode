@@ -13,6 +13,7 @@ import chalk from "chalk";
 import nodemailer from "nodemailer";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import crypto from "crypto";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 
 export const GenerateApiKey = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -30,6 +31,8 @@ export const GenerateApiKey = async (req, res) => {
           message: "No such user",
         });
       }
+
+      let admin = await GetTeamAdminFor(user);
       let key = generateApiKey();
 
       let saved = await db.ApiKeysModel.create({
@@ -66,10 +69,12 @@ export const GetMyApiKeys = async (req, res) => {
           message: "No such user",
         });
       }
-
+      let teamIds = await GetTeamIds(user);
       let keys = await db.ApiKeysModel.findAll({
         where: {
-          userId: user.id,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
         },
       });
       res.send({

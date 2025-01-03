@@ -29,6 +29,8 @@ import BatchResource from "../resources/BatchResource.js";
 import { BatchStatus } from "../models/pipeline/CadenceBatchModel.js";
 import { pipeline } from "stream";
 import PipelineStages from "../models/pipeline/pipelineStages.js";
+import { UserRole } from "../models/user/userModel.js";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -38,6 +40,7 @@ import PipelineStages from "../models/pipeline/pipelineStages.js";
 const User = db.User;
 const Op = db.Sequelize.Op;
 
+//Updated for Team
 export const CreatePipeline = async (req, res) => {
   let { title } = req.body; // mainAgentId is the mainAgent id
   console.log("Title is ", title);
@@ -49,6 +52,8 @@ export const CreatePipeline = async (req, res) => {
           id: userId,
         },
       });
+
+      // let teamIds = await GetTeamIds(user)
       let created = await db.Pipeline.create({
         title: title,
         userId: userId,
@@ -82,7 +87,7 @@ export const CreatePipeline = async (req, res) => {
     }
   });
 };
-
+//Updated For Team
 export const DeletePipeline = async (req, res) => {
   let { pipelineId } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -127,7 +132,7 @@ export const DeletePipeline = async (req, res) => {
     }
   });
 };
-
+//Updated For Team
 export const CreatePipelineStage = async (req, res) => {
   let { pipelineId, stageTitle, color, mainAgentId, tags } = req.body; // mainAgentId is the mainAgent id
   console.log("Data in request");
@@ -244,6 +249,7 @@ export const CreatePipelineStage = async (req, res) => {
   });
 };
 
+//Updated For Team
 export const UpdatePipelineStage = async (req, res) => {
   let { stageId } = req.body;
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -284,6 +290,7 @@ export const UpdatePipelineStage = async (req, res) => {
   });
 };
 
+//Updated For Team
 export const ReorderPipelineStages = async (req, res) => {
   const { pipelineId, reorderedStages } = req.body;
   // `reorderedStages` should be an array of stage objects with `id` and new `order` values
@@ -331,7 +338,7 @@ export const ReorderPipelineStages = async (req, res) => {
     }
   });
 };
-
+//Updated For Team
 export const DeletePipelineStage = async (req, res) => {
   let { pipelineId, stageId, moveToStage } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -444,6 +451,8 @@ export const DeletePipelineStage = async (req, res) => {
     }
   });
 };
+
+//Updated For Team
 export const UpdatePipeline = async (req, res) => {
   let { title } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -480,6 +489,7 @@ export const UpdatePipeline = async (req, res) => {
   });
 };
 
+//Updated For Team
 export const GetPipelines = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -490,9 +500,12 @@ export const GetPipelines = async (req, res) => {
         },
       });
 
+      let teamIds = await GetTeamIds(user);
       let pipelines = await db.Pipeline.findAll({
         where: {
-          userId: user.id,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
         },
       });
 
@@ -505,6 +518,7 @@ export const GetPipelines = async (req, res) => {
   });
 };
 
+//Updated For Team
 export const GetPipelineDetail = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -530,7 +544,7 @@ export const GetPipelineDetail = async (req, res) => {
     }
   });
 };
-
+//Updated For Team
 export const CreatePipelineCadence = async (req, res) => {
   let { pipelineId, cadence, mainAgentId } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -629,7 +643,7 @@ export const CreatePipelineCadence = async (req, res) => {
     }
   });
 };
-
+//Updated For Team
 export const GetAgentCadence = async (req, res) => {
   let { mainAgentId } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -681,7 +695,7 @@ export const GetAgentCadence = async (req, res) => {
     }
   });
 };
-
+//Updated For Team
 export async function AssignLeads(
   user,
   pipelineId,
@@ -690,6 +704,8 @@ export async function AssignLeads(
   startTimeDifFromNow = 0,
   batchSize = 50
 ) {
+  //if a team member is calling this function then set it to get the admin user and change it to that.
+  user = await GetTeamAdminFor(user);
   try {
     let stage = await db.PipelineStages.findOne({
       where: {
@@ -764,7 +780,7 @@ export async function AssignLeads(
   }
 }
 
-//Start Calling
+//Start Calling | Updated For Team
 export const AssignLeadsToPipelineAndAgents = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     let { pipelineId, mainAgentIds, leadIds, batchSize, startTimeDifFromNow } =
@@ -803,6 +819,7 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
   });
 };
 
+//Updated For Team
 export const PausePipelineCadenceForAnAgent = async (req, res) => {
   let { mainAgentId, batchId } = req.body; // mainAgentId is the mainAgent id
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -813,31 +830,6 @@ export const PausePipelineCadenceForAnAgent = async (req, res) => {
           id: userId,
         },
       });
-
-      //   let assignedAgent = await db.PipelineAssignedAgent.create({
-      //     mainAgentId: mainAgentId,
-      //     pipelineId: pipelineId,
-      //   });
-
-      // if (mainAgentId) {
-      //   //only pause for that agent
-      //   let updated = await db.LeadCadence.update(
-      //     {
-      //       status: CadenceStatus.Paused,
-      //     },
-      //     {
-      //       where: {
-      //         status: {
-      //           [db.Sequelize.Op.in]: [
-      //             CadenceStatus.Pending,
-      //             CadenceStatus.Started,
-      //           ],
-      //         },
-      //         mainAgentId: mainAgentId,
-      //       },
-      //     }
-      //   );
-      // }
 
       let batchPaused = await db.CadenceBatchModel.update(
         {
@@ -865,9 +857,9 @@ export const PausePipelineCadenceForAnAgent = async (req, res) => {
   });
 };
 
-//Scheduled calls
+//Scheduled calls | Updated For Team
 export const GetScheduledCalls = async (req, res) => {
-  const { mainAgentId } = req.query;
+  const { mainAgentId, scheduled } = req.query;
 
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -879,10 +871,35 @@ export const GetScheduledCalls = async (req, res) => {
         },
       });
 
+      //find batches whose start time is in future
+      let startTimeFilter = {
+        [db.Sequelize.Op.gt]: new Date(),
+      };
+      //For scheduled, fetch the schedules which are going to happen first
+      let order = [[["startTime", "ASC"]]];
+
+      //find batches whose start time is in past
+      console.log("sch ", scheduled);
+      if (scheduled == false || scheduled == "false") {
+        console.log("In less than");
+        startTimeFilter = {
+          [db.Sequelize.Op.lt]: new Date(),
+        };
+        //Fetch based on the most recent one
+        order = [[["createdAt", "DESC"]]];
+      }
+
+      console.log("Filters ", startTimeFilter);
+      console.log("Order ", order);
+      let teamIds = await GetTeamIds(user);
       let batches = await db.CadenceBatchModel.findAll({
         where: {
-          userId: user.id,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
+          startTime: startTimeFilter,
         },
+        order: order,
       });
       let batchIds = batches.map((batch) => batch.id);
 
@@ -903,6 +920,7 @@ export const GetScheduledCalls = async (req, res) => {
   });
 };
 
+// Updated For Team
 export const GetScheduledCallsForAgent = async (mainAgentId) => {
   // const { mainAgentId } = req.query;
 
@@ -1108,6 +1126,7 @@ export const GetScheduledCallsForAgent = async (mainAgentId) => {
   }
 };
 
+// Updated For Team
 export const GetScheduledFutureCalls = async (agentId, batchId) => {
   let PipelineCadence = db.PipelineCadence;
   let CadenceCalls = db.CadenceCalls;
@@ -1429,7 +1448,7 @@ export const GetScheduledCallsOld = async (req, res) => {
   });
 };
 
-//
+// Updated For Team
 export const GetCallActivities = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -1440,9 +1459,12 @@ export const GetCallActivities = async (req, res) => {
         },
       });
 
+      let teamIds = await GetTeamIds(user);
       let agents = await db.MainAgentModel.findAll({
         where: {
-          userId: userId,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
         },
       });
       let agentIds = [];
