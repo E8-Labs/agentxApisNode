@@ -383,7 +383,7 @@ export async function ScheduleEvent(req, res) {
   WriteToFile(`Parsed Date: ${parsedDate} `);
   const startDateISO = format(parsedDate, "yyyy-MM-dd");
   const pacificTime = convertToPacificTime(startDateISO);
-
+  const startTimeISO = format(parsedDate, "yyyy-MM-dd'T'HH:mm:ssXXX");
   WriteToFile(`Start Time ISO:, ${startDateISO}`);
   WriteToFile(`Pacific Time:, ${pacificTime}`);
 
@@ -476,7 +476,7 @@ export async function ScheduleEvent(req, res) {
           mainAgentId: mainAgentId,
           agentId: agent.id,
           data: JSON.stringify(responseData),
-          datetime: utcDateTime.toISO(),
+          datetime: startTimeISO, //utcDateTime.toISO(),
           date: date,
           time: time,
         });
