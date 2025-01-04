@@ -562,7 +562,7 @@ export const MakeACall = async (
       phone: PhoneNumber,
       model: assistant.modelId, //"1722652829145x214249543190325760",
       prompt: basePrompt.callScript,
-      greeting: basePrompt.greeting,
+      // greeting: basePrompt.greeting,
     };
     let res = await initiateCall(
       data,
@@ -710,7 +710,7 @@ export const TestAI = async (req, res) => {
           phone: phone,
           model: agent.modelId, //"1722652829145x214249543190325760",
           prompt: basePrompt.callScript,
-          greeting: basePrompt.greeting,
+          // greeting: basePrompt.greeting,
         };
 
         console.log("Payload is ");
