@@ -1326,7 +1326,7 @@ export const UpdateAgent = async (req, res) => {
                 let updatedSynthflow = await UpdateAssistantSynthflow(a, {
                   agent: {
                     // prompt: req.body.prompt,
-                    greeting: req.body.greeting,
+                    greeting_message: req.body.greeting,
                   },
                 });
               }
