@@ -168,6 +168,7 @@ async function GetCompletePromptTextFrom(
   lead,
   test = false
 ) {
+  let customVariables = [];
   // console.log("Prompt ");
   // console.log(prompt);
   let callScript = prompt.callScript;
@@ -175,15 +176,19 @@ async function GetCompletePromptTextFrom(
   let greeting = prompt.greeting;
   let companyAgentInfo = prompt.companyAgentInfo;
   companyAgentInfo = companyAgentInfo.replace(/{agent_name}/g, assistant.name);
+  customVariables.push(`agent_name: ${assistant.name}`);
   companyAgentInfo = companyAgentInfo.replace(
     /{agent_role}/g,
     assistant.agentRole
   );
+  customVariables.push(`agent_role: ${assistant.agentRole}`);
   companyAgentInfo = companyAgentInfo.replace(
     /{brokerage_name}/g,
     user.brokerage
   );
+  customVariables.push(`brokerage_name: ${user.brokerage_name}`);
   companyAgentInfo = companyAgentInfo.replace(/{CU_status}/g, assistant.status);
+  customVariables.push(`CU_status: ${assistant.status}`);
   companyAgentInfo = companyAgentInfo.replace(
     /{CU_address}/g,
     assistant.address
@@ -202,10 +207,15 @@ async function GetCompletePromptTextFrom(
   }
 
   greeting = greeting.replace(/{First Name}/g, lead.firstName);
+  customVariables.push(`First Name: ${lead.firstName}`);
   greeting = greeting.replace(/{Last Name}/g, lead.lastName);
+  customVariables.push(`Last Name: ${lead.lastName}`);
   greeting = greeting.replace(/{Phone Number}/g, lead.phone);
+  customVariables.push(`Phone Number: ${lead.phone}`);
   greeting = greeting.replace(/{Email}/g, lead.email);
+  customVariables.push(`Email: ${lead.email}`);
   greeting = greeting.replace(/{Address}/g, lead.address);
+  customVariables.push(`Address: ${lead.address}`);
 
   greeting = greeting.replace(/{agent_name}/g, assistant.name);
   greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
@@ -380,7 +390,7 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
 
   //custom variables
   // let customVariables = [{ key: "First_Name", value: `${lead.firstName}` }];
-  let customVariables = [`First_Name: ${lead.firstName}`];
+
   // console.log("Script", text);
   return {
     callScript: basePrompt,
@@ -1308,21 +1318,21 @@ export const UpdateAgent = async (req, res) => {
           }
         );
         if (updated) {
-          //console.log("Prompt updated");
-          // if (agents) {
-          //   for (let i = 0; i < agents.length; i++) {
-          //     let a = agents[i];
-          //     if (a.agentType == "inbound") {
-          //       let updatedSynthflow = await UpdateAssistantSynthflow(a, {
-          //         agent: {
-          //           prompt: req.body.prompt,
-          //           greeting: req.body.greeting,
-          //         },
-          //       });
-          //     }
-          //     //console.log("Voice updated to agent on synthflow", a.modelId);
-          //   }
-          // }
+          console.log("Prompt updated");
+          if (agents) {
+            for (let i = 0; i < agents.length; i++) {
+              let a = agents[i];
+              if (a.agentType == "outbound") {
+                let updatedSynthflow = await UpdateAssistantSynthflow(a, {
+                  agent: {
+                    // prompt: req.body.prompt,
+                    greeting: req.body.greeting,
+                  },
+                });
+              }
+              //console.log("Voice updated to agent on synthflow", a.modelId);
+            }
+          }
         }
       }
       if (req.body.inboundPrompt || req.body.inboundGreeting) {
@@ -2234,6 +2244,7 @@ export async function CreateAssistantSynthflow(
   timezone = constants.DefaultTimezone
 ) {
   console.log("Timezone passed ", timezone);
+  console.log("Greeting sending to synthflow", agentData.greeting);
   let synthKey = process.env.SynthFlowApiKey;
   // console.log("Inside 1", agentData.prompt);
   const options = {
@@ -2253,8 +2264,7 @@ export async function CreateAssistantSynthflow(
         prompt: agentData.prompt,
         llm: "gpt-4o",
         language: "en-US",
-        greeting_message: "Hello {First_Name}",
-        //   agentData.greeting ||
+        greeting_message: agentData.greeting,
         //   `Hey there you have called ${mainAgent.name}. How can i assist you today?`,
         voice_id: "wefw5e68456wef",
       },
