@@ -11,6 +11,7 @@ import {
   GetTransactionsHistory,
   SendPhoneVerificationCode,
   UpdateProfile,
+  AddTestNumber,
 } from "../controllers/userController.js";
 
 import {
@@ -48,6 +49,7 @@ const uploadMedia = multer().fields([
 let UserRouter = express.Router();
 
 UserRouter.post("/sendVerificationCode", SendPhoneVerificationCode);
+UserRouter.post("/addTestNumbers", uploadFiles, AddTestNumber);
 UserRouter.post("/login", LoginUser);
 UserRouter.post("/register", uploadFiles, RegisterUser);
 

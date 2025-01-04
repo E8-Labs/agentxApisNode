@@ -56,6 +56,7 @@ import PhoneVerificationCodeModel from "./user/PhoneVerificationCodeModel.js";
 import NotificationModel from "./user/NotificationModel.js";
 import { DailyNotificationModel } from "./user/DailyNotification.js";
 import TeamModel from "./user/team/TeamModel.js";
+import { TestNumbers } from "./Testing/TestNumbers.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -82,6 +83,7 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 // Define models
+db.TestNumbers = TestNumbers(sequelize, Sequelize);
 db.UserIndustry = UserIndustry(sequelize, Sequelize);
 db.AreaOfFocus = AreaOfFocus(sequelize, Sequelize);
 db.AgentService = AgentService(sequelize, Sequelize);
