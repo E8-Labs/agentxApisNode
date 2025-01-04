@@ -35,6 +35,12 @@ export const GenerateApiKey = async (req, res) => {
       let admin = await GetTeamAdminFor(user);
       let key = generateApiKey();
 
+      //Delet old api keys
+      let del = await db.ApiKeysModel.destroy({
+        where: {
+          userId: user.id,
+        },
+      });
       let saved = await db.ApiKeysModel.create({
         key: key,
         userId: user.id,

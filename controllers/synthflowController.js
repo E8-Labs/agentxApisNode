@@ -42,6 +42,7 @@ import {
   uploadMedia,
 } from "../utils/mediaservice.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
+import { constants } from "../constants/constants.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -1143,7 +1144,8 @@ export const BuildAgent = async (req, res) => {
           let createdInbound = await CreateAssistantSynthflow(
             data,
             "inbound",
-            mainAgent
+            mainAgent,
+            user.timeZone
           );
           data.agentType = "outbound";
           if (createdOutboundPrompt) {
@@ -1159,7 +1161,8 @@ export const BuildAgent = async (req, res) => {
           let createdOutbound = await CreateAssistantSynthflow(
             data,
             "outbound",
-            mainAgent
+            mainAgent,
+            user.timeZone
           );
         } else {
           let data = {
@@ -1202,7 +1205,8 @@ export const BuildAgent = async (req, res) => {
           let createdAgent = await CreateAssistantSynthflow(
             data,
             agentType,
-            mainAgent
+            mainAgent,
+            user.timeZone
           );
         }
 
@@ -2216,8 +2220,10 @@ export const DeleteKyc = async (req, res) => {
 export async function CreateAssistantSynthflow(
   agentData,
   type = "outbound",
-  mainAgent
+  mainAgent,
+  timezone = constants.DefaultTimezone
 ) {
+  console.log("Timezone passed ", timezone);
   let synthKey = process.env.SynthFlowApiKey;
   // console.log("Inside 1", agentData.prompt);
   const options = {
@@ -2232,7 +2238,7 @@ export async function CreateAssistantSynthflow(
       type: type,
       name: agentData.name,
       external_webhook_url: process.env.WebHookForSynthflow,
-
+      timezone: timezone,
       agent: {
         prompt: agentData.prompt,
         llm: "gpt-4o",

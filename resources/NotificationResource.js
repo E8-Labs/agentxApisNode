@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 
 const Op = db.Sequelize.Op;
 
@@ -25,10 +26,22 @@ async function getUserData(not, currentUser = null) {
   let fromUserId = not.fromUserId;
 
   let lead = null,
+    pipelineId = null,
     agent = null,
     fromUser = null;
   if (leadId) {
     lead = await db.LeadModel.findByPk(leadId);
+
+    let cad = await db.LeadCadence.findOne({
+      where: {
+        leadId: leadId,
+        status: CadenceStatus.Started,
+      },
+    });
+    if (cad) {
+      pipelineId = cad.pipelineId;
+      // pipeline = await db.Pipeline.findOne()
+    }
   }
   if (agentId) {
     agent = await db.AgentModel.findByPk(agentId);
@@ -41,6 +54,7 @@ async function getUserData(not, currentUser = null) {
     lead,
     agent,
     fromUser,
+    pipelineId: pipelineId,
   };
 
   return NotificationResource;

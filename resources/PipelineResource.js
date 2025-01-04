@@ -61,7 +61,17 @@ async function getUserData(pipeline, currentUser = null) {
   let leadIds = [];
   for (let i = 0; i < leadCadences.length; i++) {
     let lc = leadCadences[i];
-    if (!leadIds.includes(lc.leadId)) {
+    let mainAgentId = lc.mainAgentId;
+    let lead = await db.LeadModel.findByPk(lc.leadId);
+    let pipelineCadence = await db.PipelineCadence.findOne({
+      where: {
+        pipelineId: pipeline.id,
+        mainAgentId: mainAgentId,
+        stage: lead.stage,
+      },
+    });
+
+    if (!leadIds.includes(lc.leadId) && pipelineCadence) {
       leadIds.push(lc.leadId);
       let leadRes = await LeadCadenceResource(lc);
       leads.push(leadRes);

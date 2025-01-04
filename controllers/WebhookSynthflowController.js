@@ -193,6 +193,12 @@ async function handleNewCall(
     sheet,
     leadData
   );
+  try {
+    let tagCreated = await db.LeadTagsModel.create({
+      tag: "inbound",
+      sheetId: lead.id,
+    });
+  } catch (error) {}
   //Send Notification for inbound Call
   try {
     let user = await db.User.findByPk(assistant.userId);
