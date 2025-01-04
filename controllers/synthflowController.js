@@ -378,8 +378,14 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
 
   basePrompt = `${basePrompt}\n\n${leadInfo}`;
 
+  //custom variables
+  let customVariables = { First_Name: lead.firstName };
   // console.log("Script", text);
-  return { callScript: basePrompt, greeting: greeting };
+  return {
+    callScript: basePrompt,
+    greeting: greeting,
+    customVariables: customVariables,
+  };
 }
 
 export async function addCallTry(
@@ -562,6 +568,7 @@ export const MakeACall = async (
       phone: PhoneNumber,
       model: assistant.modelId, //"1722652829145x214249543190325760",
       prompt: basePrompt.callScript,
+      custom_variables: [basePrompt.customVariables],
       // greeting: basePrompt.greeting,
     };
     let res = await initiateCall(
@@ -2244,7 +2251,7 @@ export async function CreateAssistantSynthflow(
         prompt: agentData.prompt,
         llm: "gpt-4o",
         language: "en-US",
-        greeting_message: "-",
+        greeting_message: "Hello {First_Name}",
         //   agentData.greeting ||
         //   `Hey there you have called ${mainAgent.name}. How can i assist you today?`,
         voice_id: "wefw5e68456wef",
