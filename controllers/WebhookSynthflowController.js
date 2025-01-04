@@ -55,7 +55,7 @@ export const WebhookSynthflow = async (req, res) => {
 
     const {
       callId,
-      modelId,
+      // modelId,
       status,
       duration,
       transcript,
@@ -64,13 +64,29 @@ export const WebhookSynthflow = async (req, res) => {
       actions,
     } = extractCallData(data);
 
+    let mainAgentId = req.query.mainAgentId || null;
+    let type = req.query.type || null;
+    if (!mainAgentId) {
+      modelId = data.call.model_id;
+    } else {
+      //get the modelId using the query params in webhook
+      let assistant = await db.AgentModel.findOne({
+        where: {
+          agentType: type,
+          mainAgentId: mainAgentId,
+        },
+      });
+      if (assistant) {
+        modelId = assistant.modelId;
+      }
+    }
+
     let dbCall = await db.LeadCallsSent.findOne({
       where: { synthflowCallId: callId },
     });
     let jsonIE;
-    let inbound = false;
+
     if (!dbCall) {
-      inbound = true;
       console.log("Call is not already in the table.");
       dbCall = await handleNewCall(
         data,
