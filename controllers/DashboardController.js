@@ -173,7 +173,8 @@ export const GetDashboardData = async (req, res) => {
         data: {
           stats: {
             totalDuration: formatDuration(stats.totalDuration),
-            avDuration: formattedAvDuration,
+            avDuration: avDuration,
+            formattedAvDuration: formattedAvDuration,
             totalCalls: stats.totalCalls,
             totalCallsGt10: stats.totalCallsGt10,
             notInterested: stats.notInterested,
@@ -182,7 +183,7 @@ export const GetDashboardData = async (req, res) => {
             hotLeads: stats.hotLeads,
           },
           statsComparison,
-          callsInCurrentPeriod,
+          // callsInCurrentPeriod,
         },
       });
     }
