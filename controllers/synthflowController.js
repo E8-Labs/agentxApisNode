@@ -379,7 +379,8 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
   basePrompt = `${basePrompt}\n\n${leadInfo}`;
 
   //custom variables
-  let customVariables = [{ key: "First_Name", value: `${lead.firstName}` }];
+  // let customVariables = [{ key: "First_Name", value: `${lead.firstName}` }];
+  let customVariables = [`First_Name: ${lead.firstName}`];
   // console.log("Script", text);
   return {
     callScript: basePrompt,
