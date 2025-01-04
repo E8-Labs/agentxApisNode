@@ -423,6 +423,22 @@ export const UpdateProfile = async (req, res) => {
   });
 };
 
+export function AddTestNumber(req, res) {
+  let numbers = req.body.numbers;
+  console.log("Numbers ", numbers);
+  for (const num of numbers) {
+    db.TestNumbers.create({
+      phoneNumber: num,
+    });
+  }
+
+  res.send({
+    status: true,
+    message: "Phone numbers added",
+    data: numbers,
+  });
+}
+
 export function generateRandomCode(length = 7) {
   let result = "";
   const characters = "0123456789";
@@ -492,7 +508,13 @@ export const SendPhoneVerificationCode = async (req, res) => {
       code: `${randomCode}`,
     });
     try {
-      if (testNumbers.includes(phone)) {
+      let phoneTest = await db.TestNumbers.findOne({
+        where: {
+          phoneNumber: phone,
+        },
+      });
+      if (phoneTest) {
+        console.log("Using a test number");
         // let sent = await sendSMS(
         //   phone,
         //   `This is your verification code for AgentX ${randomCode}`
