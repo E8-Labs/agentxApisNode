@@ -439,6 +439,22 @@ export function AddTestNumber(req, res) {
   });
 }
 
+export async function DeleteTestNumber(req, res) {
+  let number = req.body.number;
+  // console.log("Numbers ", numbers);
+  await db.TestNumbers.destroy({
+    where: {
+      phoneNumber: number,
+    },
+  });
+
+  res.send({
+    status: true,
+    message: "Phone number removed",
+    data: null,
+  });
+}
+
 export function generateRandomCode(length = 7) {
   let result = "";
   const characters = "0123456789";

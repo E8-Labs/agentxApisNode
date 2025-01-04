@@ -12,6 +12,7 @@ import {
   SendPhoneVerificationCode,
   UpdateProfile,
   AddTestNumber,
+  DeleteTestNumber,
 } from "../controllers/userController.js";
 
 import {
@@ -50,6 +51,7 @@ let UserRouter = express.Router();
 
 UserRouter.post("/sendVerificationCode", SendPhoneVerificationCode);
 UserRouter.post("/addTestNumbers", uploadFiles, AddTestNumber);
+UserRouter.post("/deleteTestNumber", uploadFiles, DeleteTestNumber);
 UserRouter.post("/login", LoginUser);
 UserRouter.post("/register", uploadFiles, RegisterUser);
 

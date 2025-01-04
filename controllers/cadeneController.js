@@ -268,6 +268,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
   let leadCadence = await db.LeadCadence.findAll({
     where: {
       status: CadenceStatus.Started,
+      batchId: {
+        [db.Sequelize.Op.ne]: null,
+      },
     },
     limit: 50, // Limit the batch size to 2
   });
@@ -342,6 +345,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       //for last call time and wait for that amount of time
 
       let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
+      console.log("Trying to find batch start time for leadCad", leadCad.id);
       const dbDate = new Date(batch.startTime); // Date from the database
       const currentDate = new Date(); // Current date and time
 
