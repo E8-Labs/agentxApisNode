@@ -140,21 +140,22 @@ export const GetNotifications = async (req, res) => {
         },
         offset: offset,
         limit: limit,
+        order: [["createdAt", "DESC"]],
       });
 
-      let unread = await db.NotificationModel.count({
-        where: {
-          isSeen: false,
-          userId: user.id,
-        },
-      });
+      // let unread = await db.NotificationModel.count({
+      //   where: {
+      //     isSeen: false,
+      //     userId: user.id,
+      //   },
+      // });
 
       res.send({
         status: true,
         message: `Notifications list`,
         data: {
           notifications: await NotificationResource(nots),
-          unread: unread,
+          // unread: unread,
         },
       });
     } else {
