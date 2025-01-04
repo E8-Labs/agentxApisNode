@@ -99,7 +99,12 @@ export const GetDashboardData = async (req, res) => {
         if (call.duration > 10) stats.totalCallsGt10 += 1;
         if (call.notinterested) stats.notInterested += 1;
         if (call.hotlead) stats.hotLeads += 1;
-        if (call.voicemail) stats.voicemail += 1;
+        if (
+          call.voicemail ||
+          call.callOutcome == "Voicemail" ||
+          call.endCallReason == "voicemail"
+        )
+          stats.voicemail += 1;
         if (call.meetingscheduled) stats.meetingScheduled += 1;
       }
 
