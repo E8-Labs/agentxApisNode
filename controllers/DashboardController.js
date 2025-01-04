@@ -177,6 +177,7 @@ export const GetDashboardData = async (req, res) => {
             hotLeads: stats.hotLeads,
           },
           statsComparison,
+          callsInCurrentPeriod,
         },
       });
     }
