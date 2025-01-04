@@ -299,7 +299,9 @@ async function GetCompletePromptTextFrom(
     if (extraColumns) {
       let value = extraColumns[key];
       // console.log(`Replacing key ${key} with ${value}`);
+
       if (value) {
+        customVariables.push(`${key}: ${value}`);
         const regex = new RegExp(`\\{${key}\\}`, "gi"); // Create a dynamic regex to match `${key}`
         //console.log(`replacing ${key} with ${value}`);
         callScript = callScript.replace(regex, value);
@@ -2258,7 +2260,9 @@ export async function CreateAssistantSynthflow(
     data: {
       type: type,
       name: agentData.name,
-      external_webhook_url: process.env.WebHookForSynthflow,
+      external_webhook_url:
+        process.env.WebHookForSynthflow +
+        `?type=${type}&mainAgentId=${mainAgent.id}`,
       timezone: timezone,
       agent: {
         prompt: agentData.prompt,
