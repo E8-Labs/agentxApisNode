@@ -379,7 +379,7 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
   basePrompt = `${basePrompt}\n\n${leadInfo}`;
 
   //custom variables
-  let customVariables = { First_Name: lead.firstName };
+  let customVariables = [{ key: "First_Name", value: `${lead.firstName}` }];
   // console.log("Script", text);
   return {
     callScript: basePrompt,
@@ -568,7 +568,7 @@ export const MakeACall = async (
       phone: PhoneNumber,
       model: assistant.modelId, //"1722652829145x214249543190325760",
       prompt: basePrompt.callScript,
-      custom_variables: [basePrompt.customVariables],
+      custom_variables: basePrompt.customVariables,
       // greeting: basePrompt.greeting,
     };
     let res = await initiateCall(
@@ -717,6 +717,7 @@ export const TestAI = async (req, res) => {
           phone: phone,
           model: agent.modelId, //"1722652829145x214249543190325760",
           prompt: basePrompt.callScript,
+          custom_variables: basePrompt.customVariables,
           // greeting: basePrompt.greeting,
         };
 
