@@ -342,13 +342,13 @@ Stick to this rule to maintain control and professionalism in call handling.
   //udpate the call script here
   //Test greeting
   greeting = `"${greeting}"`;
-  let text = "";
-  // text = `${text}\n\n${greeting}`;
-  text = `${text}\n\n${prompt.objective}\n\n`;
-  text = `${text}\n\n${companyAgentInfo}`;
-  text = `${text}\n\n${prompt.personalCharacteristics}`;
-  text = `${text}\n\n${prompt.communication}`;
-  text = `${text}\n\n${callScript}`;
+  let basePrompt = "";
+  basePrompt = `${basePrompt}\n\n${greeting}`;
+  basePrompt = `${basePrompt}\n\n${prompt.objective}\n\n`;
+  basePrompt = `${basePrompt}\n\n${companyAgentInfo}`;
+  basePrompt = `${basePrompt}\n\n${prompt.personalCharacteristics}`;
+  basePrompt = `${basePrompt}\n\n${prompt.communication}`;
+  basePrompt = `${basePrompt}\n\n${callScript}`;
   // text = `${text}\n\n${prompt.booking}`;
   //check if the user have connected calendar for this agent
   let cal = await db.CalendarIntegration.findOne({
@@ -359,14 +359,14 @@ Stick to this rule to maintain control and professionalism in call handling.
   if (cal) {
     //add booking
     console.log("Calendar is connected so adding booking instructions");
-    text = `${text}\n\n${prompt.booking}\nTimezone for the calendar: ${
-      cal.timeZone || "America/Los_Angeles"
-    }`;
+    basePrompt = `${basePrompt}\n\n${
+      prompt.booking
+    }\nTimezone for the calendar: ${cal.timeZone || "America/Los_Angeles"}`;
   }
-  text = `${text}\n\n${objectionPromptText}`;
-  text = `${text}\n\n${guardrailPromptText}`;
-  text = `${text}\n\n${prompt.streetAddress}`;
-  text = `${text}\n\n${prompt.getTools}`;
+  basePrompt = `${basePrompt}\n\n${objectionPromptText}`;
+  basePrompt = `${basePrompt}\n\n${guardrailPromptText}`;
+  basePrompt = `${basePrompt}\n\n${prompt.streetAddress}`;
+  basePrompt = `${basePrompt}\n\n${prompt.getTools}`;
 
   //lead info
   let leadInfo = `
@@ -376,10 +376,10 @@ Lead Name: ${lead.firstName} ${lead.lastName}
 Lead Email: ${lead.email ? lead.email : "N/A"}
   `;
 
-  text = `${text}\n\n${leadInfo}`;
+  basePrompt = `${basePrompt}\n\n${leadInfo}`;
 
   // console.log("Script", text);
-  return { callScript: text, greeting: greeting };
+  return { callScript: basePrompt, greeting: greeting };
 }
 
 export async function addCallTry(
