@@ -2244,7 +2244,7 @@ export async function CreateAssistantSynthflow(
         prompt: agentData.prompt,
         llm: "gpt-4o",
         language: "en-US",
-        greeting_message: "",
+        greeting_message: "-",
         //   agentData.greeting ||
         //   `Hey there you have called ${mainAgent.name}. How can i assist you today?`,
         voice_id: "wefw5e68456wef",
