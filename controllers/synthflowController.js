@@ -176,19 +176,26 @@ async function GetCompletePromptTextFrom(
   let greeting = prompt.greeting;
   let companyAgentInfo = prompt.companyAgentInfo;
   companyAgentInfo = companyAgentInfo.replace(/{agent_name}/g, assistant.name);
-  customVariables.push(`agent_name: ${assistant.name || "Not provided"}`);
+  if (assistant.name != null && assistant.name != "") {
+    customVariables.push(`agent_name: ${assistant.name || "Not provided"}`);
+  }
   companyAgentInfo = companyAgentInfo.replace(
     /{agent_role}/g,
     assistant.agentRole
   );
-  customVariables.push(`agent_role: ${assistant.agentRole}`);
-  companyAgentInfo = companyAgentInfo.replace(
-    /{brokerage_name}/g,
-    user.brokerage
-  );
-  customVariables.push(`brokerage_name: ${user.brokerage_name}`);
+
+  if (assistant.agentRole != null && assistant.agentRole != "") {
+    customVariables.push(`agent_role: ${assistant.agentRole}`);
+  }
+
+  if (user.brokerage_name != null && user.brokerage_name != "") {
+    customVariables.push(`brokerage_name: ${user.brokerage_name}`);
+  }
   companyAgentInfo = companyAgentInfo.replace(/{CU_status}/g, assistant.status);
-  customVariables.push(`CU_status: ${assistant.status}`);
+
+  if (assistant.status != null && assistant.status != "") {
+    customVariables.push(`CU_status: ${assistant.status}`);
+  }
   companyAgentInfo = companyAgentInfo.replace(
     /{CU_address}/g,
     assistant.address
@@ -208,14 +215,28 @@ async function GetCompletePromptTextFrom(
 
   greeting = greeting.replace(/{First Name}/g, lead.firstName);
   customVariables.push(`First Name: ${lead.firstName ?? "Not Provided"}`);
+
   greeting = greeting.replace(/{Last Name}/g, lead.lastName);
-  customVariables.push(`Last Name: ${lead.lastName ?? "Not Provided"}`);
+  customVariables.push(
+    `Last Name: ${
+      lead.lastName && lead.lastName != "" ? lead.lastName : "Not Provided"
+    }`
+  );
+
   greeting = greeting.replace(/{Phone Number}/g, lead.phone);
   customVariables.push(`Phone Number: ${lead.phone ?? "Not Provided"}`);
+
   greeting = greeting.replace(/{Email}/g, lead.email);
-  customVariables.push(`Email: ${lead.email ?? "Not Provided"}`);
+  customVariables.push(
+    `Email: ${lead.email && lead.email != "" ? lead.email : "Not Provided"}`
+  );
+
   greeting = greeting.replace(/{Address}/g, lead.address);
-  customVariables.push(`Address: ${lead.address ?? "Not Provided"}`);
+  customVariables.push(
+    `Address: ${
+      lead.address && lead.address != "" ? lead.address : "Not Provided"
+    }`
+  );
 
   greeting = greeting.replace(/{agent_name}/g, assistant.name);
   greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
