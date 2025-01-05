@@ -207,15 +207,15 @@ async function GetCompletePromptTextFrom(
   }
 
   greeting = greeting.replace(/{First Name}/g, lead.firstName);
-  customVariables.push(`First Name: ${lead.firstName}`);
+  customVariables.push(`First Name: ${lead.firstName ?? "Not Provided"}`);
   greeting = greeting.replace(/{Last Name}/g, lead.lastName);
-  customVariables.push(`Last Name: ${lead.lastName}`);
+  customVariables.push(`Last Name: ${lead.lastName ?? "Not Provided"}`);
   greeting = greeting.replace(/{Phone Number}/g, lead.phone);
-  customVariables.push(`Phone Number: ${lead.phone}`);
+  customVariables.push(`Phone Number: ${lead.phone ?? "Not Provided"}`);
   greeting = greeting.replace(/{Email}/g, lead.email);
-  customVariables.push(`Email: ${lead.email}`);
+  customVariables.push(`Email: ${lead.email ?? "Not Provided"}`);
   greeting = greeting.replace(/{Address}/g, lead.address);
-  customVariables.push(`Address: ${lead.address}`);
+  customVariables.push(`Address: ${lead.address ?? "Not Provided"}`);
 
   greeting = greeting.replace(/{agent_name}/g, assistant.name);
   greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
@@ -301,7 +301,7 @@ async function GetCompletePromptTextFrom(
       // console.log(`Replacing key ${key} with ${value}`);
 
       if (value) {
-        customVariables.push(`${key}: ${value}`);
+        customVariables.push(`${key}: ${value ?? "Not Provided"}`);
         const regex = new RegExp(`\\{${key}\\}`, "gi"); // Create a dynamic regex to match `${key}`
         //console.log(`replacing ${key} with ${value}`);
         callScript = callScript.replace(regex, value);
