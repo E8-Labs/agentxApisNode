@@ -176,7 +176,7 @@ async function GetCompletePromptTextFrom(
   let greeting = prompt.greeting;
   let companyAgentInfo = prompt.companyAgentInfo;
   companyAgentInfo = companyAgentInfo.replace(/{agent_name}/g, assistant.name);
-  customVariables.push(`agent_name: ${assistant.name}`);
+  customVariables.push(`agent_name: ${assistant.name || "Not provided"}`);
   companyAgentInfo = companyAgentInfo.replace(
     /{agent_role}/g,
     assistant.agentRole
@@ -734,8 +734,8 @@ export const TestAI = async (req, res) => {
           // greeting: basePrompt.greeting,
         };
 
-        console.log("Payload is ");
-        console.log(JSON.stringify(data));
+        // console.log("Payload is ");
+        // console.log(JSON.stringify(data));
         let response = await initiateCall(
           data,
           cad,
