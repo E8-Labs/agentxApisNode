@@ -322,7 +322,9 @@ async function GetCompletePromptTextFrom(
       // console.log(`Replacing key ${key} with ${value}`);
 
       if (value) {
-        customVariables.push(`${key}: ${value ?? "Not Provided"}`);
+        if (value != "" && typeof value != "undefined") {
+          customVariables.push(`${key}: ${value ?? "Not Provided"}`);
+        }
         const regex = new RegExp(`\\{${key}\\}`, "gi"); // Create a dynamic regex to match `${key}`
         //console.log(`replacing ${key} with ${value}`);
         callScript = callScript.replace(regex, value);
