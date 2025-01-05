@@ -53,6 +53,7 @@ export const WebhookSynthflow = async (req, res) => {
 
     logWebhookData(data, dataString);
 
+    let modelId = null;
     const {
       callId,
       // modelId,
