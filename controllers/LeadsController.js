@@ -112,6 +112,12 @@ export const AddLeads = async (req, res) => {
           }
         }
       }
+      if (sheet.status == "deleted") {
+        //if the sheet is deleted then update the status to active again if the new leads are appended to that sheet
+        //
+        sheet.status = "active";
+        await sheet.save();
+      }
 
       let dbLeads = [];
       for (let i = 0; i < leads.length; i++) {
