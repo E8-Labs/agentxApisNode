@@ -82,6 +82,7 @@ async function getUserData(pipeline, currentUser = null) {
 
     // }
   }
+  //if a lead is in a stage which is not assigned to any agent
   for (const lc of leadCadences) {
     if (!leadIds.includes(lc.leadId)) {
       leadIds.push(lc.leadId);
