@@ -71,6 +71,7 @@ export const checkStageConflicts = async (mainAgentIds) => {
 //Updated For Team
 export const AddLeads = async (req, res) => {
   let { sheetName, columnMappings, leads, tags } = req.body; // mainAgentId is the mainAgent id
+  sheetName = sheetName.trim();
   if (req.body.mainAgentIds) {
     console.log("Main agent ids", req.body.mainAgentIds);
     let checkData = await checkStageConflicts(req.body.mainAgentIds);
