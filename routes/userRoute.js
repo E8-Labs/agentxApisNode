@@ -112,5 +112,5 @@ UserRouter.post(
 );
 
 //SendTestNotification
-UserRouter.post("/sendTestNotification", SendTestNotification);
+UserRouter.post("/sendTestNotification", uploadFiles, SendTestNotification);
 export default UserRouter;

@@ -1,5 +1,6 @@
 import db from "../models/index.js";
 import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
+import { getPaymentMethods } from "../utils/stripe.js";
 
 const Op = db.Sequelize.Op;
 
@@ -56,6 +57,8 @@ async function getUserData(user, currentUser = null) {
     },
   });
 
+  let cards = await getPaymentMethods(user.id);
+
   const UserFullResource = {
     ...user.get(),
     plan: planHistory && planHistory.length > 0 ? planHistory[0] : null,
@@ -66,6 +69,7 @@ async function getUserData(user, currentUser = null) {
     unread: unread,
     focusAreas,
     services,
+    cards: cards,
   };
 
   return UserFullResource;

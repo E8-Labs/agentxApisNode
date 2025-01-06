@@ -226,10 +226,12 @@ export const GetNotifications = async (req, res) => {
 
 export const SendTestNotification = async (req, res) => {
   let token = req.body.token;
+  console.log("Token ", token);
+
   // ("cJgxQg0hU9G5GHTL1pCiil:APA91bEZRJCVezaBkZ-1ocMD3G4g6x6R5dxpAmkETW25d9n0Qe4MXXZKkteIkwwKGVv9uQqmIiqy1SRycy587ShsZCS_P5megJSTl8a8w5bOroRn5pZEH3I");
   await sendPushNotification(token, {
-    title: "Test Notificaiton",
-    body: "This is test notification",
+    title: req.body.title || "Test Notificaiton",
+    body: req.body.body || "This is test notification",
     data: {},
   });
   res.send({ status: true, message: "Notification sent" });
