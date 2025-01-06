@@ -424,7 +424,7 @@ async function extractIEAndStoreKycs(extractors, lead, callId) {
   for (const key of keys) {
     const data = extractors[key];
     const returnValue = data.return_value;
-    const question = key.replace("info_extractor_", "");
+    let question = key.replace("info_extractor_", "");
     console.log("Question is ", question);
     const answer = returnValue[question];
 
