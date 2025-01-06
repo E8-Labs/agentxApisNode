@@ -275,6 +275,9 @@ export const ReadAllNotifications = async (req, res) => {
 
 export const NotificationCron = async () => {
   try {
+    try {
+      SendAutoDailyNotificationsFor7Days();
+    } catch (error) {}
     let date = new Date().toISOString();
     console.log("Current time server ", date);
     const startOfToday = new Date();
@@ -339,9 +342,6 @@ export const NotificationCron = async () => {
 
 async function SendNotificationsForHotlead(user) {
   try {
-    try {
-      SendAutoDailyNotificationsFor7Days();
-    } catch (error) {}
     let ids = [];
     let agents = await db.AgentModel.findAll({
       where: {
