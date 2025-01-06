@@ -322,6 +322,45 @@ async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
   return lead;
 }
 
+async function createPipelineCadenceForInboundModelsOnly(assistant) {
+  //Now what if both outbound and inbound agents are there but they are not assigned to the pipelinecadence.
+  let outbound = await db.AgentModel.findOne({
+    where: {
+      mainAgentId: assistant.mainAgentId,
+      agentType: "outbound",
+    },
+  });
+
+  if (outbound) {
+    return null;
+  }
+  let defaultPipeline = await db.Pipeline.findOne({
+    where: {
+      userId: assistant.userId,
+    },
+    order: [["createdAt", "ASC"]],
+  });
+  if (!defaultPipeline) {
+    return null;
+  }
+  let newLead = await db.PipelineStages.findOne({
+    where: {
+      identifier: "new_lead",
+      pipelineId: defaultPipeline.id,
+    },
+  });
+  if (!newLead) {
+    return null;
+  }
+  let pc = await db.PipelineCadence.create({
+    mainAgentId: assistant.mainAgentId,
+    stage: newLead.id,
+    pipelineId: defaultPipeline.id,
+    status: "Active",
+  });
+  return pc;
+}
+
 async function findOrCreateLeadCadence(lead, assistant, jsonIE) {
   if (!lead) return null;
 
@@ -330,7 +369,7 @@ async function findOrCreateLeadCadence(lead, assistant, jsonIE) {
   });
 
   if (!leadCad) {
-    const pipelineCadence = await db.PipelineCadence.findOne({
+    let pipelineCadence = await db.PipelineCadence.findOne({
       where: { mainAgentId: assistant.mainAgentId },
     });
     console.log(
@@ -338,7 +377,11 @@ async function findOrCreateLeadCadence(lead, assistant, jsonIE) {
       pipelineCadence
     );
     if (!pipelineCadence) {
-      return null;
+      let pc = await createPipelineCadenceForInboundModelsOnly(assistant);
+      if (!pc) {
+        return null;
+      }
+      pipelineCadence = pc;
     }
 
     leadCad = await db.LeadCadence.create({
@@ -537,6 +580,21 @@ async function handleInfoExtractorValues(
           lead.stage = stage.id;
           moveToStage = stage.id || null;
           await lead.save();
+
+          //set stage tags to lead
+          let stageTags = await db.StageTagModel.findAll({
+            where: {
+              pipelineStageId: stage.id,
+            },
+          });
+          if (stageTags && stageTags.length > 0) {
+            for (const t of stageTags) {
+              db.LeadTagsModel.create({
+                leadId: lead.id,
+                tag: t.tag,
+              });
+            }
+          }
           movedToCustom = true;
           console.log(`Successfully moved to ${stageIdentifier}`, json[csIE]);
         }
