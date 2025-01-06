@@ -4,6 +4,7 @@ import { DateTime } from "luxon";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import NotificationResource from "../resources/NotificationResource.js";
 import { convertUTCToTimezone } from "../utils/dateutil.js";
+import { sendPushNotification } from "../services/firebase.js";
 
 async function GetNotificationTitle(
   user,
@@ -51,7 +52,7 @@ async function GetNotificationTitle(
     title = `Last Day to Make It Count! ⏰`;
     body = "Final call! Your 30 minutes of AI talk time expire at midnight.";
   }
-  if (type == NotificationTypes.TrialReminder) {
+  if (type == NotificationTypes.TrialTime2MinLeft) {
     title = `2 min Reminder!`;
     body = "Trial ending soon. Just 2 minutes left! Your plan will auto-renew.";
   }
@@ -145,6 +146,14 @@ export const AddNotification = async (
       body: body,
     });
 
+    let resource = await NotificationResource(not);
+    if (user.fcm_token && user.fcm_token.trim()) {
+      await sendPushNotification(user.fcm_token, {
+        title: title,
+        body: body,
+        data: resource,
+      });
+    }
     return not;
   } catch (error) {
     console.log("Error adding not ", error);
@@ -213,6 +222,14 @@ export const GetNotifications = async (req, res) => {
       });
     }
   });
+};
+
+export const SendTestNotification = async (req, res) => {
+  await sendPushNotification(
+    "c0vMoCubo_yuExm2T2HfjL:APA91bF6KX6hyAUUIlxntFAiTuEI7_wg7IkDyx2-2KkDER9To6sU4TDgLIbautQYWsPYd9FPttwHKjySCDEnvZQdv2sN_hM8xEg1IJ8pu31IrdSn6gloUAI",
+    { title: "Test Notificaiton", body: "This is test notification", data: {} }
+  );
+  res.send({ status: true, message: "Notification sent" });
 };
 
 export const ReadAllNotifications = async (req, res) => {
@@ -621,8 +638,8 @@ async function CheckAndSendTrialReminderNotificaitonSent(user) {
   // Calculate the difference in milliseconds
   let timeDifference = now - createdAt;
 
-  // Check if 3 hours (in milliseconds) or more have passed
-  if (timeDifference >= 27 * 60 * 60 * 1000) {
+  // Check if 2 days and 3 hours (in milliseconds) or more have passed
+  if (timeDifference >= 51 * 60 * 60 * 1000) {
     console.log("51 hours or more have passed since the account was created.");
   } else {
     console.log(
@@ -826,4 +843,4 @@ async function CheckAndSendTwoMinuteTrialLeftNotificaitonSent(user) {
   }
 }
 
-// SendAutoDailyNotificationsFor7Days();
+SendAutoDailyNotificationsFor7Days();
