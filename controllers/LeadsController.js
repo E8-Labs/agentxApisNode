@@ -97,6 +97,7 @@ export const AddLeads = async (req, res) => {
           userId: {
             [db.Sequelize.Op.in]: teamIds,
           },
+          status: "active",
         },
       });
       if (!sheet) {

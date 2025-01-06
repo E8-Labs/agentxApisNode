@@ -22,6 +22,35 @@ import { NotificationTypes } from "../models/user/NotificationModel.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { WriteToFile } from "../services/FileService.js";
 
+// Define possible date and time formats
+const dateFormats = [
+  "yyyy-MM-dd",
+  "MM-dd-yyyy",
+  "dd-MM-yyyy",
+  "yyyy/MM/dd",
+  "MM/dd/yyyy",
+  "dd/MM/yyyy",
+  "yyyy.MM.dd",
+  "MM.dd.yyyy",
+  "dd.MM.yyyy",
+  "d MMM yyyy",
+  "d MMMM yyyy",
+  "MMM d, yyyy",
+  "MMMM d, yyyy",
+  "yyyyMMdd",
+];
+
+const timeFormats = [
+  "HH:mm",
+  "HH:mm:ss",
+  "h:mm a",
+  "h:mm:ss a",
+  "hh:mm a",
+  "hh:mm:ss a",
+  "H:mm",
+  "H:mm:ss",
+];
+
 const convertToPacificTime = (isoString) => {
   // Parse the ISO string with the original timezone offset
   const dateTime = DateTime.fromISO(isoString, { setZone: true });
@@ -178,123 +207,135 @@ async function processSlots(response, timeZone) {
 
   return convertedSlots;
 }
-function getParsedTime(time) {
-  const timeFormats = [
-    "HH:mm",
-    "HH:mm:ss",
-    "H:mm",
-    "H:mm:ss",
-    "hh:mm a",
-    "hh:mm:ss a",
-    "h:mm a",
-    "h:mm:ss a",
-    "hh:mmA",
-    "hh:mm:ssA",
-    "h:mmA",
-    "h:mm:ssA",
-    "hh:mm a",
-    "hh:mm:ss a",
-    "h:mm a",
-    "h:mm:ss a",
-    "HHmm",
-    "HHmmss",
-    "hhmm a",
-    "hhmmss a",
-    "hmm a",
-    "hmmss a",
-    "h:mm",
-    "h:mm:ss",
-    "H",
-    "HH",
-    "hh a",
-    "h a",
-  ];
-  let parsedTime;
-  for (let format of timeFormats) {
-    parsedTime = parse(time, format, new Date());
-    if (isValid(parsedTime)) break;
-  }
 
-  if (!isValid(parsedTime)) {
+// import { DateTime } from "luxon";
+
+// Function to handle any input format and intelligently parse it
+function parseFlexibleDate(input) {
+  // Clean the input
+  const cleanedInput = input.trim();
+
+  // First, attempt to parse it using ISO 8601 directly
+  let parsedDate = DateTime.fromISO(cleanedInput);
+
+  if (parsedDate.isValid) {
     return {
-      status: false,
-      message: "Invalid time format. Please provide a recognizable time.",
+      status: true,
+      message: "Parsed successfully as ISO 8601",
+      formattedDate: parsedDate.toISODate(),
     };
   }
+
+  // If ISO 8601 fails, define common formats to try
+  const possibleFormats = dateFormats;
+  // [
+  //   "yyyy-MM-dd", // Standard
+  //   "dd-MM-yyyy", // Day first
+  //   "MM-dd-yyyy", // Month first
+  //   "yyyy/MM/dd",
+  //   "dd/MM/yyyy",
+  //   "MM/dd/yyyy",
+  //   "yyyy.MM.dd",
+  //   "dd.MM.yyyy",
+  //   "MM.dd.yyyy",
+  //   "yyyyMMdd", // Compact
+  //   "MMddyyyy", // Compact Month first
+  //   "ddMMyyyy", // Compact Day first
+  // ];
+
+  for (let format of possibleFormats) {
+    parsedDate = DateTime.fromFormat(cleanedInput, format);
+    if (parsedDate.isValid) {
+      return {
+        status: true,
+        message: `Parsed successfully using format: ${format}`,
+        formattedDate: parsedDate.toISODate(),
+      };
+    }
+  }
+
+  // Handle swapped day and month (e.g., "2025-30-01")
+  const components = cleanedInput.split(/[-/.\s]/).map(Number);
+  if (components.length === 3) {
+    const [year, month, day] = components;
+
+    // Handle swapped cases intelligently
+    if (month > 12 && day <= 12) {
+      parsedDate = DateTime.fromObject({ year, month: day, day: month });
+      if (parsedDate.isValid) {
+        return {
+          status: true,
+          message: "Parsed by swapping day and month positions",
+          formattedDate: parsedDate.toISODate(),
+        };
+      }
+    }
+  }
+
+  // If parsing fails for all attempts
   return {
-    status: true,
-    message: "Parsed Time",
-    data: parsedTime,
+    status: false,
+    message:
+      "Failed to parse the provided date. Please check the input format.",
+    formattedDate: null,
   };
 }
 
-function getParsedDate(date) {
-  const dateFormats = [
-    "yyyy-MM-dd",
-    "MM-dd-yyyy",
-    "MM-dd-yy",
-    "dd-MM-yyyy",
-    "dd-MM-yy",
-    "MMM, dd yyyy",
-    "MMM dd, yyyy",
-    "MMMM dd, yyyy",
-    "MMMM dd yyyy",
-    "yyyy/MM/dd",
-    "MM/dd/yyyy",
-    "dd/MM/yyyy",
-    "MM/dd/yy",
-    "dd/MM/yy",
-    "dd MMM yyyy",
-    "dd MMMM yyyy",
-    "MMM dd yyyy",
-    "MMMM d, yyyy",
-    "d MMM yyyy",
-    "d MMMM yyyy",
-    "MMM d, yyyy",
-    "MMM d yyyy",
-    "MMMM d yyyy",
-    "yyyy.MM.dd",
-    "MM.dd.yyyy",
-    "dd.MM.yyyy",
-    "dd.MM.yy",
-    "MM.dd.yy",
-    "yyyy MMM dd",
-    "yyyy MMMM dd",
-    "EEE, MMM d, yyyy",
-    "EEE, MMM dd, yyyy",
-    "EEEE, MMMM d, yyyy",
-    "EEEE, MMMM dd, yyyy",
-    "d/M/yyyy",
-    "M/d/yyyy",
-    "M/d/yy",
-    "dd-MMM-yyyy",
-    "dd-MMMM-yyyy",
-    "yyyyMMdd",
-    "MMddyyyy",
-    "ddMMyyyy",
-    "yyMMdd",
-    "dd MMM yyyy",
-    "MMMM yyyy",
-    "MMM yyyy",
-    "yyyy",
-    "yyyy-MM",
-  ];
+function parseDate(date) {
+  console.log("Parsing date ", date);
+  let parsedDate = parseFlexibleDate(date);
+  if (parsedDate.status) {
+    return parsedDate.formattedDate;
+  }
+  return null; // Return null if no format matches
+}
 
-  // Parse the date
-  let parsedDate;
-  for (let format of dateFormats) {
-    parsedDate = parse(date, format, new Date());
-    if (isValid(parsedDate)) break;
+// Function to parse time
+function parseTime(time) {
+  for (const format of timeFormats) {
+    const parsed = DateTime.fromFormat(time, format);
+    if (parsed.isValid) {
+      return parsed; // Return valid parsed time
+    }
+  }
+  console.warn(`Warning: Invalid time format: ${time}`);
+  return null; // Return null if no format matches
+}
+
+// Combine date and time into a single ISO 8601 DateTime
+function combineDateAndTime(date, time) {
+  const parsedDate = parseDate(date); // Parse the date string
+  const parsedTime = parseTime(time); // Parse the time string
+
+  console.log("Parsed Date:", parsedDate);
+  console.log("Parsed Time:", parsedTime);
+
+  if (!parsedDate || !parsedTime) {
+    console.warn("Error: Unable to parse date or time.");
+    return null;
   }
 
-  if (!isValid(parsedDate)) {
+  // Combine the parsed date and time
+  const combined = DateTime.fromISO(parsedDate).set({
+    hour: parsedTime.hour,
+    minute: parsedTime.minute,
+    second: parsedTime.second,
+  });
+
+  // Return the combined DateTime in ISO 8601 format
+  if (combined.isValid) {
     return {
-      status: false,
-      message: "Invalid date format. Please provide a recognizable date.",
+      status: true,
+      message: "Combined DateTime successfully",
+      combinedDateTime: combined.toISO(), // ISO 8601 format
     };
   }
 
-  return { status: true, message: "Parsed", data: parsedDate };
+  return {
+    status: false,
+    message: "Failed to combine date and time into a valid DateTime",
+    combinedDateTime: null,
+  };
 }
 
 export async function ScheduleEvent(req, res) {
@@ -364,47 +405,50 @@ export async function ScheduleEvent(req, res) {
     });
   }
 
-  // Define all possible date and time formats
-  let parsedDate = getParsedDate(date).data;
-  // Parse the time
-  let parsedTime = getParsedTime(time).data;
-  WriteToFile(`Parsed Date: ${parsedDate} Time: ${parsedTime}`);
-  if (!parsedDate || !parsedTime) {
+  const result = combineDateAndTime(date, time);
+
+  if (!result || !result.status || !result.combinedDateTime) {
     return res.send({
       status: false,
-      message: "Invalid date time",
-      data: { parsedDate, parsedTime },
+      message: "Invalid date or time format",
     });
   }
 
-  // Combine parsed date and time into a single Date object
+  // Extract the Luxon DateTime object
+  let combinedDateTime = result.combinedDateTime;
+  if (typeof combinedDateTime === "string") {
+    console.warn("combinedDateTime is a string. Converting to Luxon DateTime.");
+    combinedDateTime = DateTime.fromISO(combinedDateTime);
+  }
+  console.log("Extracted combinedDateTime:", combinedDateTime);
+  // Write the combined DateTime to file (optional)
+  WriteToFile(`Combined Date Time: ${combinedDateTime.toISO()}`);
 
-  parsedDate.setHours(parsedTime.getHours(), parsedTime.getMinutes(), 0, 0);
-  WriteToFile(`Parsed Date: ${parsedDate} `);
-  const startDateISO = format(parsedDate, "yyyy-MM-dd");
-  const pacificTime = convertToPacificTime(startDateISO);
-  const startTimeISO = format(parsedDate, "yyyy-MM-dd'T'HH:mm:ssXXX");
-  WriteToFile(`Start Time ISO:, ${startDateISO}`);
+  // Convert to Pacific Time and UTC
+  const pacificTime = combinedDateTime.setZone("America/Los_Angeles");
+  const utcTime = combinedDateTime.toUTC();
+  WriteToFile(`UTC Time:, ${utcTime}`);
   WriteToFile(`Pacific Time:, ${pacificTime}`);
 
   // const localDateTime = DateTime.fromISO(startTimeISO, {
   //   zone: calIntegration.timeZone,
   // });
-  const localDateTime = DateTime.fromFormat(
-    `${startDateISO} ${time}`,
-    "yyyy-MM-dd HH:mm",
-    {
-      zone: calIntegration.timeZone,
-    }
-  );
+  // const localDateTime = DateTime.fromFormat(
+  //   `${startDateISO} ${time}`,
+  //   "yyyy-MM-dd HH:mm",
+  //   {
+  //     zone: calIntegration.timeZone,
+  //   }
+  // );
 
   // Convert to UTC
-  const utcDateTime = localDateTime.toUTC();
+  // const utcDateTime = localDateTime.toUTC();
 
-  WriteToFile(`Local Time:, ${localDateTime.toString()}`); // Pacific Time
-  WriteToFile(`UTC Time:, ${utcDateTime.toString()}`); // UTC Time
+  // WriteToFile(`Local Time:, ${localDateTime.toString()}`); // Pacific Time
+  // WriteToFile(`UTC Time:, ${utcDateTime.toString()}`); // UTC Time
   // return;
   // Consider the calendar is cal.com
+
   let apiKey = calIntegration.apiKey;
   let eventTypeId = Number(calIntegration.eventId); // Ensure this is a number
 
@@ -426,26 +470,24 @@ export async function ScheduleEvent(req, res) {
       },
     });
   }
-  let inputData = {
-    start: utcDateTime.toISO(), // Use combined ISO date-time string for the start time
+  const inputData = {
+    start: utcTime.toISO(),
     eventTypeId: eventTypeId,
-    // lengthInMinutes: 30,
     attendee: {
       name: lead?.name || lead_name || "Caller",
       email: user_email || "salman@e8-labs.com",
       timeZone: calIntegration.timeZone, // Ensure it's a valid IANA time-zone
       language: "en", // Ensure this is a string
     },
-    // guests: [user.email], // Add any other guests here if needed
-    // meetingUrl: "https://example.com/meeting",
-    // location: "Zoom", // Specify location or meeting link
-    bookingFieldsResponses: {
-      customField: "customValue", // Include any custom fields if required
-    },
-    metadata: {}, // Ensure metadata is an object
+    metadata: {},
   };
 
   WriteToFile(`Data sent to schedule , ${JSON.stringify(inputData)}`);
+  // return res.send({
+  //   status: true,
+  //   message: "Event scheduled successfully",
+  //   data: null,
+  // });
   try {
     const response = await fetch(`${CAL_API_URL}/bookings`, {
       method: "POST",

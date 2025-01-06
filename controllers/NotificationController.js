@@ -848,4 +848,4 @@ async function CheckAndSendTwoMinuteTrialLeftNotificaitonSent(user) {
   }
 }
 
-SendAutoDailyNotificationsFor7Days();
+// SendAutoDailyNotificationsFor7Days();
