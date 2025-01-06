@@ -211,68 +211,68 @@ async function processSlots(response, timeZone) {
 // import { DateTime } from "luxon";
 
 // Function to handle any input format and intelligently parse it
-function parseFlexibleDate(input) {
-  // Clean the input
+// Helper function to parse flexible date with custom formats and time zone
+function parseFlexibleDate(input, timeZone = "America/Los_Angeles") {
   const cleanedInput = input.trim();
 
-  // First, attempt to parse it using ISO 8601 directly
-  let parsedDate = DateTime.fromISO(cleanedInput);
+  // First, attempt to parse using ISO 8601
+  let parsedDate = DateTime.fromISO(cleanedInput, { zone: timeZone });
 
   if (parsedDate.isValid) {
     return {
       status: true,
       message: "Parsed successfully as ISO 8601",
-      formattedDate: parsedDate.toISODate(),
+      formattedDate: parsedDate,
     };
   }
 
-  // If ISO 8601 fails, define common formats to try
-  const possibleFormats = dateFormats;
-  // [
-  //   "yyyy-MM-dd", // Standard
-  //   "dd-MM-yyyy", // Day first
-  //   "MM-dd-yyyy", // Month first
-  //   "yyyy/MM/dd",
-  //   "dd/MM/yyyy",
-  //   "MM/dd/yyyy",
-  //   "yyyy.MM.dd",
-  //   "dd.MM.yyyy",
-  //   "MM.dd.yyyy",
-  //   "yyyyMMdd", // Compact
-  //   "MMddyyyy", // Compact Month first
-  //   "ddMMyyyy", // Compact Day first
-  // ];
+  // Define common formats to try
+  const possibleFormats = [
+    "yyyy-MM-dd",
+    "dd-MM-yyyy",
+    "MM-dd-yyyy",
+    "yyyy/MM/dd",
+    "dd/MM/yyyy",
+    "MM/dd/yyyy",
+    "yyyy.MM.dd",
+    "dd.MM.yyyy",
+    "MM.dd.yyyy",
+    "yyyyMMdd",
+    "MMddyyyy",
+    "ddMMyyyy",
+  ];
 
   for (let format of possibleFormats) {
-    parsedDate = DateTime.fromFormat(cleanedInput, format);
+    parsedDate = DateTime.fromFormat(cleanedInput, format, { zone: timeZone });
     if (parsedDate.isValid) {
       return {
         status: true,
         message: `Parsed successfully using format: ${format}`,
-        formattedDate: parsedDate.toISODate(),
+        formattedDate: parsedDate,
       };
     }
   }
 
-  // Handle swapped day and month (e.g., "2025-30-01")
+  // Handle swapped day and month intelligently
   const components = cleanedInput.split(/[-/.\s]/).map(Number);
   if (components.length === 3) {
     const [year, month, day] = components;
-
-    // Handle swapped cases intelligently
     if (month > 12 && day <= 12) {
-      parsedDate = DateTime.fromObject({ year, month: day, day: month });
+      parsedDate = DateTime.fromObject(
+        { year, month: day, day: month },
+        { zone: timeZone }
+      );
       if (parsedDate.isValid) {
         return {
           status: true,
           message: "Parsed by swapping day and month positions",
-          formattedDate: parsedDate.toISODate(),
+          formattedDate: parsedDate,
         };
       }
     }
   }
 
-  // If parsing fails for all attempts
+  // Parsing failed
   return {
     status: false,
     message:
@@ -281,218 +281,136 @@ function parseFlexibleDate(input) {
   };
 }
 
-function parseDate(date) {
-  console.log("Parsing date ", date);
-  let parsedDate = parseFlexibleDate(date);
-  if (parsedDate.status) {
-    return parsedDate.formattedDate;
-  }
-  return null; // Return null if no format matches
-}
-
-// Function to parse time
+// Function to parse time with common formats
 function parseTime(time) {
+  const timeFormats = [
+    "HH:mm",
+    "HH:mm:ss",
+    "hh:mm a",
+    "hh:mm:ss a",
+    "h:mm a",
+    "h:mm:ss a",
+  ];
   for (const format of timeFormats) {
     const parsed = DateTime.fromFormat(time, format);
     if (parsed.isValid) {
-      return parsed; // Return valid parsed time
+      return parsed;
     }
   }
-  console.warn(`Warning: Invalid time format: ${time}`);
-  return null; // Return null if no format matches
+  return null;
 }
 
-// Combine date and time into a single ISO 8601 DateTime
-function combineDateAndTime(date, time) {
-  const parsedDate = parseDate(date); // Parse the date string
-  const parsedTime = parseTime(time); // Parse the time string
-
-  console.log("Parsed Date:", parsedDate);
-  console.log("Parsed Time:", parsedTime);
-
-  if (!parsedDate || !parsedTime) {
-    console.warn("Error: Unable to parse date or time.");
+// Combine date and time into a single DateTime object
+function combineDateAndTime(date, time, timeZone = "America/Los_Angeles") {
+  const parsedDate = parseFlexibleDate(date, timeZone);
+  if (!parsedDate.status) {
+    console.warn("Invalid date:", parsedDate.message);
     return null;
   }
 
-  // Combine the parsed date and time
-  const combined = DateTime.fromISO(parsedDate).set({
+  const parsedTime = parseTime(time);
+  if (!parsedTime) {
+    console.warn("Invalid time format:", time);
+    return null;
+  }
+
+  const combined = parsedDate.formattedDate.set({
     hour: parsedTime.hour,
     minute: parsedTime.minute,
     second: parsedTime.second,
   });
 
-  // Return the combined DateTime in ISO 8601 format
   if (combined.isValid) {
-    return {
-      status: true,
-      message: "Combined DateTime successfully",
-      combinedDateTime: combined.toISO(), // ISO 8601 format
-    };
+    return combined;
   }
 
-  return {
-    status: false,
-    message: "Failed to combine date and time into a valid DateTime",
-    combinedDateTime: null,
-  };
+  console.warn("Failed to combine date and time:", date, time);
+  return null;
 }
 
+// Schedule Event Function
 export async function ScheduleEvent(req, res) {
   WriteToFile(
     "------------------------------Scheduling Event Start-------------------------------"
   );
-  let { user_email, date, time, lead_name, lead_phone } = req.body;
-  WriteToFile("Schedule meeting with date and time: ");
-  WriteToFile(
-    JSON.stringify({
-      user_email,
-      date,
-      time,
-    })
-  );
 
-  let mainAgentId = req.query.mainAgentId;
+  const { user_email, date, time, lead_name, lead_phone } = req.body;
+  WriteToFile("Schedule meeting with date and time:");
+  WriteToFile(JSON.stringify({ user_email, date, time }));
 
-  let modelId = req.query.modelId || null;
+  const mainAgentId = req.query.mainAgentId;
+  const modelId = req.query.modelId || null;
+
   if (!modelId) {
-    return res.send({
-      status: false,
-      message: "No such model Id",
-    });
+    return res.send({ status: false, message: "No such model Id" });
   }
 
-  // Check if a valid model | assistant
-  let agent = await db.AgentModel.findOne({
-    where: { id: modelId },
-  });
-
+  const agent = await db.AgentModel.findOne({ where: { id: modelId } });
   if (!agent) {
-    WriteToFile(
-      JSON.stringify({
-        status: false,
-        message: "Meeting cannot be scheduled",
-        data: "Meeting cannot be scheduled",
-      })
-    );
     return res.send({
       status: false,
       message: "Meeting cannot be scheduled: NO Agent",
-      data: "Meeting cannot be scheduled: NO Agent",
     });
   }
-  let mainAgent = await db.MainAgentModel.findOne({
-    where: {
-      id: mainAgentId,
-    },
+
+  const mainAgent = await db.MainAgentModel.findOne({
+    where: { id: mainAgentId },
+  });
+  const user = await db.User.findByPk(mainAgent.userId);
+  const admin = await GetTeamAdminFor(user);
+  const teamIds = await GetTeamIds(user);
+  const calIntegration = await db.CalendarIntegration.findOne({
+    where: { mainAgentId, agentId: agent.id },
   });
 
-  let user = await db.User.findByPk(mainAgent.userId);
-  let admin = await GetTeamAdminFor(user);
-  let teamIds = await GetTeamIds(user);
-  let filter = { mainAgentId: mainAgentId };
-  if (agent) {
-    filter.agentId = agent.id;
-  }
-  let calIntegration = await db.CalendarIntegration.findOne({
-    where: filter,
-  });
   if (!calIntegration) {
     return res.send({
       status: false,
       message: "Meeting cannot be scheduled: NO Calendar",
-      data: "Meeting cannot be scheduled: NO Calendar",
     });
   }
 
-  const result = combineDateAndTime(date, time);
-
-  if (!result || !result.status || !result.combinedDateTime) {
-    return res.send({
-      status: false,
-      message: "Invalid date or time format",
-    });
+  const result = combineDateAndTime(
+    date,
+    time,
+    calIntegration.timeZone || "America/Los_Angeles"
+  );
+  if (!result) {
+    return res.send({ status: false, message: "Invalid date or time format" });
   }
 
-  // Extract the Luxon DateTime object
-  let combinedDateTime = result.combinedDateTime;
-  if (typeof combinedDateTime === "string") {
-    console.warn("combinedDateTime is a string. Converting to Luxon DateTime.");
-    combinedDateTime = DateTime.fromISO(combinedDateTime);
-  }
-  console.log("Extracted combinedDateTime:", combinedDateTime);
-  // Write the combined DateTime to file (optional)
+  const combinedDateTime = result;
   WriteToFile(`Combined Date Time: ${combinedDateTime.toISO()}`);
 
-  // Convert to Pacific Time and UTC
-  const pacificTime = combinedDateTime.setZone("America/Los_Angeles");
+  const pacificTime = combinedDateTime.setZone(calIntegration.timeZone);
   const utcTime = combinedDateTime.toUTC();
-  WriteToFile(`UTC Time:, ${utcTime}`);
-  WriteToFile(`Pacific Time:, ${pacificTime}`);
+  WriteToFile(`Pacific Time: ${pacificTime}`);
+  WriteToFile(`UTC Time: ${utcTime}`);
 
-  // const localDateTime = DateTime.fromISO(startTimeISO, {
-  //   zone: calIntegration.timeZone,
-  // });
-  // const localDateTime = DateTime.fromFormat(
-  //   `${startDateISO} ${time}`,
-  //   "yyyy-MM-dd HH:mm",
-  //   {
-  //     zone: calIntegration.timeZone,
-  //   }
-  // );
-
-  // Convert to UTC
-  // const utcDateTime = localDateTime.toUTC();
-
-  // WriteToFile(`Local Time:, ${localDateTime.toString()}`); // Pacific Time
-  // WriteToFile(`UTC Time:, ${utcDateTime.toString()}`); // UTC Time
-  // return;
-  // Consider the calendar is cal.com
-
-  let apiKey = calIntegration.apiKey;
-  let eventTypeId = Number(calIntegration.eventId); // Ensure this is a number
-
-  let lead = await db.LeadModel.findOne({
-    where: {
-      phone: lead_phone,
-      userId: {
-        [db.Sequelize.Op.in]: teamIds,
-      },
-    },
-  });
-  if (!lead) {
-    lead = await db.LeadModel.findOne({
-      where: {
-        email: user_email,
-        userId: {
-          [db.Sequelize.Op.in]: teamIds,
-        },
-      },
-    });
-  }
   const inputData = {
     start: utcTime.toISO(),
-    eventTypeId: eventTypeId,
+    eventTypeId: Number(calIntegration.eventId) || 0,
     attendee: {
-      name: lead?.name || lead_name || "Caller",
-      email: user_email || "salman@e8-labs.com",
-      timeZone: calIntegration.timeZone, // Ensure it's a valid IANA time-zone
-      language: "en", // Ensure this is a string
+      name: lead_name || "Caller",
+      email: user_email,
+      timeZone: calIntegration.timeZone,
+      language: "en",
     },
     metadata: {},
   };
 
-  WriteToFile(`Data sent to schedule , ${JSON.stringify(inputData)}`);
   // return res.send({
   //   status: true,
-  //   message: "Event scheduled successfully",
-  //   data: null,
+  //   data: inputData,
+  //   message: "Meeting scheduled",
   // });
+
+  WriteToFile(JSON.stringify(inputData));
   try {
     const response = await fetch(`${CAL_API_URL}/bookings`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${calIntegration.apiKey}`,
         "Content-Type": "application/json",
         "cal-api-version": "2024-08-13", // Update this if necessary
       },
@@ -501,30 +419,18 @@ export async function ScheduleEvent(req, res) {
 
     const responseData = await response.json();
     if (response.ok) {
-      WriteToFile(`Event scheduled successfully: , ${responseData}`);
+      WriteToFile(
+        `Event scheduled successfully: ${JSON.stringify(responseData)}`
+      );
 
       await AddNotification(
         user,
         null,
         NotificationTypes.MeetingBooked,
-        lead,
+        null,
         agent,
         null
       );
-      if (lead) {
-        WriteToFile("Lead was found so creating event");
-        await db.ScheduledBooking.create({
-          leadId: lead.id,
-          mainAgentId: mainAgentId,
-          agentId: agent.id,
-          data: JSON.stringify(responseData),
-          datetime: startTimeISO, //utcDateTime.toISO(),
-          date: date,
-          time: time,
-        });
-      } else {
-        WriteToFile("CalendarController: No lead found for adding a booking");
-      }
       return res.send({
         status: true,
         message: "Event scheduled successfully",
@@ -539,11 +445,10 @@ export async function ScheduleEvent(req, res) {
       });
     }
   } catch (error) {
-    console.error("Error scheduling event:", error);
+    WriteToFile(`Error scheduling event: ${error.message}`);
     return res.send({
       status: false,
       message: "Meeting cannot be scheduled",
-      data: "Meeting cannot be scheduled",
       error: error.message,
     });
   }
