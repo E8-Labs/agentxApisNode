@@ -225,10 +225,13 @@ export const GetNotifications = async (req, res) => {
 };
 
 export const SendTestNotification = async (req, res) => {
-  await sendPushNotification(
-    "c0vMoCubo_yuExm2T2HfjL:APA91bF6KX6hyAUUIlxntFAiTuEI7_wg7IkDyx2-2KkDER9To6sU4TDgLIbautQYWsPYd9FPttwHKjySCDEnvZQdv2sN_hM8xEg1IJ8pu31IrdSn6gloUAI",
-    { title: "Test Notificaiton", body: "This is test notification", data: {} }
-  );
+  let token = req.body.token;
+  // ("cJgxQg0hU9G5GHTL1pCiil:APA91bEZRJCVezaBkZ-1ocMD3G4g6x6R5dxpAmkETW25d9n0Qe4MXXZKkteIkwwKGVv9uQqmIiqy1SRycy587ShsZCS_P5megJSTl8a8w5bOroRn5pZEH3I");
+  await sendPushNotification(token, {
+    title: "Test Notificaiton",
+    body: "This is test notification",
+    data: {},
+  });
   res.send({ status: true, message: "Notification sent" });
 };
 
