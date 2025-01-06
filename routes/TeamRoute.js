@@ -8,6 +8,7 @@ const uploadFiles = multer().fields([{ name: "media", maxCount: 1 }]);
 import {
   InviteTeamMember,
   GetTeamMembers,
+  AssignTeamMemberToLead,
 } from "../controllers/TeamController.js";
 
 let teamRouter = express.Router();
@@ -18,6 +19,12 @@ teamRouter.post(
   verifyJwtTokenWithTeam,
   uploadFiles,
   InviteTeamMember
+);
+teamRouter.post(
+  "/assignLeadToTeam",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  AssignTeamMemberToLead
 );
 
 export default teamRouter;

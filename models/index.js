@@ -57,6 +57,7 @@ import NotificationModel from "./user/NotificationModel.js";
 import { DailyNotificationModel } from "./user/DailyNotification.js";
 import TeamModel from "./user/team/TeamModel.js";
 import { TestNumbers } from "./Testing/TestNumbers.js";
+import TeamLeadAssignModel from "./user/team/TeamLeadAssign.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -168,6 +169,9 @@ db.LeadSheetColumnModel.belongsTo(db.LeadSheetModel, {
 
 db.LeadModel = LeadModel(sequelize, Sequelize);
 models["LeadModel"] = db.LeadModel;
+
+db.TeamLeadAssignModel = TeamLeadAssignModel(sequelize, Sequelize);
+models["TeamLeadAssignModel"] = db.TeamLeadAssignModel;
 
 db.ScheduledBooking = ScheduledBooking(sequelize, Sequelize);
 
