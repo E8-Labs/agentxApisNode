@@ -168,6 +168,7 @@ async function GetCompletePromptTextFrom(
   lead,
   test = false
 ) {
+  let customVariables = [];
   // console.log("Prompt ");
   // console.log(prompt);
   let callScript = prompt.callScript;
@@ -175,15 +176,26 @@ async function GetCompletePromptTextFrom(
   let greeting = prompt.greeting;
   let companyAgentInfo = prompt.companyAgentInfo;
   companyAgentInfo = companyAgentInfo.replace(/{agent_name}/g, assistant.name);
+  if (assistant.name != null && assistant.name != "") {
+    customVariables.push(`agent_name: ${assistant.name || "Not provided"}`);
+  }
   companyAgentInfo = companyAgentInfo.replace(
     /{agent_role}/g,
     assistant.agentRole
   );
-  companyAgentInfo = companyAgentInfo.replace(
-    /{brokerage_name}/g,
-    user.brokerage
-  );
+
+  if (assistant.agentRole != null && assistant.agentRole != "") {
+    customVariables.push(`agent_role: ${assistant.agentRole}`);
+  }
+
+  if (user.brokerage_name != null && user.brokerage_name != "") {
+    customVariables.push(`brokerage_name: ${user.brokerage_name}`);
+  }
   companyAgentInfo = companyAgentInfo.replace(/{CU_status}/g, assistant.status);
+
+  if (assistant.status != null && assistant.status != "") {
+    customVariables.push(`CU_status: ${assistant.status}`);
+  }
   companyAgentInfo = companyAgentInfo.replace(
     /{CU_address}/g,
     assistant.address
@@ -202,10 +214,29 @@ async function GetCompletePromptTextFrom(
   }
 
   greeting = greeting.replace(/{First Name}/g, lead.firstName);
+  customVariables.push(`First Name: ${lead.firstName ?? "Not Provided"}`);
+
   greeting = greeting.replace(/{Last Name}/g, lead.lastName);
+  customVariables.push(
+    `Last Name: ${
+      lead.lastName && lead.lastName != "" ? lead.lastName : "Not Provided"
+    }`
+  );
+
   greeting = greeting.replace(/{Phone Number}/g, lead.phone);
+  customVariables.push(`Phone Number: ${lead.phone ?? "Not Provided"}`);
+
   greeting = greeting.replace(/{Email}/g, lead.email);
+  customVariables.push(
+    `Email: ${lead.email && lead.email != "" ? lead.email : "Not Provided"}`
+  );
+
   greeting = greeting.replace(/{Address}/g, lead.address);
+  customVariables.push(
+    `Address: ${
+      lead.address && lead.address != "" ? lead.address : "Not Provided"
+    }`
+  );
 
   greeting = greeting.replace(/{agent_name}/g, assistant.name);
   greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
@@ -289,7 +320,11 @@ async function GetCompletePromptTextFrom(
     if (extraColumns) {
       let value = extraColumns[key];
       // console.log(`Replacing key ${key} with ${value}`);
+
       if (value) {
+        if (value != "" && typeof value != "undefined") {
+          customVariables.push(`${key}: ${value ?? "Not Provided"}`);
+        }
         const regex = new RegExp(`\\{${key}\\}`, "gi"); // Create a dynamic regex to match `${key}`
         //console.log(`replacing ${key} with ${value}`);
         callScript = callScript.replace(regex, value);
@@ -378,8 +413,15 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
 
   basePrompt = `${basePrompt}\n\n${leadInfo}`;
 
+  //custom variables
+  // let customVariables = [{ key: "First_Name", value: `${lead.firstName}` }];
+
   // console.log("Script", text);
-  return { callScript: basePrompt, greeting: greeting };
+  return {
+    callScript: basePrompt,
+    greeting: greeting,
+    customVariables: customVariables,
+  };
 }
 
 export async function addCallTry(
@@ -562,6 +604,7 @@ export const MakeACall = async (
       phone: PhoneNumber,
       model: assistant.modelId, //"1722652829145x214249543190325760",
       prompt: basePrompt.callScript,
+      custom_variables: basePrompt.customVariables,
       // greeting: basePrompt.greeting,
     };
     let res = await initiateCall(
@@ -710,11 +753,12 @@ export const TestAI = async (req, res) => {
           phone: phone,
           model: agent.modelId, //"1722652829145x214249543190325760",
           prompt: basePrompt.callScript,
+          custom_variables: basePrompt.customVariables,
           // greeting: basePrompt.greeting,
         };
 
-        console.log("Payload is ");
-        console.log(JSON.stringify(data));
+        // console.log("Payload is ");
+        // console.log(JSON.stringify(data));
         let response = await initiateCall(
           data,
           cad,
@@ -779,7 +823,7 @@ async function initiateCall(
   test = false
 ) {
   console.log("IS call test ", test);
-  // console.log("Call data is ", data);
+  console.log("Call data is ", data);
   try {
     let synthKey = process.env.SynthFlowApiKey;
 
@@ -1299,21 +1343,21 @@ export const UpdateAgent = async (req, res) => {
           }
         );
         if (updated) {
-          //console.log("Prompt updated");
-          // if (agents) {
-          //   for (let i = 0; i < agents.length; i++) {
-          //     let a = agents[i];
-          //     if (a.agentType == "inbound") {
-          //       let updatedSynthflow = await UpdateAssistantSynthflow(a, {
-          //         agent: {
-          //           prompt: req.body.prompt,
-          //           greeting: req.body.greeting,
-          //         },
-          //       });
-          //     }
-          //     //console.log("Voice updated to agent on synthflow", a.modelId);
-          //   }
-          // }
+          console.log("Prompt updated");
+          if (agents) {
+            for (let i = 0; i < agents.length; i++) {
+              let a = agents[i];
+              if (a.agentType == "outbound") {
+                let updatedSynthflow = await UpdateAssistantSynthflow(a, {
+                  agent: {
+                    // prompt: req.body.prompt,
+                    greeting_message: req.body.greeting,
+                  },
+                });
+              }
+              //console.log("Voice updated to agent on synthflow", a.modelId);
+            }
+          }
         }
       }
       if (req.body.inboundPrompt || req.body.inboundGreeting) {
@@ -2225,6 +2269,7 @@ export async function CreateAssistantSynthflow(
   timezone = constants.DefaultTimezone
 ) {
   console.log("Timezone passed ", timezone);
+  console.log("Greeting sending to synthflow", agentData.greeting);
   let synthKey = process.env.SynthFlowApiKey;
   // console.log("Inside 1", agentData.prompt);
   const options = {
@@ -2238,14 +2283,15 @@ export async function CreateAssistantSynthflow(
     data: {
       type: type,
       name: agentData.name,
-      external_webhook_url: process.env.WebHookForSynthflow,
+      external_webhook_url:
+        process.env.WebHookForSynthflow +
+        `?type=${type}&mainAgentId=${mainAgent.id}`,
       timezone: timezone,
       agent: {
         prompt: agentData.prompt,
         llm: "gpt-4o",
         language: "en-US",
-        greeting_message: "",
-        //   agentData.greeting ||
+        greeting_message: agentData.greeting,
         //   `Hey there you have called ${mainAgent.name}. How can i assist you today?`,
         voice_id: "wefw5e68456wef",
       },

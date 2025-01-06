@@ -18,6 +18,7 @@ import {
 import {
   GetNotifications,
   ReadAllNotifications,
+  SendTestNotification,
 } from "../controllers/NotificationController.js";
 
 import {
@@ -109,4 +110,7 @@ UserRouter.post(
   verifyJwtTokenWithTeam,
   ReadAllNotifications
 );
+
+//SendTestNotification
+UserRouter.post("/sendTestNotification", uploadFiles, SendTestNotification);
 export default UserRouter;

@@ -71,6 +71,7 @@ export const checkStageConflicts = async (mainAgentIds) => {
 //Updated For Team
 export const AddLeads = async (req, res) => {
   let { sheetName, columnMappings, leads, tags } = req.body; // mainAgentId is the mainAgent id
+  sheetName = sheetName.trim();
   if (req.body.mainAgentIds) {
     console.log("Main agent ids", req.body.mainAgentIds);
     let checkData = await checkStageConflicts(req.body.mainAgentIds);
@@ -96,6 +97,7 @@ export const AddLeads = async (req, res) => {
           userId: {
             [db.Sequelize.Op.in]: teamIds,
           },
+          status: "active",
         },
       });
       if (!sheet) {
@@ -111,6 +113,12 @@ export const AddLeads = async (req, res) => {
             });
           }
         }
+      }
+      if (sheet.status == "deleted") {
+        //if the sheet is deleted then update the status to active again if the new leads are appended to that sheet
+        //
+        sheet.status = "active";
+        await sheet.save();
       }
 
       let dbLeads = [];
