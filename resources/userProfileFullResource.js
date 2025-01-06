@@ -57,7 +57,11 @@ async function getUserData(user, currentUser = null) {
     },
   });
 
-  let cards = await getPaymentMethods(user.id);
+  let cardsData = await getPaymentMethods(user.id);
+  let cards = [];
+  if (cardsData && cardsData.status) {
+    cards = cardsData.data;
+  }
 
   const UserFullResource = {
     ...user.get(),
