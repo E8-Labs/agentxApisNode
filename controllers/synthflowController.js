@@ -677,23 +677,23 @@ export const TestAI = async (req, res) => {
       if (!lead) {
         newLead = true;
         console.log("Lead doesn't exist");
-        let sheet = await db.LeadSheetModel.findOne({
-          where: {
-            userId: userId,
-            status: "active",
-          },
-        });
-        //if user don't have any sheet
-        if (!sheet) {
-          sheet = await db.LeadSheetModel.create({
-            sheetName: "Outbound",
-            userId: userId,
-          });
-        }
+        // let sheet = await db.LeadSheetModel.findOne({
+        //   where: {
+        //     userId: userId,
+        //     status: "active",
+        //   },
+        // });
+        // //if user don't have any sheet
+        // if (!sheet) {
+        //   sheet = await db.LeadSheetModel.create({
+        //     sheetName: "Outbound",
+        //     userId: userId,
+        //   });
+        // }
         lead = await db.LeadModel.create({
           phone: phone,
           firstName: name,
-          sheetId: sheet.id,
+          // sheetId: sheet.id,
           extraColumns: JSON.stringify(extraColumns),
           userId: mainAgentModel.userId,
         });
