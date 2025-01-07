@@ -670,6 +670,7 @@ export const TestAI = async (req, res) => {
         where: {
           phone: phone,
           userId: user.id,
+          status: "active",
         },
       });
 
