@@ -1324,7 +1324,7 @@ export const GetImportantCalls = async (req, res) => {
     if (authData) {
       let userId = authData.user.id;
       let offset = Number(req.query.offset) || 0;
-      let limit = Number(req.query.limit) || 10; // Add a default limit if not provided
+      let limit = Number(req.query.limit) || 10; // Default limit
 
       let user = await db.User.findOne({
         where: {
@@ -1349,7 +1349,7 @@ export const GetImportantCalls = async (req, res) => {
           agentIds = agents.map((agent) => agent.id);
         }
 
-        // Fetch call logs and sort by lead's latest call timestamp
+        // Fetch call logs, sorted by the latest call timestamp for each lead
         const callLogs = await db.LeadCallsSent.findAll({
           where: {
             agentId: {
@@ -1371,23 +1371,24 @@ export const GetImportantCalls = async (req, res) => {
         });
 
         if (callLogs && callLogs.length > 0) {
+          // Extract lead IDs in the sorted order
           let leadIds = callLogs.map((log) => log.leadId);
 
+          // Fetch leads based on the sorted lead IDs
           let leads = await db.LeadModel.findAll({
             where: {
               id: {
                 [db.Sequelize.Op.in]: leadIds,
               },
             },
-            // include: [
-            //   {
-            //     model: db.PipelineStages,
-            //     as: "PipelineStages",
-            //   },
-            // ],
           });
 
-          let leadsRes = await LeadImportantCallResource(leads);
+          // Sort leads to match the order of `leadIds` from callLogs
+          let sortedLeads = leadIds.map((id) =>
+            leads.find((lead) => lead.id === id)
+          );
+
+          let leadsRes = await LeadImportantCallResource(sortedLeads);
           return res.send({
             status: true,
             data: leadsRes,
