@@ -1313,10 +1313,10 @@ export const GetCallLogs = async (req, res) => {
                 userId,
               },
             },
-            {
-              model: db.PipelineStages,
-              as: "PipelineStages",
-            },
+            // {
+            //   model: db.PipelineStages,
+            //   as: "PipelineStages",
+            // },
           ],
         });
 

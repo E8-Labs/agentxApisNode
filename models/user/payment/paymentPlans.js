@@ -61,3 +61,24 @@ export const PayAsYouGoPlans = [
   { type: PayAsYouGoPlanTypes.Plan360Min, price: 270, duration: 360 * 60 },
   { type: PayAsYouGoPlanTypes.Plan720Min, price: 480, duration: 720 * 60 },
 ];
+
+export function FindPlanWithMinutes(minutes) {
+  let p = null;
+  for (const plan of PayAsYouGoPlans) {
+    if (plan.duration == minutes * 60) {
+      p = plan;
+    }
+  }
+  return plan;
+}
+
+export function FindPlanWithPrice(price) {
+  // in dollars
+  let p = null;
+  for (const plan of PayAsYouGoPlans) {
+    if (plan.price == price) {
+      p = plan;
+    }
+  }
+  return plan;
+}

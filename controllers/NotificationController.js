@@ -14,6 +14,14 @@ import { GeneratePaymentMethodFailedEmail } from "../emails/PaymentFailedEmail.j
 import { GenerateCallsStoppedEmail } from "../emails/CallsStoppedEmail.js";
 import { GenerateTrialTickingEmail } from "../emails/TrialTickingEmail.js";
 import { GenerateThreeTimesWinEmail } from "../emails/MoreLikelyToWinEmail.js";
+import { generateNeedAHandEmail } from "../emails/NeedHandEmail.js";
+import { generateTrialReminderEmail } from "../emails/TrialReminderEmail.js";
+import { generateDontMissOutEmail } from "../emails/DontMissOutEmail.js";
+import { generateOneDayLeftEmail } from "../emails/LastChanceEmail.js";
+import { generateTrialEndsTonightEmail } from "../emails/LastDayEmail.js";
+import { generateTwoMinutesLeftEmail } from "../emails/TwoMinuteTrialReminderEmail.js";
+import { generateMinutesRenewedEmail } from "../emails/MinutesRenewalEmail.js";
+import { FindPlanWithMinutes } from "../models/user/payment/paymentPlans.js";
 
 async function GetNotificationTitle(
   user,
@@ -261,7 +269,51 @@ async function SendEmailForNotification(
       "https://ai.myagentx.com/dashboard/leads", // CTA_Link
       "Upload Leads Now" // CTA_Text
     );
+  } else if (type === NotificationTypes.NeedHand) {
+    emailNot = generateNeedAHandEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/support-session", // CTA_Link from the campaign team
+      "Schedule Live Session" // CTA_Text
+    );
+  } else if (type === NotificationTypes.TrialTime2MinLeft) {
+    emailNot = generateTrialReminderEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/start-calling", // CTA_Link
+      "Start Calling" // CTA_Text
+    );
+  } else if (type === NotificationTypes.NeedHelpDontMissOut) {
+    emailNot = generateDontMissOutEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/support-session", // CTA_Link
+      "Schedule Live Support Session" // CTA_Text
+    );
+  } else if (type === NotificationTypes.LastChanceToAct) {
+    emailNot = generateOneDayLeftEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/support-session", // CTA_Link
+      "Schedule Live Support Session" // CTA_Text
+    );
+  } else if (type === NotificationTypes.LastDayToMakeItCount) {
+    emailNot = generateTrialEndsTonightEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/start-calling", // CTA_Link
+      "Start Calling" // CTA_Text
+    );
+  } else if (type === NotificationTypes.TrialTime2MinLeft) {
+    emailNot = generateTwoMinutesLeftEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/manage-plan", // CTA_Link
+      "Manage Plan" // CTA_Text
+    );
+  } else if (type === NotificationTypes.PlanRenewed) {
+    let plan = FindPlanWithMinutes(minutes);
+    emailNot = generateMinutesRenewedEmail(
+      user.name, // Name
+      `${minutes} minutes`, // Minutes
+      `$${plan?.price || "Unknown"}` // Price
+    );
   }
+
   if (!emailNot) {
     return;
   }

@@ -70,6 +70,10 @@ const NotificationModel = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    plan: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
     isSeen: {
       type: Sequelize.BOOLEAN,
       allowNull: false,

@@ -1,0 +1,101 @@
+const HtmlTemplateTwoMinutesLeft = `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+    .header {
+      background-color: #7902DF;
+      color: #fff;
+      text-align: center;
+      padding: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    .body {
+      padding: 20px;
+      color: #555;
+      line-height: 1.6;
+    }
+    .body p {
+      margin: 10px 0;
+    }
+    .cta {
+      display: inline-block;
+      margin: 20px 0;
+      padding: 12px 24px;
+      background-color: #FF5722;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    .btnText {
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .cta:hover {
+      background-color: #E64A19;
+    }
+    .footer {
+      text-align: center;
+      background-color: #f4f4f4;
+      padding: 10px;
+      font-size: 12px;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">Just 2 Minutes Left on Your Trial!</div>
+    <div class="body">
+      <p>Hi <strong>{First_Name}</strong>,</p>
+      <p>Your 30-minute trial is almost up—you’ve got just 2 minutes left to make the most of it!</p>
+      <p>Your plan will automatically renew at your selected level from our pay-as-you-go plans, so you can keep calling without interruption.</p>
+      <p>👉 <strong>Want to adjust your plan?</strong> Visit your account now to make any changes before your minutes renew.</p>
+      <p>Stay connected and keep the momentum going—your next listing appointment is just a call away!</p>
+      <a href="{CTA_Link}" class="cta"><p class="btnText">{CTA_Text}</p></a>
+    </div>
+    <div class="footer">
+      © 2023 AgentX, All Rights Reserved.
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export function generateTwoMinutesLeftEmail(First_Name, CTA_Link, CTA_Text) {
+  let emailTemplate = HtmlTemplateTwoMinutesLeft;
+
+  // Replace placeholders with actual values
+  const variables = {
+    First_Name,
+    CTA_Link,
+    CTA_Text,
+  };
+
+  for (const [key, value] of Object.entries(variables)) {
+    const placeholder = new RegExp(`{${key}}`, "g");
+    emailTemplate = emailTemplate.replace(placeholder, value);
+  }
+
+  return {
+    html: emailTemplate,
+    subject: "Just 2 Minutes Left on Your Trial!",
+  };
+}
