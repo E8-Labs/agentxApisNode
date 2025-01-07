@@ -213,7 +213,7 @@ async function handleNewCall(
     leadData
   );
   try {
-    await AddOrUpdateTag("inbound", lead);
+    await AddOrUpdateTag("Inbound", lead);
     // let tagCreated = await db.LeadTagsModel.create({
     //   tag: "inbound",
     //   sheetId: lead.id,
@@ -284,7 +284,7 @@ async function handleNewCall(
 
 async function findOrCreateSheet(assistant, sheetName) {
   let sheet = await db.LeadSheetModel.findOne({
-    where: { sheetName, userId: assistant.userId },
+    where: { sheetName, userId: assistant.userId, status: "active" },
   });
   if (!sheet) {
     sheet = await db.LeadSheetModel.create({
@@ -296,7 +296,24 @@ async function findOrCreateSheet(assistant, sheetName) {
 }
 
 async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
+  if (!sheet) {
+    //get any Sheet fromthat user
+    sheet = await db.LeadSheetModel.findOne({
+      where: {
+        userId: userId,
+        status: "active",
+      },
+    });
+    //if user don't have any sheet
+    if (!sheet) {
+      sheet = await db.LeadSheetModel.create({
+        sheetName: "Outbound",
+        userId: userId,
+      });
+    }
+  }
   let phone = leadPhone.replace("+", "");
+  //get the deleted sheets and find the leads that are not in these sheets
   let sheets = await db.LeadSheetModel.findAll({
     where: {
       userId: userId,
@@ -338,9 +355,9 @@ async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
       extraColumns: JSON.stringify(leadData.prompt_variables),
     });
     // await db.LeadTagsModel.create({ tag: "inbound", leadId: lead.id });
-    await AddOrUpdateTag("inbound", lead);
+    await AddOrUpdateTag("Inbound", lead);
     if (sheet) {
-      await db.LeadSheetTagModel.create({ tag: "inbound", sheetId: sheet?.id });
+      await db.LeadSheetTagModel.create({ tag: "Inbound", sheetId: sheet?.id });
     }
   }
   return lead;
