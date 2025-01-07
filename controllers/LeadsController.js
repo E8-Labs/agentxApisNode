@@ -1379,12 +1379,12 @@ export const GetImportantCalls = async (req, res) => {
                 [db.Sequelize.Op.in]: leadIds,
               },
             },
-            include: [
-              {
-                model: db.PipelineStages,
-                as: "PipelineStages",
-              },
-            ],
+            // include: [
+            //   {
+            //     model: db.PipelineStages,
+            //     as: "PipelineStages",
+            //   },
+            // ],
           });
 
           let leadsRes = await LeadImportantCallResource(leads);
