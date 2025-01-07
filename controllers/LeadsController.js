@@ -742,7 +742,7 @@ export const UpdateLeadStage = async (req, res) => {
       if (lead) {
         lead.stage = stageId;
         if (stage.stageId == null) {
-          await addTagsFromCustoStageToLead(lead, stage);
+          await AddTagsFromCustoStageToLead(lead, stage);
         }
         await lead.save();
         let resource = await LeadResource(lead);
