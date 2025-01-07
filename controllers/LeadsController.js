@@ -1324,16 +1324,18 @@ export const GetImportantCalls = async (req, res) => {
     if (authData) {
       let userId = authData.user.id;
       let offset = Number(req.query.offset) || 0;
+      let limit = Number(req.query.limit) || 10; // Add a default limit if not provided
+
       let user = await db.User.findOne({
         where: {
           id: userId,
         },
       });
+
       let teamIds = await GetTeamIds(user);
-      console.log("user ", user.id);
 
       try {
-        // Query to fetch call logs
+        // Query to fetch all agent IDs for the team
         let agentIds = [];
         let agents = await db.AgentModel.findAll({
           where: {
@@ -1342,11 +1344,12 @@ export const GetImportantCalls = async (req, res) => {
             },
           },
         });
+
         if (agents && agents.length > 0) {
           agentIds = agents.map((agent) => agent.id);
         }
 
-        console.log("Agent ids ", agents.length);
+        // Fetch call logs and sort by lead's latest call timestamp
         const callLogs = await db.LeadCallsSent.findAll({
           where: {
             agentId: {
@@ -1354,36 +1357,34 @@ export const GetImportantCalls = async (req, res) => {
             },
             call_review_worthy: true,
           },
-          order: [["createdAt", "DESC"]],
+          attributes: [
+            "leadId",
+            [
+              db.Sequelize.fn("MAX", db.Sequelize.col("createdAt")),
+              "latestCall",
+            ],
+          ],
+          group: ["leadId"],
+          order: [[db.Sequelize.literal("latestCall"), "DESC"]],
           offset: offset,
           limit: limit,
-          include: [
-            {
-              model: db.LeadModel,
-              as: "LeadModel",
-              where: {
-                userId: {
-                  [db.Sequelize.Op.in]: teamIds,
-                },
-              },
-            },
-            {
-              model: db.PipelineStages,
-              as: "PipelineStages",
-            },
-          ],
         });
 
-        let leadIds = [];
         if (callLogs && callLogs.length > 0) {
-          leadIds = callLogs.map((call) => call.leadId);
-          console.log("Lead ids ", leadIds);
+          let leadIds = callLogs.map((log) => log.leadId);
+
           let leads = await db.LeadModel.findAll({
             where: {
               id: {
                 [db.Sequelize.Op.in]: leadIds,
               },
             },
+            include: [
+              {
+                model: db.PipelineStages,
+                as: "PipelineStages",
+              },
+            ],
           });
 
           let leadsRes = await LeadImportantCallResource(leads);
@@ -1396,7 +1397,7 @@ export const GetImportantCalls = async (req, res) => {
           return res.send({
             status: false,
             data: null,
-            message: "Lead important calls",
+            message: "No important calls found",
           });
         }
       } catch (error) {

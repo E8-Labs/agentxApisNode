@@ -356,6 +356,21 @@ export async function ScheduleEvent(req, res) {
   const mainAgent = await db.MainAgentModel.findOne({
     where: { id: mainAgentId },
   });
+  let lead = null;
+  lead = await db.LeadModel.findOne({
+    where: {
+      email: user_email,
+      userId: mainAgent.userId,
+    },
+  });
+  if (!lead && lead_phone) {
+    lead = await db.LeadModel.findOne({
+      where: {
+        phone: lead_phone,
+        userId: mainAgent.userId,
+      },
+    });
+  }
   const user = await db.User.findByPk(mainAgent.userId);
   const admin = await GetTeamAdminFor(user);
   const teamIds = await GetTeamIds(user);
@@ -427,9 +442,11 @@ export async function ScheduleEvent(req, res) {
         user,
         null,
         NotificationTypes.MeetingBooked,
-        null,
+        lead,
         agent,
-        null
+        null,
+        null,
+        pacificTime
       );
       return res.send({
         status: true,

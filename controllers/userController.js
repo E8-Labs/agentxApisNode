@@ -19,6 +19,7 @@ import { UserRole } from "../models/user/userModel.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
+import { GetInviteAcceptedEmailReplacedVariables } from "../emails/InviteAcceptedEmail.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');

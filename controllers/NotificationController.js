@@ -5,6 +5,15 @@ import { NotificationTypes } from "../models/user/NotificationModel.js";
 import NotificationResource from "../resources/NotificationResource.js";
 import { convertUTCToTimezone } from "../utils/dateutil.js";
 import { sendPushNotification } from "../services/firebase.js";
+import { GetAgentXCodeUsageEmailReplacedVariables } from "../emails/AgentXCodeUsageEmail.js";
+import { SendEmail } from "../services/MailService.js";
+import { GetInviteAcceptedEmailReplacedVariables } from "../emails/InviteAcceptedEmail.js";
+import { GenerateHotLeadEmail } from "../emails/HotLeadEmail.js";
+import { GenerateMeetingBookedEmail } from "../emails/MeetingBookedEmail.js";
+import { GeneratePaymentMethodFailedEmail } from "../emails/PaymentFailedEmail.js";
+import { GenerateCallsStoppedEmail } from "../emails/CallsStoppedEmail.js";
+import { GenerateTrialTickingEmail } from "../emails/TrialTickingEmail.js";
+import { GenerateThreeTimesWinEmail } from "../emails/MoreLikelyToWinEmail.js";
 
 async function GetNotificationTitle(
   user,
@@ -119,7 +128,9 @@ export const AddNotification = async (
   code = null,
   hotleads = 0,
   totalCalls = 0,
-  minutes = 0
+  minutes = 0,
+  recording = null,
+  meetingDate = null
 ) => {
   // console.log("Data in add not ", { user, fromUser, type, lead, agent, code });
   try {
@@ -154,12 +165,109 @@ export const AddNotification = async (
         data: resource,
       });
     }
+    try {
+      SendEmailForNotification(
+        user,
+        fromUser,
+        type,
+        lead,
+        agent,
+        code,
+        hotleads,
+        totalCalls,
+        minutes,
+        recording,
+        meetingDate
+      );
+    } catch (error) {
+      console.log("Email error");
+      console.log(error);
+    }
     return not;
   } catch (error) {
     console.log("Error adding not ", error);
     return null;
   }
 };
+
+async function SendEmailForNotification(
+  user,
+  fromUser = null,
+  type,
+  lead = null,
+  agent = null,
+  code = null,
+  hotleads = 0,
+  totalCalls = 0,
+  minutes = 0,
+  recording = null,
+  meetingDate = null
+) {
+  let emailNot = null;
+  let email = user.email || "";
+  if (type == NotificationTypes.InviteAccepted) {
+    emailNot = GetInviteAcceptedEmailReplacedVariables(
+      user.name,
+      fromUser.name
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.RedeemedAgentXCode) {
+    emailNot = GetAgentXCodeUsageEmailReplacedVariables(user.name, code);
+    email = user.email;
+  } else if (type == NotificationTypes.Hotlead) {
+    emailNot = GenerateHotLeadEmail(
+      user.name, // Name
+      lead?.firstName || "New Lead", // Leadname
+      lead?.email || "Not provided", // Leademail
+      lead?.phone, // Leadphone
+      recording || "", // LinkToRecording
+      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      "View Hot Lead and Take Action" // CTA_Text
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.MeetingBooked) {
+    emailNot = GenerateMeetingBookedEmail(
+      user.name, // Name
+      lead?.firstName || "New Lead", // Leadname
+      lead?.email || "Not provided", // Leademail
+      lead?.phone, // Leadphone
+      recording || "", // LinkToRecording
+      meetingDate, // MeetingDateTime
+      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      "View Hot Lead and Take Action" // CTA_Text
+    );
+    email = user.email;
+  } else if (type === NotificationTypes.PaymentFailed) {
+    emailNot = GeneratePaymentMethodFailedEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/dashboard/myAccount", // CTA_Link
+      "Update Payment Method Now" // CTA_Text
+    );
+  } else if (type === NotificationTypes.NoCallsIn3Days) {
+    emailNot = GenerateCallsStoppedEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/webinar", // CTA_Link
+      "Join the Live Webinar Now" // CTA_Text
+    );
+  } else if (type === NotificationTypes.Trial30MinTicking) {
+    emailNot = GenerateTrialTickingEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      "Start Calling" // CTA_Text
+    );
+  } else if (type === NotificationTypes.X3MoreLikeyToWin) {
+    emailNot = GenerateThreeTimesWinEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      "Upload Leads Now" // CTA_Text
+    );
+  }
+  if (!emailNot) {
+    return;
+  }
+
+  let sent = await SendEmail(email, emailNot.subject, emailNot.html);
+}
 
 export const GetNotifications = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -849,3 +957,19 @@ async function CheckAndSendTwoMinuteTrialLeftNotificaitonSent(user) {
 }
 
 // SendAutoDailyNotificationsFor7Days();
+
+export async function SendTestEmail(req, res) {
+  let type = req.body.type;
+  // let email = GetAgentXCodeUsageEmailReplacedVariables("Salman", "AgentX12");
+  let email = GetInviteAcceptedEmailReplacedVariables("Salman", "Hammad Khan");
+
+  let sent = await SendEmail(
+    "salmanmajid14@gmail.com",
+    email.subject,
+    email.html
+  );
+  res.send({
+    status: true,
+    message: "Email sent",
+  });
+}
