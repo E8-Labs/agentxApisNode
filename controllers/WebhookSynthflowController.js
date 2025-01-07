@@ -294,10 +294,24 @@ async function findOrCreateSheet(assistant, sheetName) {
 
 async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
   let phone = leadPhone.replace("+", "");
+  let sheets = await db.LeadSheetModel.findAll({
+    where: {
+      userId: userId,
+      status: "deleted",
+    },
+  });
+  let ids = [];
+  if (sheets && sheets.length > 0) {
+    ids = sheets.map((sheet) => sheet.id);
+  } else {
+  }
   let lead = await db.LeadModel.findOne({
     where: {
       phone: {
         [db.Sequelize.Op.like]: `%${phone}%`,
+      },
+      sheetId: {
+        [db.Sequelize.Op.notIn]: ids,
       },
       userId: userId,
     },

@@ -438,6 +438,21 @@ export async function ScheduleEvent(req, res) {
         `Event scheduled successfully: ${JSON.stringify(responseData)}`
       );
 
+      if (lead) {
+        WriteToFile("Lead was found so creating event");
+        await db.ScheduledBooking.create({
+          leadId: lead.id,
+          mainAgentId: mainAgentId,
+          agentId: agent.id,
+          data: JSON.stringify(responseData),
+          datetime: utcTime.toISO(), //utcDateTime.toISO(),
+          date: date,
+          time: time,
+        });
+      } else {
+        WriteToFile("CalendarController: No lead found for adding a booking");
+      }
+
       await AddNotification(
         user,
         null,
