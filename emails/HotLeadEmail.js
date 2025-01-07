@@ -1,4 +1,4 @@
-const HtmlTemplate = `
+const HtmlTemplateHotLeadAlert = `
 <!DOCTYPE html>
 <html>
 <head>
