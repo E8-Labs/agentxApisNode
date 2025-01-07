@@ -678,6 +678,42 @@ export const GetSheets = async (req, res) => {
   });
 };
 //Updated For Team
+
+export async function AddOrUpdateTag(tag, lead) {
+  let existingTag = await db.LeadTagsModel.findOne({
+    where: {
+      leadId: lead.id,
+      tag: tag,
+    },
+  });
+
+  if (existingTag) {
+    // Update the tag if needed (e.g., add more properties or update fields if applicable)
+    await existingTag.update({
+      updatedAt: new Date(), // Example of updating a timestamp field
+    });
+  } else {
+    // Add the new tag if it doesn't exist
+    await db.LeadTagsModel.create({
+      leadId: lead.id,
+      tag: tag,
+    });
+  }
+}
+export async function AddTagsFromCustoStageToLead(lead, stage) {
+  //set stage tags to lead
+  let stageTags = await db.StageTagModel.findAll({
+    where: {
+      pipelineStageId: stage.id,
+    },
+  });
+  if (stageTags && stageTags.length > 0) {
+    for (const t of stageTags) {
+      // let exists = await db.LeadTa
+      await AddOrUpdateTag(t.tag, lead);
+    }
+  }
+}
 export const UpdateLeadStage = async (req, res) => {
   let { leadId, stageId } = req.body; // mainAgentId is the mainAgent id
 
@@ -691,6 +727,8 @@ export const UpdateLeadStage = async (req, res) => {
         },
       });
 
+      let stage = await db.PipelineStages.findByPk(stageId);
+
       console.log("Lead id ", leadId);
       console.log("Stage id ", stageId);
       let lead = await db.LeadModel.findOne({
@@ -703,6 +741,9 @@ export const UpdateLeadStage = async (req, res) => {
 
       if (lead) {
         lead.stage = stageId;
+        if (stage.stageId == null) {
+          await addTagsFromCustoStageToLead(lead, stage);
+        }
         await lead.save();
         let resource = await LeadResource(lead);
 

@@ -27,6 +27,8 @@ import {
   CommunityUpdateGuardrails,
 } from "../constants/defaultObjections.js";
 import {
+  AddOrUpdateTag,
+  AddTagsFromCustoStageToLead,
   GetColumnsInSheet,
   mergeAndRemoveDuplicates,
   postDataToWebhook,
@@ -211,10 +213,11 @@ async function handleNewCall(
     leadData
   );
   try {
-    let tagCreated = await db.LeadTagsModel.create({
-      tag: "inbound",
-      sheetId: lead.id,
-    });
+    await AddOrUpdateTag("inbound", lead);
+    // let tagCreated = await db.LeadTagsModel.create({
+    //   tag: "inbound",
+    //   sheetId: lead.id,
+    // });
   } catch (error) {}
   //Send Notification for inbound Call
   try {
@@ -334,7 +337,8 @@ async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
       lastName: lastName,
       extraColumns: JSON.stringify(leadData.prompt_variables),
     });
-    await db.LeadTagsModel.create({ tag: "inbound", leadId: lead.id });
+    // await db.LeadTagsModel.create({ tag: "inbound", leadId: lead.id });
+    await AddOrUpdateTag("inbound", lead);
     if (sheet) {
       await db.LeadSheetTagModel.create({ tag: "inbound", sheetId: sheet?.id });
     }
@@ -602,19 +606,20 @@ async function handleInfoExtractorValues(
           await lead.save();
 
           //set stage tags to lead
-          let stageTags = await db.StageTagModel.findAll({
-            where: {
-              pipelineStageId: stage.id,
-            },
-          });
-          if (stageTags && stageTags.length > 0) {
-            for (const t of stageTags) {
-              db.LeadTagsModel.create({
-                leadId: lead.id,
-                tag: t.tag,
-              });
-            }
-          }
+          await AddTagsFromCustoStageToLead(lead, stage);
+          // let stageTags = await db.StageTagModel.findAll({
+          //   where: {
+          //     pipelineStageId: stage.id,
+          //   },
+          // });
+          // if (stageTags && stageTags.length > 0) {
+          //   for (const t of stageTags) {
+          //     db.LeadTagsModel.create({
+          //       leadId: lead.id,
+          //       tag: t.tag,
+          //     });
+          //   }
+          // }
           movedToCustom = true;
           console.log(`Successfully moved to ${stageIdentifier}`, json[csIE]);
         }
@@ -738,9 +743,10 @@ const SetAllTagsFromIEAndCall = async (
 
   let data = [];
   for (const t of tags) {
-    data.push({ tag: t, leadId: lead.id });
+    // data.push({ tag: t, leadId: lead.id });
+    await AddOrUpdateTag(t, lead);
   }
-  let created = await db.LeadTagsModel.bulkCreate(data);
+  // let created = await db.LeadTagsModel.bulkCreate(data);
   return tags;
 };
 const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {
