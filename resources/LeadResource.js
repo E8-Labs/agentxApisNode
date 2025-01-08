@@ -82,7 +82,7 @@ async function getUserData(lead, currentUser = null) {
       leadId: lead.id,
     },
   });
-  let tags = leadTags.map((tag) => tag.tag);
+  let tags = leadTags.map((tag) => capitalize(tag.tag));
 
   let sheetTags = await db.LeadSheetTagModel.findAll({
     where: {
@@ -198,6 +198,7 @@ async function getUserData(lead, currentUser = null) {
 }
 
 import moment from "moment-timezone";
+import { capitalize } from "../utils/StringUtility.js";
 
 const fetchFutureBookings = async (lead) => {
   try {

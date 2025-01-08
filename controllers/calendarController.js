@@ -356,6 +356,21 @@ export async function ScheduleEvent(req, res) {
   const mainAgent = await db.MainAgentModel.findOne({
     where: { id: mainAgentId },
   });
+  let lead = null;
+  lead = await db.LeadModel.findOne({
+    where: {
+      email: user_email,
+      userId: mainAgent.userId,
+    },
+  });
+  if (!lead && lead_phone) {
+    lead = await db.LeadModel.findOne({
+      where: {
+        phone: lead_phone,
+        userId: mainAgent.userId,
+      },
+    });
+  }
   const user = await db.User.findByPk(mainAgent.userId);
   const admin = await GetTeamAdminFor(user);
   const teamIds = await GetTeamIds(user);
@@ -423,13 +438,30 @@ export async function ScheduleEvent(req, res) {
         `Event scheduled successfully: ${JSON.stringify(responseData)}`
       );
 
+      if (lead) {
+        WriteToFile("Lead was found so creating event");
+        await db.ScheduledBooking.create({
+          leadId: lead.id,
+          mainAgentId: mainAgentId,
+          agentId: agent.id,
+          data: JSON.stringify(responseData),
+          datetime: utcTime.toISO(), //utcDateTime.toISO(),
+          date: date,
+          time: time,
+        });
+      } else {
+        WriteToFile("CalendarController: No lead found for adding a booking");
+      }
+
       await AddNotification(
         user,
         null,
         NotificationTypes.MeetingBooked,
-        null,
+        lead,
         agent,
-        null
+        null,
+        null,
+        pacificTime
       );
       return res.send({
         status: true,

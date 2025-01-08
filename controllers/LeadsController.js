@@ -678,6 +678,42 @@ export const GetSheets = async (req, res) => {
   });
 };
 //Updated For Team
+
+export async function AddOrUpdateTag(tag, lead) {
+  let existingTag = await db.LeadTagsModel.findOne({
+    where: {
+      leadId: lead.id,
+      tag: tag,
+    },
+  });
+
+  if (existingTag) {
+    // Update the tag if needed (e.g., add more properties or update fields if applicable)
+    await existingTag.update({
+      updatedAt: new Date(), // Example of updating a timestamp field
+    });
+  } else {
+    // Add the new tag if it doesn't exist
+    await db.LeadTagsModel.create({
+      leadId: lead.id,
+      tag: tag,
+    });
+  }
+}
+export async function AddTagsFromCustoStageToLead(lead, stage) {
+  //set stage tags to lead
+  let stageTags = await db.StageTagModel.findAll({
+    where: {
+      pipelineStageId: stage.id,
+    },
+  });
+  if (stageTags && stageTags.length > 0) {
+    for (const t of stageTags) {
+      // let exists = await db.LeadTa
+      await AddOrUpdateTag(t.tag, lead);
+    }
+  }
+}
 export const UpdateLeadStage = async (req, res) => {
   let { leadId, stageId } = req.body; // mainAgentId is the mainAgent id
 
@@ -691,6 +727,8 @@ export const UpdateLeadStage = async (req, res) => {
         },
       });
 
+      let stage = await db.PipelineStages.findByPk(stageId);
+
       console.log("Lead id ", leadId);
       console.log("Stage id ", stageId);
       let lead = await db.LeadModel.findOne({
@@ -703,6 +741,9 @@ export const UpdateLeadStage = async (req, res) => {
 
       if (lead) {
         lead.stage = stageId;
+        if (stage.stageId == null) {
+          await AddTagsFromCustoStageToLead(lead, stage);
+        }
         await lead.save();
         let resource = await LeadResource(lead);
 
@@ -1272,10 +1313,10 @@ export const GetCallLogs = async (req, res) => {
                 userId,
               },
             },
-            {
-              model: db.PipelineStages,
-              as: "PipelineStages",
-            },
+            // {
+            //   model: db.PipelineStages,
+            //   as: "PipelineStages",
+            // },
           ],
         });
 
@@ -1324,16 +1365,18 @@ export const GetImportantCalls = async (req, res) => {
     if (authData) {
       let userId = authData.user.id;
       let offset = Number(req.query.offset) || 0;
+      let limit = Number(req.query.limit) || 10; // Default limit
+
       let user = await db.User.findOne({
         where: {
           id: userId,
         },
       });
+
       let teamIds = await GetTeamIds(user);
-      console.log("user ", user.id);
 
       try {
-        // Query to fetch call logs
+        // Query to fetch all agent IDs for the team
         let agentIds = [];
         let agents = await db.AgentModel.findAll({
           where: {
@@ -1342,11 +1385,12 @@ export const GetImportantCalls = async (req, res) => {
             },
           },
         });
+
         if (agents && agents.length > 0) {
           agentIds = agents.map((agent) => agent.id);
         }
 
-        console.log("Agent ids ", agents.length);
+        // Fetch call logs, sorted by the latest call timestamp for each lead
         const callLogs = await db.LeadCallsSent.findAll({
           where: {
             agentId: {
@@ -1354,30 +1398,24 @@ export const GetImportantCalls = async (req, res) => {
             },
             call_review_worthy: true,
           },
-          order: [["createdAt", "DESC"]],
+          attributes: [
+            "leadId",
+            [
+              db.Sequelize.fn("MAX", db.Sequelize.col("createdAt")),
+              "latestCall",
+            ],
+          ],
+          group: ["leadId"],
+          order: [[db.Sequelize.literal("latestCall"), "DESC"]],
           offset: offset,
           limit: limit,
-          include: [
-            {
-              model: db.LeadModel,
-              as: "LeadModel",
-              where: {
-                userId: {
-                  [db.Sequelize.Op.in]: teamIds,
-                },
-              },
-            },
-            {
-              model: db.PipelineStages,
-              as: "PipelineStages",
-            },
-          ],
         });
 
-        let leadIds = [];
         if (callLogs && callLogs.length > 0) {
-          leadIds = callLogs.map((call) => call.leadId);
-          console.log("Lead ids ", leadIds);
+          // Extract lead IDs in the sorted order
+          let leadIds = callLogs.map((log) => log.leadId);
+
+          // Fetch leads based on the sorted lead IDs
           let leads = await db.LeadModel.findAll({
             where: {
               id: {
@@ -1386,7 +1424,12 @@ export const GetImportantCalls = async (req, res) => {
             },
           });
 
-          let leadsRes = await LeadImportantCallResource(leads);
+          // Sort leads to match the order of `leadIds` from callLogs
+          let sortedLeads = leadIds.map((id) =>
+            leads.find((lead) => lead.id === id)
+          );
+
+          let leadsRes = await LeadImportantCallResource(sortedLeads);
           return res.send({
             status: true,
             data: leadsRes,
@@ -1396,7 +1439,7 @@ export const GetImportantCalls = async (req, res) => {
           return res.send({
             status: false,
             data: null,
-            message: "Lead important calls",
+            message: "No important calls found",
           });
         }
       } catch (error) {

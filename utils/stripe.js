@@ -4,6 +4,7 @@ import { generateRandomCode } from "../controllers/userController.js";
 import { constants } from "../constants/constants.js";
 import { AddNotification } from "../controllers/NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
+import { FindPlanWithPrice } from "../models/user/payment/paymentPlans.js";
 
 // Initialize Stripe for both environments
 const stripeTest = new Stripe(process.env.STRIPE_TEST_SECRET_KEY);
@@ -379,6 +380,25 @@ export const chargeUser = async (
         user.isTrial = false;
         await user.save();
         await RedeemCodeOnPlanSubscription(user); //1656
+
+        //Notificaiton for Plan Renewal
+        let plan = FindPlanWithPrice(amount / 100);
+        if (plan) {
+          await AddNotification(
+            user,
+            null,
+            NotificationTypes.PlanRenewed,
+            null,
+            null,
+            null,
+            null,
+            0,
+            plan.duration / 60,
+            null,
+            null
+          );
+        }
+      } else {
       }
 
       return {

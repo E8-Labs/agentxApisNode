@@ -5,6 +5,23 @@ import { NotificationTypes } from "../models/user/NotificationModel.js";
 import NotificationResource from "../resources/NotificationResource.js";
 import { convertUTCToTimezone } from "../utils/dateutil.js";
 import { sendPushNotification } from "../services/firebase.js";
+import { GetAgentXCodeUsageEmailReplacedVariables } from "../emails/AgentXCodeUsageEmail.js";
+import { SendEmail } from "../services/MailService.js";
+import { GetInviteAcceptedEmailReplacedVariables } from "../emails/InviteAcceptedEmail.js";
+import { GenerateHotLeadEmail } from "../emails/HotLeadEmail.js";
+import { GenerateMeetingBookedEmail } from "../emails/MeetingBookedEmail.js";
+import { GeneratePaymentMethodFailedEmail } from "../emails/PaymentFailedEmail.js";
+import { GenerateCallsStoppedEmail } from "../emails/CallsStoppedEmail.js";
+import { GenerateTrialTickingEmail } from "../emails/TrialTickingEmail.js";
+import { GenerateThreeTimesWinEmail } from "../emails/MoreLikelyToWinEmail.js";
+import { generateNeedAHandEmail } from "../emails/NeedHandEmail.js";
+import { generateTrialReminderEmail } from "../emails/TrialReminderEmail.js";
+import { generateDontMissOutEmail } from "../emails/DontMissOutEmail.js";
+import { generateOneDayLeftEmail } from "../emails/LastChanceEmail.js";
+import { generateTrialEndsTonightEmail } from "../emails/LastDayEmail.js";
+import { generateTwoMinutesLeftEmail } from "../emails/TwoMinuteTrialReminderEmail.js";
+import { generateMinutesRenewedEmail } from "../emails/MinutesRenewalEmail.js";
+import { FindPlanWithMinutes } from "../models/user/payment/paymentPlans.js";
 
 async function GetNotificationTitle(
   user,
@@ -119,7 +136,9 @@ export const AddNotification = async (
   code = null,
   hotleads = 0,
   totalCalls = 0,
-  minutes = 0
+  minutes = 0,
+  recording = null,
+  meetingDate = null
 ) => {
   // console.log("Data in add not ", { user, fromUser, type, lead, agent, code });
   try {
@@ -154,12 +173,153 @@ export const AddNotification = async (
         data: resource,
       });
     }
+    try {
+      SendEmailForNotification(
+        user,
+        fromUser,
+        type,
+        lead,
+        agent,
+        code,
+        hotleads,
+        totalCalls,
+        minutes,
+        recording,
+        meetingDate
+      );
+    } catch (error) {
+      console.log("Email error");
+      console.log(error);
+    }
     return not;
   } catch (error) {
     console.log("Error adding not ", error);
     return null;
   }
 };
+
+async function SendEmailForNotification(
+  user,
+  fromUser = null,
+  type,
+  lead = null,
+  agent = null,
+  code = null,
+  hotleads = 0,
+  totalCalls = 0,
+  minutes = 0,
+  recording = null,
+  meetingDate = null
+) {
+  let emailNot = null;
+  let email = user.email || "";
+  if (type == NotificationTypes.InviteAccepted) {
+    emailNot = GetInviteAcceptedEmailReplacedVariables(
+      user.name,
+      fromUser.name
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.RedeemedAgentXCode) {
+    emailNot = GetAgentXCodeUsageEmailReplacedVariables(user.name, code);
+    email = user.email;
+  } else if (type == NotificationTypes.Hotlead) {
+    emailNot = GenerateHotLeadEmail(
+      user.name, // Name
+      lead?.firstName || "New Lead", // Leadname
+      lead?.email || "Not provided", // Leademail
+      lead?.phone, // Leadphone
+      recording || "", // LinkToRecording
+      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      "View Hot Lead and Take Action" // CTA_Text
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.MeetingBooked) {
+    emailNot = GenerateMeetingBookedEmail(
+      user.name, // Name
+      lead?.firstName || "New Lead", // Leadname
+      lead?.email || "Not provided", // Leademail
+      lead?.phone, // Leadphone
+      recording || "", // LinkToRecording
+      meetingDate, // MeetingDateTime
+      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      "View Hot Lead and Take Action" // CTA_Text
+    );
+    email = user.email;
+  } else if (type === NotificationTypes.PaymentFailed) {
+    emailNot = GeneratePaymentMethodFailedEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/dashboard/myAccount", // CTA_Link
+      "Update Payment Method Now" // CTA_Text
+    );
+  } else if (type === NotificationTypes.NoCallsIn3Days) {
+    emailNot = GenerateCallsStoppedEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/webinar", // CTA_Link
+      "Join the Live Webinar Now" // CTA_Text
+    );
+  } else if (type === NotificationTypes.Trial30MinTicking) {
+    emailNot = GenerateTrialTickingEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      "Start Calling" // CTA_Text
+    );
+  } else if (type === NotificationTypes.X3MoreLikeyToWin) {
+    emailNot = GenerateThreeTimesWinEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      "Upload Leads Now" // CTA_Text
+    );
+  } else if (type === NotificationTypes.NeedHand) {
+    emailNot = generateNeedAHandEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/support-session", // CTA_Link from the campaign team
+      "Schedule Live Session" // CTA_Text
+    );
+  } else if (type === NotificationTypes.TrialTime2MinLeft) {
+    emailNot = generateTrialReminderEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/start-calling", // CTA_Link
+      "Start Calling" // CTA_Text
+    );
+  } else if (type === NotificationTypes.NeedHelpDontMissOut) {
+    emailNot = generateDontMissOutEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/support-session", // CTA_Link
+      "Schedule Live Support Session" // CTA_Text
+    );
+  } else if (type === NotificationTypes.LastChanceToAct) {
+    emailNot = generateOneDayLeftEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/support-session", // CTA_Link
+      "Schedule Live Support Session" // CTA_Text
+    );
+  } else if (type === NotificationTypes.LastDayToMakeItCount) {
+    emailNot = generateTrialEndsTonightEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/start-calling", // CTA_Link
+      "Start Calling" // CTA_Text
+    );
+  } else if (type === NotificationTypes.TrialTime2MinLeft) {
+    emailNot = generateTwoMinutesLeftEmail(
+      user.name, // Name
+      "https://ai.myagentx.com/manage-plan", // CTA_Link
+      "Manage Plan" // CTA_Text
+    );
+  } else if (type === NotificationTypes.PlanRenewed) {
+    let plan = FindPlanWithMinutes(minutes);
+    emailNot = generateMinutesRenewedEmail(
+      user.name, // Name
+      `${minutes} minutes`, // Minutes
+      `$${plan?.price || "Unknown"}` // Price
+    );
+  }
+
+  if (!emailNot) {
+    return;
+  }
+
+  let sent = await SendEmail(email, emailNot.subject, emailNot.html);
+}
 
 export const GetNotifications = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -275,6 +435,9 @@ export const ReadAllNotifications = async (req, res) => {
 
 export const NotificationCron = async () => {
   try {
+    try {
+      SendAutoDailyNotificationsFor7Days();
+    } catch (error) {}
     let date = new Date().toISOString();
     console.log("Current time server ", date);
     const startOfToday = new Date();
@@ -339,9 +502,6 @@ export const NotificationCron = async () => {
 
 async function SendNotificationsForHotlead(user) {
   try {
-    try {
-      SendAutoDailyNotificationsFor7Days();
-    } catch (error) {}
     let ids = [];
     let agents = await db.AgentModel.findAll({
       where: {
@@ -723,10 +883,7 @@ async function CheckAndSendLastChanceToActNotificaitonSent(user) {
     console.log("User is not on trial");
     return;
   }
-  if (leads > 0) {
-    console.log("User have already added leads");
-    return;
-  }
+
   //check the datetime to see if it is gt 3 hours and less than 4
   let now = new Date(); // Current time
   let createdAt = new Date(user.createdAt); // Convert user.createdAt to a Date object
@@ -734,6 +891,20 @@ async function CheckAndSendLastChanceToActNotificaitonSent(user) {
   let type = NotificationTypes.LastChanceToAct;
   // Calculate the difference in milliseconds
   let timeDifference = now - createdAt;
+
+  //If 7 days have passed
+  if (timeDifference > 7 * 24) {
+    user.isTrial = false;
+    let seconds = user.totalAvailableSeconds;
+    user.totalAvailableSeconds -= seconds;
+    await user.save();
+    return;
+  }
+
+  if (leads > 0) {
+    console.log("User have already added leads");
+    return;
+  }
 
   // Check if 99 hours (in milliseconds) or more have passed
   if (timeDifference >= 123 * 60 * 60 * 1000) {
@@ -849,3 +1020,19 @@ async function CheckAndSendTwoMinuteTrialLeftNotificaitonSent(user) {
 }
 
 // SendAutoDailyNotificationsFor7Days();
+
+export async function SendTestEmail(req, res) {
+  let type = req.body.type;
+  // let email = GetAgentXCodeUsageEmailReplacedVariables("Salman", "AgentX12");
+  let email = GetInviteAcceptedEmailReplacedVariables("Salman", "Hammad Khan");
+
+  let sent = await SendEmail(
+    "salmanmajid14@gmail.com",
+    email.subject,
+    email.html
+  );
+  res.send({
+    status: true,
+    message: "Email sent",
+  });
+}

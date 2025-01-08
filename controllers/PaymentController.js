@@ -159,6 +159,7 @@ export const SetDefaultPaymentmethod = async (req, res) => {
 
 export const SubscribePayasyougoPlan = async (req, res) => {
   let { plan } = req.body; // mainAgentId is the mainAgent id
+  let payNow = req.body.payNow || false; //if true, user pays regardless he has minutes or trial
   console.log("Plan is ", plan);
   if (!plan) {
     return res.send({
@@ -203,7 +204,11 @@ export const SubscribePayasyougoPlan = async (req, res) => {
       }
 
       try {
-        if (firstTime && foundPlan.type == PayAsYouGoPlanTypes.Plan30Min) {
+        if (
+          firstTime &&
+          foundPlan.type == PayAsYouGoPlanTypes.Plan30Min &&
+          !payNow
+        ) {
           // give 30 min free
           let TotalSeconds = foundPlan.duration;
           user.totalSecondsAvailable += TotalSeconds;
@@ -233,17 +238,17 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           }
           if (lastPlan) {
             console.log("Found plan 229");
-            if (
-              lastPlan.type == foundPlan.type &&
-              lastPlan.status == "active"
-            ) {
-              console.log("Same plan");
-              return res.send({
-                status: false,
-                message: "Already subscribed to to this plan",
-                data: null,
-              });
-            }
+            // if (
+            //   lastPlan.type == foundPlan.type &&
+            //   lastPlan.status == "active" && !payNow
+            // ) {
+            //   console.log("Same plan");
+            //   return res.send({
+            //     status: false,
+            //     message: "Already subscribed to to this plan",
+            //     data: null,
+            //   });
+            // }
             console.log("Update Plan");
             await db.PlanHistory.update(
               { status: "cancelled" },
@@ -259,7 +264,11 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             console.log(
               `User ${user.name} has ${user.totalSecondsAvailable} seconds`
             );
-            if (user.totalSecondsAvailable < constants.MinThresholdSeconds) {
+            //if either the minutes are low or the user selects to pay now
+            if (
+              user.totalSecondsAvailable < constants.MinThresholdSeconds ||
+              payNow
+            ) {
               //charge user
               console.log(
                 "Charging user as the minutes available is less than min threshold"

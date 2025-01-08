@@ -19,6 +19,7 @@ import {
   GetNotifications,
   ReadAllNotifications,
   SendTestNotification,
+  SendTestEmail,
 } from "../controllers/NotificationController.js";
 
 import {
@@ -113,4 +114,5 @@ UserRouter.post(
 
 //SendTestNotification
 UserRouter.post("/sendTestNotification", uploadFiles, SendTestNotification);
+UserRouter.post("/sendTestEmail", uploadFiles, SendTestEmail);
 export default UserRouter;

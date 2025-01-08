@@ -16,6 +16,7 @@ import {
   createAgentDefaultIndustry,
 } from "../utils/createPredefinedData.js";
 
+import CampaigneeModel from "./user/campaign/campaigneeModel.js";
 import AgentRole from "./user/agentRole.js";
 import UserIndustry from "./user/userIndustry.js";
 import Stages from "./pipeline/stages.js";
@@ -84,6 +85,8 @@ db.Sequelize = Sequelize;
 db.sequelize = sequelize;
 
 // Define models
+
+db.CampaigneeModel = CampaigneeModel(sequelize, Sequelize);
 db.TestNumbers = TestNumbers(sequelize, Sequelize);
 db.UserIndustry = UserIndustry(sequelize, Sequelize);
 db.AreaOfFocus = AreaOfFocus(sequelize, Sequelize);

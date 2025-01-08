@@ -27,6 +27,8 @@ import {
   CommunityUpdateGuardrails,
 } from "../constants/defaultObjections.js";
 import {
+  AddOrUpdateTag,
+  AddTagsFromCustoStageToLead,
   GetColumnsInSheet,
   mergeAndRemoveDuplicates,
   postDataToWebhook,
@@ -211,10 +213,11 @@ async function handleNewCall(
     leadData
   );
   try {
-    let tagCreated = await db.LeadTagsModel.create({
-      tag: "inbound",
-      sheetId: lead.id,
-    });
+    await AddOrUpdateTag("Inbound", lead);
+    // let tagCreated = await db.LeadTagsModel.create({
+    //   tag: "inbound",
+    //   sheetId: lead.id,
+    // });
   } catch (error) {}
   //Send Notification for inbound Call
   try {
@@ -281,7 +284,7 @@ async function handleNewCall(
 
 async function findOrCreateSheet(assistant, sheetName) {
   let sheet = await db.LeadSheetModel.findOne({
-    where: { sheetName, userId: assistant.userId },
+    where: { sheetName, userId: assistant.userId, status: "active" },
   });
   if (!sheet) {
     sheet = await db.LeadSheetModel.create({
@@ -293,8 +296,45 @@ async function findOrCreateSheet(assistant, sheetName) {
 }
 
 async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
+  if (!sheet) {
+    //get any Sheet fromthat user
+    sheet = await db.LeadSheetModel.findOne({
+      where: {
+        userId: userId,
+        status: "active",
+      },
+    });
+    //if user don't have any sheet
+    if (!sheet) {
+      sheet = await db.LeadSheetModel.create({
+        sheetName: "Outbound",
+        userId: userId,
+      });
+    }
+  }
+  let phone = leadPhone.replace("+", "");
+  //get the deleted sheets and find the leads that are not in these sheets
+  let sheets = await db.LeadSheetModel.findAll({
+    where: {
+      userId: userId,
+      status: "deleted",
+    },
+  });
+  let ids = [];
+  if (sheets && sheets.length > 0) {
+    ids = sheets.map((sheet) => sheet.id);
+  } else {
+  }
   let lead = await db.LeadModel.findOne({
-    where: { phone: leadPhone, userId: userId },
+    where: {
+      phone: {
+        [db.Sequelize.Op.like]: `%${phone}%`,
+      },
+      sheetId: {
+        [db.Sequelize.Op.notIn]: ids,
+      },
+      userId: userId,
+    },
   });
   if (!lead) {
     let firstName = leadData.name;
@@ -314,9 +354,10 @@ async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
       lastName: lastName,
       extraColumns: JSON.stringify(leadData.prompt_variables),
     });
-    await db.LeadTagsModel.create({ tag: "inbound", leadId: lead.id });
+    // await db.LeadTagsModel.create({ tag: "inbound", leadId: lead.id });
+    await AddOrUpdateTag("Inbound", lead);
     if (sheet) {
-      await db.LeadSheetTagModel.create({ tag: "inbound", sheetId: sheet?.id });
+      await db.LeadSheetTagModel.create({ tag: "Inbound", sheetId: sheet?.id });
     }
   }
   return lead;
@@ -582,19 +623,20 @@ async function handleInfoExtractorValues(
           await lead.save();
 
           //set stage tags to lead
-          let stageTags = await db.StageTagModel.findAll({
-            where: {
-              pipelineStageId: stage.id,
-            },
-          });
-          if (stageTags && stageTags.length > 0) {
-            for (const t of stageTags) {
-              db.LeadTagsModel.create({
-                leadId: lead.id,
-                tag: t.tag,
-              });
-            }
-          }
+          await AddTagsFromCustoStageToLead(lead, stage);
+          // let stageTags = await db.StageTagModel.findAll({
+          //   where: {
+          //     pipelineStageId: stage.id,
+          //   },
+          // });
+          // if (stageTags && stageTags.length > 0) {
+          //   for (const t of stageTags) {
+          //     db.LeadTagsModel.create({
+          //       leadId: lead.id,
+          //       tag: t.tag,
+          //     });
+          //   }
+          // }
           movedToCustom = true;
           console.log(`Successfully moved to ${stageIdentifier}`, json[csIE]);
         }
@@ -718,9 +760,10 @@ const SetAllTagsFromIEAndCall = async (
 
   let data = [];
   for (const t of tags) {
-    data.push({ tag: t, leadId: lead.id });
+    // data.push({ tag: t, leadId: lead.id });
+    await AddOrUpdateTag(t, lead);
   }
-  let created = await db.LeadTagsModel.bulkCreate(data);
+  // let created = await db.LeadTagsModel.bulkCreate(data);
   return tags;
 };
 const GetOutcomeFromCall = (jsonIE, callStatus, endCallReason) => {

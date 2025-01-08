@@ -143,6 +143,10 @@ const User = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: false,
     },
+    campaigneeId: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
   });
 
   return User;
