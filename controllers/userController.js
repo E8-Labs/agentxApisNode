@@ -170,6 +170,14 @@ export const RegisterUser = async (req, res) => {
   const averageTransactionPerYear =
     Number(req.body.averageTransactionPerYear) || 0;
 
+  let campaigneeName = req.body.campaignee;
+  console.log("Campaignee received ", campaigneeName);
+  let campaignee = await db.CampaigneeModel.findOne({
+    where: {
+      uniqueUrl: campaigneeName,
+    },
+  });
+  console.log("Campaignee in db ", campaignee);
   //Solar Rep
   let projectSizeKw = req.body.projectSizeKw;
   let areaOfService = req.body.areaOfService;
@@ -268,60 +276,65 @@ export const RegisterUser = async (req, res) => {
     projectsPerYear: projectsPerYear,
     primaryClientType: primaryClientType,
     timeZone: timeZone,
+    campaigneeId: campaignee?.id,
   });
   let customerId = await generateStripeCustomerId(user.id);
   console.log("Stripe Custome Id Generated in Register");
 
-  if (agentService && agentService.length > 0) {
-    agentService = JSON.parse(agentService);
-    for (let i = 0; i < agentService.length; i++) {
-      let service = agentService[i];
-      console.log("Adding Service", service);
-      let dbService = await db.AgentService.findOne({
-        where: {
-          id: service,
-        },
-      });
-      if (!dbService) {
-        dbService = await db.AgentService.create({
-          userId: user.id,
-          title: "Other",
-          description: service,
+  try {
+    if (agentService && agentService.length > 0) {
+      agentService = JSON.parse(agentService);
+      for (let i = 0; i < agentService.length; i++) {
+        let service = agentService[i];
+        console.log("Adding Service", service);
+        let dbService = await db.AgentService.findOne({
+          where: {
+            id: service,
+          },
         });
-      }
+        if (!dbService) {
+          dbService = await db.AgentService.create({
+            userId: user.id,
+            title: "Other",
+            description: service,
+          });
+        }
 
-      if (dbService) {
-        let created = await db.UserServicesModel.create({
-          userId: user.id,
-          agentService: dbService.id,
-        });
+        if (dbService) {
+          let created = await db.UserServicesModel.create({
+            userId: user.id,
+            agentService: dbService.id,
+          });
+        }
       }
     }
-  }
-  if (areaOfFocus && areaOfFocus.length > 0) {
-    areaOfFocus = JSON.parse(areaOfFocus);
-    for (let i = 0; i < areaOfFocus.length; i++) {
-      let service = areaOfFocus[i];
-      console.log("Adding Focus", service);
-      let dbFocus = await db.AreaOfFocus.findOne({
-        where: {
-          id: service,
-        },
-      });
-      if (!dbFocus) {
-        dbFocus = await db.AreaOfFocus.create({
-          userId: user.id,
-          title: "Other",
-          description: service,
+    if (areaOfFocus && areaOfFocus.length > 0) {
+      areaOfFocus = JSON.parse(areaOfFocus);
+      for (let i = 0; i < areaOfFocus.length; i++) {
+        let service = areaOfFocus[i];
+        console.log("Adding Focus", service);
+        let dbFocus = await db.AreaOfFocus.findOne({
+          where: {
+            id: service,
+          },
         });
-      }
-      if (dbFocus) {
-        let created = await db.UserFocusModel.create({
-          userId: user.id,
-          areaOfFocus: dbFocus.id,
-        });
+        if (!dbFocus) {
+          dbFocus = await db.AreaOfFocus.create({
+            userId: user.id,
+            title: "Other",
+            description: service,
+          });
+        }
+        if (dbFocus) {
+          let created = await db.UserFocusModel.create({
+            userId: user.id,
+            areaOfFocus: dbFocus.id,
+          });
+        }
       }
     }
+  } catch (error) {
+    console.log("Error adding services and focus", error);
   }
 
   // let agentModel = await db.AgentModel.create({
