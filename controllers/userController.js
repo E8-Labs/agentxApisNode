@@ -129,6 +129,7 @@ export const LoginUser = async (req, res) => {
 
         invite.status = "Accepted";
         invite.invitedUserId = user.id;
+        await invite.save();
       }
     }
     // bcrypt.compare(password, user.password, async function (err, result) {
