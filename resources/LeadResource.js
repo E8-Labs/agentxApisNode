@@ -181,7 +181,22 @@ async function getUserData(lead, currentUser = null) {
   if (cad) {
     pipeline = await db.Pipeline.findByPk(cad.pipelineId);
   }
+
+  let teamsAssigned = [];
+  let teams = await db.TeamLeadAssignModel.findAll({
+    where: {
+      leadId: leadData.id,
+    },
+  });
+  if (teams && teams.length > 0) {
+    for (const t of teams) {
+      let user = await db.User.findByPk(t.userId);
+      teamsAssigned.push(user);
+    }
+  }
+
   delete leadData.status;
+
   const LeadResource = {
     ...leadData,
     tags: tags, //{ ...tags, ...sheetTagsArray },
@@ -191,6 +206,7 @@ async function getUserData(lead, currentUser = null) {
     emails: emails,
     booking: scheduled,
     pipeline: pipeline,
+    teamsAssigned: teamsAssigned,
     // sheetTagsArray,
   };
 

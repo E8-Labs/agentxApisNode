@@ -63,6 +63,10 @@ async function getUserData(user, currentUser = null) {
     cards = cardsData.data;
   }
 
+  let campaignee = await db.CampaigneeModel.findOne({
+    where: { id: user.campaigneeId || 1 },
+  });
+
   const UserFullResource = {
     ...user.get(),
     plan: planHistory && planHistory.length > 0 ? planHistory[0] : null,
@@ -74,6 +78,7 @@ async function getUserData(user, currentUser = null) {
     focusAreas,
     services,
     cards: cards,
+    campaignee: campaignee,
   };
 
   return UserFullResource;
