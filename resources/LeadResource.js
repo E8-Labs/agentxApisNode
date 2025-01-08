@@ -67,7 +67,7 @@ async function getLatestAndUniqueKycs(leadId) {
 }
 
 async function getUserData(lead, currentUser = null) {
-  console.log("Type of user is ", typeof user);
+  console.log("Type of user is ", lead);
   //   let totalYapScore = 0;
   //   let reviews = 0;
   //   if (user instanceof db.User) {
