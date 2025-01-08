@@ -21,17 +21,26 @@ const UserProfileFullResource = async (user, currentUser = null) => {
 
 async function getUserData(user, currentUser = null) {
   console.log("Type of user is ", typeof user);
-
+  let admin = null;
+  if (user.userRole == "Invitee") {
+    let invite = await db.TeamModel.findOne({
+      where: { invitedUserId: user.id },
+    });
+    if (invite) {
+      admin = await db.User.findByPk(invite.invitingUserId);
+    }
+  }
+  //If this is not admin user then find the admin as done above and fetch his plans
   let alreadyUsedGlobalNumber = await db.AgentModel.findAll({
     where: {
       phoneNumber: process.env.GlobalPhoneNumber,
-      userId: user.id,
+      userId: admin ? admin.id : user.id,
     },
   });
 
   let planHistory = await db.PlanHistory.findAll({
     where: {
-      userId: user.id,
+      userId: admin ? admin.id : user.id,
       environment: process.env.Environment,
     },
     order: [["createdAt", "DESC"]],
@@ -56,8 +65,8 @@ async function getUserData(user, currentUser = null) {
       isSeen: false,
     },
   });
-
-  let cardsData = await getPaymentMethods(user.id);
+  //If this is not admin user then find the admin as done above and fetch his plans
+  let cardsData = await getPaymentMethods(admin ? admin.id : user.id);
   let cards = [];
   if (cardsData && cardsData.status) {
     cards = cardsData.data;
@@ -79,6 +88,7 @@ async function getUserData(user, currentUser = null) {
     services,
     cards: cards,
     campaignee: campaignee,
+    // admin: admin,
   };
 
   return UserFullResource;
