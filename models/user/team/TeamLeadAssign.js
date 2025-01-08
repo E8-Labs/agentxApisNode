@@ -20,6 +20,10 @@ const TeamLeadAssignModel = (sequelize, Sequelize) => {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+    fromStage: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+    },
   });
 
   return TeamLeadAssignModel;
