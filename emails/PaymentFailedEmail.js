@@ -27,7 +27,7 @@ const HtmlTemplatePaymentMethodFailed = `
     }
     .body {
       padding: 20px;
-      color: #555;
+      color: #555;font-size: 14px;
       line-height: 1.6;
     }
     .body p {

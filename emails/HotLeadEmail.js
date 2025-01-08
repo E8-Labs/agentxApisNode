@@ -18,7 +18,7 @@ const HtmlTemplateHotLeadAlert = `
       overflow: hidden;
     }
     .header {
-      background-color: #007BFF;
+      background-color: #7902DF;
       color: #fff;
       text-align: center;
       padding: 20px;
@@ -27,7 +27,7 @@ const HtmlTemplateHotLeadAlert = `
     }
     .body {
       padding: 20px;
-      color: #555;
+      color: #555;font-size: 14px;
       line-height: 1.6;
     }
     .body p {

@@ -883,10 +883,7 @@ async function CheckAndSendLastChanceToActNotificaitonSent(user) {
     console.log("User is not on trial");
     return;
   }
-  if (leads > 0) {
-    console.log("User have already added leads");
-    return;
-  }
+
   //check the datetime to see if it is gt 3 hours and less than 4
   let now = new Date(); // Current time
   let createdAt = new Date(user.createdAt); // Convert user.createdAt to a Date object
@@ -894,6 +891,20 @@ async function CheckAndSendLastChanceToActNotificaitonSent(user) {
   let type = NotificationTypes.LastChanceToAct;
   // Calculate the difference in milliseconds
   let timeDifference = now - createdAt;
+
+  //If 7 days have passed
+  if (timeDifference > 7 * 24) {
+    user.isTrial = false;
+    let seconds = user.totalAvailableSeconds;
+    user.totalAvailableSeconds -= seconds;
+    await user.save();
+    return;
+  }
+
+  if (leads > 0) {
+    console.log("User have already added leads");
+    return;
+  }
 
   // Check if 99 hours (in milliseconds) or more have passed
   if (timeDifference >= 123 * 60 * 60 * 1000) {
