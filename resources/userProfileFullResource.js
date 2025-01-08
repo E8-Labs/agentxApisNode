@@ -38,6 +38,7 @@ async function getUserData(user, currentUser = null) {
     },
   });
 
+  console.log("Fetching plan history for admin ", admin?.id);
   let planHistory = await db.PlanHistory.findAll({
     where: {
       userId: admin ? admin.id : user.id,
