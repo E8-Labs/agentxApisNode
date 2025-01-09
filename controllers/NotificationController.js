@@ -636,6 +636,7 @@ async function SendAutoDailyNotificationsFor7Days() {
 
 //sent 1 hr after account creation
 async function CheckAndSendTrialTickingNotificaitonSent(user) {
+  console.log("Trying to send 1 hour not", user.id);
   if (!user.isTrial) {
     console.log("User is not on trial");
     return;
@@ -649,9 +650,12 @@ async function CheckAndSendTrialTickingNotificaitonSent(user) {
 
   // Check if 1 hours (in milliseconds) or more have passed
   if (timeDifference >= 1 * 60 * 60 * 1000) {
-    console.log("3 hours or more have passed since the account was created.");
+    console.log("1 hours or more have passed since the account was created.");
   } else {
-    console.log("Less than 3 hours have passed since the account was created.");
+    console.log(
+      "Less than 1 hours have passed since the account was created.",
+      timeDifference / 60000
+    );
     return;
   }
 
@@ -685,10 +689,10 @@ async function CheckAndSendLikelyToWinNotificaitonSent(user) {
       userId: user.id,
     },
   });
-  // if (!user.isTrial) {
-  //   console.log("User is not on trial");
-  //   return;
-  // }
+  if (!user.isTrial) {
+    console.log("User is not on trial");
+    return;
+  }
   if (leads > 0) {
     console.log("User have already added leads");
     return;
@@ -893,7 +897,8 @@ async function CheckAndSendLastChanceToActNotificaitonSent(user) {
   let timeDifference = now - createdAt;
 
   //If 7 days have passed
-  if (timeDifference > 7 * 24) {
+  if (timeDifference > 7 * 24 * 60 * 60 * 1000) {
+    console.log("More than 7 days have passed and still on trial");
     user.isTrial = false;
     let seconds = user.totalAvailableSeconds;
     user.totalAvailableSeconds -= seconds;
@@ -1036,3 +1041,5 @@ export async function SendTestEmail(req, res) {
     message: "Email sent",
   });
 }
+
+NotificationCron();
