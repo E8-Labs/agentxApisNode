@@ -275,7 +275,7 @@ async function SendEmailForNotification(
       "https://ai.myagentx.com/support-session", // CTA_Link from the campaign team
       "Schedule Live Session" // CTA_Text
     );
-  } else if (type === NotificationTypes.TrialTime2MinLeft) {
+  } else if (type === NotificationTypes.TrialReminder) {
     emailNot = generateTrialReminderEmail(
       user.name, // Name
       "https://ai.myagentx.com/start-calling", // CTA_Link
@@ -986,6 +986,8 @@ async function CheckAndSendTwoMinuteTrialLeftNotificaitonSent(user) {
     console.log("User is not on trial");
     return;
   }
+  console.log("User is ", user.id);
+  console.log("User's total seconds available", user.totalAvailableSeconds);
   if (user.totalAvailableSeconds > 120) {
     return;
   }
