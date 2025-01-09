@@ -417,6 +417,12 @@ export const CancelPlan = async (req, res) => {
         plan.status = "cancelled";
         await plan.save();
 
+        //If On Trial, Cancel Deduct The Trial Minutes
+        if (user.isTrial) {
+          user.totalSecondsAvailable -= user.totalSecondsAvailable;
+          await user.save();
+        }
+
         //delete the numbe form our database
 
         // Format the response
