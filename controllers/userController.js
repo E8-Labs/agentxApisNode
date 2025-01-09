@@ -531,7 +531,7 @@ export const SendPhoneVerificationCode = async (req, res) => {
   console.log("Login", login);
   //User is trying to register
   if (user && !login) {
-    res.send({ status: false, data: null, message: "Phone already taken" });
+    res.send({ status: false, data: null, message: "Taken" });
   } else {
     const randomCode = generateRandomCode(6);
     db.PhoneVerificationCodeModel.destroy({
@@ -630,7 +630,7 @@ export const VerifyPhoneCode = async (req, res) => {
       //     res.send({ status: false, data: null, message: "Incorrect code " + code })
       // }
     } else {
-      res.send({ status: false, data: null, message: "Phone already taken" });
+      res.send({ status: false, data: null, message: "Taken" });
     }
   } else {
     //console.log("Db code is ", dbCode)
@@ -690,7 +690,7 @@ export const CheckPhoneExists = async (req, res) => {
   });
 
   if (user) {
-    res.send({ status: false, data: null, message: "Phone taken" });
+    res.send({ status: false, data: null, message: "Taken" });
   } else {
     res.send({ status: true, data: null, message: "Available" });
   }
@@ -777,9 +777,9 @@ export const CheckUsernameExists = async (req, res) => {
   });
 
   if (user) {
-    res.send({ status: false, data: null, message: "Username already taken" });
+    res.send({ status: false, data: null, message: "Taken" });
   } else {
-    res.send({ status: true, data: null, message: "Username available" });
+    res.send({ status: true, data: null, message: "Available" });
   }
 };
 
@@ -794,7 +794,7 @@ export const CheckEmailExists = async (req, res) => {
   });
 
   if (user) {
-    res.send({ status: false, data: null, message: "Email taken" });
+    res.send({ status: false, data: null, message: "Taken" });
   } else {
     res.send({ status: true, data: null, message: "Available" });
   }
@@ -809,7 +809,7 @@ export const SendEmailVerificationCode = async (req, res) => {
   });
   //console.log("User is ", user)
   if (user) {
-    res.send({ status: false, data: null, message: "Email already taken" });
+    res.send({ status: false, data: null, message: "Taken" });
   } else {
     let transporter = nodemailer.createTransport({
       host: "smtp.gmail.com", // Replace with your mail server host
@@ -945,7 +945,7 @@ export const VerifyEmailCode = async (req, res) => {
   });
 
   if (user) {
-    res.send({ status: false, data: null, message: "Email already taken" });
+    res.send({ status: false, data: null, message: "Taken" });
   } else {
     let dbCode = await db.EmailVerificationCode.findOne({
       where: {
