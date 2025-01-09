@@ -173,11 +173,16 @@ export const RegisterUser = async (req, res) => {
 
   let campaigneeName = req.body.campaignee;
   console.log("Campaignee received ", campaigneeName);
-  let campaignee = await db.CampaigneeModel.findOne({
-    where: {
-      uniqueUrl: campaigneeName,
-    },
-  });
+  let campaignee = null;
+  if (campaigneeName && campaigneeName.trim() !== "") {
+    campaignee = await db.CampaigneeModel.findOne({
+      where: {
+        uniqueUrl: campaigneeName,
+      },
+    });
+  } else {
+    console.log("Campaignee name is null, undefined, or empty.");
+  }
   console.log("Campaignee in db ", campaignee);
   //Solar Rep
   let projectSizeKw = req.body.projectSizeKw;
