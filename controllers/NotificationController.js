@@ -987,8 +987,8 @@ async function CheckAndSendTwoMinuteTrialLeftNotificaitonSent(user) {
     return;
   }
   console.log("User is ", user.id);
-  console.log("User's total seconds available", user.totalAvailableSeconds);
-  if (user.totalAvailableSeconds > 120) {
+  console.log("User's total seconds available", user.totalSecondsAvailable);
+  if (user.totalSecondsAvailable > 120) {
     return;
   }
   // if (leads > 0) {
