@@ -69,7 +69,7 @@ export function FindPlanWithMinutes(minutes) {
       p = plan;
     }
   }
-  return plan;
+  return p;
 }
 
 export function FindPlanWithPrice(price) {
