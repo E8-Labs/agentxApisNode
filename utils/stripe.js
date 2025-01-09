@@ -485,7 +485,7 @@ export const chargeUser = async (
       };
     } else {
       // Generic error handling
-      console.error("Unhandled error:", error.message);
+      console.error("Unhandled error:", error);
       return {
         status: false,
         message: "An unexpected error occurred.",
