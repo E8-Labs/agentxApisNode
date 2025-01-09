@@ -419,6 +419,7 @@ export const CancelPlan = async (req, res) => {
 
         //If On Trial, Cancel Deduct The Trial Minutes
         if (user.isTrial) {
+          user.isTrial = false;
           user.totalSecondsAvailable -= user.totalSecondsAvailable;
           await user.save();
         }
