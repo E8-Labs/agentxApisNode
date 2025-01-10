@@ -707,6 +707,21 @@ export async function AddTagsFromCustoStageToLead(lead, stage) {
       pipelineStageId: stage.id,
     },
   });
+
+  let teamsAssigned = await db.TeamStageAssignModel.findAll({
+    where: {
+      stageId: stage.id,
+    },
+  });
+  if (teamsAssigned && teamsAssigned.length > 0) {
+    for (const team of teamsAssigned) {
+      await db.TeamLeadAssignModel.create({
+        leadId: lead.id,
+        teamId: team.userId,
+        fromStage: false,
+      });
+    }
+  }
   if (stageTags && stageTags.length > 0) {
     for (const t of stageTags) {
       // let exists = await db.LeadTa

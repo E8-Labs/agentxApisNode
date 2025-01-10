@@ -9,6 +9,7 @@ import {
   InviteTeamMember,
   GetTeamMembers,
   AssignTeamMemberToLead,
+  AssignTeamMemberToStage,
 } from "../controllers/TeamController.js";
 
 let teamRouter = express.Router();
@@ -25,6 +26,12 @@ teamRouter.post(
   verifyJwtTokenWithTeam,
   uploadFiles,
   AssignTeamMemberToLead
+);
+teamRouter.post(
+  "/assignTeamToStage",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  AssignTeamMemberToStage
 );
 
 export default teamRouter;

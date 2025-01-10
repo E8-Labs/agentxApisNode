@@ -225,6 +225,16 @@ export const CreatePipelineStage = async (req, res) => {
         identifier: "custom_stage_" + stageTitle.toLowerCase(),
       });
 
+      //Check and assign teams
+      if (req.body.teams) {
+        let teams = req.body.teams || [];
+        for (const teamId of teams) {
+          let assigned = await db.TeamStageAssignModel.create({
+            stageId: stage.id,
+            userId: teamId,
+          });
+        }
+      }
       if (tags) {
         for (const tag of tags) {
           let created = await db.StageTagModel.create({

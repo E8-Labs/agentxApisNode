@@ -27,29 +27,23 @@ const HtmlTemplateTwoDaysLeft = `
     }
     .body {
       padding: 20px;
-      color: #555;font-size: 14px;
+      color: #555;
+      font-size: 14px;
       line-height: 1.6;
     }
     .body p {
       margin: 10px 0;
     }
-    .cta {
-      display: inline-block;
-      margin: 20px 0;
-      padding: 12px 24px;
-      background-color: #28a745;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .btnText {
-      color: #fff;
-      font-size: 16px;
+    .bold {
       font-weight: bold;
     }
-    .cta:hover {
-      background-color: #218838;
+    .hyperlink {
+      color: #007BFF;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .hyperlink:hover {
+      text-decoration: underline;
     }
     .footer {
       text-align: center;
@@ -64,16 +58,15 @@ const HtmlTemplateTwoDaysLeft = `
   <div class="container">
     <div class="header">Only 2 Days Left to Maximize Your Trial</div>
     <div class="body">
-      <p>Hi <strong>{First_Name}</strong>,</p>
+      <p>Hi {First_Name},</p>
       <p>Time is ticking! With only 2 days left in your trial, this is your chance to take action.</p>
-      <p>Agents who start early are already seeing results—some booking listings worth $700k+! If you need help getting started, we’ve got you covered.</p>
-      <p>👉 <strong>Schedule a live support session</strong> to ensure you’re on track to success.</p>
+      <p>Agents who start early are already seeing results—some booking listings worth <span class="bold">$700k+!</span> If you need help getting started, we’ve got you covered.</p>
+      <p>👉 <a href="{CTA_Link}" class="hyperlink">Schedule a live support session</a> to ensure you’re on track to success.</p>
       <p>Don’t let your leads slip away—make the most of your time!</p>
-      <a href="{CTA_Link}" class="cta"><p class="btnText">{CTA_Text}</p></a>
       <p>Best,<br>AgentX Team</p>
     </div>
     <div class="footer">
-      © 2023 AgentX, All Rights Reserved.
+      © 2025 AgentX, All Rights Reserved.
     </div>
   </div>
 </body>

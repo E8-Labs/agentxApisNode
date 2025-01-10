@@ -10,7 +10,7 @@ import db from "../models/index.js";
 
 const Op = db.Sequelize.Op;
 
-const PipelineCadenceResource = async (user, currentUser = null) => {
+const PipelineStageLiteResource = async (user, currentUser = null) => {
   if (!Array.isArray(user)) {
     ////////console.log("Not array")
     return await getUserData(user, currentUser);
@@ -27,32 +27,31 @@ const PipelineCadenceResource = async (user, currentUser = null) => {
   }
 };
 
-async function getUserData(cadence, currentUser = null) {
-  //   console.log("Type of kyc is ", typeof kyc);
+async function getUserData(pipelineStage, currentUser = null) {
+  let hasLeads = false;
 
-  let calls = await db.CadenceCalls.findAll({
+  let leadCount = await db.LeadModel.count({
     where: {
-      pipelineCadenceId: cadence.id,
+      stage: pipelineStage.id,
     },
-    attributes: [
-      "id",
-      "pipelineCadenceId",
-      "waitTimeMinutes",
-      "waitTimeHours",
-      "waitTimeDays",
-    ],
   });
+  if (leadCount > 0) {
+    hasLeads = true;
+  }
 
-  const PipelineCadenceResource = {
-    id: cadence.id,
-    mainAgentId: cadence.mainAgentId,
-    status: cadence.status,
-    pipelineId: cadence.pipelineId,
-    moveToStage: cadence.moveToStage,
-    calls: calls,
+  let stageData = {};
+  const PipelineStageResource = {
+    id: pipelineStage.id,
+    order: pipelineStage.order,
+    description: pipelineStage.description,
+    defaultColor: pipelineStage.defaultColor,
+    pipelineId: pipelineStage.pipelineId,
+    stageTitle: pipelineStage.stageTitle,
+    identifier: pipelineStage.identifier,
+    hasLeads: hasLeads,
   };
 
-  return PipelineCadenceResource;
+  return PipelineStageResource;
 }
 
-export default PipelineCadenceResource;
+export default PipelineStageLiteResource;
