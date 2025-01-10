@@ -59,6 +59,7 @@ import { DailyNotificationModel } from "./user/DailyNotification.js";
 import TeamModel from "./user/team/TeamModel.js";
 import { TestNumbers } from "./Testing/TestNumbers.js";
 import TeamLeadAssignModel from "./user/team/TeamLeadAssign.js";
+import TeamStageAssignModel from "./user/team/TeamStageAssignModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -195,6 +196,8 @@ db.PipelineStages.belongsTo(db.Pipeline, {
   as: "stages", // Alias for association
 });
 models["PipelineStages"] = db.PipelineStages;
+
+db.TeamStageAssignModel = TeamStageAssignModel(sequelize, Sequelize);
 
 db.StageTagModel = StageTagModel(sequelize, Sequelize);
 db.PipelineStages.hasMany(db.StageTagModel, {

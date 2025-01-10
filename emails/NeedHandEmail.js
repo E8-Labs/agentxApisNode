@@ -27,29 +27,24 @@ const HtmlTemplateNeedAHand = `
     }
     .body {
       padding: 20px;
-      color: #555;font-size: 14px;
+      color: #555;
+      font-size: 14px;
       line-height: 1.6;
     }
     .body p {
       margin: 10px 0;
     }
-    .cta {
-      display: inline-block;
-      margin: 20px 0;
-      padding: 12px 24px;
-      background-color: #28a745;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .btnText {
-      color: #fff;
-      font-size: 16px;
+    .bold {
       font-weight: bold;
     }
-    .cta:hover {
-      background-color: #218838;
+    .cta-link {
+      color: #fff;
+      color: #007BFF;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .cta-link:hover {
+      text-decoration: underline;
     }
     .footer {
       text-align: center;
@@ -64,15 +59,15 @@ const HtmlTemplateNeedAHand = `
   <div class="container">
     <div class="header">Need a Hand?</div>
     <div class="body">
-      <p>Hi <strong>{First_Name}</strong>,</p>
+      <p>Hi {First_Name},</p>
       <p>Missed something in your live training? We’ve got you covered!</p>
       <p>If you didn’t have time to cover everything in onboarding, don’t worry—we’re here to help!</p>
-      <p>Agents who complete their setup early unlock the full potential of their AI trial. Join our live support session to ask questions, get tips, and ensure you’re on the path to success.</p>
-      <p>👉 <a href="{CTA_Link}" class="cta"><p class="btnText">{CTA_Text}</p></a></p>
+      <p>Agents who complete their setup early unlock the full potential of their AI trial. <span class="bold">Join our live support session</span> to ask questions, get tips, and ensure you’re on the path to success.</p>
+      <p>👉 <a href="{CTA_Link}" class="cta-link">Click here to schedule your live session</a></p>
       <p>Best,<br>AgentX Team</p>
     </div>
     <div class="footer">
-      © 2023 AgentX, All Rights Reserved.
+      © 2025 AgentX, All Rights Reserved.
     </div>
   </div>
 </body>

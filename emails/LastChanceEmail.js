@@ -27,29 +27,20 @@ const HtmlTemplateOneDayLeft = `
     }
     .body {
       padding: 20px;
-      color: #555;font-size: 14px;
+      color: #555;
+      font-size: 14px;
       line-height: 1.6;
     }
     .body p {
       margin: 10px 0;
     }
-    .cta {
-      display: inline-block;
-      margin: 20px 0;
-      padding: 12px 24px;
-      background-color: #28a745;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .btnText {
-      color: #fff;
-      font-size: 16px;
+    .hyperlink {
+      color: #007BFF;
       font-weight: bold;
+      text-decoration: none;
     }
-    .cta:hover {
-      background-color: #218838;
+    .hyperlink:hover {
+      text-decoration: underline;
     }
     .footer {
       text-align: center;
@@ -64,15 +55,14 @@ const HtmlTemplateOneDayLeft = `
   <div class="container">
     <div class="header">1 Day Left to Use Your AI Talk Time!</div>
     <div class="body">
-      <p>Hi <strong>{First_Name}</strong>,</p>
+      <p>Hi {First_Name},</p>
       <p>Your trial is almost up! With just 1 day left, it’s time to make the most of your 30 minutes of AI talk time.</p>
       <p>Don’t let this opportunity pass you by. Whether it’s uploading leads or making calls, every action brings you closer to results.</p>
-      <p>👉 <strong>Need help?</strong> Schedule a live support session now!</p>
-      <a href="{CTA_Link}" class="cta"><p class="btnText">{CTA_Text}</p></a>
+      <p>👉 <a href="{CTA_Link}" class="hyperlink"><strong>Need help? Schedule a live support session now!</strong></a></p>
       <p>Best,<br>AgentX Team</p>
     </div>
     <div class="footer">
-      © 2023 AgentX, All Rights Reserved.
+      © 2025 AgentX, All Rights Reserved.
     </div>
   </div>
 </body>

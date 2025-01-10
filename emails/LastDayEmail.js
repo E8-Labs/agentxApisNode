@@ -27,29 +27,23 @@ const HtmlTemplateTrialEndsTonight = `
     }
     .body {
       padding: 20px;
-      color: #555;font-size: 14px;
+      color: #555;
+      font-size: 14px;
       line-height: 1.6;
     }
     .body p {
       margin: 10px 0;
     }
-    .cta {
-      display: inline-block;
-      margin: 20px 0;
-      padding: 12px 24px;
-      background-color: #28a745;
-      color: #fff;
-      text-decoration: none;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .btnText {
-      color: #fff;
-      font-size: 16px;
+    .bold {
       font-weight: bold;
     }
-    .cta:hover {
-      background-color: #218838;
+    .hyperlink {
+      color: #007BFF;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .hyperlink:hover {
+      text-decoration: underline;
     }
     .footer {
       text-align: center;
@@ -64,15 +58,15 @@ const HtmlTemplateTrialEndsTonight = `
   <div class="container">
     <div class="header">Your Trial Ends Tonight at Midnight ⏰</div>
     <div class="body">
-      <p>Hi <strong>{First_Name}</strong>,</p>
-      <p>It’s your final chance! Your 30 minutes of AI talk time expire at midnight tonight.</p>
-      <p>Agents using AgentX are seeing results, with some securing 2-3 listing appointments per month. Don’t miss your opportunity to achieve the same success.</p>
-      <p>👉 <strong>Start calling your leads now</strong> to make your last hours count.</p>
+      <p>Hi {First_Name},</p>
+      <p>It’s your final chance! Your <span class="bold">30 minutes of AI talk time expire at midnight tonight.</span></p>
+      <p>Agents using AgentX are seeing results, with some securing <span class="bold">2-3 listing appointments per month.</span> Don’t miss your opportunity to achieve the same success.</p>
+      <p>👉 <a href="{CTA_Link}" class="hyperlink">Start calling your leads now to make your last hours count.</a></p>
       <p>Let’s close out strong!</p>
       <p>Best,<br>AgentX Team</p>
     </div>
     <div class="footer">
-      © 2023 AgentX, All Rights Reserved.
+      © 2025 AgentX, All Rights Reserved.
     </div>
   </div>
 </body>

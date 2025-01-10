@@ -27,29 +27,39 @@ const HtmlTemplateTrialTicking = `
     }
     .body {
       padding: 20px;
-      color: #555;font-size: 14px;
+      color: #555;
+      font-size: 14px;
       line-height: 1.6;
     }
     .body p {
       margin: 10px 0;
     }
     .cta {
-      display: inline-block;
-      margin: 20px 0;
+      display: block;
+      margin: 20px auto;
       padding: 12px 24px;
-      background-color: #28a745;
+      width: 50%;
+      background-color: #7902DF;
       color: #fff;
       text-decoration: none;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .btnText {
-      color: #fff;
+      border-radius: 15px;
+      text-align: center;
       font-size: 16px;
       font-weight: bold;
     }
     .cta:hover {
-      background-color: #218838;
+      background-color: #5e02b0;
+    }
+    .ctaText{
+      color: #FFFFFF
+    }
+    .protip-link {
+      color: #007BFF;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .protip-link:hover {
+      text-decoration: underline;
     }
     .footer {
       text-align: center;
@@ -64,15 +74,17 @@ const HtmlTemplateTrialTicking = `
   <div class="container">
     <div class="header">Your 30-Minute Trial is Ticking!</div>
     <div class="body">
-      <p>Hi <strong>{First_Name}</strong>,</p>
-      <p>Welcome to AgentX! Your 7-day trial has started, and your 30 minutes of AI-powered talk time are ready. Agents who start early see the best results—don’t wait!</p>
-      <p>👉 <strong>Pro Tip:</strong> Upload your leads today and start calling to make the most of your trial.</p>
+      <p>Hi {First_Name},</p>
+      <p>Welcome to AgentX! Your 7-day trial has started, and your <strong>30 minutes of AI-powered talk time</strong> are ready. Agents who start early see the best results—don’t wait!</p>
+      <p>
+        👉 <a href="{CTA_Link}" class="protip-link"><strong>Pro Tip:</strong> Upload your leads today and start calling to make the most of your trial.</a>
+      </p>
       <p>Your success is our priority—let's make it happen!</p>
-      <a href="{CTA_Link}" class="cta"><p class="btnText">{CTA_Text}</p></a>
+      <a href="{CTA_Link}" class="cta"><p class="ctaText">{CTA_Text}</p></a>
       <p>Best,<br>AgentX Team</p>
     </div>
     <div class="footer">
-      © 2023 AgentX, All Rights Reserved.
+      © 2025 AgentX, All Rights Reserved.
     </div>
   </div>
 </body>
@@ -83,8 +95,13 @@ export function GenerateTrialTickingEmail(First_Name, CTA_Link, CTA_Text) {
   let emailTemplate = HtmlTemplateTrialTicking;
 
   // Replace placeholders with actual values
+  let parts = First_Name.split(" ");
+  let firstName = First_Name;
+  if (parts.length > 0) {
+    firstName = parts[0];
+  }
   const variables = {
-    First_Name,
+    firstName,
     CTA_Link,
     CTA_Text,
   };

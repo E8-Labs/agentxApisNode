@@ -27,29 +27,31 @@ const HtmlTemplateTrialReminder = `
     }
     .body {
       padding: 20px;
-      color: #555;font-size: 14px;
+      color: #555;
+      font-size: 14px;
       line-height: 1.6;
     }
     .body p {
       margin: 10px 0;
     }
     .cta {
-      display: inline-block;
-      margin: 20px 0;
+      display: block;
+      margin: 20px auto;
       padding: 12px 24px;
-      background-color: #28a745;
-      color: #fff;
+      width: 50%;
+      text-align: center;
+      background-color: #7902DF;
+      color: #FFFFFF;
       text-decoration: none;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .btnText {
-      color: #fff;
+      border-radius: 13px;
       font-size: 16px;
       font-weight: bold;
     }
     .cta:hover {
-      background-color: #218838;
+      background-color: #5e02b0;
+    }
+    .ctaText{
+      color: #FFFFFF
     }
     .footer {
       text-align: center;
@@ -64,14 +66,14 @@ const HtmlTemplateTrialReminder = `
   <div class="container">
     <div class="header">Trial Reminder: Don’t Let It Slip Away!</div>
     <div class="body">
-      <p>Hi <strong>{First_Name}</strong>,</p>
+      <p>Hi {First_Name},</p>
       <p>Your trial is moving fast! You have unused trial minutes of AI talk time, and your trial ends soon.</p>
       <p>📈 Agents using their trial talk time are already securing new listing appointments. Don’t let opportunities slip away—start calling today!</p>
-      <a href="{CTA_Link}" class="cta"><p class="btnText">{CTA_Text}</p></a>
+      <a href="{CTA_Link}" class="cta"><p class="ctaText">{CTA_Text}</p></a>
       <p>Best,<br>AgentX Team</p>
     </div>
     <div class="footer">
-      © 2023 AgentX, All Rights Reserved.
+      © 2025 AgentX, All Rights Reserved.
     </div>
   </div>
 </body>

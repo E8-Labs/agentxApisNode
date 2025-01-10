@@ -149,3 +149,37 @@ export function AssignTeamMemberToLead(req, res) {
     }
   });
 }
+
+export function AssignTeamMemberToStage(req, res) {
+  let { stageId, teamMemberUserId } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let user = await db.User.findByPk(authData.user.id);
+      if (!user) {
+        return res.send({
+          status: false,
+          message: "No such user",
+        });
+      }
+
+      let assigned = await db.TeamStageAssignModel.create({
+        stageId: stageId,
+        userId: teamMemberUserId,
+      });
+
+      //Make a resource of the Teammodel
+      // let teamRes = await TeamResource(invites);
+      return res.send({
+        status: true,
+        message: "Team member assigned",
+        data: assigned,
+        // admin: teamAdmin,
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+}

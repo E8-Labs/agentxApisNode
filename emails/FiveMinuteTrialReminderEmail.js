@@ -27,29 +27,42 @@ const HtmlTemplateTwoMinutesLeft = `
     }
     .body {
       padding: 20px;
-      color: #555;font-size: 14px;
+      color: #555;
+      font-size: 14px;
       line-height: 1.6;
     }
     .body p {
       margin: 10px 0;
     }
+    .bold {
+      font-weight: bold;
+    }
+    .hyperlink {
+      color: #007BFF;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .hyperlink:hover {
+      text-decoration: underline;
+    }
     .cta {
-      display: inline-block;
-      margin: 20px 0;
+      display: block;
+      margin: 20px auto;
       padding: 12px 24px;
-      background-color: #FF5722;
+      width: 50%;
+      background-color: #7902DF;
       color: #fff;
       text-decoration: none;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .btnText {
-      color: #fff;
+      border-radius: 12px;
+      text-align: center;
       font-size: 16px;
       font-weight: bold;
     }
     .cta:hover {
-      background-color: #E64A19;
+      background-color: #5e02b0;
+    }
+    .ctaText{
+      color: #FFFFFF  
     }
     .footer {
       text-align: center;
@@ -62,24 +75,24 @@ const HtmlTemplateTwoMinutesLeft = `
 </head>
 <body>
   <div class="container">
-    <div class="header">Just 2 Minutes Left on Your Trial!</div>
+    <div class="header">Just 5 Minutes Left on Your Trial!</div>
     <div class="body">
-      <p>Hi <strong>{First_Name}</strong>,</p>
-      <p>Your 30-minute trial is almost up—you’ve got just 2 minutes left to make the most of it!</p>
-      <p>Your plan will automatically renew at your selected level from our pay-as-you-go plans, so you can keep calling without interruption.</p>
-      <p>👉 <strong>Want to adjust your plan?</strong> Visit your account now to make any changes before your minutes renew.</p>
+      <p>Hi {First_Name},</p>
+      <p>Your 30-minute trial is almost up—you’ve got just <span class="bold">5 minutes</span> left to make the most of it!</p>
+      <p>Your plan will <span class="bold">automatically renew</span> at your selected level from our pay-as-you-go plans, so you can keep calling without interruption.</p>
+      <p>👉 <a href="{CTA_Link}" class="hyperlink"><span class="bold">Want to adjust your plan?</span></a> Visit your account now to make any changes before your minutes renew.</p>
       <p>Stay connected and keep the momentum going—your next listing appointment is just a call away!</p>
-      <a href="{CTA_Link}" class="cta"><p class="btnText">{CTA_Text}</p></a>
+      <a href="{CTA_Link}" class="cta"><p class="ctaText">{CTA_Text}</p></a>
     </div>
     <div class="footer">
-      © 2023 AgentX, All Rights Reserved.
+      © 2025 AgentX, All Rights Reserved.
     </div>
   </div>
 </body>
 </html>
 `;
 
-export function generateTwoMinutesLeftEmail(First_Name, CTA_Link, CTA_Text) {
+export function generateFiveMinutesLeftEmail(First_Name, CTA_Link, CTA_Text) {
   let emailTemplate = HtmlTemplateTwoMinutesLeft;
 
   // Replace placeholders with actual values
@@ -96,6 +109,6 @@ export function generateTwoMinutesLeftEmail(First_Name, CTA_Link, CTA_Text) {
 
   return {
     html: emailTemplate,
-    subject: "Just 2 Minutes Left on Your Trial!",
+    subject: "Just 5 Minutes Left on Your Trial!",
   };
 }
