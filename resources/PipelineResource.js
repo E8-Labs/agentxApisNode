@@ -2,6 +2,7 @@ import db from "../models/index.js";
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 import LeadCadenceResource from "./LeadCadenceResource.js";
 import PipelineCadenceResource from "./PipelineCadenceResource.js";
+import PipelineStageLiteResource from "./PipelineStageLiteResource.js";
 import PipelineStageResource from "./PipelineStageResource.js";
 // import {
 //   getTotalYapScore,
@@ -112,7 +113,7 @@ async function getUserData(pipeline, currentUser = null) {
 
   const PipelineResource = {
     ...pipeline.get(),
-    stages: await PipelineStageResource(stages),
+    stages: await PipelineStageLiteResource(stages),
     cadences: await PipelineCadenceResource(cadences),
     leads: leads,
     leadsCountInStage: stageLeads,

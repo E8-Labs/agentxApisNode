@@ -31,7 +31,8 @@ async function getUserData(mainAgent, currentUser = null) {
 
   let agentRes = [];
   for (const ag of agents) {
-    let agent = { ...ag.get() };
+    let { id, name, agentRole, phoneNumber } = ag.get();
+    let agent = { id, name, agentRole, phoneNumber };
     agentRes.push(agent);
   }
 
