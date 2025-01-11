@@ -672,4 +672,4 @@ export async function SendTestEmail(req, res) {
   });
 }
 
-// NotificationCron();
+NotificationCron();

@@ -1,5 +1,6 @@
 import db from "../models/index.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
+import { AddNotification } from "../controllers/NotificationController.js";
 
 //sent 1 hr after account creation
 export async function CheckAndSendTrialTickingNotificaitonSent(user) {
