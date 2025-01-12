@@ -101,8 +101,13 @@ export function GenerateCallsStoppedEmail(Name, CTA_Link, CTA_Text) {
   let emailTemplate = HtmlTemplateCallsStopped;
 
   // Replace placeholders with actual values
+  let parts = Name.split(" ");
+  let firstName = Name;
+  if (parts.length > 0) {
+    firstName = parts[0];
+  }
   const variables = {
-    Name,
+    Name: firstName,
     CTA_Link,
     CTA_Text,
   };
