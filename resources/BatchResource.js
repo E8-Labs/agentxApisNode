@@ -67,7 +67,7 @@ async function getUserData(batch, currentUser = null) {
       id: {
         [db.Sequelize.Op.in]: leadIds,
       },
-      // status: "active",
+      status: "active",
     },
   });
   let i = 0;
