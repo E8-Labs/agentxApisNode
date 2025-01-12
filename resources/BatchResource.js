@@ -6,6 +6,7 @@ import {
   GetScheduledFutureCalls,
 } from "../controllers/pipelineController.js";
 import LeadResource from "./LeadResource.js";
+import LeadCallResource from "./LeadCallResource.js";
 // import {
 //   getTotalYapScore,
 //   getTotalReviews,
@@ -65,7 +66,7 @@ async function getUserData(batch, currentUser = null) {
       id: {
         [db.Sequelize.Op.in]: leadIds,
       },
-      status: "active",
+      // status: "active",
     },
   });
   let i = 0;
@@ -109,12 +110,13 @@ async function getUserData(batch, currentUser = null) {
     },
   });
 
+  let res = await LeadCallResource(pastCalls);
   const BatchResource = {
     ...batch.get(),
     leads: await LeadResource(leads),
     agents: await AgentLiteResource(agents),
     agentCalls: agentCalls,
-    pastCalls: pastCalls,
+    pastCalls: res,
   };
 
   return BatchResource;

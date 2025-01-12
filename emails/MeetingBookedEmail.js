@@ -34,22 +34,23 @@ const HtmlTemplateMeetingBooked = `
       margin: 10px 0;
     }
     .cta {
-      display: inline-block;
-      margin: 20px 0;
+      display: block;
+      margin: 20px auto;
       padding: 12px 24px;
-      background-color: #28a745;
+      width: 50%;
+      background-color: #7902DF;
       color: #fff;
       text-decoration: none;
-      border-radius: 5px;
-      font-size: 16px;
-    }
-    .btnText {
-      color: #fff;
+      border-radius: 15px;
+      text-align: center;
       font-size: 16px;
       font-weight: bold;
     }
     .cta:hover {
-      background-color: #218838;
+      background-color: #5e02b0;
+    }
+    .btnText{
+      color: #FFFFFF
     }
     .footer {
       text-align: center;
