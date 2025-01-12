@@ -65,6 +65,7 @@ export function InviteTeamMember(req, res) {
           phone: phone,
           userRole: UserRole.Invitee,
         });
+        //Trigger Email
         return res.send({
           status: true,
           message: "Invite sent",
