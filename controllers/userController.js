@@ -20,6 +20,10 @@ import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import { GetInviteAcceptedEmailReplacedVariables } from "../emails/InviteAcceptedEmail.js";
+import {
+  createThumbnailAndUpload,
+  uploadMedia,
+} from "../utils/mediaservice.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
