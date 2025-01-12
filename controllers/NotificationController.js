@@ -658,12 +658,20 @@ async function SendAutoDailyNotificationsFor7Days() {
 
 export async function SendTestEmail(req, res) {
   let type = req.body.type;
-  // let email = GetAgentXCodeUsageEmailReplacedVariables("Salman", "AgentX12");
-  let email = generateMinutesRenewedEmail(
-    "Salu bhai", // Name
-    "120", // CTA_Link
-    "360" // CTA_Text
+  let email = GetInviteAcceptedEmailReplacedVariables(
+    "Salman",
+    "AgentX12"
+    // "Hello",
+    // "H",
+    // "E",
+    // "L",
+    // "L"
   );
+  // let email = generateMinutesRenewedEmail(
+  //   "Salu bhai", // Name
+  //   "120", // CTA_Link
+  //   "360" // CTA_Text
+  // );
 
   let sent = await SendEmail("salman@e8-labs.com", email.subject, email.html);
   res.send({

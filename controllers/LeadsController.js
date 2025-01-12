@@ -1335,21 +1335,6 @@ export const GetCallLogs = async (req, res) => {
           ],
         });
 
-        // Map and format the data
-        // const formattedCalls = callLogs.map((call) => {
-        //   const minutes = Math.floor(call.duration / 60);
-        //   const seconds = call.duration % 60;
-        //   const formattedDuration = `${String(minutes).padStart(
-        //     2,
-        //     "0"
-        //   )}:${String(seconds).padStart(2, "0")}`;
-
-        //   return {
-        //     ...call.dataValues, // Include existing call data
-        //     durationFormatted: formattedDuration,
-        //   };
-        // });
-
         let callsWithCompleteData = [];
         callLogs.map((call) => {
           if (call.leadId != null) {
