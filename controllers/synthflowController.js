@@ -43,6 +43,7 @@ import {
 } from "../utils/mediaservice.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { constants } from "../constants/constants.js";
+import LeadCallResource from "../resources/LeadCallResource.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -1686,6 +1687,37 @@ export const GetAgents = async (req, res) => {
         status: true,
         data: await AgentResource(agents),
         message: "Agent List",
+      });
+    } else {
+      return res.status(401).send({
+        status: false,
+        data: null,
+        message: "Unauthorized access",
+      });
+    }
+  });
+};
+
+//Updated For Team Flow
+export const GetCallById = async (req, res) => {
+  let { callId } = req.query;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let call = await db.LeadCallsSent.findByPk(callId);
+      let callRes = await LeadCallResource(call);
+
+      return res.send({
+        status: true,
+        data: callRes,
+        message: "Call Details",
       });
     } else {
       return res.status(401).send({

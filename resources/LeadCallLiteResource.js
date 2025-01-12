@@ -1,8 +1,8 @@
 import db from "../models/index.js";
 
 const Op = db.Sequelize.Op;
-
-const LeadCallResource = async (user, currentUser = null) => {
+//Not being used rn
+const LeadCallLiteResource = async (user, currentUser = null) => {
   if (!Array.isArray(user)) {
     ////////console.log("Not array")
     return await getUserData(user, currentUser);
@@ -58,4 +58,4 @@ async function getUserData(call, currentUser = null) {
   return LeadCallResource;
 }
 
-export default LeadCallResource;
+export default LeadCallLiteResource;
