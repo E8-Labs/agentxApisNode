@@ -344,7 +344,7 @@ async function SendEmailForNotification(
 export const GetNotifications = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
-      const limit = 50;
+      const limit = 500;
       let offset = Number(req.query.offset) || 0;
       let userId = authData.user.id;
       //   if(userId == null)
