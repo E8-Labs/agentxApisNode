@@ -14,6 +14,13 @@ const Op = db.Sequelize.Op;
 import moment from "moment-timezone";
 import { capitalize } from "../utils/StringUtility.js";
 
+const convertTimeFormat = (timeString) => {
+  console.log("TIme to be converted is ", timeString);
+  let time = moment(timeString, "HH:mm").format("h:mm A");
+  console.log("TIme converted is ", time);
+  return time;
+};
+
 const fetchFutureBookings = async (lead) => {
   try {
     // Get the current datetime in UTC
@@ -53,6 +60,7 @@ const fetchFutureBookings = async (lead) => {
       if (zonedDate.isAfter(now)) {
         booking.timeZone = timeZone;
         booking.zonedDate = zonedDate.format();
+        booking.time = convertTimeFormat(booking.time);
         futureBookings.push(booking);
       }
     }
