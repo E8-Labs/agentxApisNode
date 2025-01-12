@@ -572,7 +572,7 @@ export const AssignPhoneNumber = async (req, res) => {
               if (alreadyPurchased && assistant.agentType == "inbound") {
                 //check if the number is already assigned to another inbound agent or not
                 //if assigned then don't assign to this inbound agent. Otherwise assign
-                assistant.phoneNumber = phoneNumber;
+
                 let agentsWithPhoneNumberAssigned = await db.AgentModel.findAll(
                   {
                     where: {
@@ -590,6 +590,7 @@ export const AssignPhoneNumber = async (req, res) => {
                     "This number is already assigned to another inbound agent"
                   );
                 } else {
+                  assistant.phoneNumber = phoneNumber;
                   let updated = await UpdateAssistantSynthflow(assistant, {
                     phone_number: phoneNumber,
                   });
