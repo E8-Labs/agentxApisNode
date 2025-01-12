@@ -1,3 +1,4 @@
+import { generateAlphaNumericInviteCode } from "../controllers/userController.js";
 import db from "../models/index.js";
 import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
 import { getPaymentMethods } from "../utils/stripe.js";
@@ -29,6 +30,10 @@ async function getUserData(user, currentUser = null) {
     if (invite) {
       admin = await db.User.findByPk(invite.invitingUserId);
     }
+  }
+  if (user.myInviteCode == null || user.myInviteCode == "") {
+    user.myInviteCode = generateAlphaNumericInviteCode(6);
+    await user.save();
   }
   //If this is not admin user then find the admin as done above and fetch his plans
   let alreadyUsedGlobalNumber = await db.AgentModel.findAll({

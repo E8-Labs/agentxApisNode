@@ -13,41 +13,39 @@ export async function createAreaOfFocusValues(db) {
     {
       id: 1,
       title: "Commercial real estate",
-      description: "Buying and selling residential properties",
+      description:
+        "Dealing with offices, retail spaces, and industrial properties.",
     },
     {
       id: 2,
       title: "Residential real estate",
-      description:
-        "Dealing with commercial real estate like offices, retail spaces, and industrial properties",
+      description: "Buying and selling residential properties.",
     },
     {
       id: 3,
       title: "Investment Property",
-      description:
-        "Helping clients invest in income-generating propertiesd) Selling high-end, luxury homes in exclusive areas",
+      description: "Helping clients invest in income-generating properties.",
     },
     {
       id: 4,
       title: "Land broker",
-      description: "Specializing in the sale of undeveloped land",
+      description: "Specializing in the sale of undeveloped land.",
     },
     {
       id: 5,
       title: "Sale associate",
-      description: "Selling newly built homes for builders and developers",
+      description: "Selling newly built homes for builders and developers.",
     },
     {
       id: 6,
       title: "Relocation consultatn",
       description:
-        "Assisting people with finding homes and moving when they relocate",
+        "Assisting people with finding homes and moving when they relocate.",
     },
     {
       id: 7,
       title: "Real estate management",
-      description:
-        "Managing properties, including leasing and maintenance, for owners",
+      description: "Managing properties, including leasing and maintenance.",
     },
   ];
   const insuranceFocusArea = [
