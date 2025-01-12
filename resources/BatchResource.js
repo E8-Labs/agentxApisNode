@@ -7,6 +7,7 @@ import {
 } from "../controllers/pipelineController.js";
 import LeadResource from "./LeadResource.js";
 import LeadCallResource from "./LeadCallResource.js";
+import LeadLiteResource from "./LeadLiteResource.js";
 // import {
 //   getTotalYapScore,
 //   getTotalReviews,
@@ -113,7 +114,7 @@ async function getUserData(batch, currentUser = null) {
   let res = await LeadCallResource(pastCalls);
   const BatchResource = {
     ...batch.get(),
-    leads: await LeadResource(leads),
+    leads: await LeadLiteResource(leads),
     agents: await AgentLiteResource(agents),
     agentCalls: agentCalls,
     pastCalls: res,
