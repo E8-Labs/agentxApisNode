@@ -1520,10 +1520,10 @@ export const UploadAgentImage = async (req, res) => {
           data: agent,
         });
       } else {
-        return res.send({
-          status: false,
-          message: "No image provided",
-        });
+        // return res.send({
+        //   status: false,
+        //   message: "No image provided",
+        // });
       }
     } else {
       return res.send({
