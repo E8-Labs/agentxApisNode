@@ -103,7 +103,12 @@ UserRouter.post(
 );
 UserRouter.get("/getPaymentMethods", verifyJwtTokenWithTeam, GetPaymentmethods);
 
-UserRouter.post("/updateProfile", verifyJwtTokenWithTeam, UpdateProfile);
+UserRouter.post(
+  "/updateProfile",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  UpdateProfile
+);
 
 UserRouter.get("/notifications", verifyJwtTokenWithTeam, GetNotifications);
 UserRouter.post(
