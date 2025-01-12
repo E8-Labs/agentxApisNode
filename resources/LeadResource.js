@@ -216,6 +216,10 @@ async function getUserData(lead, currentUser = null) {
 import moment from "moment-timezone";
 import { capitalize } from "../utils/StringUtility.js";
 
+const convertTimeFormat = (timeString) => {
+  return moment(timeString, "HH:mm").format("h:mm A");
+};
+
 const fetchFutureBookings = async (lead) => {
   try {
     // Get the current datetime in UTC
@@ -266,6 +270,7 @@ const fetchFutureBookings = async (lead) => {
       if (zonedDate.isAfter(now)) {
         booking.timeZone = timeZone;
         booking.zonedDate = zonedDate.format();
+        booking.time = convertTimeFormat(booking.time);
         futureBookings.push(booking);
       }
     }
