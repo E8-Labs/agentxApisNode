@@ -1070,7 +1070,7 @@ export const BuildAgent = async (req, res) => {
       const agentRole = req.body.agentRole || "";
       const agentObjective = req.body.agentObjective;
       const agentObjectiveId = Number(req.body.agentObjectiveId);
-      const agentType = req.body.agentType; //inbound, outbound, both
+      const agentType = req.body.agentType?.toLowerCase() || "both"; //inbound, outbound, both
       const status = req.body.status;
       const address = req.body.address;
       const agentObjectiveDescription = req.body.agentObjectiveDescription;
@@ -1165,6 +1165,7 @@ export const BuildAgent = async (req, res) => {
             address,
             mainAgentId: mainAgent.id,
             agentObjectiveId: agentObjectiveId,
+            greeting_message: selectedObjective.prompt.greeting,
             // prompt: selectedObjective.prompt,
           };
           let createdOutboundPrompt = await CreatePromptForAgent(
@@ -1199,6 +1200,7 @@ export const BuildAgent = async (req, res) => {
               admin
             );
             data.prompt = inboundPromptText; //uncomment if we want to push the prompt to synthflow
+            data.greeting_message = selectedObjective.prompt.greeting;
           }
           let createdInbound = await CreateAssistantSynthflow(
             data,
@@ -1216,6 +1218,7 @@ export const BuildAgent = async (req, res) => {
             // );
 
             data.prompt = null;
+            data.greeting_message = selectedObjective.prompt.greeting;
           }
           let createdOutbound = await CreateAssistantSynthflow(
             data,
@@ -1251,12 +1254,24 @@ export const BuildAgent = async (req, res) => {
           // if(createdOutbound){
           if (agentType == "inbound") {
             //only push prompt for inbound
+            console.log(
+              "This is in bound agent ",
+              selectedObjective.inboundPrompt.greeting
+            );
             data.prompt = await getInboudPromptText(
               created,
               { ...data, callbackNumber: null, liveTransferNumber: null },
               admin
             );
+            data.greeting_message = selectedObjective.promptInbound.greeting;
+          } else {
+            console.log(
+              "This is out bound agent ",
+              selectedObjective.prompt.greeting
+            );
+            data.greeting_message = selectedObjective.prompt.greeting;
           }
+
           // console.log("Prompt ");
           // console.log(data.prompt);
           // data.prompt = inboundPromptText;
@@ -2283,9 +2298,9 @@ export async function CreateAssistantSynthflow(
   timezone = constants.DefaultTimezone
 ) {
   console.log("Timezone passed ", timezone);
-  console.log("Greeting sending to synthflow", agentData.greeting);
+  console.log("Greeting sending to synthflow", agentData.greeting_message);
   let synthKey = process.env.SynthFlowApiKey;
-  // console.log("Inside 1", agentData.prompt);
+  // console.log("Inside 1", agentData);
   const options = {
     method: "POST",
     url: "https://api.synthflow.ai/v2/assistants",
@@ -2305,9 +2320,9 @@ export async function CreateAssistantSynthflow(
         prompt: agentData.prompt,
         llm: "gpt-4o",
         language: "en-US",
-        greeting_message: agentData.greeting,
+        greeting_message: agentData.greeting_message,
         //   `Hey there you have called ${mainAgent.name}. How can i assist you today?`,
-        voice_id: "wefw5e68456wef",
+        // voice_id: "wefw5e68456wef",
       },
       is_recording: true,
     },
