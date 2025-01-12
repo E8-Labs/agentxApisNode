@@ -46,36 +46,6 @@ async function getUserData(mainAgent, currentUser = null) {
     },
   });
 
-  //   let pipelineCadences = await db.PipelineCadence.findAll({
-  //     where: {
-  //       mainAgentId: mainAgent.id,
-  //     },
-  //   });
-  //   let pipeline = null;
-  //   if (pipelineCadences && pipelineCadences.length > 0) {
-  //     let pc = pipelineCadences[0];
-  //     pipeline = await db.Pipeline.findOne({
-  //       where: {
-  //         id: pc.pipelineId,
-  //       },
-  //     });
-  //   }
-
-  //   let stages = [];
-  //   if (pipelineCadences && pipelineCadences.length > 0) {
-  //     for (let i = 0; i < pipelineCadences.length; i++) {
-  //       let pc = pipelineCadences[i];
-  //       let st = await db.PipelineStages.findOne({
-  //         where: {
-  //           id: pc.stage,
-  //         },
-  //       });
-  //       if (st) {
-  //         stages.push(st);
-  //       }
-  //     }
-  //   }
-
   let prompt = await db.AgentPromptModel.findOne({
     where: {
       mainAgentId: mainAgent.id,
@@ -88,35 +58,6 @@ async function getUserData(mainAgent, currentUser = null) {
       type: "inbound",
     },
   });
-
-  //   let leadsAssigned = await db.LeadCadence.findAll({
-  //     where: {
-  //       mainAgentId: mainAgent.id,
-  //       status: {
-  //         [db.Sequelize.Op.in]: [CadenceStatus.Pending, CadenceStatus.Started],
-  //       },
-  //     },
-  //   });
-
-  //   let guardrails = await db.ObjectionAndGuradrails.findAll({
-  //     where: {
-  //       mainAgentId: mainAgent.id,
-  //       type: "guardrail",
-  //     },
-  //   });
-  //   let objections = await db.ObjectionAndGuradrails.findAll({
-  //     where: {
-  //       mainAgentId: mainAgent.id,
-  //       type: "objection",
-  //     },
-  //   });
-
-  //   let alreadyUsedGlobalNumber = await db.AgentModel.findAll({
-  //     where: {
-  //       phoneNumber: process.env.GlobalPhoneNumber,
-  //       userId: mainAgent.userId,
-  //     },
-  //   });
 
   let agentRes = [];
   for (const ag of agents) {
@@ -154,9 +95,19 @@ async function getUserData(mainAgent, currentUser = null) {
     }
     agent.durationText = durationText;
     if (agent.agentType == "outbound") {
-      agent.prompt = prompt;
+      agent.prompt = {
+        id: prompt.id,
+        objective: prompt.objective,
+        callScript: prompt.callScript,
+        greeting: prompt.greeting,
+      };
     } else {
-      agent.prompt = promptInbound;
+      agent.prompt = {
+        id: promptInbound.id,
+        objective: promptInbound.objective,
+        callScript: promptInbound.callScript,
+        greeting: promptInbound.greeting,
+      };
     }
     agentRes.push(agent);
   }
@@ -170,21 +121,6 @@ async function getUserData(mainAgent, currentUser = null) {
   const AgentLiteResource = {
     ...mainAgent.get(),
     agents: agentRes,
-    // stages: stages,
-    // pipeline: pipeline,
-    // greeting: prompt?.greeting || "",
-    // callScript: prompt?.callScript || "",
-    // leadsAssigned: leadsAssigned?.length || 0,
-    // inboundScript: promptInbound?.callScript || "",
-    // inboundGreeting: promptInbound?.greeting || "",
-    // guardrails,
-    // objections,
-    // kyc: qs,
-    // alreadyAssignedGlobal:
-    //   alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
-    // calls: calls,
-    // callsGreaterThan10Sec: callsGt10,
-    // durationInMin: durationText,
   };
 
   return AgentLiteResource;
