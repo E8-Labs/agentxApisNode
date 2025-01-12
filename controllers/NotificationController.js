@@ -658,8 +658,8 @@ async function SendAutoDailyNotificationsFor7Days() {
 
 export async function SendTestEmail(req, res) {
   let type = req.body.type;
-  let email = GetInviteAcceptedEmailReplacedVariables(
-    "Salman",
+  let email = GenerateTrialTickingEmail(
+    "Salman Khan",
     "AgentX12"
     // "Hello",
     // "H",
