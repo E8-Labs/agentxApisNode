@@ -1166,7 +1166,7 @@ export const BuildAgent = async (req, res) => {
             address,
             mainAgentId: mainAgent.id,
             agentObjectiveId: agentObjectiveId,
-            greeting_message: selectedObjective.prompt.greeting,
+            greeting_message: selectedObjective.promptInbound.greeting,
             // prompt: selectedObjective.prompt,
           };
           let createdOutboundPrompt = await CreatePromptForAgent(
@@ -1201,7 +1201,7 @@ export const BuildAgent = async (req, res) => {
               admin
             );
             data.prompt = inboundPromptText; //uncomment if we want to push the prompt to synthflow
-            data.greeting_message = selectedObjective.prompt.greeting;
+            data.greeting_message = selectedObjective.promptInbound.greeting;
           }
           let createdInbound = await CreateAssistantSynthflow(
             data,
@@ -1257,7 +1257,7 @@ export const BuildAgent = async (req, res) => {
             //only push prompt for inbound
             console.log(
               "This is in bound agent ",
-              selectedObjective.inboundPrompt.greeting
+              selectedObjective.promptInbound.greeting
             );
             data.prompt = await getInboudPromptText(
               created,
