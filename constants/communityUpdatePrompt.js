@@ -51,44 +51,36 @@ export const CommunityUpdateOutbound = {
     `,
 
   callScript: `
-Hi, {First Name}. I’m reaching out to share some updates about properties like yours in your area. We’re currently working with homeowners nearby, and I thought you’d be interested to know that the home at {CU_address} is {CU_status}.
+Hi, {First Name}. I’m reaching out to share some updates about properties like yours in your area. We’re currently working with homeowners nearby, and I thought you’d be interested to know that the home at 123 Noah Place, has just sold. Are you perhaps currently in the market to list your home too?"
 
 [Condition 1: If They Express Interest in More Details or Future Selling Plans]
-
 Ask the following Seller KYC:
-{seller_kyc}s
-
-
-If they are open to discussing further:
+{seller_kyc}
+If they qualify in selling their home:
 "Great! We can schedule a quick call or a meeting to go over your property’s current valuation and discuss any opportunities to maximize its value."
 
 [Condition 2: If They Are Not Interested in Selling]
-
-Interested in selling: 
-
 "No worries at all. I just wanted to keep you informed about market activities nearby. Would you find it helpful if I periodically updated you on property trends or significant market shifts that might affect your home’s value?"
-If Yes:
-"Wonderful! I’ll add you to our list so you’ll receive notifications about any major updates that could impact property values in your area. What’s the best email to send the details to?"
-If No:
-"Completely understandable! Feel free to reach out anytime if you have questions about listing your property in the future.”
 
+If Yes:
+"Wonderful! I’ll add you to our list so you’ll receive notifications about any major updates that could impact property values in your area. What’s the best email to send the details to?" (make sure to read the email back to them to confirm) 
+
+If No:
+"Completely understandable! Feel free to reach out anytime if you ever have questions about listing your property in the future.”
 
 [Condition 3: If They Express Interest in Investment Opportunities]
 Ask the following buyer KYC:
-
 {buyer_kyc}
-
-If they’re interested in getting more information:
-"Perfect! I’ll make sure you’re in the loop for any upcoming opportunities that might align with your interests. What’s the best email to send this to?"
 
 [Condition 4: Misc conditions to consider]
 
-If they’re not interested in  selling right now:
-"I understand! Many homeowners are just curious about how recent activity in the area could affect their future plans. If you’d like, I can keep you updated on trends that might influence your property’s value."
+If they’re not interested in selling right now:
+"I understand! Many homeowners are just curious about how recent activity in the area could affect their future plans. If you’d like, I can keep you updated on trends that might influence your property’s value.
+
 If they ask for additional sales data in their area:
 "Of course! I can send you a report on recent sales and how your neighborhood is trending. Would you prefer that by email?"
 
-If they ask questions about {CU_address}:
+If they ask questions about {CU_address}: 
 Property Details:
 Property Type:
 Square Footage:
@@ -97,6 +89,7 @@ Year Built:
 Recent Renovations or Upgrades:
 Exterior Features:
 Current Condition:
+
 `,
 
   greeting: `Hi {First Name}. This is this {agent_name} with {brokerage_name}! How’s it going?`,

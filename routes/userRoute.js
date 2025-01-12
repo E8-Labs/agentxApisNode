@@ -34,6 +34,7 @@ import {
   GetPaymentmethods,
   SetDefaultPaymentmethod,
   CancelPlan,
+  AddCancelPlanReason,
   RedeemAbortCancellationReward,
 } from "../controllers/PaymentController.js";
 
@@ -88,6 +89,12 @@ UserRouter.post(
   "/subscribePlan",
   verifyJwtTokenWithTeam,
   SubscribePayasyougoPlan
+);
+UserRouter.post(
+  "/addCancelPlanReason",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  AddCancelPlanReason
 );
 UserRouter.post(
   "/setDefaultPaymentMethod",

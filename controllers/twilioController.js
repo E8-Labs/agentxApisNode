@@ -122,6 +122,7 @@ export const ReleasePhoneNumber = async (req, res) => {
             {
               where: {
                 userId: agent.userId,
+                phoneNumber: phoneNumber,
               },
             }
           );
@@ -485,6 +486,7 @@ export const AssignPhoneNumber = async (req, res) => {
               {
                 where: {
                   userId: agent.userId,
+                  phoneNumber: phoneNumber,
                 },
               }
             );
