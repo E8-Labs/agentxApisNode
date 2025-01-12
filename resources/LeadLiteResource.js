@@ -37,7 +37,7 @@ const fetchFutureBookings = async (lead) => {
 
     const futureBookings = [];
 
-    for (const booking of bookings) {
+    for (let booking of bookings) {
       const { agentId, datetime } = booking;
 
       // Fetch the calendar for the agent
