@@ -235,9 +235,6 @@ export const RegisterUser = async (req, res) => {
     });
   }
 
-  let agentService = req.body.agentService;
-  let areaOfFocus = req.body.areaOfFocus;
-
   let profile_image = null;
   let thumbnail_image = null;
 
@@ -288,6 +285,8 @@ export const RegisterUser = async (req, res) => {
   console.log("Stripe Custome Id Generated in Register");
 
   try {
+    let agentService = req.body.agentService;
+    let areaOfFocus = req.body.areaOfFocus;
     if (agentService && agentService.length > 0) {
       agentService = JSON.parse(agentService);
       for (let i = 0; i < agentService.length; i++) {
@@ -378,7 +377,7 @@ export const UpdateProfile = async (req, res) => {
       let userId = authData.user.id;
 
       console.log("Update User ", authData.user.email);
-      console.log("Update data ", req);
+      // console.log("Update data ", req);
       let user = await db.User.findByPk(userId);
 
       let name = req.body.name || user.name;
@@ -397,6 +396,7 @@ export const UpdateProfile = async (req, res) => {
       let thumbnail = null; //user.profile_image;
       //check profile image
       if (req.files && req.files.media) {
+        console.log("Image file uploaded");
         let file = req.files.media[0];
 
         const mediaBuffer = file.buffer;
@@ -422,6 +422,8 @@ export const UpdateProfile = async (req, res) => {
 
         user.full_profile_image = image;
         user.thumb_profile_image = thumbnail;
+      } else {
+        console.log("No Image file uploaded");
       }
       if (req.body.timeZone) {
         user.timeZone = req.body.timeZone;
@@ -429,6 +431,75 @@ export const UpdateProfile = async (req, res) => {
       if (req.body.fcm_token) {
         user.fcm_token = req.body.fcm_token;
       }
+
+      try {
+        let agentService = req.body.agentService;
+        let areaOfFocus = req.body.areaOfFocus;
+        if (agentService && agentService.length > 0) {
+          await db.AgentService.destroy({
+            where: {
+              userId: user.id,
+            },
+          });
+          agentService = JSON.parse(agentService);
+          for (let i = 0; i < agentService.length; i++) {
+            let service = agentService[i];
+            console.log("Adding Service", service);
+            let dbService = await db.AgentService.findOne({
+              where: {
+                id: service,
+              },
+            });
+            if (!dbService) {
+              dbService = await db.AgentService.create({
+                userId: user.id,
+                title: "Other",
+                description: service,
+              });
+            }
+
+            if (dbService) {
+              let created = await db.UserServicesModel.create({
+                userId: user.id,
+                agentService: dbService.id,
+              });
+            }
+          }
+        }
+        if (areaOfFocus && areaOfFocus.length > 0) {
+          areaOfFocus = JSON.parse(areaOfFocus);
+          await db.AreaOfFocus.destroy({
+            where: {
+              userId: user.id,
+            },
+          });
+          for (let i = 0; i < areaOfFocus.length; i++) {
+            let service = areaOfFocus[i];
+            console.log("Adding Focus", service);
+            let dbFocus = await db.AreaOfFocus.findOne({
+              where: {
+                id: service,
+              },
+            });
+            if (!dbFocus) {
+              dbFocus = await db.AreaOfFocus.create({
+                userId: user.id,
+                title: "Other",
+                description: service,
+              });
+            }
+            if (dbFocus) {
+              let created = await db.UserFocusModel.create({
+                userId: user.id,
+                areaOfFocus: dbFocus.id,
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.log("Error adding services and focus", error);
+      }
+
       let userUpdated = await user.save();
       if (userUpdated) {
         res.send({
