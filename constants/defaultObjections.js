@@ -50,11 +50,11 @@ export const AbsenteeOwnerObjections = [
     description:
       "That’s totally fine! Many of the absentee owners we work with are not necessarily looking to sell right now but appreciate staying updated on property values and local trends. Would you be open to receiving occasional insights on the market, just to help with your investment strategy down the line?",
   },
-  {
-    title: "Are you an AI?",
-    description:
-      "Yes, I am! I’m here to notify homeowners like yourself with accurate and timely real estate updates happening in your neighborhood. How am I doing so far?",
-  },
+  // {
+  //   title: "Are you an AI?",
+  //   description:
+  //     "Yes, I am! I’m here to notify homeowners like yourself with accurate and timely real estate updates happening in your neighborhood. How am I doing so far?",
+  // },
 ];
 export const AbsenteeOwnerGuardrails = [
   {
@@ -145,11 +145,11 @@ export const ReactivationObjections = [
     description:
       "Totally understandable! Many property owners feel the same way but appreciate knowing how the local market is evolving, just to keep their options open. Would you be open to receiving periodic updates on property values and market shifts that could help with your future decision-making?",
   },
-  {
-    title: "##Objection 4: Are you an AI?",
-    description:
-      "Yes, I am! I’m here to notify homeowners like yourself with accurate and timely real estate updates happening in your neighborhood. How am I doing so far?",
-  },
+  // {
+  //   title: "##Objection 4: Are you an AI?",
+  //   description:
+  //     "Yes, I am! I’m here to notify homeowners like yourself with accurate and timely real estate updates happening in your neighborhood. How am I doing so far?",
+  // },
 ];
 
 export const ReactivationGuardrails = [

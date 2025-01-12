@@ -451,6 +451,48 @@ export const CancelPlan = async (req, res) => {
   });
 };
 
+export const AddCancelPlanReason = async (req, res) => {
+  // console.log("ACCOUNT SSID ", process.env.TWILIO_ACCOUNT_SID);
+  const { reason } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      try {
+        let userId = authData.user.id;
+        let user = await db.User.findByPk(userId);
+        let plan = await db.PlanHistory.findOne({
+          where: {
+            userId: user.id,
+          },
+          order: [["createdAt", "DESC"]],
+        });
+
+        plan.cancelReason = reason;
+        await plan.save();
+
+        let useRes = await UserProfileFullResource(user);
+        res.send({
+          status: true,
+          message: "Plan cancelled",
+          data: useRes,
+        });
+      } catch (error) {
+        console.log(error);
+        res.send({
+          status: false,
+          message: "Error adding reason",
+          error: error.message,
+        });
+      }
+    } else {
+      res.send({
+        status: false,
+        message: "Unauthenticated User",
+        data: null,
+      });
+    }
+  });
+};
+
 export const RedeemAbortCancellationReward = async (req, res) => {
   // console.log("ACCOUNT SSID ", process.env.TWILIO_ACCOUNT_SID);
   // const { phone } = req.body;
