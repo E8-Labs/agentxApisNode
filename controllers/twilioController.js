@@ -116,7 +116,15 @@ export const ReleasePhoneNumber = async (req, res) => {
         let newAgent = await db.AgentModel.findByPk(newAgentId);
         if (agent) {
           agent.phoneNumber = "";
-          let saved = await agent.save();
+          // let saved = await agent.save();
+          await db.AgentModel.update(
+            { phoneNumber: "" },
+            {
+              where: {
+                userId: agent.userId,
+              },
+            }
+          );
           //release phone from that inbound model
           let updated = await UpdateAssistantSynthflow(agent, {
             phone_number: null,
@@ -469,6 +477,17 @@ export const AssignPhoneNumber = async (req, res) => {
               message: "No such agent",
               data: null,
             });
+          }
+          if (agent.agentType == "inbound") {
+            //release all numbers to othe inbound agents
+            await db.AgentModel.update(
+              { phoneNumber: "" },
+              {
+                where: {
+                  userId: agent.userId,
+                },
+              }
+            );
           }
           let updated = await UpdateAssistantSynthflow(agent, {
             phone_number: phoneNumber,

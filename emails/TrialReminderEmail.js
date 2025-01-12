@@ -82,10 +82,14 @@ const HtmlTemplateTrialReminder = `
 
 export function generateTrialReminderEmail(First_Name, CTA_Link, CTA_Text) {
   let emailTemplate = HtmlTemplateTrialReminder;
-
+  let parts = First_Name.split(" ");
+  let firstName = First_Name;
+  if (parts.length > 0) {
+    firstName = parts[0];
+  }
   // Replace placeholders with actual values
   const variables = {
-    First_Name,
+    First_Name: firstName,
     CTA_Link,
     CTA_Text,
   };

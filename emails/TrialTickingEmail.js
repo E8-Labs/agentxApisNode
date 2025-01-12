@@ -101,7 +101,7 @@ export function GenerateTrialTickingEmail(First_Name, CTA_Link, CTA_Text) {
     firstName = parts[0];
   }
   const variables = {
-    firstName,
+    First_Name: firstName,
     CTA_Link,
     CTA_Text,
   };

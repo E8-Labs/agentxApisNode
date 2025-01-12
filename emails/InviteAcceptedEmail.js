@@ -94,7 +94,14 @@ const HtmlTemplateAgentXCodeUsage = `
 
 export function GetInviteAcceptedEmailReplacedVariables(Name, Teamname) {
   let t = HtmlTemplateAgentXCodeUsage;
+
+  let parts = Name.split(" ");
+  let firstName = Name;
+  if (parts.length > 0) {
+    firstName = parts[0];
+  }
+
   t = t.replace(/{Teamname}/g, Teamname);
-  t = t.replace(/{Name}/g, Name);
+  t = t.replace(/{Name}/g, firstName);
   return { html: t, subject: ` ${Teamname} joined AgentX` };
 }

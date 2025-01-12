@@ -53,6 +53,17 @@ async function getUserData(call, currentUser = null) {
     callData.PipelineStages = PipelineStages;
   }
 
+  if (callData?.LeadModel?.id) {
+    let tags = await db.LeadTagsModel.findAll({
+      where: {
+        leadId: callData?.LeadModel?.id,
+      },
+    });
+    if (tags && tags.length > 0) {
+      callData.tags = tags.map((tag) => tag.tag);
+    }
+  }
+
   const LeadCallResource = callData;
 
   return LeadCallResource;

@@ -93,10 +93,14 @@ const HtmlTemplatePaymentMethodFailed = `
 
 export function GeneratePaymentMethodFailedEmail(Name, CTA_Link, CTA_Text) {
   let emailTemplate = HtmlTemplatePaymentMethodFailed;
-
+  let parts = Name.split(" ");
+  let firstName = Name;
+  if (parts.length > 0) {
+    firstName = parts[0];
+  }
   // Replace placeholders with actual values
   const variables = {
-    Name,
+    Name: firstName,
     CTA_Link,
     CTA_Text,
   };

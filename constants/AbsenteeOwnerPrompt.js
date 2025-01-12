@@ -55,7 +55,7 @@ Tone:
       `,
 
   callScript: `
-I’m reaching out because we’ve noticed your property at {CU_address} and were curious if you’ve considered selling it or exploring new investment opportunities."
+I’m reaching out because we’ve noticed your property at {address} and were curious if you’ve considered selling it or exploring new investment opportunities."
  
 (Wait for a response and adjust based on interest.)
 [Condition 1: If They Express Interest in More Details or Future Selling Plans]
@@ -365,7 +365,7 @@ Tone:
 If Caller Mentions, “You called me earlier, and I’m returning your call”:
 Response: "Thank you for returning the call! This is {agent_name} with {brokerage_name}. We’ve been reaching out to property owners like yourself to share some recent updates about the real estate market in your area. I’d love to share those with you—do you have a quick moment to chat?"
 Transition into Conversation:
-"We’ve noticed some interesting trends in your area, particularly with properties like yours at {CU_address}. Have you considered selling it or exploring new investment opportunities?"
+"We’ve noticed some interesting trends in your area, particularly with properties like yours at {address}. Have you considered selling it or exploring new investment opportunities?"
 Conditions Based on Caller Responses:
 [If They Express Interest in Selling]
 Ask Seller KYC Questions:

@@ -97,9 +97,15 @@ export function GenerateHotLeadEmail(
 ) {
   let emailTemplate = HtmlTemplateHotLeadAlert;
 
+  let parts = Name.split(" ");
+  let firstName = Name;
+  if (parts.length > 0) {
+    firstName = parts[0];
+  }
+
   // Replace placeholders with actual values
   const variables = {
-    Name,
+    Name: firstName,
     Leadname,
     Leademail,
     Leadphone,

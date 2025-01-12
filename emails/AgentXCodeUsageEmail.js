@@ -89,8 +89,14 @@ const HtmlTemplateAgentXCodeUsage = `
 `;
 
 export function GetAgentXCodeUsageEmailReplacedVariables(Name, Code) {
+  // Replace placeholders with actual values
+  let parts = Name.split(" ");
+  let firstName = Name;
+  if (parts.length > 0) {
+    firstName = parts[0];
+  }
   let t = HtmlTemplateAgentXCodeUsage;
   t = t.replace(/{Agent_Code}/g, Code);
-  t = t.replace(/{Name}/g, Name);
+  t = t.replace(/{Name}/g, firstName);
   return { html: t, subject: "🎉 You’ve Just Earned 30 More Minutes!" };
 }
