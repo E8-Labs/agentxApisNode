@@ -59,7 +59,9 @@ async function getUserData(call, currentUser = null) {
         leadId: callData?.LeadModel?.id,
       },
     });
-    callData.tags = tags;
+    if (tags && tags.length > 0) {
+      callData.tags = tags.map((tag) => tag.tag);
+    }
   }
 
   const LeadCallResource = callData;
