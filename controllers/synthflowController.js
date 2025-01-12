@@ -1166,7 +1166,7 @@ export const BuildAgent = async (req, res) => {
             address,
             mainAgentId: mainAgent.id,
             agentObjectiveId: agentObjectiveId,
-            greeting_message: selectedObjective.promptInbound.greeting,
+            // greeting_message: selectedObjective.promptInbound.greeting,
             // prompt: selectedObjective.prompt,
           };
           let createdOutboundPrompt = await CreatePromptForAgent(
@@ -1201,7 +1201,7 @@ export const BuildAgent = async (req, res) => {
               admin
             );
             data.prompt = inboundPromptText; //uncomment if we want to push the prompt to synthflow
-            data.greeting_message = selectedObjective.promptInbound.greeting;
+            data.greeting_message = createdInboundPrompt.greeting; //selectedObjective.promptInbound.greeting;
           }
           let createdInbound = await CreateAssistantSynthflow(
             data,
@@ -1219,7 +1219,7 @@ export const BuildAgent = async (req, res) => {
             // );
 
             data.prompt = null;
-            data.greeting_message = selectedObjective.prompt.greeting;
+            data.greeting_message = createdOutboundPrompt.greeting; //selectedObjective.prompt.greeting;
           }
           let createdOutbound = await CreateAssistantSynthflow(
             data,
@@ -1264,12 +1264,9 @@ export const BuildAgent = async (req, res) => {
               { ...data, callbackNumber: null, liveTransferNumber: null },
               admin
             );
-            data.greeting_message = selectedObjective.promptInbound.greeting;
+            data.greeting_message = created.greeting; //selectedObjective.promptInbound.greeting;
           } else {
-            console.log(
-              "This is out bound agent ",
-              selectedObjective.prompt.greeting
-            );
+            console.log("This is out bound agent ", created.greeting);
             data.greeting_message = selectedObjective.prompt.greeting;
           }
 
