@@ -148,7 +148,7 @@ export const LoginUser = async (req, res) => {
   }
 };
 
-function generateAlphaNumericInviteCode(length = 6) {
+export function generateAlphaNumericInviteCode(length = 6) {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   let inviteCode = "";
