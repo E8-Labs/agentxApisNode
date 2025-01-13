@@ -805,7 +805,7 @@ export const GetProfileMine = async (req, res) => {
       });
       console.log("User ", authData.user);
       if (!user) {
-        res.send({
+        return res.send({
           status: false,
           message: "No such user",
           data: null,
