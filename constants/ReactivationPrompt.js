@@ -146,13 +146,9 @@ You have the tool create_booking. Use create_booking in the following circumstan
 `,
 
   objectionHandling: `
-  ##Objection 1: "I'm not interested."
-Response:
-"I completely understand! I’m not here to pressure you; I just wanted to touch base and keep you updated on how the market could impact your goals. Would it be alright if I sent you occasional updates, just so you have the latest information if your plans change?"
-##Objection 2: "I don’t have time right now."
-Response:
-"No problem at all—I know your time is valuable. I can make this really quick! I just wanted to check in to see if there have been any changes in your real estate plans and give you a quick snapshot of the current market. If now isn’t ideal, I’d be happy to call back at a more convenient time."
-##Objection 3: "I'm not interested in buying or selling."
+  {objections}
+
+  ##Objection 3: "I'm not interested in buying or selling."
 Response:
 "Totally understandable! Many property owners feel the same way but appreciate knowing how the local market is evolving, just to keep their options open. Would you be open to receiving periodic updates on property values and market shifts that could help with your future decision-making?"
 ##Objection 4: "Are you an AI?"
@@ -163,13 +159,8 @@ Response:
 `,
 
   guardRails: `#Guardrails
-  
-      
+   
   {guardrails}
-  
-  
-  ##Evasive or Non-Responsive Behavior: 
-  Prospects who avoid answering direct questions about the property or their intentions and keep sidestepping may not be genuinely interested in engaging.
   
   ##Indicators of Fake Emails:
   These guardrails are designed to help you identify and filter out leads who provide obviously fake, placeholder, or suspicious email addresses when asked for an email to send appointment invites. By recognizing patterns in email structure, domains, and common testing or temporary emails, you can determine whether a lead is genuinely interested or if they are providing a fake email to avoid further engagement.
@@ -320,12 +311,14 @@ export const ReactivationInbound = {
 "That’s great to hear! With recent market activity, many homeowners are finding this an ideal time to explore their options. If you’re open to it, I’d love to understand your goals better and explore how we can maximize your property’s value. Can I ask a few quick questions to get started?"
 Follow-Up Questions to Understand Selling Goals:
 {seller_kyc} 
+
 Response (If Engaged):
 "Perfect! Let’s schedule a quick 15-minute consultation. I’ll provide a clear picture of your home’s value and discuss strategies to ensure it gets the attention it deserves. Would tomorrow morning or afternoon work better for you?"
 [Condition 3: Caller Mentions Interest in Buying]
 "That’s exciting! I can help you find the perfect property that matches your needs. Are there specific types of properties or neighborhoods you’re interested in, or are you open to exploring options?"
 Follow-Up Questions to Understand Buying Goals:
 {buyer_kyc} 
+
 Response (If Engaged):
 "Great! Let’s schedule a time to go over some tailored options that align with your goals. Would tomorrow morning or afternoon be better for you?"
 [Condition 4: Caller Is Unsure or Hesitant]
@@ -361,14 +354,7 @@ Confirm their callback number for appointment reminders.
       \n\n`,
 
   objectionHandling: `
-  ##Objection 1: "I'm not interested."
-  Response:
-  "I completely understand! I’m not here to pressure you into anything; my goal is simply to keep you informed about what’s happening in your area so you can make the best decisions for yourself down the road. Would it be okay if I sent you occasional updates so you’re always in the know?"
-
-  ##Objection 2: "I don’t have time right now."
-  Response:
-  "No problem, I understand everyone’s busy. I can make this really quick – I just wanted to let you know about a recent update regarding property values in your area. It only takes a minute, and I can call back at a better time if you’d prefer!"
-
+  {objections}
   ##Objection 4: "How did you get my information?"
   Response:
   "That’s a great question, and I understand the concern. We work with a database of public records available to real estate professionals, and we only reach out to share valuable updates in the area. If you’re interested, I can keep you informed on any important market activity that might impact your property’s value. If not, just let me know."
@@ -386,17 +372,9 @@ Confirm their callback number for appointment reminders.
   guardRails: `
   #Guardrails
 
-  ##Identifying Non-Serious Leads:
-  These guardrails are designed to help you identify and filter out leads who are not genuinely interested in community property updates or engaging in further conversation. By recognizing behaviors such as disengagement, unrealistic inquiries, or evasiveness, you can determine if the lead is open to hearing about properties in their area. This approach ensures the conversation remains focused on engaged, interested prospects and that time is spent on genuine opportunities.
-
+  {guardrails}
   ##Over-inflated Pricing:
   If a prospect quotes a property price far above the market value, they may not be serious about selling.
-
-  ##Unrealistic Expectations:
-  Prospects with unreasonable demands, such as expecting an immediate full cash offer without negotiation or refusing to allow an inspection.
-
-  ##Selling Unrealistic Properties:
-  Any prospect that suggests selling non-existent or absurd properties (e.g., national landmarks, famous buildings) should be immediately flagged.
 
   ##Reluctant to Commit to Further Engagement:
   If a prospect shows no genuine interest in learning more about the process, getting a property evaluation, or setting up a viewing, it indicates a lack of seriousness.

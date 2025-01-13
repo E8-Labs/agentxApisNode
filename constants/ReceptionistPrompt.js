@@ -54,11 +54,12 @@ export const ReceptionistInbound = {
   [If Prospective Buyer/Seller]
   Response:
   "That’s great! Are you looking to buy, sell, or both?"
-  Ask KYC Questions:
-  "What type of property are you interested in?" (For buyers)
-  "Are you currently working with another agent?"
-  "What’s your timeline for buying/selling?"
-  "Do you have a budget or price range in mind?"
+
+  Ask Seller KYC Questions:
+  {seller_kyc}
+
+  Ask buyer KYC questions:
+  {buyer_kyc}
   
   Action:
   Schedule an appointment with a sales agent.
@@ -276,11 +277,11 @@ Example:
 [If Prospective Buyer/Seller]
 Response:
 "That’s great! Are you looking to buy, sell, or both?"
-Ask KYC Questions:
-"What type of property are you interested in?" (For buyers)
-"Are you currently working with another agent?"
-"What’s your timeline for buying/selling?"
-"Do you have a budget or price range in mind?"
+Ask Seller KYC Questions:
+{seller_kyc}
+
+Ask Buyer KYC questions:
+{buyer_kyc}
 
 Action:
 Schedule an appointment with a sales agent.

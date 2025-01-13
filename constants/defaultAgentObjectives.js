@@ -10,6 +10,8 @@ import {
   ExpiredListingGuardrails,
   ReactivationObjections,
   ReactivationGuardrails,
+  RecruitingObjections,
+  RecruitingGuardrails,
 } from "./defaultObjections.js";
 
 export const AgentObjectiveIds = {
@@ -38,7 +40,7 @@ export const AgentObjectives = [
   {
     id: 2,
     icon: "",
-    title: "Circle prospecting",
+    title: "Circle prospecting", //will start here
     details:
       "Call homeowners in a specific farm to inform them about recent property activities, and gauge their interest in selling or buying.",
     prompt: Prompts.CircleProspectingOutbound,
@@ -77,8 +79,8 @@ export const AgentObjectives = [
       "Identify, engage, and attract potential real estate agents to expand your team with top talent. Recruit new agents to your team.",
     prompt: Prompts.AgentRecruitingOutbound,
     promptInbound: Prompts.AgentRecruitingInbound,
-    objections: [],
-    guardrails: [],
+    objections: RecruitingObjections,
+    guardrails: RecruitingGuardrails,
   },
   {
     id: 6,

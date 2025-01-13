@@ -158,13 +158,9 @@ You have the tool create_booking. Use create_booking in the following circumstan
 `,
 
   objectionHandling: `#Objection Handling
-  ##Objection 1: "I'm not interested."
-Response:
-"I completely understand! My goal here isn’t to pressure you but simply to share updates on market trends affecting properties like yours. Many absentee owners appreciate staying informed to keep their options open. Would it be okay if I sent you occasional updates so you’re always in the loop about changes that could impact your property’s value?"
 
-##Objection 2: "I don’t have time right now."
-Response:
-"No worries at all – I know time is valuable! I’ll be quick; I just wanted to let you know about a recent change in the local market that could impact your investment. It’ll only take a minute, and I’d be happy to call back at a more convenient time if that’s better for you."
+  {objections}
+
 
 ##Objection 3: "I'm not looking to sell my property."
 Response:
@@ -440,14 +436,9 @@ You have the tool create_booking. Use create_booking in the following circumstan
 `,
 
   objectionHandling: `#Objection Handling
-    ##Objection 1: "I'm not interested."
-  Response:
-  "I completely understand! My goal here isn’t to pressure you but simply to share updates on market trends affecting properties like yours. Many absentee owners appreciate staying informed to keep their options open. Would it be okay if I sent you occasional updates so you’re always in the loop about changes that could impact your property’s value?"
-  
-  ##Objection 2: "I don’t have time right now."
-  Response:
-  "No worries at all – I know time is valuable! I’ll be quick; I just wanted to let you know about a recent change in the local market that could impact your investment. It’ll only take a minute, and I’d be happy to call back at a more convenient time if that’s better for you."
-  
+
+  {objections}
+
   ##Objection 3: "I'm not looking to sell my property."
   Response:
   "That’s totally fine! Many of the absentee owners we work with are not necessarily looking to sell right now but appreciate staying updated on property values and local trends. Would you be open to receiving occasional insights on the market, just to help with your investment strategy down the line?"
@@ -460,7 +451,7 @@ You have the tool create_booking. Use create_booking in the following circumstan
   guardRails: `#Guardrails
     
         
-    {guardrails}
+  {guardrails}
     
     
   ##Indicators of Fake Emails:

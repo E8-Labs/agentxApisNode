@@ -55,10 +55,7 @@ export const CommunityUpdateOutbound = {
 
 [Condition 1: If They Express Interest in More Details or Future Selling Plans]
 Ask the following Seller KYC:
-{What's your primary motivation for selling now rather than waiting?}
-(pause and wait for response)
-{How important is the selling price to you versus the speed of the sale?}
-(pause and wait for response)
+{seller_kyc}
 
 If they qualify in selling their home:
 "Great! We can schedule a quick call or a meeting to go over your property’s current valuation and discuss any opportunities to maximize its value."
@@ -149,13 +146,7 @@ You have the tool create_booking. Use create_booking in the following circumstan
 
   objectionHandling: `
 #Objection Handling
-##Objection 1: "I'm not interested."
-Response:
-"I completely understand! I’m not here to pressure you into anything; my goal is simply to keep you informed about what’s happening in your area so you can make the best decisions for yourself down the road. Would it be okay if I sent you occasional updates so you’re always in the know?"
-
-##Objection 2: "I don’t have time right now."
-Response:
-"No problem, I understand everyone’s busy. I can make this really quick – I just wanted to let you know about a recent update regarding property values in your area. It only takes a minute, and I can call back at a better time if you’d prefer!"
+{objections}
 
 ##Objection 3: "I'm not looking to sell my property."
 Response:
@@ -164,10 +155,6 @@ Response:
 ##Objection 4: "How did you get my information?"
 Response:
 "That’s a great question, and I understand the concern. We work with a database of public records available to real estate professionals, and we only reach out to share valuable updates in the area. If you’re interested, I can keep you informed on any important market activity that might impact your property’s value. If not, just let me know."
-
-##Objection 5: "I already work with an agent."
-Response:
-"That’s fantastic! It sounds like you’re well taken care of. I’m happy to just keep you updated on the local market trends and property values so that you and your agent can make well-informed decisions whenever the time is right."
 
 ##Objection 6: "I’m worried this is just a sales call."
 Response:
@@ -342,16 +329,12 @@ Response:
 updates about the local real estate market. I’d love to share those with you—do you have a quick moment to chat?”
 
 Transition into the conversation:
-“We’ve been working with homeowners nearby, and we thought you’d find it interesting that a property at Helsinki, Finland is In escrow.”
 
 We’re currently working with homeowners nearby, and I thought you’d be interested to know that the home at {CU_Address}, has{CU_Status}. Are you perhaps currently in the market to list your home too?"
 
 [Condition 1: If They Express Interest in More Details or Future Selling Plans]
 Ask the following Seller KYC:
-{What's your primary motivation for selling now rather than waiting?}
-(pause and wait for response)
-{How important is the selling price to you versus the speed of the sale?}
-(pause and wait for response)
+{seller_kyc}
 
 If they qualify in selling their home:
 "Great! We can schedule a quick call or a meeting to go over your property’s current valuation and discuss any opportunities to maximize its value."
@@ -440,21 +423,12 @@ You have the tool create_booking. Use create_booking in the following circumstan
     \n\n`,
 
   objectionHandling: `
-##Objection 1: "I'm not interested."
-Response:
-"I completely understand! I’m not here to pressure you into anything; my goal is simply to keep you informed about what’s happening in your area so you can make the best decisions for yourself down the road. Would it be okay if I sent you occasional updates so you’re always in the know?"
-
-##Objection 2: "I don’t have time right now."
-Response:
-"No problem, I understand everyone’s busy. I can make this really quick – I just wanted to let you know about a recent update regarding property values in your area. It only takes a minute, and I can call back at a better time if you’d prefer!"
-
+{objections}
 ##Objection 4: "How did you get my information?"
 Response:
 "That’s a great question, and I understand the concern. We work with a database of public records available to real estate professionals, and we only reach out to share valuable updates in the area. If you’re interested, I can keep you informed on any important market activity that might impact your property’s value. If not, just let me know."
 
-##Objection 5: "I already work with an agent."
-Response:
-"That’s fantastic! It sounds like you’re well taken care of. I’m happy to just keep you updated on the local market trends and property values so that you and your agent can make well-informed decisions whenever the time is right."
+
 ##Objection 7: "I'm not interested in buying or selling."
 Response:
 "Totally understandable. A lot of homeowners aren’t looking to make any immediate moves but appreciate knowing how the local market might impact their property’s value. Would you be open to occasional updates on significant changes in the area?"
@@ -464,18 +438,10 @@ Response:
    `,
   guardRails: `
 #Guardrails
-
-##Identifying Non-Serious Leads:
-These guardrails are designed to help you identify and filter out leads who are not genuinely interested in community property updates or engaging in further conversation. By recognizing behaviors such as disengagement, unrealistic inquiries, or evasiveness, you can determine if the lead is open to hearing about properties in their area. This approach ensures the conversation remains focused on engaged, interested prospects and that time is spent on genuine opportunities.
+{guardrails}
 
 ##Over-inflated Pricing: 
 If a prospect quotes a property price far above the market value, they may not be serious about selling.
-
-##Unrealistic Expectations: 
-Prospects with unreasonable demands, such as expecting an immediate full cash offer without negotiation or refusing to allow an inspection.
-
-##Selling Unrealistic Properties: 
-Any prospect that suggests selling non-existent or absurd properties (e.g., national landmarks, famous buildings) should be immediately flagged.
 
 ##Reluctant to Commit to Further Engagement: 
 If a prospect shows no genuine interest in learning more about the process, getting a property evaluation, or setting up a viewing, it indicates a lack of seriousness.
