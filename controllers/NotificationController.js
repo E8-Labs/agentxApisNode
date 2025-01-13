@@ -32,6 +32,7 @@ import {
   CheckAndSendLastChanceToActNotificaitonSent,
   CheckAndSendTwoMinuteTrialLeftNotificaitonSent,
 } from "./CheckAndSendTrialNotificaitons.js";
+import { SendNotificationsForNoCalls5Days } from "./GamificationNotifications.js";
 
 async function GetNotificationTitle(
   user,
@@ -47,6 +48,48 @@ async function GetNotificationTitle(
   let title = "";
   let body = "";
   //
+  if (type == NotificationTypes.FirstLeadUpload) {
+    title = `Congrats on Your First Upload!`;
+    body = "Let’s start calling to get 🔥 leads!";
+  }
+  if (type == NotificationTypes.ThousandCalls) {
+    title = `You’re in the Top 40%!`;
+    body = "Keep going—top 20% are booking 3+ listings this month!";
+  }
+  if (type == NotificationTypes.Inactive5Days) {
+    title = `Let’s Fill Your Pipeline!`;
+    body = "Call 200 homeowners to see a 10x increase in hot leads";
+  }
+  if (type == NotificationTypes.TwoThousandCalls) {
+    title = `You’re in the Top 30%!`;
+    body = "Keep it up—top 10% are booking 4+ listings this month!";
+  }
+  if (type == NotificationTypes.FirstAppointment) {
+    title = `Congrats on Your First Appointment!`;
+    body = "This is just the beginning. Let’s keep the momentum going!";
+  }
+  if (type == NotificationTypes.ThreeAppointments) {
+    title = `Hat Trick Secured! 🎉`;
+    body = "3 appointments booked—keep it rolling!";
+  }
+  if (type == NotificationTypes.SevenAppointments) {
+    title = `You’re on Fire! 🔥`;
+    body = "7 streak achieved—your competition doesn’t stand a chance!";
+  }
+  if (type == NotificationTypes.Day14FeedbackRequest) {
+    title = `We’d Love Your Feedback!`;
+    body = "Share your experience so we can make AgentX better for you";
+  }
+  if (type == NotificationTypes.TestAINotification) {
+    title = `Test Your AI!`;
+    body = "Make sure your AI delivers quality results";
+  }
+  if (type == NotificationTypes.PlanUpgradeSuggestionFor30MinPlan) {
+    title = `Save Big—Upgrade!`;
+    body = "Upgrade to 120 mins and save 40%";
+  }
+  //#####################################
+
   if (type == NotificationTypes.Trial30MinTicking) {
     title = `30 min Trial is Ticking! ⏳`;
     body =
@@ -502,6 +545,7 @@ export const NotificationCron = async () => {
         );
         const ninePM = userDateTime.set({ hour: 21, minute: 0, second: 0 });
         SendNotificationsForNoCalls(u);
+        SendNotificationsForNoCalls5Days(u);
         if (userDateTime > ninePM) {
           console.log(
             `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`

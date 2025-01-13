@@ -452,7 +452,32 @@ export async function ScheduleEvent(req, res) {
       } else {
         WriteToFile("CalendarController: No lead found for adding a booking");
       }
+      let agentIds = [];
+      let agents = await db.MainAgentModel.findAll({
+        wehre: {
+          userId: user.id,
+        },
+      });
+      if (agents && agents.length > 0) {
+        agentIds = agents?.map((item) => item.id) || [];
+      }
 
+      let totalSchedules = await db.ScheduledBooking.count({
+        where: {
+          mainAgentId: {
+            [db.Sequelize.Op.in]: agentIds,
+          },
+        },
+      });
+      if (totalSchedules == 1) {
+        AddNotification(user, null, NotificationTypes.FirstAppointment);
+      }
+      if (totalSchedules == 3) {
+        AddNotification(user, null, NotificationTypes.ThreeAppointments);
+      }
+      if (totalSchedules == 7) {
+        AddNotification(user, null, NotificationTypes.SevenAppointments);
+      }
       await AddNotification(
         user,
         null,
