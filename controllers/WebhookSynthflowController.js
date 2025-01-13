@@ -201,7 +201,7 @@ async function handleNewCall(
 ) {
   const leadData = data.lead;
   const leadPhone = leadData.phone_number.replace("+", "");
-  const assistant = await db.AgentModel.findOne({ where: { modelId } });
+  // const assistant = await db.AgentModel.findOne({ where: { modelId } });
 
   if (!assistant) {
     console.log("No such agent");
