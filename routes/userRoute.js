@@ -13,6 +13,7 @@ import {
   UpdateProfile,
   AddTestNumber,
   DeleteTestNumber,
+  SendFeedbackEmail,
 } from "../controllers/userController.js";
 
 import {
@@ -69,6 +70,13 @@ UserRouter.get(
   "/getTransactionsHistory",
   verifyJwtTokenWithTeam,
   GetTransactionsHistory
+);
+
+UserRouter.post(
+  "/sendFeedback",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  SendFeedbackEmail
 );
 // getTransactionsHistory
 

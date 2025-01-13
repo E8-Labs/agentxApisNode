@@ -24,6 +24,7 @@ import {
   createThumbnailAndUpload,
   uploadMedia,
 } from "../utils/mediaservice.js";
+import { SendEmail } from "../services/MailService.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -1073,4 +1074,43 @@ export const sendSMS = async (to, body) => {
       error: error.message,
     };
   }
+};
+
+export const SendFeedbackEmail = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    let title = req.body.title;
+    let feedback = req.body.feedback;
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      //console.log("User is ", user)
+      if (user) {
+        try {
+          let email = generateFeedbackWithSenderDetails(
+            title,
+            feedback,
+            user.name,
+            user.email,
+            user.phone,
+            user.thumb_profile_image
+          );
+          let sent = await SendEmail(
+            process.env.FeedbackEmail,
+            email.subject,
+            email.html
+          );
+          console.log("Email sent");
+        } catch (error) {
+          console.log("Exception email feedback", error);
+        }
+        res.send({ status: true, data: null, message: "Email sent" });
+      } else {
+        res.send({ status: false, data: null, message: "No such user" });
+      }
+    }
+  });
 };
