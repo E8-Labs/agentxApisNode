@@ -738,7 +738,7 @@ export const DeleteNumber = async (req, res) => {
         let phoneNumber = await db.UserPhoneNumbers.findOne({
           where: {
             userId: userId,
-            phoneNumber: phone,
+            phone: phone,
           },
         });
         if (!phoneNumber) {
