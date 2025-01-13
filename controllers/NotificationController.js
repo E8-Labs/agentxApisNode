@@ -501,14 +501,13 @@ export const NotificationCron = async () => {
           { zone: timeZone }
         );
         const ninePM = userDateTime.set({ hour: 21, minute: 0, second: 0 });
-
+        SendNotificationsForNoCalls(u);
         if (userDateTime > ninePM) {
           console.log(
             `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
           );
           //send notification
           SendNotificationsForHotlead(u);
-          SendNotificationsForNoCalls(u);
         } else {
           console.log(
             `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
