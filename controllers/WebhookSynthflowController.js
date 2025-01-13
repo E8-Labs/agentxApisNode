@@ -72,6 +72,7 @@ export const WebhookSynthflow = async (req, res) => {
     if (!mainAgentId) {
       modelId = data.call.model_id;
     } else {
+      console.log("New webhook called");
       //get the modelId using the query params in webhook
       let assistant = await db.AgentModel.findOne({
         where: {
@@ -100,7 +101,8 @@ export const WebhookSynthflow = async (req, res) => {
         duration,
         transcript,
         recordingUrl,
-        endCallReason
+        endCallReason,
+        assistant
       );
     } else {
       console.log("Call is in the db");
@@ -194,7 +196,8 @@ async function handleNewCall(
   duration,
   transcript,
   recordingUrl,
-  endCallReason
+  endCallReason,
+  assistant
 ) {
   const leadData = data.lead;
   const leadPhone = leadData.phone_number.replace("+", "");
@@ -205,20 +208,22 @@ async function handleNewCall(
     return;
   }
 
-  const sheet = await findOrCreateSheet(assistant, "InboundLeads");
+  let sheet = null;
+  if (assistant.agentType == "Inbound") {
+    sheet = await findOrCreateSheet(assistant, "InboundLeads");
+  }
   const lead = await findOrCreateLead(
     leadPhone,
     assistant.userId,
     sheet,
     leadData
   );
-  try {
-    await AddOrUpdateTag("Inbound", lead);
-    // let tagCreated = await db.LeadTagsModel.create({
-    //   tag: "inbound",
-    //   sheetId: lead.id,
-    // });
-  } catch (error) {}
+  if (assistant.agentType == "inbound") {
+    try {
+      await AddOrUpdateTag("Inbound", lead);
+    } catch (error) {}
+  }
+
   //Send Notification for inbound Call
   try {
     let user = await db.User.findByPk(assistant.userId);
@@ -233,7 +238,7 @@ async function handleNewCall(
       0
     );
   } catch (error) {
-    console.log("errir sending notification");
+    console.log("errorr sending notification");
   }
   const jsonIE = lead
     ? await extractIEAndStoreKycs(actions, lead, callId)
@@ -304,13 +309,13 @@ async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
         status: "active",
       },
     });
-    //if user don't have any sheet
-    if (!sheet) {
-      sheet = await db.LeadSheetModel.create({
-        sheetName: "Outbound",
-        userId: userId,
-      });
-    }
+    //if user don't have any sheet: Removing this logic as of 13 Jan 2025
+    // if (!sheet) {
+    //   sheet = await db.LeadSheetModel.create({
+    //     sheetName: "Outbound",
+    //     userId: userId,
+    //   });
+    // }
   }
   let phone = leadPhone.replace("+", "");
   //get the deleted sheets and find the leads that are not in these sheets
