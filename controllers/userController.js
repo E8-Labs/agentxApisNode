@@ -803,6 +803,14 @@ export const GetProfileMine = async (req, res) => {
           id: userId,
         },
       });
+      console.log("User ", authData.user);
+      if (!user) {
+        return res.send({
+          status: false,
+          message: "No such user",
+          data: null,
+        });
+      }
       let resource = await UserProfileFullResource(user);
       res.send({
         status: true,
