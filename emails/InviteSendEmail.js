@@ -1,4 +1,8 @@
-function generateTeamMemberInviteEmail(First_Name, Inviter_Name, CTA_Link) {
+function generateTeamMemberInviteEmail(
+  First_Name,
+  Inviter_Name,
+  CTA_Link = "https://ai.myagentx.com"
+) {
   const HtmlTemplateTeamMemberInvite = `
     <!DOCTYPE html>
     <html>
