@@ -1,4 +1,4 @@
-function generateTeamMemberInviteEmail(
+export function generateTeamMemberInviteEmail(
   First_Name,
   Inviter_Name,
   CTA_Link = "https://ai.myagentx.com"
