@@ -803,6 +803,7 @@ export const GetProfileMine = async (req, res) => {
           id: userId,
         },
       });
+      console.log("User ", authData.user);
       if (!user) {
         res.send({
           status: false,
