@@ -50,6 +50,7 @@ const __dirname = path.dirname(__filename);
 const MinimumAvailableSecToCharge = 120;
 export const WebhookSynthflow = async (req, res) => {
   try {
+    console.log("Here is webhook");
     const data = req.body;
     const dataString = JSON.stringify(data);
 
@@ -78,7 +79,7 @@ export const WebhookSynthflow = async (req, res) => {
         },
       });
       if (!assistant) {
-        return;
+        return res.send({ status: true, message: "No such agent" });
       }
     } else {
       console.log("New webhook called");
@@ -179,7 +180,7 @@ export const WebhookSynthflow = async (req, res) => {
 function logWebhookData(data, dataString) {
   const currentDate = new Date();
   console.log(currentDate);
-  console.log("Webhook data is", dataString);
+  // console.log("Webhook data is", dataString);
   console.log("Model Id", data.call.model_id);
 }
 
@@ -208,6 +209,7 @@ async function handleNewCall(
   endCallReason,
   assistant
 ) {
+  console.log("Adding new call");
   const leadData = data.lead;
   const leadPhone = leadData.phone_number.replace("+", "");
   // const assistant = await db.AgentModel.findOne({ where: { modelId } });
@@ -217,6 +219,8 @@ async function handleNewCall(
     return;
   }
 
+  console.log("Agent is ", assistant);
+
   let sheet = null;
   if (assistant.agentType == "Inbound") {
     sheet = await findOrCreateSheet(assistant, "InboundLeads");
@@ -225,13 +229,14 @@ async function handleNewCall(
     leadPhone,
     assistant.userId,
     sheet,
-    leadData
+    leadData,
+    assistant
   );
-  if (assistant.agentType == "inbound") {
-    try {
-      await AddOrUpdateTag("Inbound", lead);
-    } catch (error) {}
-  }
+  // if (assistant.agentType == "inbound") {
+  //   try {
+  //     await AddOrUpdateTag("Inbound", lead);
+  //   } catch (error) {}
+  // }
 
   //Send Notification for inbound Call
   try {
@@ -309,7 +314,7 @@ async function findOrCreateSheet(assistant, sheetName) {
   return sheet;
 }
 
-async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
+async function findOrCreateLead(leadPhone, userId, sheet, leadData, assistant) {
   if (!sheet) {
     //get any Sheet fromthat user
     sheet = await db.LeadSheetModel.findOne({
@@ -369,9 +374,14 @@ async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
       extraColumns: JSON.stringify(leadData.prompt_variables),
     });
     // await db.LeadTagsModel.create({ tag: "inbound", leadId: lead.id });
-    await AddOrUpdateTag("Inbound", lead);
-    if (sheet) {
-      await db.LeadSheetTagModel.create({ tag: "Inbound", sheetId: sheet?.id });
+    if (assistant.agentType == "inbound") {
+      await AddOrUpdateTag("Inbound", lead);
+      if (sheet) {
+        await db.LeadSheetTagModel.create({
+          tag: "Inbound",
+          sheetId: sheet?.id,
+        });
+      }
     }
   }
   return lead;
@@ -515,7 +525,7 @@ async function processInfoExtractors(
 }
 
 async function extractIEAndStoreKycs(extractors, lead, callId) {
-  console.log("Extractors ", extractors);
+  // console.log("Extractors ", extractors);
   const keys = Object.keys(extractors);
   const ie = {};
 
@@ -573,10 +583,11 @@ async function handleInfoExtractorValues(
   dbCall,
   endCallReason
 ) {
-  if (!pipeline) {
-    //If no pipeline then we can not assign stage.
-    return null;
-  }
+  // if (!pipeline) {
+  //   //If no pipeline then we can not assign stage.
+  //   console.log("No pipeline for this agent so skipping");
+  //   return null;
+  // }
   try {
     await SetAllTagsFromIEAndCall(
       json,
@@ -607,7 +618,7 @@ async function handleInfoExtractorValues(
     console.log("It's a booked lead");
     tags.push("Booked");
     const bookedStage = await db.PipelineStages.findOne({
-      where: { identifier: "booked", pipelineId: pipeline.id },
+      where: { identifier: "booked", pipelineId: pipeline?.id || null },
     });
 
     moveToStage = bookedStage?.id || null;
@@ -624,7 +635,10 @@ async function handleInfoExtractorValues(
           ""
         );
         const stage = await db.PipelineStages.findOne({
-          where: { identifier: stageIdentifier, pipelineId: pipeline.id },
+          where: {
+            identifier: stageIdentifier,
+            pipelineId: pipeline?.id || null,
+          },
         });
 
         if (stage) {
@@ -668,14 +682,17 @@ async function handleInfoExtractorValues(
     if (json.hotlead || json.callbackrequested) {
       console.log("It's a hotlead");
       const hotLeadStage = await db.PipelineStages.findOne({
-        where: { identifier: "hot_lead", pipelineId: pipeline.id },
+        where: { identifier: "hot_lead", pipelineId: pipeline?.id || null },
       });
 
       moveToStage = hotLeadStage?.id || null;
     } else if (json.notinterested || json.dnd || json.wrongnumber) {
       tags.push("Not Interested");
       const notInterestedStage = await db.PipelineStages.findOne({
-        where: { identifier: "not_interested", pipelineId: pipeline.id },
+        where: {
+          identifier: "not_interested",
+          pipelineId: pipeline?.id || null,
+        },
       });
 
       moveToStage = notInterestedStage?.id || null;
@@ -692,7 +709,7 @@ async function handleInfoExtractorValues(
       json.nodecisionmaker
     ) {
       const followUpStage = await db.PipelineStages.findOne({
-        where: { identifier: "follow_up", pipelineId: pipeline.id },
+        where: { identifier: "follow_up", pipelineId: pipeline?.id || null },
       });
 
       if (lead.stage < followUpStage.id) {
@@ -728,7 +745,7 @@ async function handleInfoExtractorValues(
     await lead.save();
 
     try {
-      let user = await db.User.findByPk(pipeline.userId);
+      let user = await db.User.findByPk(pipeline?.userId || null);
       if (user) {
         let leadRes = await LeadResource([lead]);
         await postDataToWebhook(user, leadRes, WebhookTypes.TypeStageChange);
@@ -754,6 +771,7 @@ const SetAllTagsFromIEAndCall = async (
   }
   if (jsonIE.hotlead) {
     tags.push("Hot");
+    console.log("Hot lead tag");
   }
   if (jsonIE.voicemail) {
     tags.push("Voicemail");
@@ -771,6 +789,7 @@ const SetAllTagsFromIEAndCall = async (
   if (endCallReason == "human_pick_up_cut_off" || jsonIE.humancalldrop) {
     tags.push("Hangup");
   }
+  console.log("Tags ", tags);
 
   let data = [];
   for (const t of tags) {

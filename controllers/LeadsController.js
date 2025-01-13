@@ -680,6 +680,7 @@ export const GetSheets = async (req, res) => {
 //Updated For Team
 
 export async function AddOrUpdateTag(tag, lead) {
+  console.log("Adding tag to lead", tag);
   let existingTag = await db.LeadTagsModel.findOne({
     where: {
       leadId: lead.id,
