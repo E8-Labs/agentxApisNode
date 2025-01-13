@@ -1008,8 +1008,8 @@ async function CreatePromptForAgent(
   selectedObjective
 ) {
   let p = selectedObjective.prompt;
-  console.log("Objective ");
-  console.log(selectedObjective);
+  // console.log("Objective ");
+  // console.log(selectedObjective);
   if (type == "inbound") {
     p = selectedObjective.promptInbound;
   }
@@ -1029,10 +1029,12 @@ async function CreatePromptForAgent(
   callScript = callScript.replace(/{CU_address}/g, CUAddress);
 
   if (p) {
+    let obj = p.objective;
+    // obj = obj.replace(/{calendar_details}/g, selectedObjective.CalendarDetailsForObjective || "");
     console.log("Creating prompt");
     let prompt = await db.AgentPromptModel.create({
       mainAgentId: mainAgent.id,
-      objective: p.objective,
+      objective: obj,
       companyAgentInfo: p.companyAgentInfo,
       personalCharacteristics: p.personalCharacteristics,
       //

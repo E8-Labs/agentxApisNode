@@ -680,6 +680,7 @@ export const GetSheets = async (req, res) => {
 //Updated For Team
 
 export async function AddOrUpdateTag(tag, lead) {
+  console.log("Adding tag to lead", tag);
   let existingTag = await db.LeadTagsModel.findOne({
     where: {
       leadId: lead.id,
@@ -713,13 +714,27 @@ export async function AddTagsFromCustoStageToLead(lead, stage) {
       stageId: stage.id,
     },
   });
+  // console.log("All Teams ", teamsAssigned);
   if (teamsAssigned && teamsAssigned.length > 0) {
     for (const team of teamsAssigned) {
-      await db.TeamLeadAssignModel.create({
-        leadId: lead.id,
-        teamId: team.userId,
-        fromStage: false,
+      // console.log("Assigning ", team.userId);
+      // console.log("To lead ", lead.id);
+      // console.log("Team is ", team.get().userId);
+      let alreadyAssigned = await db.TeamLeadAssignModel.findOne({
+        where: {
+          userId: team.userId,
+          leadId: lead.id,
+        },
       });
+      if (alreadyAssigned) {
+        console.log("Already assigned the team to lead");
+      } else {
+        await db.TeamLeadAssignModel.create({
+          leadId: lead.id,
+          userId: team.userId,
+          fromStage: false,
+        });
+      }
     }
   }
   if (stageTags && stageTags.length > 0) {

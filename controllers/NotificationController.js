@@ -501,7 +501,7 @@ export const NotificationCron = async () => {
           { zone: timeZone }
         );
         const ninePM = userDateTime.set({ hour: 21, minute: 0, second: 0 });
-
+        SendNotificationsForNoCalls(u);
         if (userDateTime > ninePM) {
           console.log(
             `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
@@ -520,7 +520,100 @@ export const NotificationCron = async () => {
   }
 };
 
+async function SendNotificationsForNoCalls(user) {
+  console.log("Sending No Calls Not to ", user.id);
+  try {
+    let ids = [];
+    let agents = await db.AgentModel.findAll({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    if (agents && agents.length > 0) {
+      ids = agents.map((item) => item.id);
+    }
+
+    const last72Hours = new Date();
+    last72Hours.setHours(last72Hours.getHours() - 72);
+
+    // Check user's account creation date
+    const userCreatedAt = new Date(user.createdAt);
+
+    console.log("Sending no calls to", user.id);
+
+    let totalCalls = await db.LeadCallsSent.count({
+      where: {
+        agentId: {
+          [db.Sequelize.Op.in]: ids,
+        },
+        createdAt: {
+          [db.Sequelize.Op.gte]: last72Hours,
+        },
+      },
+    });
+
+    if (totalCalls == 0) {
+      console.log("Total calls were 0 576 line");
+
+      if (userCreatedAt < last72Hours) {
+        console.log("User account was created before 72 horus ", user.id);
+        // if userCreatedAt was before 72Hours ago
+
+        //check last NoCallNotification
+        let not = await db.NotificationModel.findOne({
+          where: {
+            userId: user.id,
+            type: NotificationTypes.NoCallsIn3Days,
+          },
+        });
+        let canSendNewNot = false;
+        if (not) {
+          const last72HoursOfNotSent = new Date();
+          last72HoursOfNotSent.setHours(last72HoursOfNotSent.getHours() - 72);
+
+          const notSentAt = new Date(not.createdAt);
+          if (notSentAt < last72HoursOfNotSent) {
+            console.log(
+              "No notificaiton was sent in the last 72 hours to  ",
+              user.id
+            );
+            //if the last no calls notification was sent before 72 hours ago send again
+            canSendNewNot = true;
+          } else {
+            console.log(
+              "Notificaiton was already sent in the last 72 hours to  ",
+              user.id
+            );
+          }
+        } else {
+          canSendNewNot = true;
+        }
+        console.log("Here ");
+        console.log(totalCalls);
+        console.log(canSendNewNot);
+        if (totalCalls == 0 && canSendNewNot) {
+          // Send "No Calls in 3 days" notification
+          await AddNotification(
+            user,
+            null,
+            NotificationTypes.NoCallsIn3Days,
+            null,
+            null,
+            null,
+            0,
+            0
+          );
+        }
+      }
+    }
+  } catch (error) {
+    console.log("Error adding not ", error);
+  }
+}
+
 async function SendNotificationsForHotlead(user) {
+  console.log("Sending hotlead to ", user.id);
   try {
     let ids = [];
     let agents = await db.AgentModel.findAll({
@@ -543,6 +636,9 @@ async function SendNotificationsForHotlead(user) {
     const last72Hours = new Date();
     last72Hours.setHours(last72Hours.getHours() - 72);
 
+    // Check user's account creation date
+    const userCreatedAt = new Date(user.createdAt);
+
     let hotleads = await db.LeadCallsSent.count({
       where: {
         agentId: {
@@ -555,12 +651,13 @@ async function SendNotificationsForHotlead(user) {
       },
     });
 
+    console.log("Sending hotlead to 562", user.id);
+
     let totalCalls = await db.LeadCallsSent.count({
       where: {
         agentId: {
           [db.Sequelize.Op.in]: ids,
         },
-
         createdAt: {
           [db.Sequelize.Op.gte]: last24Hours,
         },
@@ -568,29 +665,66 @@ async function SendNotificationsForHotlead(user) {
     });
 
     if (totalCalls == 0) {
+      console.log("Total calls were 0 576 line");
       totalCalls = await db.LeadCallsSent.count({
         where: {
           agentId: {
             [db.Sequelize.Op.in]: ids,
           },
-
           createdAt: {
             [db.Sequelize.Op.gte]: last72Hours,
           },
         },
       });
-      if (totalCalls == 0) {
-        //send No Calls in 3 days not NoCallsIn3Days
-        await AddNotification(
-          user,
-          null,
-          NotificationTypes.NoCallsIn3Days,
-          null,
-          null,
-          null,
-          0,
-          0
-        );
+      if (userCreatedAt < last72Hours) {
+        console.log("User account was created before 72 horus ", user.id);
+        // if userCreatedAt was before 72Hours ago
+
+        //check last NoCallNotification
+        let not = await db.NotificationModel.findOne({
+          where: {
+            userId: user.id,
+            type: NotificationTypes.NoCallsIn3Days,
+          },
+        });
+        let canSendNewNot = false;
+        if (not) {
+          const last72HoursOfNotSent = new Date();
+          last72HoursOfNotSent.setHours(last72HoursOfNotSent.getHours() - 72);
+
+          const notSentAt = new Date(not.createdAt);
+          if (notSentAt < last72HoursOfNotSent) {
+            console.log(
+              "No notificaiton was sent in the last 72 hours to  ",
+              user.id
+            );
+            //if the last no calls notification was sent before 72 hours ago send again
+            canSendNewNot = true;
+          } else {
+            console.log(
+              "Notificaiton was already sent in the last 72 hours to  ",
+              user.id
+            );
+          }
+        } else {
+          canSendNewNot = true;
+        }
+        console.log("Here ");
+        console.log(totalCalls);
+        console.log(canSendNewNot);
+        if (totalCalls == 0 && canSendNewNot) {
+          // Send "No Calls in 3 days" notification
+          await AddNotification(
+            user,
+            null,
+            NotificationTypes.NoCallsIn3Days,
+            null,
+            null,
+            null,
+            0,
+            0
+          );
+        }
       }
     }
 

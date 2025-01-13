@@ -4,6 +4,8 @@ import axios from "axios";
 import { UserRole } from "../models/user/userModel.js";
 import { TeamResource } from "../resources/TeamResource.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
+import { SendEmail } from "../services/MailService.js";
+import TeamModel from "../models/user/team/TeamModel.js";
 
 export function InviteTeamMember(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -57,6 +59,11 @@ export function InviteTeamMember(req, res) {
           status: "Pending",
         });
 
+        try {
+          let email = generateTeamMemberInviteEmail(name, user.name);
+          let sent = await SendEmail(email, email.subject, email.html);
+          console.log("Email sent");
+        } catch (error) {}
         //Create a corresponding user in the db with role invitee
         let userCreated = await db.User.create({
           email: email,
@@ -107,6 +114,43 @@ export function GetTeamMembers(req, res) {
         message: "Team list obtained",
         data: teamRes,
         admin: teamAdmin,
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+}
+
+export function DeleteInvite(req, res) {
+  let { leadId, teamMemberUserId } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let user = await db.User.findByPk(authData.user.id);
+      if (!user) {
+        return res.send({
+          status: false,
+          message: "No such user",
+        });
+      }
+      let phoneNumber = req.body.phoneNumber;
+
+      await db.TeamModel.destroy({
+        where: {
+          userId: user.id,
+          phone: phoneNumber,
+        },
+      });
+
+      //Make a resource of the Teammodel
+      // let teamRes = await TeamResource(invites);
+      return res.send({
+        status: true,
+        message: "Team member removed",
+        data: null,
+        // admin: teamAdmin,
       });
     } else {
       return res.send({

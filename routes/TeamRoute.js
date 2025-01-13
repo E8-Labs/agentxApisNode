@@ -10,6 +10,7 @@ import {
   GetTeamMembers,
   AssignTeamMemberToLead,
   AssignTeamMemberToStage,
+  DeleteInvite,
 } from "../controllers/TeamController.js";
 
 let teamRouter = express.Router();
@@ -34,4 +35,10 @@ teamRouter.post(
   AssignTeamMemberToStage
 );
 
+teamRouter.post(
+  "deleteTeamMember",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  DeleteInvite
+);
 export default teamRouter;

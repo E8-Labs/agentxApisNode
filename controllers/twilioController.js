@@ -510,19 +510,6 @@ export const AssignPhoneNumber = async (req, res) => {
           },
         });
 
-        // for (let i = 0; i < mainAgents.length; i++) {
-        //   let ma = mainAgents[i];
-        //   let agent = await db.AgentModel.findOne({
-        //     where: {
-        //       mainAgentId: ma.id,
-        //       phoneNumber: phoneNumber,
-        //     },
-        //   });
-        //   if (agent) {
-        //     alreadyPurchased = true;
-        //   }
-        // }
-        //if the phone number is purchased already or it is a platform number then let them assign.
         if (
           alreadyPurchased ||
           process.env.GlobalPhoneNumber.includes(phoneNumber)

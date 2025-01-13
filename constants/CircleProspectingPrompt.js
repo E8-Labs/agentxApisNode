@@ -56,11 +56,13 @@ Tone:
   `,
 
   callScript: `
-“Hi {First Name}, this is {agent_name} from {brokerage_name}. I’m reaching out because there’s been some recent real estate activity in your neighborhood, and many local homeowners are curious about how this might impact property values in the area. Would you be interested in learning more about how recent neighborhood trends might affect your home’s value?"
+“Hi {First Name}, this is test from KW. I’m reaching out because there’s been some recent real estate activity in your neighborhood, and many local homeowners are curious about how this might impact property values in the area. Would you be interested in learning more about how recent neighborhood trends might affect your home’s value?"
+
 [Condition 1: If They Express Interest in Property Values or Local Market Trends]
 "Are you curious about how properties similar to yours are performing in today’s market?"
-"Have you thought about what your property might be worth with the recent increase in local market activity?"
+(pause and wait for response)
 "Would a free market analysis be helpful to get an accurate picture of your property’s current value?"
+(pause and wait for response)
 Response: "Great! A market analysis will give you a detailed view of how your property compares to recent sales nearby. I can also keep you updated with occasional market insights if that would be helpful."
 
 [Condition 2: If They Are Interested in Selling Due to Market Activity]
@@ -68,18 +70,20 @@ Response: "Great! A market analysis will give you a detailed view of how your pr
 
 [Condition 3: If They Are Not Interested in Selling at the Moment]
 "No problem at all! Would you like me to keep you updated on market activity in the area, just to stay informed?"
+(pause and wait for response)
 "Is there anything holding you back from considering a sale, like timing or future property appreciation?"
+(pause and wait for response)
 "Would it be helpful if I let you know about neighborhood changes that might influence your property’s value down the line?"
+(pause and wait for response)
 Response: "That’s totally fine! I can send you occasional updates so you have an idea of how the market’s moving in your area, which can help with future planning."
 
 [Condition 4: If They Are Interested in Exploring Buying Opportunities]
 {buyer_kyc}
+
 [Possible Conditions to Consider]
 If the prospect says:
 “I don’t want anyone coming to look at the property.”
 Response: "I understand! To provide the most accurate offer, a quick evaluation helps us see what makes your property unique. Would you consider a virtual walk-through instead?"
-
-
 If the prospect still refuses any evaluation:
 Response: "I completely respect that. I’ll be here if you change your mind or need more information in the future."
   `,
@@ -267,6 +271,8 @@ As the most advanced AI real estate assistant, your goal is to connect with home
 
 ##Target Audience:
 Homeowners located within a specific radius of a recently listed, pending, or sold property in their area. These individuals may be interested in understanding how recent market activity affects their property value or may be considering selling.
+
+  
   `,
 };
 
@@ -325,34 +331,43 @@ Tone:
 
   callScript: `
 Thank you for calling back! I was reaching out earlier about recent real estate activity in your area. Are you a homeowner, or were you calling to learn about purchasing a home?”
+
 [Condition 1: Caller Is a Homeowner Curious About Market Opportunity]
 "Perfect! There’s been some real estate movement in your neighborhood—homes being listed, sold, or going into escrow. Many homeowners are curious about how this activity might affect their property value. Would you like a quick update on recent trends and how your home might compare?"
+
 Follow-Up Questions:
 "Have you thought about what your property might be worth with all the recent activity nearby?"
+(pause and wait for response)
 "Would a free market analysis be helpful to give you a clearer picture of your home’s current value?"
-Response (If Interested):
+
+[Response If Interested]
 "Great! A market analysis will give you detailed insights on how your property compares to recent sales. I can also send periodic updates to keep you informed. Would that be helpful?"
+
 Closing for Appointment:
 "Let’s schedule a quick 10–15-minute call to go over these details. Would tomorrow morning or afternoon work better for you?"
 
 [Condition 2: Caller Is Interested in Selling]
 "That’s great! With the recent activity, this could be the perfect time to explore your options. Can I ask a few quick questions to understand your goals better?"
-{seller_kyc} 
+
+{seller_kyc}
+
 Response:
 "Perfect! Let’s set up a quick consultation to review your home’s value and explore opportunities. Would tomorrow work for a brief 15-minute call?"
 
 [Condition 3: Caller Is a Potential Buyer]
 "Great! There are some exciting opportunities coming up in the market.”
 
-“Let's get to understand a bit more about what you’re looking for.” 
+“Let's get to understand a bit more about what you’re looking for.”
+
 {buyer_kyc}
+
 Response:
 "Wonderful! I’ll make sure you’re the first to know about opportunities that match your criteria. What’s the best email address for me to send updates to?"
 Closing for Appointment:
 "Let's set up a quick call to go over this with a realtor on the team. Would tomorrow morning or afternoon work for you?"
+
 [Condition 4: Caller Doesn’t Know Why They Missed the Call]
 "No worries at all! I was reaching out because there’s been recent real estate activity in your neighborhood—homes being listed, sold, and even some coming soon. Many homeowners and buyers like staying informed on how this might impact their plans. Are you a homeowner, or are you exploring purchasing a home?"
-
 `,
 
   greeting: `Hi, this is {agent_name} with {brokerage_name}. Can I ask who’s calling?`,

@@ -132,7 +132,7 @@ export const DeletePipeline = async (req, res) => {
     }
   });
 };
-//Updated For Team
+//Updated For Team add stage customstage addPipelinestage, pipelinestage newstage
 export const CreatePipelineStage = async (req, res) => {
   let { pipelineId, stageTitle, color, mainAgentId, tags } = req.body; // mainAgentId is the mainAgent id
   console.log("Data in request");
@@ -165,6 +165,7 @@ export const CreatePipelineStage = async (req, res) => {
       let advanced = null;
       let actionId = null;
       if (req.body.action) {
+        console.log("There is action");
         advanced = { action: req.body.action };
         // advanced.action = action;
         if (req.body.examples && advanced) {
@@ -212,6 +213,8 @@ export const CreatePipelineStage = async (req, res) => {
             console.log("Action attached ", attached);
           }
         }
+      } else {
+        console.log("There is no action attached");
       }
 
       let stage = await db.PipelineStages.create({
@@ -227,8 +230,10 @@ export const CreatePipelineStage = async (req, res) => {
 
       //Check and assign teams
       if (req.body.teams) {
+        console.log(" have teams, ", req.body.teams);
         let teams = req.body.teams || [];
         for (const teamId of teams) {
+          console.log("Team id ", teamId);
           let assigned = await db.TeamStageAssignModel.create({
             stageId: stage.id,
             userId: teamId,

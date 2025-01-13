@@ -50,6 +50,7 @@ const __dirname = path.dirname(__filename);
 const MinimumAvailableSecToCharge = 120;
 export const WebhookSynthflow = async (req, res) => {
   try {
+    console.log("Here is webhook");
     const data = req.body;
     const dataString = JSON.stringify(data);
 
@@ -69,11 +70,21 @@ export const WebhookSynthflow = async (req, res) => {
 
     let mainAgentId = req.query.mainAgentId || null;
     let type = req.query.type || null;
+    let assistant = null;
     if (!mainAgentId) {
       modelId = data.call.model_id;
+      assistant = await db.AgentModel.findOne({
+        where: {
+          modelId: modelId,
+        },
+      });
+      if (!assistant) {
+        return res.send({ status: true, message: "No such agent" });
+      }
     } else {
+      console.log("New webhook called");
       //get the modelId using the query params in webhook
-      let assistant = await db.AgentModel.findOne({
+      assistant = await db.AgentModel.findOne({
         where: {
           agentType: type,
           mainAgentId: mainAgentId,
@@ -100,7 +111,8 @@ export const WebhookSynthflow = async (req, res) => {
         duration,
         transcript,
         recordingUrl,
-        endCallReason
+        endCallReason,
+        assistant
       );
     } else {
       console.log("Call is in the db");
@@ -124,11 +136,11 @@ export const WebhookSynthflow = async (req, res) => {
       }
     }
 
-    let assistant = await db.AgentModel.findOne({
-      where: {
-        modelId: modelId,
-      },
-    });
+    // let assistant = await db.AgentModel.findOne({
+    //   where: {
+    //     modelId: modelId,
+    //   },
+    // });
     if (assistant) {
       let user = await db.User.findByPk(assistant.userId);
       user.totalSecondsAvailable = user.totalSecondsAvailable - duration;
@@ -168,7 +180,7 @@ export const WebhookSynthflow = async (req, res) => {
 function logWebhookData(data, dataString) {
   const currentDate = new Date();
   console.log(currentDate);
-  console.log("Webhook data is", dataString);
+  // console.log("Webhook data is", dataString);
   console.log("Model Id", data.call.model_id);
 }
 
@@ -194,31 +206,38 @@ async function handleNewCall(
   duration,
   transcript,
   recordingUrl,
-  endCallReason
+  endCallReason,
+  assistant = null
 ) {
+  console.log("Adding new call");
   const leadData = data.lead;
   const leadPhone = leadData.phone_number.replace("+", "");
-  const assistant = await db.AgentModel.findOne({ where: { modelId } });
+  // const assistant = await db.AgentModel.findOne({ where: { modelId } });
 
   if (!assistant) {
     console.log("No such agent");
     return;
   }
 
-  const sheet = await findOrCreateSheet(assistant, "InboundLeads");
+  console.log("Agent is ", assistant);
+
+  let sheet = null;
+  if (assistant.agentType == "Inbound") {
+    sheet = await findOrCreateSheet(assistant, "InboundLeads");
+  }
   const lead = await findOrCreateLead(
     leadPhone,
     assistant.userId,
     sheet,
-    leadData
+    leadData,
+    assistant
   );
-  try {
-    await AddOrUpdateTag("Inbound", lead);
-    // let tagCreated = await db.LeadTagsModel.create({
-    //   tag: "inbound",
-    //   sheetId: lead.id,
-    // });
-  } catch (error) {}
+  // if (assistant.agentType == "inbound") {
+  //   try {
+  //     await AddOrUpdateTag("Inbound", lead);
+  //   } catch (error) {}
+  // }
+
   //Send Notification for inbound Call
   try {
     let user = await db.User.findByPk(assistant.userId);
@@ -233,7 +252,7 @@ async function handleNewCall(
       0
     );
   } catch (error) {
-    console.log("errir sending notification");
+    console.log("errorr sending notification");
   }
   const jsonIE = lead
     ? await extractIEAndStoreKycs(actions, lead, callId)
@@ -295,7 +314,7 @@ async function findOrCreateSheet(assistant, sheetName) {
   return sheet;
 }
 
-async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
+async function findOrCreateLead(leadPhone, userId, sheet, leadData, assistant) {
   if (!sheet) {
     //get any Sheet fromthat user
     sheet = await db.LeadSheetModel.findOne({
@@ -304,13 +323,13 @@ async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
         status: "active",
       },
     });
-    //if user don't have any sheet
-    if (!sheet) {
-      sheet = await db.LeadSheetModel.create({
-        sheetName: "Outbound",
-        userId: userId,
-      });
-    }
+    //if user don't have any sheet: Removing this logic as of 13 Jan 2025
+    // if (!sheet) {
+    //   sheet = await db.LeadSheetModel.create({
+    //     sheetName: "Outbound",
+    //     userId: userId,
+    //   });
+    // }
   }
   let phone = leadPhone.replace("+", "");
   //get the deleted sheets and find the leads that are not in these sheets
@@ -355,9 +374,14 @@ async function findOrCreateLead(leadPhone, userId, sheet, leadData) {
       extraColumns: JSON.stringify(leadData.prompt_variables),
     });
     // await db.LeadTagsModel.create({ tag: "inbound", leadId: lead.id });
-    await AddOrUpdateTag("Inbound", lead);
-    if (sheet) {
-      await db.LeadSheetTagModel.create({ tag: "Inbound", sheetId: sheet?.id });
+    if (assistant.agentType == "inbound") {
+      await AddOrUpdateTag("Inbound", lead);
+      if (sheet) {
+        await db.LeadSheetTagModel.create({
+          tag: "Inbound",
+          sheetId: sheet?.id,
+        });
+      }
     }
   }
   return lead;
@@ -501,7 +525,7 @@ async function processInfoExtractors(
 }
 
 async function extractIEAndStoreKycs(extractors, lead, callId) {
-  console.log("Extractors ", extractors);
+  // console.log("Extractors ", extractors);
   const keys = Object.keys(extractors);
   const ie = {};
 
@@ -559,10 +583,11 @@ async function handleInfoExtractorValues(
   dbCall,
   endCallReason
 ) {
-  if (!pipeline) {
-    //If no pipeline then we can not assign stage.
-    return null;
-  }
+  // if (!pipeline) {
+  //   //If no pipeline then we can not assign stage.
+  //   console.log("No pipeline for this agent so skipping");
+  //   return null;
+  // }
   try {
     await SetAllTagsFromIEAndCall(
       json,
@@ -593,7 +618,7 @@ async function handleInfoExtractorValues(
     console.log("It's a booked lead");
     tags.push("Booked");
     const bookedStage = await db.PipelineStages.findOne({
-      where: { identifier: "booked", pipelineId: pipeline.id },
+      where: { identifier: "booked", pipelineId: pipeline?.id || null },
     });
 
     moveToStage = bookedStage?.id || null;
@@ -610,7 +635,10 @@ async function handleInfoExtractorValues(
           ""
         );
         const stage = await db.PipelineStages.findOne({
-          where: { identifier: stageIdentifier, pipelineId: pipeline.id },
+          where: {
+            identifier: stageIdentifier,
+            pipelineId: pipeline?.id || null,
+          },
         });
 
         if (stage) {
@@ -654,14 +682,17 @@ async function handleInfoExtractorValues(
     if (json.hotlead || json.callbackrequested) {
       console.log("It's a hotlead");
       const hotLeadStage = await db.PipelineStages.findOne({
-        where: { identifier: "hot_lead", pipelineId: pipeline.id },
+        where: { identifier: "hot_lead", pipelineId: pipeline?.id || null },
       });
 
       moveToStage = hotLeadStage?.id || null;
     } else if (json.notinterested || json.dnd || json.wrongnumber) {
       tags.push("Not Interested");
       const notInterestedStage = await db.PipelineStages.findOne({
-        where: { identifier: "not_interested", pipelineId: pipeline.id },
+        where: {
+          identifier: "not_interested",
+          pipelineId: pipeline?.id || null,
+        },
       });
 
       moveToStage = notInterestedStage?.id || null;
@@ -678,7 +709,7 @@ async function handleInfoExtractorValues(
       json.nodecisionmaker
     ) {
       const followUpStage = await db.PipelineStages.findOne({
-        where: { identifier: "follow_up", pipelineId: pipeline.id },
+        where: { identifier: "follow_up", pipelineId: pipeline?.id || null },
       });
 
       if (lead.stage < followUpStage.id) {
@@ -714,7 +745,7 @@ async function handleInfoExtractorValues(
     await lead.save();
 
     try {
-      let user = await db.User.findByPk(pipeline.userId);
+      let user = await db.User.findByPk(pipeline?.userId || null);
       if (user) {
         let leadRes = await LeadResource([lead]);
         await postDataToWebhook(user, leadRes, WebhookTypes.TypeStageChange);
@@ -740,6 +771,7 @@ const SetAllTagsFromIEAndCall = async (
   }
   if (jsonIE.hotlead) {
     tags.push("Hot");
+    console.log("Hot lead tag");
   }
   if (jsonIE.voicemail) {
     tags.push("Voicemail");
@@ -757,6 +789,7 @@ const SetAllTagsFromIEAndCall = async (
   if (endCallReason == "human_pick_up_cut_off" || jsonIE.humancalldrop) {
     tags.push("Hangup");
   }
+  console.log("Tags ", tags);
 
   let data = [];
   for (const t of tags) {
