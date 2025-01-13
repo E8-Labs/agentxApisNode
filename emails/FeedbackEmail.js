@@ -1,4 +1,4 @@
-function generateFeedbackWithSenderDetails(
+export function generateFeedbackWithSenderDetails(
   Feedback_Title,
   Feedback_Content,
   Sender_Name,

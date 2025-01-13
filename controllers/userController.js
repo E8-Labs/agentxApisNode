@@ -24,6 +24,7 @@ import {
   createThumbnailAndUpload,
   uploadMedia,
 } from "../utils/mediaservice.js";
+import { generateFeedbackWithSenderDetails } from "../emails/FeedbackEmail.js";
 import { SendEmail } from "../services/MailService.js";
 
 // lib/firebase-admin.js
