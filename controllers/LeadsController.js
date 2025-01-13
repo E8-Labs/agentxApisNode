@@ -720,11 +720,21 @@ export async function AddTagsFromCustoStageToLead(lead, stage) {
       // console.log("Assigning ", team.userId);
       // console.log("To lead ", lead.id);
       // console.log("Team is ", team.get().userId);
-      await db.TeamLeadAssignModel.create({
-        leadId: lead.id,
-        userId: team.userId,
-        fromStage: false,
+      let alreadyAssigned = await db.TeamLeadAssignModel.findOne({
+        where: {
+          userId: team.userId,
+          leadId: lead.id,
+        },
       });
+      if (alreadyAssigned) {
+        console.log("Already assigned the team to lead");
+      } else {
+        await db.TeamLeadAssignModel.create({
+          leadId: lead.id,
+          userId: team.userId,
+          fromStage: false,
+        });
+      }
     }
   }
   if (stageTags && stageTags.length > 0) {

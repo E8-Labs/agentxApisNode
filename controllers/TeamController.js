@@ -4,6 +4,7 @@ import axios from "axios";
 import { UserRole } from "../models/user/userModel.js";
 import { TeamResource } from "../resources/TeamResource.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
+import { SendEmail } from "../services/MailService.js";
 
 export function InviteTeamMember(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -57,6 +58,11 @@ export function InviteTeamMember(req, res) {
           status: "Pending",
         });
 
+        try {
+          let email = generateTeamMemberInviteEmail(name, user.name);
+          let sent = await SendEmail(email, email.subject, email.html);
+          console.log("Email sent");
+        } catch (error) {}
         //Create a corresponding user in the db with role invitee
         let userCreated = await db.User.create({
           email: email,
