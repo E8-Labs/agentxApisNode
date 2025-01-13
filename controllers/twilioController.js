@@ -726,6 +726,14 @@ export const DeleteNumber = async (req, res) => {
   const { phone } = req.body;
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findByPk(userId);
+      if (!user) {
+        return res.send({
+          status: false,
+          message: "No such user",
+        });
+      }
       try {
         let phoneNumber = await db.UserPhoneNumbers.findOne({
           where: {
