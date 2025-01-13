@@ -714,8 +714,11 @@ export async function AddTagsFromCustoStageToLead(lead, stage) {
       stageId: stage.id,
     },
   });
+  console.log("All Teams ", teamsAssigned);
   if (teamsAssigned && teamsAssigned.length > 0) {
     for (const team of teamsAssigned) {
+      console.log("Assigning ", team);
+      console.log("To lead ", lead.id);
       await db.TeamLeadAssignModel.create({
         leadId: lead.id,
         teamId: team.userId,
