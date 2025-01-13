@@ -597,6 +597,7 @@ export async function AddCalendarCalDotCom(req, res) {
                 timeZone: timeZone,
               });
               calendar = created;
+
               //add action
               let actionResult = await CreateAndAttachCalendarAction(
                 user,

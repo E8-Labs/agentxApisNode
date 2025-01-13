@@ -271,6 +271,8 @@ As the most advanced AI real estate assistant, your goal is to connect with home
 
 ##Target Audience:
 Homeowners located within a specific radius of a recently listed, pending, or sold property in their area. These individuals may be interested in understanding how recent market activity affects their property value or may be considering selling.
+
+  
   `,
 };
 

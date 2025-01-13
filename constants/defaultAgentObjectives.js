@@ -12,6 +12,17 @@ import {
   ReactivationGuardrails,
 } from "./defaultObjections.js";
 
+export const AgentObjectiveIds = {
+  CallAbsenteeOwners: 1,
+  CircleProspecting: 2,
+  CommunityUpdate: 3,
+  LeadReactivation: 4,
+  AgentRecruiting: 5,
+  ExpiredListing: 6,
+  Receptionist: 7,
+  Other: 100,
+};
+
 export const AgentObjectives = [
   {
     id: 1,
