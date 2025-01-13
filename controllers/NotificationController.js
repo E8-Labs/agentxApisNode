@@ -521,6 +521,7 @@ export const NotificationCron = async () => {
 };
 
 async function SendNotificationsForHotlead(user) {
+  console.log("Sending hotlead to ", user.id);
   try {
     let ids = [];
     let agents = await db.AgentModel.findAll({
@@ -558,6 +559,8 @@ async function SendNotificationsForHotlead(user) {
       },
     });
 
+    console.log("Sending hotlead to 562", user.id);
+
     let totalCalls = await db.LeadCallsSent.count({
       where: {
         agentId: {
@@ -570,6 +573,7 @@ async function SendNotificationsForHotlead(user) {
     });
 
     if (totalCalls == 0) {
+      console.log("Total calls were 0 576 line");
       totalCalls = await db.LeadCallsSent.count({
         where: {
           agentId: {
@@ -581,6 +585,7 @@ async function SendNotificationsForHotlead(user) {
         },
       });
       if (userCreatedAt < last72Hours) {
+        console.log("User account was created before 72 horus ", user.id);
         // if userCreatedAt was before 72Hours ago
 
         //check last NoCallNotification
@@ -597,12 +602,24 @@ async function SendNotificationsForHotlead(user) {
 
           const notSentAt = new Date(not.createdAt);
           if (notSentAt < last72HoursOfNotSent) {
+            console.log(
+              "No notificaiton was sent in the last 72 hours to  ",
+              user.id
+            );
             //if the last no calls notification was sent before 72 hours ago send again
             canSendNewNot = true;
+          } else {
+            console.log(
+              "Notificaiton was already sent in the last 72 hours to  ",
+              user.id
+            );
           }
         } else {
           canSendNewNot = true;
         }
+        console.log("Here ");
+        console.log(totalCalls);
+        console.log(canSendNewNot);
         if (totalCalls == 0 && canSendNewNot) {
           // Send "No Calls in 3 days" notification
           await AddNotification(
