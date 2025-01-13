@@ -749,9 +749,9 @@ export const DeleteNumber = async (req, res) => {
         }
 
         //Release the phone number from twilio
-        let del = await twilioClient.incomingPhoneNumbers.remove(
-          phoneNumber.phoneSid
-        );
+        const del = await twilioClient
+          .incomingPhoneNumbers(phoneNumber.phoneSid)
+          .remove();
         console.log("Relase number response ", del);
         //delete the numbe form our database
         await phoneNumber.destroy();
