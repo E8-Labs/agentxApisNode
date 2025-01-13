@@ -69,12 +69,21 @@ export const WebhookSynthflow = async (req, res) => {
 
     let mainAgentId = req.query.mainAgentId || null;
     let type = req.query.type || null;
+    let assistant = null;
     if (!mainAgentId) {
       modelId = data.call.model_id;
+      assistant = await db.AgentModel.findOne({
+        where: {
+          modelId: modelId,
+        },
+      });
+      if (!assistant) {
+        return;
+      }
     } else {
       console.log("New webhook called");
       //get the modelId using the query params in webhook
-      let assistant = await db.AgentModel.findOne({
+      assistant = await db.AgentModel.findOne({
         where: {
           agentType: type,
           mainAgentId: mainAgentId,
@@ -126,11 +135,11 @@ export const WebhookSynthflow = async (req, res) => {
       }
     }
 
-    let assistant = await db.AgentModel.findOne({
-      where: {
-        modelId: modelId,
-      },
-    });
+    // let assistant = await db.AgentModel.findOne({
+    //   where: {
+    //     modelId: modelId,
+    //   },
+    // });
     if (assistant) {
       let user = await db.User.findByPk(assistant.userId);
       user.totalSecondsAvailable = user.totalSecondsAvailable - duration;
