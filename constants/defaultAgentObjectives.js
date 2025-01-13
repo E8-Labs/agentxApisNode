@@ -64,7 +64,10 @@ export const AgentObjectives = [
     title: "Agent Recruiting",
     details:
       "Identify, engage, and attract potential real estate agents to expand your team with top talent. Recruit new agents to your team.",
-    prompt: null,
+    prompt: Prompts.AgentRecruitingOutbound,
+    promptInbound: Prompts.AgentRecruitingInbound,
+    objections: [],
+    guardrails: [],
   },
   {
     id: 6,
@@ -76,6 +79,17 @@ export const AgentObjectives = [
     promptInbound: Prompts.ExpiredListingInbound,
     objections: ExpiredListingObjections, //same as community update
     guardrails: ExpiredListingGuardrails, //same as community update
+  },
+  {
+    id: 7,
+    icon: "",
+    title: "Receptionist",
+    details:
+      "Greet clients, manage appointments, and ensure smooth office operations. Provide front-desk support for incoming calls. ",
+    prompt: Prompts.ReceptionistOutbound,
+    promptInbound: Prompts.ReceptionistInbound,
+    objections: [],
+    guardrails: [],
   },
   {
     id: 100,

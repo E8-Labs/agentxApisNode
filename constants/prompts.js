@@ -19,6 +19,14 @@ import {
   CircleProspectingInbound,
   CircleProspectingOutbound,
 } from "./CircleProspectingPrompt.js";
+import {
+  AgentRecruitingInbound,
+  AgentRecruitingOutbound,
+} from "./AgentRecruitingPrompt.js";
+import {
+  ReceptionistInbound,
+  ReceptionistOutbound,
+} from "./ReceptionistPrompt.js";
 
 export const Prompts = {
   CommunityUpdate: CommunityUpdateOutbound,
@@ -33,4 +41,8 @@ export const Prompts = {
   OthersInbound: OthersInbound,
   CircleProspectingInbound,
   CircleProspectingOutbound,
+  AgentRecruitingInbound: AgentRecruitingInbound,
+  AgentRecruitingOutbound: AgentRecruitingOutbound,
+  ReceptionistInbound: ReceptionistInbound,
+  ReceptionistOutbound: ReceptionistOutbound,
 };
