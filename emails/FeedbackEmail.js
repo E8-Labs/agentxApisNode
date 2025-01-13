@@ -107,15 +107,15 @@ export function generateFeedbackWithSenderDetails(
             <strong>Feedback:</strong>
             <p>${Feedback_Content}</p>
           </div>
-          <p>Best Regards,<br>Your System</p>
+          <p>Best Regards,<br>AgentX</p>
         </div>
         <div class="footer">
-          © 2025 Your Company Name, All Rights Reserved.
+          © 2025 AgentX, All Rights Reserved.
         </div>
       </div>
     </body>
     </html>
     `;
 
-  return HtmlTemplateFeedbackWithSenderDetails;
+  return { subject: "Feedback", html: HtmlTemplateFeedbackWithSenderDetails };
 }
