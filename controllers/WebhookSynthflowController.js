@@ -207,7 +207,7 @@ async function handleNewCall(
   transcript,
   recordingUrl,
   endCallReason,
-  assistant
+  assistant = null
 ) {
   console.log("Adding new call");
   const leadData = data.lead;
