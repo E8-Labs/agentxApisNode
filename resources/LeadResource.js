@@ -55,7 +55,10 @@ async function getLatestAndUniqueKycs(leadId) {
   // Deduplicate KYCs by `question`, keeping the latest entry
   const uniqueKycsMap = new Map();
   allKycs.forEach((kyc) => {
-    if (!uniqueKycsMap.has(kyc.question)) {
+    if (
+      !uniqueKycsMap.has(kyc.question) &&
+      !kyc.question.includes(process.env.StagePrefix)
+    ) {
       uniqueKycsMap.set(kyc.question, kyc);
     }
   });
