@@ -39,7 +39,7 @@ export async function SendNotificationsForNoCalls5Days(user) {
       },
     });
 
-    if (totalCalls >= 0) {
+    if (totalCalls == 0) {
       console.log("Total calls were 0 576 line");
 
       if (userCreatedAt < last5Days) {
@@ -51,37 +51,42 @@ export async function SendNotificationsForNoCalls5Days(user) {
           where: {
             userId: user.id,
             type: NotificationTypes.Inactive5Days,
+            createdAt: {
+              [db.Sequelize.Op.gte]: last72Hours,
+            },
           },
         });
         let canSendNewNot = false;
         if (not) {
-          const last5DaysOfNotSent = new Date();
-          last5DaysOfNotSent.setHours(
-            last5DaysOfNotSent.getHours() - HoursIn5Days
+          console.log(
+            "Not was already sent for gamification 5 days inactivity so don't send new"
           );
-
-          const notSentAt = new Date(not.createdAt);
-          if (notSentAt < last5DaysOfNotSent) {
-            console.log(
-              "No notificaiton was sent in the last 120 hours to  ",
-              user.id
-            );
-            //if the last no calls notification was sent before 72 hours ago send again
-            canSendNewNot = true;
-          } else {
-            console.log(
-              "Notificaiton was already sent in the last 120 hours to  ",
-              user.id
-            );
-          }
+          // const last5DaysOfNotSent = new Date();
+          // last5DaysOfNotSent.setHours(
+          //   last5DaysOfNotSent.getHours() - HoursIn5Days
+          // );
+          // const notSentAt = new Date(not.createdAt);
+          // if (notSentAt < last5DaysOfNotSent) {
+          //   console.log(
+          //     "No notificaiton was sent in the last 120 hours to  ",
+          //     user.id
+          //   );
+          //   //if the last no calls notification was sent before 72 hours ago send again
+          //   canSendNewNot = true;
+          // } else {
+          //   console.log(
+          //     "Notificaiton was already sent in the last 120 hours to  ",
+          //     user.id
+          //   );
+          // }
+          // canSendNewNot = false; // if already sent then never send again
         } else {
           canSendNewNot = true;
         }
         console.log("Here ");
         console.log(totalCalls);
         console.log(canSendNewNot);
-        if (true) {
-          //(totalCalls == 0 && canSendNewNot) {
+        if (totalCalls == 0 && canSendNewNot) {
           // Send "No Calls in 3 days" notification
           await AddNotification(
             user,
