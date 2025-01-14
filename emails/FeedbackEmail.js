@@ -67,8 +67,10 @@ export function generateFeedbackWithSenderDetails(
           display: flex;
           align-items: center;
           justify-content: center;
-          margin-right: 15px;
           text-transform: uppercase;
+          overflow: hidden; /* Ensure content doesn't overflow */
+          background-size: cover; /* Scale background image to cover the area */
+          background-position: center; /* Center the background image */
           ${profileImageStyle}
         }
         .feedback-box {
