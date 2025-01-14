@@ -42,6 +42,7 @@ import { ReChargeUserAccount } from "./PaymentController.js";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import { GetTeamAdminFor } from "../utils/auth.js";
+import { constants } from "../constants/constants.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -253,7 +254,7 @@ async function handleNewCall(
 
   let sheet = null;
   if (assistant.agentType == "Inbound") {
-    sheet = await findOrCreateSheet(assistant, "InboundLeads");
+    sheet = await findOrCreateSheet(assistant, constants.InboudLeadSheetName);
   }
   const lead = await findOrCreateLead(
     leadPhone,

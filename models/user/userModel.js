@@ -21,23 +21,7 @@ const User = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       defaultValue: "",
     },
-    // agentService: {
-    //   type: Sequelize.INTEGER,
-    //   allowNull: true,
-    //   references: {
-    //     model: "AgentServices",
-    //     key: "id",
-    //   },
-    // },
 
-    // areaOfFocus: {
-    //   type: Sequelize.INTEGER,
-    //   allowNull: true,
-    //   references: {
-    //     model: "AreaOfFocus",
-    //     key: "id",
-    //   },
-    // },
     farm: {
       type: Sequelize.STRING, //"customer", "business", "admin"
       defaultValue: "",

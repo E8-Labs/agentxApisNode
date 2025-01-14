@@ -41,6 +41,7 @@ import { generateInactive5DaysEmail } from "../emails/gamification/FiveDayInacti
 import { constants } from "../constants/constants.js";
 import { generateFeedbackRequest14DaysEmail } from "../emails/gamification/FeedbackRequestEmail.js";
 import { generatePlanUpgradeEmail } from "../emails/gamification/PlanUpgradeEmail.js";
+import { ExtractAreaCode } from "../utils/USAreaCodes.js";
 
 async function GetNotificationTitle(
   user,
@@ -55,7 +56,41 @@ async function GetNotificationTitle(
 ) {
   let title = "";
   let body = "";
-  //
+  let city = "New York";
+  let state = "NY";
+  let areaCode = ExtractAreaCode(user.phone);
+  if (areaCode) {
+    city = areaCode.city;
+    state = areaCode.state;
+  }
+  console.log("City is ", city);
+  //Inactive User
+  if (type == NotificationTypes.SocialProof) {
+    title = `Sarah in ${city} got 2 Listings!`;
+    body = "More calls = more opportunities. Upload your leads now.";
+  }
+  if (type == NotificationTypes.CompetitiveEdge) {
+    title = `Secure Your Edge!`;
+    body = `Few agents in ${city || "New York"} use AI. Act before others join`;
+  }
+  if (type == NotificationTypes.FOMOAlert) {
+    title = `Don’t Miss Out!`;
+    body = "4 listings secured in [Same City] in the last 2 weeks";
+  }
+  if (type == NotificationTypes.TrainingReminder) {
+    title = `Need Help?`;
+    body = "Join our live webinar and book more appointments";
+  }
+  if (type == NotificationTypes.Exclusivity) {
+    title = `You’re Leading!`;
+    body = `Few agents in ${city} use AI. Maximize your lead`;
+  }
+  if (type == NotificationTypes.TerritoryUpdate) {
+    title = `2 Listings Nearby!`;
+    body = "2 appointments made within 20 miles. Don’t miss out!";
+  }
+
+  //Gamification
   if (type == NotificationTypes.FirstLeadUpload) {
     title = `Congrats on Your First Upload!`;
     body = "Let’s start calling to get 🔥 leads!";
@@ -899,5 +934,5 @@ export async function SendTestEmail(req, res) {
 // let user = await db.User.findByPk(10);
 // SendNotificationsForNoCalls5Days(user);
 
-// AddNotification(user, null, NotificationTypes.Day14FeedbackRequest);
+// AddNotification(user, null, NotificationTypes.SocialProof);
 // SendUpgradeSuggestionNotification();
