@@ -639,27 +639,34 @@ async function SendNotificationsForNoCalls(user) {
           where: {
             userId: user.id,
             type: NotificationTypes.NoCallsIn3Days,
+            createdAt: {
+              [db.Sequelize.Op.gte]: last72Hours,
+            },
           },
         });
         let canSendNewNot = false;
         if (not) {
-          const last72HoursOfNotSent = new Date();
-          last72HoursOfNotSent.setHours(last72HoursOfNotSent.getHours() - 72);
-
-          const notSentAt = new Date(not.createdAt);
-          if (notSentAt < last72HoursOfNotSent) {
-            console.log(
-              "No notificaiton was sent in the last 72 hours to  ",
-              user.id
-            );
-            //if the last no calls notification was sent before 72 hours ago send again
-            canSendNewNot = true;
-          } else {
-            console.log(
-              "Notificaiton was already sent in the last 72 hours to  ",
-              user.id
-            );
-          }
+          console.log(
+            "No Calls three days Notification was already sent to ",
+            user.id
+          );
+          // const last72HoursOfNotSent = new Date();
+          // last72HoursOfNotSent.setHours(last72HoursOfNotSent.getHours() - 72);
+          // const notSentAt = new Date(not.createdAt);
+          // //Check if there have been more than 3 days since this not was sent
+          // if (notSentAt < last72HoursOfNotSent) {
+          //   console.log(
+          //     "No notificaiton was sent in the last 72 hours to  ",
+          //     user.id
+          //   );
+          //   //if the last no calls notification was sent before 72 hours ago send again
+          //   canSendNewNot = true;
+          // } else {
+          //   console.log(
+          //     "Notificaiton was already sent in the last 72 hours to  ",
+          //     user.id
+          //   );
+          // }
         } else {
           canSendNewNot = true;
         }
