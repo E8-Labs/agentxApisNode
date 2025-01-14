@@ -40,6 +40,14 @@ export const NotificationTypes = {
   Day14FeedbackRequest: "Day14FeedbackRequest", //email as well
   TestAINotification: "TestAINotification", //First AI is created
   PlanUpgradeSuggestionFor30MinPlan: "PlanUpgradeSuggestionFor30MinPlan", //email, Plan Upgrade Suggestion (only for 30 min active plans after 2nd charge)
+
+  //Inactive Notifications
+  SocialProof: "SocialProof", //1 day later, has email
+  CompetitiveEdge: "CompetitiveEdge", //3 day later
+  FOMOAlert: "FOMOAlert", // 5 days later, has email
+  TrainingReminder: "TrainingReminder", //7 days later
+  Exclusivity: "Exclusivity", //14 days later, has email
+  TerritoryUpdate: "TerritoryUpdate", //20 days later, has email
 };
 const NotificationModel = (sequelize, Sequelize) => {
   const NotificationModel = sequelize.define("NotificationModel", {

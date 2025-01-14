@@ -382,7 +382,7 @@ export const UpdateProfile = async (req, res) => {
     if (authData) {
       let userId = authData.user.id;
 
-      console.log("Update User ", authData.user.email);
+      console.log("Update User ", req.body);
       // console.log("Update data ", req);
       let user = await db.User.findByPk(userId);
 
@@ -447,7 +447,7 @@ export const UpdateProfile = async (req, res) => {
               userId: user.id,
             },
           });
-          agentService = JSON.parse(agentService);
+          // agentService = JSON.parse(agentService);
           for (let i = 0; i < agentService.length; i++) {
             let service = agentService[i];
             console.log("Adding Service", service);
@@ -473,7 +473,7 @@ export const UpdateProfile = async (req, res) => {
           }
         }
         if (areaOfFocus && areaOfFocus.length > 0) {
-          areaOfFocus = JSON.parse(areaOfFocus);
+          // areaOfFocus = JSON.parse(areaOfFocus);
           await db.AreaOfFocus.destroy({
             where: {
               userId: user.id,
