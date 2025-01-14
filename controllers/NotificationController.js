@@ -35,10 +35,12 @@ import {
 import {
   SendFeedbackNotificationsAfter14Days,
   SendNotificationsForNoCalls5Days,
+  SendUpgradeSuggestionNotification,
 } from "./GamificationNotifications.js";
 import { generateInactive5DaysEmail } from "../emails/gamification/FiveDayInactiveEmail.js";
 import { constants } from "../constants/constants.js";
 import { generateFeedbackRequest14DaysEmail } from "../emails/gamification/FeedbackRequestEmail.js";
+import { generatePlanUpgradeEmail } from "../emails/gamification/PlanUpgradeEmail.js";
 
 async function GetNotificationTitle(
   user,
@@ -393,6 +395,13 @@ async function SendEmailForNotification(
       user.name,
       constants.LeadPage,
       "Share Feedback"
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.PlanUpgradeSuggestionFor30MinPlan) {
+    emailNot = generatePlanUpgradeEmail(
+      user.name,
+      constants.BillingPage,
+      "Upgrade Plan"
     );
     email = user.email;
   }
@@ -884,3 +893,4 @@ export async function SendTestEmail(req, res) {
 // SendNotificationsForNoCalls5Days(user);
 
 // AddNotification(user, null, NotificationTypes.Day14FeedbackRequest);
+SendUpgradeSuggestionNotification();

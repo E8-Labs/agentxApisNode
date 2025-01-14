@@ -4,4 +4,5 @@ export const constants = {
   MinThresholdSeconds: 2 * 60,
   DefaultTimezone: "America/Los_Angeles",
   LeadPage: "ai.myagentx.com/dashboard/leads",
+  BillingPage: "https://ai.myagentx.com/dashboard/myAccount?tab=2",
 };

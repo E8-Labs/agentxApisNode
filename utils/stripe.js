@@ -4,7 +4,12 @@ import { generateRandomCode } from "../controllers/userController.js";
 import { constants } from "../constants/constants.js";
 import { AddNotification } from "../controllers/NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
-import { FindPlanWithPrice } from "../models/user/payment/paymentPlans.js";
+import {
+  FindPlanWithPrice,
+  PayAsYouGoPlans,
+  PayAsYouGoPlanTypes,
+} from "../models/user/payment/paymentPlans.js";
+import { SendUpgradeSuggestionNotification } from "../controllers/GamificationNotifications.js";
 
 // Initialize Stripe for both environments
 const stripeTest = new Stripe(process.env.STRIPE_TEST_SECRET_KEY);
@@ -384,6 +389,26 @@ export const chargeUser = async (
         //Notificaiton for Plan Renewal
         let plan = FindPlanWithPrice(amount / 100);
         if (plan) {
+          if (plan.type == PayAsYouGoPlanTypes.Plan30Min) {
+            console.log("User subscribed to 30 min plan");
+            //check and send the plan upgrade suggestion not
+            let history = await db.PaymentHistory.findAll({
+              where: {
+                userId: user.id,
+              },
+              order: [["createdAt", "DESC"]],
+            });
+            console.log("User have a history", history);
+            if (history && history.length == 1) {
+              // Already have history of one charge
+              let lastChargedPlan = history[0];
+              if (lastChargedPlan.type == PayAsYouGoPlanTypes.Plan30Min) {
+                console.log("Last plan type is Plan30 so sending not");
+                //send the noti
+                SendUpgradeSuggestionNotification(user);
+              }
+            }
+          }
           await AddNotification(
             user,
             null,
@@ -399,6 +424,7 @@ export const chargeUser = async (
           );
         }
       } else {
+        //Phone purchase
       }
 
       return {
