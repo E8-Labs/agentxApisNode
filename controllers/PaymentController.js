@@ -42,6 +42,8 @@ import {
   PayAsYouGoPlanTypes,
 } from "../models/user/payment/paymentPlans.js";
 import { constants } from "../constants/constants.js";
+import { generateFeedbackWithSenderDetails } from "../emails/FeedbackEmail.js";
+import { SendEmail } from "../services/MailService.js";
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
 // import { admin } from "../services/firebase-admin.js";
@@ -468,6 +470,20 @@ export const AddCancelPlanReason = async (req, res) => {
 
         plan.cancelReason = reason;
         await plan.save();
+
+        let emailNot = generateFeedbackWithSenderDetails(
+          "Cancel Plan Feedback",
+          reason,
+          user.name,
+          user.email,
+          user.phone,
+          user.thumb_profile_image
+        );
+        let sent = await SendEmail(
+          process.env.FeedbackEmail,
+          emailNot.subject,
+          emailNot.html
+        );
 
         let useRes = await UserProfileFullResource(user);
         res.send({
