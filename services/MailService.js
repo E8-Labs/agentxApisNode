@@ -1,16 +1,15 @@
 import nodemailer from "nodemailer";
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.Mailer_UserName,
+    pass: process.env.Mailer_Password,
+  },
+});
 
 export async function SendEmail(to, subject, html) {
-  const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.Mailer_UserName,
-      pass: process.env.Mailer_Password,
-    },
-  });
-
   const htmlTemplate = html;
 
   const mailOptions = {
