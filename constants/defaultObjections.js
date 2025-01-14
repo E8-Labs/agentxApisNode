@@ -169,3 +169,39 @@ export const ReactivationGuardrails = [
       "Any prospect that suggests selling non-existent or absurd properties (e.g., national landmarks, famous buildings) should be immediately flagged",
   },
 ];
+
+export const RecruitingGuardrails = [
+  {
+    title: "Focus on Qualified Candidates",
+    description:
+      "Prioritize serious prospects with clear interest or potential in real estate careers.",
+  },
+  {
+    title: "Stay Objective-Driven",
+    description:
+      "Maintain alignment with the primary goal of recruiting high-performing agents by steering conversations back to the opportunity when they stray.",
+  },
+  {
+    title: "Filter Out Non-Engaged Leads",
+    description:
+      "Recognize disqualifiers such as a lack of interest, unrealistic demands, or unwillingness to provide relevant information.",
+  },
+];
+
+export const RecruitingObjections = [
+  {
+    title: "“I’m happy where I am.",
+    description:
+      "I understand completely! Many of our agents felt the same way before learning about how we help agents grow their business. Would you be open to exploring how we can complement your current success?",
+  },
+  {
+    title: "I’m new to real estate and not sure where to start.",
+    description:
+      "That’s totally okay! We specialize in helping new agents get started with comprehensive training and mentorship programs. Would you be open to a quick conversation about how we can support your success?",
+  },
+  {
+    title: "I’m not interested in changing brokerages right now.",
+    description:
+      "That’s understandable! Would it be helpful if I kept you updated on any opportunities or events we’re hosting in the future?",
+  },
+];

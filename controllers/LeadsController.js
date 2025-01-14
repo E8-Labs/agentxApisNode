@@ -20,6 +20,8 @@ import LeadCallResource from "../resources/LeadCallResource.js";
 import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
 import LeadImportantCallResource from "../resources/LeadImportantCallResource.js";
 import { GetTeamIds } from "../utils/auth.js";
+import { AddNotification } from "./NotificationController.js";
+import { NotificationTypes } from "../models/user/NotificationModel.js";
 
 const limit = 500;
 /**
@@ -81,6 +83,7 @@ export const AddLeads = async (req, res) => {
       return res.status(403).send(checkData);
     }
   }
+
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -88,6 +91,11 @@ export const AddLeads = async (req, res) => {
       let user = await db.User.findOne({
         where: {
           id: userId,
+        },
+      });
+      let leadsCountBefore = await db.LeadModel.count({
+        where: {
+          userId: user.id,
         },
       });
       let teamIds = await GetTeamIds(user);
@@ -251,6 +259,24 @@ export const AddLeads = async (req, res) => {
       //call the api for webhook of this user
       if (dbLeads.length > 0) {
         await postDataToWebhook(user, leadsRes, WebhookTypes.TypeNewLeadAdded);
+      }
+      //Send First Lead Notification
+      if (leadsCountBefore == 0) {
+        //send now
+
+        await AddNotification(
+          user,
+          null,
+          NotificationTypes.FirstLeadUpload,
+          null,
+          null,
+          null,
+          null,
+          0,
+          0,
+          null,
+          null
+        );
       }
       res.send({
         status: true,

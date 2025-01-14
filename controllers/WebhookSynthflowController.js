@@ -48,6 +48,33 @@ const __dirname = path.dirname(__filename);
 // Main Webhook Function
 
 const MinimumAvailableSecToCharge = 120;
+
+async function SendNotificaitonFor1KOr2KCalls(assistant) {
+  let agents = await db.MainAgentModel.findAll({
+    where: {
+      userId: assistant.userId,
+    },
+  });
+  let ids = [];
+  if (agents && agents.length > 0) {
+    ids = agents.map((item) => item.id);
+  }
+  let callsCount = await db.LeadCallsSent.count({
+    where: {
+      mainAgentId: {
+        [db.Sequelize.Op.in]: ids,
+      },
+    },
+  });
+
+  let user = await db.User.findByPk(assistant.userId);
+  if (callsCount == 1000) {
+    await AddNotification(user, null, NotificationTypes.ThousandCalls);
+  }
+  if (callsCount == 2000) {
+    await AddNotification(user, null, NotificationTypes.TwoThousandCalls);
+  }
+}
 export const WebhookSynthflow = async (req, res) => {
   try {
     console.log("Here is webhook");
@@ -95,6 +122,9 @@ export const WebhookSynthflow = async (req, res) => {
       }
     }
 
+    if (assistant) {
+      SendNotificaitonFor1KOr2KCalls(assistant);
+    }
     let dbCall = await db.LeadCallsSent.findOne({
       where: { synthflowCallId: callId },
     });

@@ -56,12 +56,8 @@ export const AgentRecruitingInbound = {
 [Condition 1: If They’re Open to Learning More]
 "That’s great! Let me share a little about what sets us apart. At {Brokerage Name}, we offer [competitive commission splits/training opportunities/marketing support/technology tools—customize based on company perks]."
 Ask KYC Questions:
-"Are you currently with another brokerage, or are you exploring opportunities?"
-	(pause and wait for response) 
-"What are you looking for in your ideal brokerage—more support, higher commissions, or something else?"
-(pause and wait for response) 
-"Are you looking to transition full-time into real estate or keep it part-time for now?"
-(pause and wait for response) 
+{seller_kyc}
+{buyer_kyc}
 
 [Condition 2: If They’re Hesitant or Unsure]
 "No worries! Just to give you a quick overview, we focus on supporting agents with tools like [specific tools/resources offered], so they can focus on growing their business. Is this something you’d like to explore further?"
@@ -133,28 +129,14 @@ Email Verification: Repeat email addresses back to ensure accuracy before sendin
 
   objectionHandling: `
   #Objection Handling
-  Objection 1: “I’m happy where I am.”
-"I understand completely! Many of our agents felt the same way before learning about how we help agents grow their business. Would you be open to exploring how we can complement your current success?"
+  {objections}
 
-Objection 2: “I’m new to real estate and not sure where to start.”
-"That’s totally okay! We specialize in helping new agents get started with comprehensive training and mentorship programs. Would you be open to a quick conversation about how we can support your success?"
-
-Objection 3: “I’m not interested in changing brokerages right now.”
-"That’s understandable! Would it be helpful if I kept you updated on any opportunities or events we’re hosting in the future?"
 `,
 
   guardRails: `
   #Guardrails
   {guardrails}
-      
-  Objection 1: “I’m happy where I am.”
-"I understand completely! Many of our agents felt the same way before learning about how we help agents grow their business. Would you be open to exploring how we can complement your current success?"
 
-Objection 2: “I’m new to real estate and not sure where to start.”
-"That’s totally okay! We specialize in helping new agents get started with comprehensive training and mentorship programs. Would you be open to a quick conversation about how we can support your success?"
-
-Objection 3: “I’m not interested in changing brokerages right now.”
-"That’s understandable! Would it be helpful if I kept you updated on any opportunities or events we’re hosting in the future?"
 `,
   getTools: `
   #Get Tools
@@ -226,13 +208,8 @@ export const AgentRecruitingOutbound = {
 [Condition 1: If They’re Open to Learning More]
 "That’s great! Let me share a little about what sets us apart. At {brokerage_name}, we offer [competitive commission splits/training opportunities/marketing support/technology tools—customize based on company perks]."
 Ask KYC Questions:
-"Are you currently with another brokerage, or are you exploring opportunities?"
-	(pause and wait for response) 
-"What are you looking for in your ideal brokerage—more support, higher commissions, or something else?"
-(pause and wait for response) 
-"Are you looking to transition full-time into real estate or keep it part-time for now?"
-(pause and wait for response) 
 {seller_kyc}
+{buyer_kyc}
 
 [Condition 2: If They’re Hesitant or Unsure]
 "No worries! Just to give you a quick overview, we focus on supporting agents with tools like [specific tools/resources offered], so they can focus on growing their business. Is this something you’d like to explore further?"
@@ -303,6 +280,8 @@ Email Verification: Repeat email addresses back to ensure accuracy before sendin
       \n\n`,
 
   objectionHandling: `
+  {objections}
+
   Objection 1: “I’m happy where I am.”
 "I understand completely! Many of our agents felt the same way before learning about how we help agents grow their business. Would you be open to exploring how we can complement your current success?"
 
@@ -315,6 +294,7 @@ Objection 3: “I’m not interested in changing brokerages right now.”
      `,
   guardRails: `
   #Guardrails
+  {guardrails}
   
   Focus on Qualified Candidates: Prioritize serious prospects with clear interest or potential in real estate careers.
 Stay Objective-Driven: Maintain alignment with the primary goal of recruiting high-performing agents by steering conversations back to the opportunity when they stray.

@@ -26,6 +26,7 @@ export function InviteTeamMember(req, res) {
         });
       }
 
+      console.log("User ", user);
       //Check if invited already exists
       let invite = await db.TeamModel.findOne({
         where: {
@@ -61,8 +62,8 @@ export function InviteTeamMember(req, res) {
         });
 
         try {
-          let email = generateTeamMemberInviteEmail(name, user.name);
-          let sent = await SendEmail(email, email.subject, email.html);
+          let emailObj = generateTeamMemberInviteEmail(name, user.name);
+          let sent = await SendEmail(email, emailObj.subject, emailObj.html);
           console.log("Email sent");
         } catch (error) {}
         //Create a corresponding user in the db with role invitee
