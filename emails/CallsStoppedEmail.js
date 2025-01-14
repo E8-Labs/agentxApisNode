@@ -78,7 +78,7 @@ const HtmlTemplateCallsStopped = `
   <div class="container">
     <div class="header">📞 Your Calls Have Stopped—Let’s Get Back on Track!</div>
     <div class="body">
-      <p>Hi <strong>{Name}</strong>,</p>
+      <p>Hi {Name},</p>
       <p>We noticed your AI hasn’t made any calls for 3 days. Is everything okay? Don’t worry, we’re here to help you get back on track.</p>
       <p>Join our live webinar to learn how to:</p>
       <ul>
@@ -90,7 +90,7 @@ const HtmlTemplateCallsStopped = `
       <a href="{CTA_Link}" class="cta"><p class="btnText">{CTA_Text}</p></a>
     </div>
     <div class="footer">
-      © 2023 AgentX, All Rights Reserved.
+      © 2025 AgentX, All Rights Reserved.
     </div>
   </div>
 </body>

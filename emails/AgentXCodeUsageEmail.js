@@ -69,7 +69,7 @@ const HtmlTemplateAgentXCodeUsage = `
   <div class="container">
     <div class="header">🎉 You’ve Just Earned 30 More Minutes!</div>
     <div class="body">
-      <p>Hi <strong>{Name}</strong>,</p>
+      <p>Hi {Name},</p>
       <p>Congratulations! You’ve just unlocked 30 additional minutes of AI talk time using your Agent Code: <strong>{Agent_Code}</strong>.</p>
       <p>Here’s how you can make the most of it:</p>
       <ul>
@@ -80,7 +80,7 @@ const HtmlTemplateAgentXCodeUsage = `
       <a href="https://ai.myagentx.com/dashboard/leads" class="cta"><p class="btnText">Upload Leads and Start Calling</p></a>
     </div>
     <div class="footer">
-      © 2023 AgentX, All Rights Reserved.
+      © 2025 AgentX, All Rights Reserved.
     </div>
   </div>
 </body>

@@ -55,7 +55,7 @@ const HtmlTemplateThreeTimesWin = `
   <div class="container">
     <div class="header">3x More Likely to Win!</div>
     <div class="body">
-      <p>Hi <strong>{First_Name}</strong>,</p>
+      <p>Hi {First_Name},</p>
       <p>Did you know that agents who upload their leads on Day 1 are <strong>3x more likely to book a listing appointment</strong> during their trial?</p>
       <p>Don’t let this opportunity pass you by. The sooner you upload your leads, the sooner you can start generating results.</p>
       <p>

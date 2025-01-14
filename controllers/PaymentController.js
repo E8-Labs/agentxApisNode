@@ -239,7 +239,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             lastPlan = history[0];
           }
           if (lastPlan) {
-            console.log("Found plan 229");
+            // console.log("Found plan 229");
             // if (
             //   lastPlan.type == foundPlan.type &&
             //   lastPlan.status == "active" && !payNow
@@ -292,9 +292,21 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   environment: process.env.Environment,
                   transactionId: charge.paymentIntent.id,
                 });
+
+                console.log(
+                  "SubscribeFunc: Receiving user seconds Before ",
+                  user.totalSecondsAvailable
+                );
                 user.totalSecondsAvailable += foundPlan.duration;
                 await user.save();
-
+                console.log(
+                  "Plan subscribed and aadded 297",
+                  foundPlan.duration
+                );
+                console.log(
+                  "SubscribeFunc: Receiving user seconds After ",
+                  user.totalSecondsAvailable
+                );
                 return res.send({
                   status: true,
                   message: "Plan Upgraded",
@@ -359,6 +371,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             }
             let TotalSeconds = foundPlan.duration;
             user.totalSecondsAvailable += TotalSeconds;
+            console.log("Plan subscribed and aadded 362 ", TotalSeconds);
             let saved = await user.save();
             let historyCreated = await db.PaymentHistory.create({
               title: GetTitleForPlan(foundPlan),
@@ -472,7 +485,7 @@ export const AddCancelPlanReason = async (req, res) => {
         await plan.save();
 
         let emailNot = generateFeedbackWithSenderDetails(
-          "Cancel Plan Feedback",
+          "Cancelled Feedback",
           reason,
           user.name,
           user.email,

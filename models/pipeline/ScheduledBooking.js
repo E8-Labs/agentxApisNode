@@ -26,7 +26,7 @@ const ScheduledBooking = (sequelize, Sequelize) => {
     },
     leadId: {
       type: Sequelize.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: "LeadModels",
         key: "id",
@@ -44,6 +44,11 @@ const ScheduledBooking = (sequelize, Sequelize) => {
       defaultValue: "",
     },
     time: {
+      type: Sequelize.STRING,
+      allowNull: true,
+      defaultValue: "",
+    },
+    meetingId: {
       type: Sequelize.STRING,
       allowNull: true,
       defaultValue: "",

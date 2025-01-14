@@ -331,6 +331,6 @@ export function ExtractAreaCode(phoneNumber) {
 
   // Return the extracted area code
   let code = AreaCodes[areaCode];
-
-  return { areaCode: areaCode, city: code.city, state: code.state };
+  console.log("Area code ", code);
+  return { areaCode: areaCode, city: code?.city, state: code?.state };
 }

@@ -72,7 +72,7 @@ const HtmlTemplateAgentXCodeUsage = `
   <div class="container">
     <div class="header">{Teamname} joined AgentX!</div>
     <div class="body">
-      <p>Hi <strong>{Name}</strong>,</p>
+      <p>Hi {Name},</p>
       <p>Great news! Your team, <strong>{Teamname}</strong>, has officially joined AgentX.</p>
       <p>What’s next?</p>
       <ul>
@@ -84,7 +84,7 @@ const HtmlTemplateAgentXCodeUsage = `
       <a href="https://ai.myagentx.com/dashboard/teams" class="cta"><p class="btnText">View your Team Dashboard</p></a>
     </div>
     <div class="footer">
-      © 2023 AgentX, All Rights Reserved.
+      © 2025 AgentX, All Rights Reserved.
     </div>
   </div>
 </body>
