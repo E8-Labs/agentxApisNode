@@ -52,7 +52,7 @@ export async function SendNotificationsForNoCalls5Days(user) {
             userId: user.id,
             type: NotificationTypes.Inactive5Days,
             createdAt: {
-              [db.Sequelize.Op.gte]: last72Hours,
+              [db.Sequelize.Op.gte]: last5Days,
             },
           },
         });
