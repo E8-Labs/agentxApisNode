@@ -147,14 +147,16 @@ export const WebhookSynthflow = async (req, res) => {
       );
     } else {
       console.log("Call is in the db");
+
       const leadCadenceId = dbCall.leadCadenceId;
       const leadCadence = leadCadenceId
         ? await db.LeadCadence.findByPk(leadCadenceId)
         : null;
-      const lead = leadCadence
-        ? await db.LeadModel.findByPk(leadCadence.leadId)
-        : null;
+      console.log("LEadCadence ", leadCadence);
 
+      const lead = await db.LeadModel.findByPk(dbCall.leadId);
+
+      console.log("Lead is ", lead);
       if (lead) {
         jsonIE = await extractIEAndStoreKycs(actions, lead, callId);
         await processInfoExtractors(
@@ -250,10 +252,10 @@ async function handleNewCall(
     return;
   }
 
-  console.log("Agent is ", assistant);
+  // console.log("Agent is ", assistant);
 
   let sheet = null;
-  if (assistant.agentType == "Inbound") {
+  if (assistant.agentType == "inbound") {
     sheet = await findOrCreateSheet(assistant, constants.InboudLeadSheetName);
   }
   const lead = await findOrCreateLead(
@@ -556,7 +558,7 @@ async function processInfoExtractors(
 }
 
 async function extractIEAndStoreKycs(extractors, lead, callId) {
-  // console.log("Extractors ", extractors);
+  console.log("Extractors ", extractors);
   const keys = Object.keys(extractors);
   const ie = {};
 
@@ -569,6 +571,17 @@ async function extractIEAndStoreKycs(extractors, lead, callId) {
 
     ie[question] = answer;
     console.log(`IE found ${question} : ${answer}`);
+    if (question.startsWith("book_appointment_with")) {
+      //it is a booking action
+      console.log("It is a booking action");
+      ie["meetingscheduled"] = true;
+      //logic to add meeting to the database and attach to lead
+      try {
+        MatchAndAssignLeadToMeeting(data, lead);
+      } catch (error) {
+        console.log("error finding meeting id");
+      }
+    }
 
     if (lead) {
       if (typeof answer === "string") {
@@ -582,10 +595,12 @@ async function extractIEAndStoreKycs(extractors, lead, callId) {
 
             await db.LeadEmailModel.create({ email: answer, leadId: lead.id });
           }
-        } else if (
-          question !== "prospectname" &&
-          !question.includes(process.env.StagePrefix)
-        ) {
+        } else if (question === "prospectname") {
+          if (lead.firstName == "" || lead.firstName == null) {
+            lead.firstName = answer;
+            await lead.save();
+          }
+        } else if (!question.includes(process.env.StagePrefix)) {
           let found = await db.InfoExtractorModel.findOne({
             where: { identifier: question },
           });
@@ -607,6 +622,46 @@ async function extractIEAndStoreKycs(extractors, lead, callId) {
 
   console.log("IE obtained", ie);
   return ie;
+}
+
+// async function MatchAndAssignLeadToMeeting()
+async function MatchAndAssignLeadToMeeting(data, lead) {
+  try {
+    console.log("Trying to check and match lead with meeting scheduled");
+    // Extract the meeting ID from the provided data
+    const meetingId = data?.return_value?.results?.data?.data?.data?.id;
+    console.log("Meeting id ", meetingId);
+
+    if (!meetingId) {
+      console.log("Meeting ID not found in the provided data.");
+      return;
+    }
+
+    // Check if the meeting exists in the ScheduledBooking table
+    const scheduledMeeting = await db.ScheduledBooking.findOne({
+      where: { meetingId },
+    });
+
+    if (!scheduledMeeting) {
+      console.log(`No scheduled meeting found with meeting ID: ${meetingId}`);
+      return;
+    }
+
+    // Check if leadId is null in the scheduled meeting row
+    if (scheduledMeeting.leadId === null) {
+      await scheduledMeeting.update({ leadId: lead.id });
+
+      console.log(
+        `Updated scheduled meeting (ID: ${meetingId}) with leadId: ${lead.id}`
+      );
+    } else {
+      console.log(
+        `Scheduled meeting (ID: ${meetingId}) already has a leadId: ${scheduledMeeting.leadId}. Skipping update.`
+      );
+    }
+  } catch (error) {
+    console.error("Error processing and updating the meeting:", error);
+  }
 }
 
 async function handleInfoExtractorValues(

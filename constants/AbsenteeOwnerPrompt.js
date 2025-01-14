@@ -351,7 +351,7 @@ Tone:
 Apply this call script for the inbound model: Maintain spacing, this is the most important thing.
 
 If Caller Mentions, “You called me earlier, and I’m returning your call”
-Response: "Thank you for returning the call! This is Jan 12.20 with KW. We’ve been reaching out to property owners like yourself to share some recent updates about the real estate market in your area. I’d love to share those with you—do you have a quick moment to chat?"
+Response: "Thank you for returning the call! This is {agent_name} with {brokerage_name}. We’ve been reaching out to property owners like yourself to share some recent updates about the real estate market in your area. I’d love to share those with you—do you have a quick moment to chat?"
 
 Transition into Conversation:
 "We’ve noticed some interesting trends in your area, particularly with properties like yours at {address}. Have you considered selling it or exploring new investment opportunities?"

@@ -65,7 +65,7 @@ const HtmlTemplateMeetingBooked = `
   <div class="container">
     <div class="header">🗓️ Meeting Booked: {Leadname}</div>
     <div class="body">
-      <p>Hi <strong>{Name}</strong>,</p>
+      <p>Hi {Name},</p>
       <p>Exciting news! <strong>{Leadname}</strong> has just booked a meeting. This is a perfect opportunity to make progress toward closing the deal.</p>
       <p>Here’s the meeting summary:</p>
       <ul>
@@ -79,7 +79,7 @@ const HtmlTemplateMeetingBooked = `
       <a href="{CTA_Link}" class="cta"><p class="btnText">{CTA_Text}</p></a>
     </div>
     <div class="footer">
-      © 2023 AgentX, All Rights Reserved.
+      © 2025 AgentX, All Rights Reserved.
     </div>
   </div>
 </body>

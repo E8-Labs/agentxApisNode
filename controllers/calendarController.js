@@ -437,21 +437,30 @@ export async function ScheduleEvent(req, res) {
       WriteToFile(
         `Event scheduled successfully: ${JSON.stringify(responseData)}`
       );
-
-      if (lead) {
-        WriteToFile("Lead was found so creating event");
-        await db.ScheduledBooking.create({
-          leadId: lead.id,
-          mainAgentId: mainAgentId,
-          agentId: agent.id,
-          data: JSON.stringify(responseData),
-          datetime: utcTime.toISO(), //utcDateTime.toISO(),
-          date: date,
-          time: time,
-        });
-      } else {
-        WriteToFile("CalendarController: No lead found for adding a booking");
+      let meetingId = null;
+      try {
+        if (responseData.data.id) {
+          meetingId = responseData.data.id;
+        }
+      } catch (error) {
+        console.log("Error finding meeting id in schedule");
       }
+      console.log("Meeting id is ", meetingId);
+      // if (lead) {
+      WriteToFile("Lead was found so creating event", meetingId);
+      await db.ScheduledBooking.create({
+        leadId: lead?.id,
+        mainAgentId: mainAgentId,
+        agentId: agent.id,
+        data: JSON.stringify(responseData),
+        datetime: utcTime.toISO(), //utcDateTime.toISO(),
+        date: date,
+        time: time,
+        meetingId: meetingId,
+      });
+      // } else {
+      //   WriteToFile("CalendarController: No lead found for adding a booking");
+      // }
       let agentIds = [];
       let agents = await db.MainAgentModel.findAll({
         wehre: {
@@ -502,6 +511,7 @@ export async function ScheduleEvent(req, res) {
       });
     }
   } catch (error) {
+    console.log("Error", error);
     WriteToFile(`Error scheduling event: ${error.message}`);
     return res.send({
       status: false,

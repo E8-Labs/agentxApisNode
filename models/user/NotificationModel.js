@@ -10,6 +10,7 @@ export const NotificationTypes = {
   InviteAccepted: "InviteAccepted",
   CallsMadeByAgent: "CallsMadeByAgent",
   RedeemedAgentXCode: "RedeemedAgentXCode", // 30 min added for using AgentX Code
+  RedeemedAgentXCodeMine: "RedeemedAgentXCodeMine", // 30 min added for using your AgentX Code
   Redeemed60Min: "Redeemed60Min", // 1 hour after the subscription
 
   //Trial Related

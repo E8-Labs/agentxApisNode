@@ -46,7 +46,7 @@ const HtmlTemplateMinutesRenewed = `
   <div class="container">
     <div class="header"><strong>{Minutes} minutes</strong> have been renewed! 🎉</div>
     <div class="body">
-      <p>Hi <strong>{First_Name}</strong>,</p>
+      <p>Hi {First_Name},</p>
       <p>Your plan has been renewed, and <strong>{Minutes} minutes</strong> have been added to your account for <strong>\${Price}</strong>. You’re all set to continue making calls and booking opportunities.</p>
       <p>Best,<br>AgentX Team</p>
     </div>

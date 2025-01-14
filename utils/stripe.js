@@ -294,14 +294,31 @@ export async function RedeemCodeOnPlanSubscription(user) {
   if (!inviteCodeRedeemed && inviteCodeUsed != null && inviteCodeUsed != "") {
     console.log("Redeeming invite code");
 
+    console.log(
+      "RedeemFunc: Inviting user seconds Before ",
+      invitingUser.totalSecondsAvailable
+    );
     invitingUser.totalSecondsAvailable += TotalRedeemableSeconds;
     await invitingUser.save();
+    console.log(
+      "RedeemFunc: Inviting user seconds After ",
+      invitingUser.totalSecondsAvailable
+    );
 
+    console.log(
+      "RedeemFunc: Receiving user seconds Before ",
+      user.totalSecondsAvailable
+    );
     user.totalSecondsAvailable += TotalRedeemableSeconds;
     user.inviteCodeRedeemed = true;
-    if (user.myInviteCode == null || user.myInviteCode == "") {
-      user.myInviteCode = generateRandomCode();
-    }
+    await user.save();
+    console.log(
+      "RedeemFunc: Receiving user seconds After ",
+      user.totalSecondsAvailable
+    );
+    // if (user.myInviteCode == null || user.myInviteCode == "") {
+    //   user.myInviteCode = generateRandomCode();
+    // }
     await AddNotification(
       user,
       null,
@@ -310,7 +327,14 @@ export async function RedeemCodeOnPlanSubscription(user) {
       null,
       inviteCodeUsed
     );
-    await user.save();
+    await AddNotification(
+      invitingUser,
+      null,
+      NotificationTypes.RedeemedAgentXCode,
+      null,
+      null,
+      inviteCodeUsed
+    );
   } else {
     console.log("Invite code already redeemed");
   }

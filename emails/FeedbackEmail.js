@@ -119,5 +119,8 @@ export function generateFeedbackWithSenderDetails(
     </html>
     `;
 
-  return { subject: "Feedback", html: HtmlTemplateFeedbackWithSenderDetails };
+  return {
+    subject: "Cancelled Feedback",
+    html: HtmlTemplateFeedbackWithSenderDetails,
+  };
 }
