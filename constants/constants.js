@@ -5,4 +5,6 @@ export const constants = {
   DefaultTimezone: "America/Los_Angeles",
   LeadPage: "ai.myagentx.com/dashboard/leads",
   BillingPage: "https://ai.myagentx.com/dashboard/myAccount?tab=2",
+
+  InboudLeadSheetName: "Inbound Leads",
 };
