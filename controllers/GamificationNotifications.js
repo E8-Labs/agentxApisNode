@@ -39,7 +39,7 @@ export async function SendNotificationsForNoCalls5Days(user) {
       },
     });
 
-    if (totalCalls == 0) {
+    if (totalCalls >= 0) {
       console.log("Total calls were 0 576 line");
 
       if (userCreatedAt < last5Days) {
@@ -80,7 +80,8 @@ export async function SendNotificationsForNoCalls5Days(user) {
         console.log("Here ");
         console.log(totalCalls);
         console.log(canSendNewNot);
-        if (totalCalls == 0 && canSendNewNot) {
+        if (true) {
+          //(totalCalls == 0 && canSendNewNot) {
           // Send "No Calls in 3 days" notification
           await AddNotification(
             user,
@@ -102,5 +103,90 @@ export async function SendNotificationsForNoCalls5Days(user) {
   }
 }
 
-// let user = await db.User.findByPk(10);
-// SendNotificationsForNoCalls5Days(user);
+export async function SendFeedbackNotificationsAfter14Days(user) {
+  const HoursIn5Days = 14 * 24; // hours in 14 days
+  console.log("Sending No Calls Not to ", user.id);
+  try {
+    const last5Days = new Date();
+    last5Days.setHours(last5Days.getHours() - HoursIn5Days);
+
+    // Check user's account creation date
+    const userCreatedAt = new Date(user.createdAt);
+
+    console.log("Sending no calls to", user.id);
+
+    if (userCreatedAt <= last5Days) {
+      console.log("User account was created before 14 days ", user.id);
+      console.log("Here ");
+
+      await AddNotification(
+        user,
+        null,
+        NotificationTypes.Day14FeedbackRequest,
+        null,
+        null,
+        null,
+        0,
+        0
+      );
+    }
+    // } else {
+    //   console.log("User has many calls");
+    // }
+  } catch (error) {
+    console.log("Error adding not ", error);
+  }
+}
+
+// export const SendUpgradeSuggestionNotification = async () => {
+//   try {
+//     const users = await db.User.findAll({
+//       attributes: ["id", "name", "email"], // Adjust attributes based on your User model
+//       include: [
+//         {
+//           model: db.PlanHistory,
+//           as: "planHistory", // Use the correct alias defined in your association
+//           attributes: ["id", "type", "status", "userId"],
+//           where: {
+//             type: "Plan30",
+//           },
+//           required: true, // Ensures only users with matching plan histories are included
+//         },
+//       ],
+//       having: db.Sequelize.where(
+//         db.Sequelize.literal(
+//           "(SELECT COUNT(*) FROM PlanHistories WHERE PlanHistories.userId = User.id AND PlanHistories.type = 'Plan30')"
+//         ),
+//         {
+//           [db.Sequelize.Op.eq]: 2,
+//         }
+//       ),
+//       group: ["User.id"], // Group by User ID to ensure aggregate filtering works
+//       raw: true, // Optional: If you want raw results instead of Sequelize instances
+//     });
+
+//     if (users && users.length > 0) {
+//       // Handle the users who meet the criteria
+//       // console.log("Users matching criteria:", users);
+//       for (const u of users) {
+//       }
+//     }
+//   } catch (error) {
+//     console.error("Error fetching users:", error);
+//     throw error;
+//   }
+// };
+
+export const SendUpgradeSuggestionNotification = async (user) => {
+  // let planHistory = await db.PlanHistory.findAll({
+  //   where: {
+  //     userId: user.id,
+
+  //   }
+  // })
+  await AddNotification(
+    user,
+    null,
+    NotificationTypes.PlanUpgradeSuggestionFor30MinPlan
+  );
+};

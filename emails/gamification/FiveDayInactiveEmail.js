@@ -39,7 +39,7 @@ export function generateInactive5DaysEmail(Name, CTA_Link, CTA_Text) {
           display: block;
           margin: 20px auto;
           padding: 12px 24px;
-          background-color: #28a745;
+          background-color: #7902DF;
           color: #fff;
           text-decoration: none;
           border-radius: 25px;
@@ -47,6 +47,9 @@ export function generateInactive5DaysEmail(Name, CTA_Link, CTA_Text) {
           font-weight: bold;
           text-align: center;
           width: 50%;
+        }
+        .ctaText{
+          color: #FFFFFF
         }
         .cta:hover {
           background-color: #218838;
@@ -67,7 +70,7 @@ export function generateInactive5DaysEmail(Name, CTA_Link, CTA_Text) {
           <p>Hi {Name},</p>
           <p>Did you know agents who call 200 homeowners see a <strong>10x increase in hot leads</strong>? You’ve got the tools—let’s help you fill your pipeline and secure your next listing appointment.</p>
           <p>Don’t wait—start dialing today!</p>
-          <a href="{CTA_Link}" class="cta">{CTA_Text}</a>
+          <a href="{CTA_Link}" class="cta"><p class="ctaText">{CTA_Text}</p></a>
         </div>
         <div class="footer">
           © 2025 AgentX, All Rights Reserved.
@@ -77,7 +80,10 @@ export function generateInactive5DaysEmail(Name, CTA_Link, CTA_Text) {
     </html>
     `;
 
-  return HtmlTemplateInactive5Days.replace("{Name}", Name)
-    .replace("{CTA_Link}", CTA_Link)
-    .replace("{CTA_Text}", CTA_Text);
+  return {
+    html: HtmlTemplateInactive5Days.replace("{Name}", Name)
+      .replace("{CTA_Link}", CTA_Link)
+      .replace("{CTA_Text}", CTA_Text),
+    subject: "We Noticed You Haven’t Made Calls This Week",
+  };
 }
