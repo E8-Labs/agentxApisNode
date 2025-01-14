@@ -32,7 +32,13 @@ import {
   CheckAndSendLastChanceToActNotificaitonSent,
   CheckAndSendTwoMinuteTrialLeftNotificaitonSent,
 } from "./CheckAndSendTrialNotificaitons.js";
-import { SendNotificationsForNoCalls5Days } from "./GamificationNotifications.js";
+import {
+  SendFeedbackNotificationsAfter14Days,
+  SendNotificationsForNoCalls5Days,
+} from "./GamificationNotifications.js";
+import { generateInactive5DaysEmail } from "../emails/gamification/FiveDayInactiveEmail.js";
+import { constants } from "../constants/constants.js";
+import { generateFeedbackRequest14DaysEmail } from "../emails/gamification/FeedbackRequestEmail.js";
 
 async function GetNotificationTitle(
   user,
@@ -375,6 +381,20 @@ async function SendEmailForNotification(
       `${minutes} minutes`, // Minutes
       `$${plan?.price || "Unknown"}` // Price
     );
+  } else if (type == NotificationTypes.Inactive5Days) {
+    emailNot = generateInactive5DaysEmail(
+      user.name,
+      constants.LeadPage,
+      "Start Calling"
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.Day14FeedbackRequest) {
+    emailNot = generateFeedbackRequest14DaysEmail(
+      user.name,
+      constants.LeadPage,
+      "Share Feedback"
+    );
+    email = user.email;
   }
 
   if (!emailNot) {
@@ -546,6 +566,7 @@ export const NotificationCron = async () => {
         const ninePM = userDateTime.set({ hour: 21, minute: 0, second: 0 });
         SendNotificationsForNoCalls(u);
         SendNotificationsForNoCalls5Days(u);
+        SendFeedbackNotificationsAfter14Days(u);
         if (userDateTime > ninePM) {
           console.log(
             `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
@@ -859,3 +880,7 @@ export async function SendTestEmail(req, res) {
 }
 
 // NotificationCron();
+// let user = await db.User.findByPk(10);
+// SendNotificationsForNoCalls5Days(user);
+
+// AddNotification(user, null, NotificationTypes.Day14FeedbackRequest);

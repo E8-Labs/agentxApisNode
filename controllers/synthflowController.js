@@ -44,6 +44,8 @@ import {
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { constants } from "../constants/constants.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
+import { NotificationTypes } from "../models/user/NotificationModel.js";
+import { AddNotification } from "./NotificationController.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -1458,6 +1460,36 @@ export const UpdateAgent = async (req, res) => {
         status: false,
         message: "Unauthenticated user",
         data: null,
+      });
+    }
+  });
+};
+
+export const GenerateFirstAINotification = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let not = await db.NotificationModel.findOne({
+        where: {
+          userId: user.id,
+          type: NotificationTypes.TestAINotification,
+        },
+      });
+      if (not) {
+        //already sent notification
+      } else {
+        await AddNotification(user, null, NotificationTypes.TestAINotification);
+      }
+      return res.send({ status: true, message: "Sent" });
+    } else {
+      return res.send({
+        status: false,
+        message: "Could not generate AI Notification",
       });
     }
   });

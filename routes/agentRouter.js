@@ -19,6 +19,7 @@ import {
   GetObjectionsAndGuardrails,
   UploadAgentImage,
   TestAI,
+  GenerateFirstAINotification,
 } from "../controllers/synthflowController.js";
 
 import {
@@ -83,6 +84,12 @@ AgentRouter.post(
 );
 
 AgentRouter.post("/testAi", verifyJwtTokenWithTeam, uploadFiles, TestAI);
+AgentRouter.post(
+  "/sendTestAiNotification",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GenerateFirstAINotification
+);
 
 AgentRouter.get("/getAgents", verifyJwtTokenWithTeam, uploadFiles, GetAgents);
 AgentRouter.get(

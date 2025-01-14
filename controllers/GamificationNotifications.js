@@ -39,7 +39,7 @@ export async function SendNotificationsForNoCalls5Days(user) {
       },
     });
 
-    if (totalCalls == 0) {
+    if (totalCalls >= 0) {
       console.log("Total calls were 0 576 line");
 
       if (userCreatedAt < last5Days) {
@@ -80,7 +80,8 @@ export async function SendNotificationsForNoCalls5Days(user) {
         console.log("Here ");
         console.log(totalCalls);
         console.log(canSendNewNot);
-        if (totalCalls == 0 && canSendNewNot) {
+        if (true) {
+          //(totalCalls == 0 && canSendNewNot) {
           // Send "No Calls in 3 days" notification
           await AddNotification(
             user,
@@ -102,5 +103,37 @@ export async function SendNotificationsForNoCalls5Days(user) {
   }
 }
 
-// let user = await db.User.findByPk(10);
-// SendNotificationsForNoCalls5Days(user);
+export async function SendFeedbackNotificationsAfter14Days(user) {
+  const HoursIn5Days = 14 * 24; // hours in 14 days
+  console.log("Sending No Calls Not to ", user.id);
+  try {
+    const last5Days = new Date();
+    last5Days.setHours(last5Days.getHours() - HoursIn5Days);
+
+    // Check user's account creation date
+    const userCreatedAt = new Date(user.createdAt);
+
+    console.log("Sending no calls to", user.id);
+
+    if (userCreatedAt <= last5Days) {
+      console.log("User account was created before 14 days ", user.id);
+      console.log("Here ");
+
+      await AddNotification(
+        user,
+        null,
+        NotificationTypes.Day14FeedbackRequest,
+        null,
+        null,
+        null,
+        0,
+        0
+      );
+    }
+    // } else {
+    //   console.log("User has many calls");
+    // }
+  } catch (error) {
+    console.log("Error adding not ", error);
+  }
+}
