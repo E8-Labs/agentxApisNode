@@ -1,28 +1,32 @@
 import nodemailer from "nodemailer";
+
 const transporter = nodemailer.createTransport({
+  pool: true,
   host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.Mailer_UserName,
     pass: process.env.Mailer_Password,
   },
+  maxConnections: 5,
+  maxMessages: 100,
 });
 
 export async function SendEmail(to, subject, html) {
-  const htmlTemplate = html;
-
   const mailOptions = {
     from: process.env.Mailer_FromEmail,
     to,
     subject,
-    html: htmlTemplate,
+    html,
   };
+
   try {
     const result = await transporter.sendMail(mailOptions);
-    console.log("Mail sent result ", result);
+    console.log("Mail sent result:", result);
+    return { status: true, message: "Email sent successfully" };
   } catch (error) {
-    console.log("Exception email", error);
+    console.error("Exception email:", error);
     return { status: false, message: "An error occurred" };
   }
 }
