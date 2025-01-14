@@ -893,4 +893,4 @@ export async function SendTestEmail(req, res) {
 // SendNotificationsForNoCalls5Days(user);
 
 // AddNotification(user, null, NotificationTypes.Day14FeedbackRequest);
-SendUpgradeSuggestionNotification();
+// SendUpgradeSuggestionNotification();

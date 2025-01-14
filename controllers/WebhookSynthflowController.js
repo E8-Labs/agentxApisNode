@@ -581,7 +581,10 @@ async function extractIEAndStoreKycs(extractors, lead, callId) {
 
             await db.LeadEmailModel.create({ email: answer, leadId: lead.id });
           }
-        } else if (question !== "prospectname") {
+        } else if (
+          question !== "prospectname" &&
+          !question.includes(process.env.StagePrefix)
+        ) {
           let found = await db.InfoExtractorModel.findOne({
             where: { identifier: question },
           });
