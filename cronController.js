@@ -74,6 +74,4 @@ NotificationSendingCron.start();
 
 // NotificationCron();
 
-
-
-function CronRecharge
+// function CronRecharge
