@@ -24,7 +24,10 @@ import {
   NotificationCron,
 } from "./controllers/NotificationController.js";
 import { NotificationTypes } from "./models/user/NotificationModel.js";
-import { ReChargeUserAccount } from "./controllers/PaymentController.js";
+import {
+  RechargeFunction,
+  ReChargeUserAccount,
+} from "./controllers/PaymentController.js";
 
 //Concurrent Calls- Set Limit to 100
 //https://docs.synthflow.ai/docs/concurrency-calls
@@ -73,31 +76,9 @@ const NotificationSendingCron = nodeCron.schedule(
 );
 NotificationSendingCron.start();
 
-// const RechargeCron = nodeCron.schedule("*/50 * * * * *", async () => {
-//   console.log("Cron Cancel plan or rechrage");
-//   let date7DaysAgo = new Date();
-//   date7DaysAgo.setDate(date7DaysAgo.getDate() - 7); // Correctly subtract 7 days from the current date
-//   let users = await db.User.findAll({
-//     where: {
-//       createdAt: {
-//         [db.Sequelize.Op.gt]: date7DaysAgo,
-//       },
-//     },
-//   });
-//   if (users && users.length > 0) {
-//     for (const u of users) {
-//       try {
-//         ReChargeUserAccount(u);
-//       } catch (error) {
-//         console.log("error rechargign or cancelling trial");
-//       }
-//     }
-//   }
-
-//   // ReChargeUserAccount
-// });
-// RechargeCron.start();
-
+const RechargeCron = nodeCron.schedule("*/5 * * * *", RechargeFunction);
+RechargeCron.start();
+// RechargeFunction()
 // NotificationCron();
 
 // function CronRecharge

@@ -568,15 +568,19 @@ export const RedeemAbortCancellationReward = async (req, res) => {
 
 export async function ReChargeUserAccount(user) {
   console.log("Charge user here ", user.id);
-  console.log("Total Seconds less than ", 120);
+  console.log("Total Seconds less than ", user.totalSecondsAvailable);
 
   let lastPlan = await db.PlanHistory.findOne({
     where: { userId: user.id, status: "active" },
     ordre: [["createdAt", "DESC"]],
   });
+  // console.log("Plan ", lastPlan);
 
-  if (lastPlan) {
-    console.log("There is a last plan");
+  if (lastPlan && (user.totalSecondsAvailable <= 120 || user.isTrial)) {
+    console.log(
+      "user have an active plan and has less than 120 min: So charge him"
+    );
+    console.log("There is a last plan", user.id);
     let foundPlan = null;
     console.log(PayAsYouGoPlans);
     PayAsYouGoPlans.map((p) => {
@@ -584,6 +588,8 @@ export async function ReChargeUserAccount(user) {
         foundPlan = p;
       }
     });
+    console.log("Found plan for ", user.id);
+    console.log(foundPlan);
 
     let price = foundPlan.price * 100; //cents
     let charge = await chargeUser(
@@ -593,7 +599,7 @@ export async function ReChargeUserAccount(user) {
       foundPlan.type
     );
     user = await db.User.findByPk(user.id);
-    console.log("Charge ", charge);
+    // console.log("Charge ", charge);
     if (charge && charge.status) {
       console.log("Charged for plan ", foundPlan);
       let historyCreated = await db.PaymentHistory.create({
@@ -606,13 +612,18 @@ export async function ReChargeUserAccount(user) {
         transactionId: charge.paymentIntent.id,
       });
       user.totalSecondsAvailable += foundPlan.duration;
+      user.isTrial = false;
       await user.save();
       return charge;
     }
     return null;
   } else {
-    RemoveTrialMinutesIf7DaysPassedAndNotCharged(user);
-    console.log("There is no plan");
+    console.log("There is no plan", user.id);
+    console.log(
+      "So try to remove his free minutes from trial if 7 days have passed"
+    );
+    await RemoveTrialMinutesIf7DaysPassedAndNotCharged(user);
+
     return null;
   }
 }
@@ -621,7 +632,7 @@ export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
   let u = user;
 
   if (!user.isTrial) {
-    console.log("User is not on trial");
+    console.log("User is not on trial ", user.id);
     return;
   }
 
@@ -629,7 +640,7 @@ export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
   let now = new Date(); // Current time
   let createdAt = new Date(user.createdAt); // Convert user.createdAt to a Date object
 
-  let type = NotificationTypes.LastChanceToAct;
+  // let type = NotificationTypes.LastChanceToAct;
   // Calculate the difference in milliseconds
   let timeDifference = now - createdAt;
 
@@ -639,8 +650,9 @@ export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
     console.log("Yes  Trial have passed", u.id);
     console.log("More than 7 days have passed and still on trial");
     user.isTrial = false;
-    let seconds = user.totalAvailableSeconds;
-    user.totalAvailableSeconds -= seconds;
+    let seconds = user.totalSecondsAvailable;
+    // let secondsToRe
+    user.totalSecondsAvailable -= seconds;
     await user.save();
 
     return;
@@ -648,3 +660,26 @@ export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
     console.log("No  Trial have not passed", u.id);
   }
 }
+
+export async function RechargeFunction() {
+  console.log("Cron Cancel plan or rechrage");
+  // Correctly subtract 7 days from the current date
+  let users = await db.User.findAll();
+  console.log("Total users ", users.length);
+  // return;
+  if (users && users.length > 0) {
+    for (const u of users) {
+      try {
+        console.log("------------------------------------------\n\n");
+        await ReChargeUserAccount(u);
+        console.log("\n\n------------------------------------------\n");
+      } catch (error) {
+        console.log("error rechargign or cancelling trial");
+      }
+    }
+  }
+
+  // ReChargeUserAccount
+}
+
+// RechargeFunction();

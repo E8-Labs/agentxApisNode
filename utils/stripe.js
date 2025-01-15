@@ -411,7 +411,7 @@ export const chargeUser = async (
       },
     });
 
-    console.log("Payment ", paymentIntent);
+    // console.log("Payment ", paymentIntent);
 
     if (paymentIntent && paymentIntent.status === "succeeded") {
       // Payment succeeded

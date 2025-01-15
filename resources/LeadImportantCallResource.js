@@ -61,16 +61,19 @@ async function getUserData(lead, currentUser = null) {
   });
   let formattedCalls = [];
   if (callActivity && callActivity.length > 0) {
-    formattedCalls = callActivity.map((call) => {
+    formattedCalls = callActivity.map(async (call) => {
       const minutes = Math.floor(call.duration / 60);
       const seconds = call.duration % 60;
       const formattedDuration = `${String(minutes).padStart(2, "0")}:${String(
         seconds
       ).padStart(2, "0")}`;
-
+      let subAgentId = call.agentId;
+      let agent = await db.AgentModel.findByPk(subAgentId);
+      // callData.agent = agent;
       return {
         ...call.dataValues, // Include existing call data
         durationFormatted: formattedDuration,
+        agent: agent,
       };
     });
   }
