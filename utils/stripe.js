@@ -293,17 +293,29 @@ export async function RedeemCodeOnPlanSubscription(user) {
   }
   if (!inviteCodeRedeemed && inviteCodeUsed != null && inviteCodeUsed != "") {
     console.log("Redeeming invite code");
+    //Check if the inviting user has an active plan
+    let plan = await db.PlanHistory.findOne({
+      where: {
+        userId: invitingUser.id,
+        status: "active",
+      },
+    });
 
-    console.log(
-      "RedeemFunc: Inviting user seconds Before ",
-      invitingUser.totalSecondsAvailable
-    );
-    invitingUser.totalSecondsAvailable += TotalRedeemableSeconds;
-    await invitingUser.save();
-    console.log(
-      "RedeemFunc: Inviting user seconds After ",
-      invitingUser.totalSecondsAvailable
-    );
+    //only redeem if inviting user has active plan
+    if (plan) {
+      console.log(
+        "RedeemFunc: Inviting user seconds Before ",
+        invitingUser.totalSecondsAvailable
+      );
+      invitingUser.totalSecondsAvailable += TotalRedeemableSeconds;
+      await invitingUser.save();
+      console.log(
+        "RedeemFunc: Inviting user seconds After ",
+        invitingUser.totalSecondsAvailable
+      );
+    } else {
+      console.log("RedeemFunc: Inviting user don't have an active plan");
+    }
 
     console.log(
       "RedeemFunc: Receiving user seconds Before ",

@@ -42,6 +42,7 @@ import { constants } from "../constants/constants.js";
 import { generateFeedbackRequest14DaysEmail } from "../emails/gamification/FeedbackRequestEmail.js";
 import { generatePlanUpgradeEmail } from "../emails/gamification/PlanUpgradeEmail.js";
 import { ExtractAreaCode } from "../utils/USAreaCodes.js";
+import { CheckAndSend7DaysInactivityNotifications } from "./InactiveUserNotifications.js";
 
 async function GetNotificationTitle(
   user,
@@ -434,7 +435,7 @@ async function SendEmailForNotification(
   } else if (type == NotificationTypes.Day14FeedbackRequest) {
     emailNot = generateFeedbackRequest14DaysEmail(
       user.name,
-      constants.LeadPage,
+      constants.Feedback,
       "Share Feedback"
     );
     email = user.email;
@@ -570,6 +571,7 @@ export const NotificationCron = async () => {
   try {
     try {
       SendAutoDailyNotificationsFor7Days();
+      CheckAndSend7DaysInactivityNotifications();
     } catch (error) {}
     let date = new Date().toISOString();
     console.log("Current time server ", date);
@@ -936,6 +938,7 @@ export async function SendTestEmail(req, res) {
   });
 }
 
+CheckAndSend7DaysInactivityNotifications();
 // NotificationCron();
 // let user = await db.User.findByPk(10);
 // SendNotificationsForNoCalls5Days(user);
