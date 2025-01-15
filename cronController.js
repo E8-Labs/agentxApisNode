@@ -73,7 +73,7 @@ const NotificationSendingCron = nodeCron.schedule(
 );
 // NotificationSendingCron.start();
 
-const RechargeCron = nodeCron.schedule("*/1 * * * * *", async () => {
+const RechargeCron = nodeCron.schedule("*/50 * * * * *", async () => {
   console.log("Cron Cancel plan or rechrage");
   let date7DaysAgo = new Date();
   date7DaysAgo.setDate(date7DaysAgo.getDate() - 7); // Correctly subtract 7 days from the current date
