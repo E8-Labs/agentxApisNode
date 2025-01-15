@@ -64,6 +64,10 @@ async function getUserData(call, currentUser = null) {
     }
   }
 
+  let subAgentId = callData.agentId;
+  let agent = await db.AgentModel.findByPk(subAgentId);
+  callData.agent = agent;
+
   const LeadCallResource = callData;
 
   return LeadCallResource;
