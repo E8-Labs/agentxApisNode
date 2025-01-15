@@ -611,7 +611,40 @@ export async function ReChargeUserAccount(user) {
     }
     return null;
   } else {
+    RemoveTrialMinutesIf7DaysPassedAndNotCharged(user);
     console.log("There is no plan");
     return null;
+  }
+}
+
+export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
+  let u = user;
+
+  if (!user.isTrial) {
+    console.log("User is not on trial");
+    return;
+  }
+
+  //check the datetime to see if it is gt 3 hours and less than 4
+  let now = new Date(); // Current time
+  let createdAt = new Date(user.createdAt); // Convert user.createdAt to a Date object
+
+  let type = NotificationTypes.LastChanceToAct;
+  // Calculate the difference in milliseconds
+  let timeDifference = now - createdAt;
+
+  //If 7 days have passed
+  console.log("Checking If Trial have passed", user.id);
+  if (timeDifference > 7 * 24 * 60 * 60 * 1000) {
+    console.log("Yes  Trial have passed", u.id);
+    console.log("More than 7 days have passed and still on trial");
+    user.isTrial = false;
+    let seconds = user.totalAvailableSeconds;
+    user.totalAvailableSeconds -= seconds;
+    await user.save();
+
+    return;
+  } else {
+    console.log("No  Trial have not passed", u.id);
   }
 }

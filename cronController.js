@@ -24,6 +24,7 @@ import {
   NotificationCron,
 } from "./controllers/NotificationController.js";
 import { NotificationTypes } from "./models/user/NotificationModel.js";
+import { ReChargeUserAccount } from "./controllers/PaymentController.js";
 
 //Concurrent Calls- Set Limit to 100
 //https://docs.synthflow.ai/docs/concurrency-calls
@@ -39,38 +40,63 @@ const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
   "*/1 * * * *",
   CronRunCadenceCallsFirstBatch
 );
-CronRunCadenceCallsFirstBatchCron.start();
+// CronRunCadenceCallsFirstBatchCron.start();
 
 const CronRunCadenceCallsSubsequentStagesCron = nodeCron.schedule(
   "*/1 * * * *",
   CronRunCadenceCallsSubsequentStages
 );
-CronRunCadenceCallsSubsequentStagesCron.start();
+// CronRunCadenceCallsSubsequentStagesCron.start();
 
 // Schedule a cron job to run every day at midnight
 // cron.schedule("0 0 * * *", PhoneNumberCron);
 
 //Testing every min
 const CronPhone = nodeCron.schedule("0 0 * * *", PhoneNumberCron);
-CronPhone.start();
-PhoneNumberCron();
+// CronPhone.start();
+// PhoneNumberCron();
 
 //Call status cron
 const CronCallOutcome = nodeCron.schedule(
   "*/59 * * * * *",
   SetOutcomeforpreviousCalls
 );
-CronCallOutcome.start();
+// CronCallOutcome.start();
 
 //Release Number cron
 const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
-CronReleaseNumber.start();
+// CronReleaseNumber.start();
 
 const NotificationSendingCron = nodeCron.schedule(
   "*/59 * * * * *", //"*/59 * * * * *",
   NotificationCron
 );
-NotificationSendingCron.start();
+// NotificationSendingCron.start();
+
+const RechargeCron = nodeCron.schedule("*/1 * * * * *", async () => {
+  console.log("Cron Cancel plan or rechrage");
+  let date7DaysAgo = new Date();
+  date7DaysAgo.setDate(date7DaysAgo.getDate() - 7); // Correctly subtract 7 days from the current date
+  let users = await db.User.findAll({
+    where: {
+      createdAt: {
+        [db.Sequelize.Op.gt]: date7DaysAgo,
+      },
+    },
+  });
+  if (users && users.length > 0) {
+    for (const u of users) {
+      try {
+        ReChargeUserAccount(u);
+      } catch (error) {
+        console.log("error rechargign or cancelling trial");
+      }
+    }
+  }
+
+  // ReChargeUserAccount
+});
+RechargeCron.start();
 
 // NotificationCron();
 
