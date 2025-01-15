@@ -61,7 +61,7 @@ async function getUserData(lead, currentUser = null) {
   });
   let formattedCalls = [];
   if (callActivity && callActivity.length > 0) {
-    formattedCalls = callActivity.map(async (call) => {
+    for (let call of callActivity) {
       const minutes = Math.floor(call.duration / 60);
       const seconds = call.duration % 60;
       const formattedDuration = `${String(minutes).padStart(2, "0")}:${String(
@@ -75,7 +75,7 @@ async function getUserData(lead, currentUser = null) {
         durationFormatted: formattedDuration,
         agent: agent,
       };
-    });
+    }
   }
 
   // let scheduled = await db.ScheduledBooking.findOne({
