@@ -330,7 +330,7 @@ export async function RedeemCodeOnPlanSubscription(user) {
     await AddNotification(
       invitingUser,
       null,
-      NotificationTypes.RedeemedAgentXCode,
+      NotificationTypes.RedeemedAgentXCodeMine,
       null,
       null,
       inviteCodeUsed
