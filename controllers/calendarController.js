@@ -82,14 +82,6 @@ export async function CheckCalendarAvailability(req, res) {
   const mainAgentId = req.query.mainAgentId;
   const agentId = req.query.agentId || null;
 
-  // if (!date || !time) {
-  //   return res.status(400).send({
-  //     status: false,
-  //     message: "Date and time are required.",
-  //   });
-  // }
-
-  // Retrieve calendar integration for the main agent
   let filter = { mainAgentId: mainAgentId };
   if (agentId) {
     filter.agentId = agentId;
@@ -199,7 +191,7 @@ async function processSlots(response, timeZone) {
 
       // Add the converted slot to the result array
       convertedSlots.push({
-        // originalUTC: slot.time,
+        originalUTC: slot.time,
         localTime: localDateTime.toISO(),
       });
     });
