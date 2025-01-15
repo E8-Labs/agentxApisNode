@@ -241,6 +241,7 @@ export async function CheckAndSendNeedHelpDontMissoutNotificaitonSent(user) {
 }
 //Day 6: sent 5 day & 3 hr after account creation
 export async function CheckAndSendLastChanceToActNotificaitonSent(user) {
+  let u = user;
   let leads = await db.LeadModel.count({
     where: {
       userId: user.id,
@@ -260,7 +261,7 @@ export async function CheckAndSendLastChanceToActNotificaitonSent(user) {
   let timeDifference = now - createdAt;
 
   //If 7 days have passed
-  console.log("Checking If Trial have passed", u.id);
+  console.log("Checking If Trial have passed", user.id);
   if (timeDifference > 7 * 24 * 60 * 60 * 1000) {
     console.log("Yes  Trial have passed", u.id);
     console.log("More than 7 days have passed and still on trial");
