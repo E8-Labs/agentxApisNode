@@ -120,6 +120,15 @@ export async function SendFeedbackNotificationsAfter14Days(user) {
 
     console.log("Sending no calls to", user.id);
 
+    let not = await db.NotificationModel.findOne({
+      where: {
+        userId: user.id,
+        type: NotificationTypes.Day14FeedbackRequest,
+      },
+    });
+    if (not) {
+      return;
+    }
     if (userCreatedAt <= last5Days) {
       console.log("User account was created before 14 days ", user.id);
       console.log("Here ");
@@ -143,45 +152,6 @@ export async function SendFeedbackNotificationsAfter14Days(user) {
   }
 }
 
-// export const SendUpgradeSuggestionNotification = async () => {
-//   try {
-//     const users = await db.User.findAll({
-//       attributes: ["id", "name", "email"], // Adjust attributes based on your User model
-//       include: [
-//         {
-//           model: db.PlanHistory,
-//           as: "planHistory", // Use the correct alias defined in your association
-//           attributes: ["id", "type", "status", "userId"],
-//           where: {
-//             type: "Plan30",
-//           },
-//           required: true, // Ensures only users with matching plan histories are included
-//         },
-//       ],
-//       having: db.Sequelize.where(
-//         db.Sequelize.literal(
-//           "(SELECT COUNT(*) FROM PlanHistories WHERE PlanHistories.userId = User.id AND PlanHistories.type = 'Plan30')"
-//         ),
-//         {
-//           [db.Sequelize.Op.eq]: 2,
-//         }
-//       ),
-//       group: ["User.id"], // Group by User ID to ensure aggregate filtering works
-//       raw: true, // Optional: If you want raw results instead of Sequelize instances
-//     });
-
-//     if (users && users.length > 0) {
-//       // Handle the users who meet the criteria
-//       // console.log("Users matching criteria:", users);
-//       for (const u of users) {
-//       }
-//     }
-//   } catch (error) {
-//     console.error("Error fetching users:", error);
-//     throw error;
-//   }
-// };
-
 export const SendUpgradeSuggestionNotification = async (user) => {
   // let planHistory = await db.PlanHistory.findAll({
   //   where: {
@@ -189,6 +159,7 @@ export const SendUpgradeSuggestionNotification = async (user) => {
 
   //   }
   // })
+
   await AddNotification(
     user,
     null,

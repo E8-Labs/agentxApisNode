@@ -177,6 +177,9 @@ async function GetNotificationTitle(
   if (type == NotificationTypes.RedeemedAgentXCode) {
     title = `30 minutes added for using (${code})`;
   }
+  if (type == NotificationTypes.RedeemedAgentXCodeMine) {
+    title = `30 minutes added for using (${code})`;
+  }
   if (type == NotificationTypes.LeadCalledBack) {
     title = `${lead?.firstName || "New Lead"} called back`;
   }
@@ -325,7 +328,10 @@ async function SendEmailForNotification(
       fromUser.name
     );
     email = user.email;
-  } else if (type == NotificationTypes.RedeemedAgentXCode) {
+  } else if (
+    type == NotificationTypes.RedeemedAgentXCode ||
+    type == NotificationTypes.RedeemedAgentXCodeMine
+  ) {
     emailNot = GetAgentXCodeUsageEmailReplacedVariables(user.name, code);
     email = user.email;
   } else if (type == NotificationTypes.Hotlead) {
@@ -416,7 +422,7 @@ async function SendEmailForNotification(
     emailNot = generateMinutesRenewedEmail(
       user.name, // Name
       `${minutes} minutes`, // Minutes
-      `$${plan?.price || "Unknown"}` // Price
+      `${plan?.price || "Unknown"}` // Price
     );
   } else if (type == NotificationTypes.Inactive5Days) {
     emailNot = generateInactive5DaysEmail(
