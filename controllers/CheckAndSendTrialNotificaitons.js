@@ -260,13 +260,17 @@ export async function CheckAndSendLastChanceToActNotificaitonSent(user) {
   let timeDifference = now - createdAt;
 
   //If 7 days have passed
+  console.log("Checking If Trial have passed", u.id);
   if (timeDifference > 7 * 24 * 60 * 60 * 1000) {
+    console.log("Yes  Trial have passed", u.id);
     console.log("More than 7 days have passed and still on trial");
     user.isTrial = false;
     let seconds = user.totalAvailableSeconds;
     user.totalAvailableSeconds -= seconds;
     await user.save();
     return;
+  } else {
+    console.log("No  Trial have not passed", u.id);
   }
 
   if (leads > 0) {
