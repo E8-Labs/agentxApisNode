@@ -907,6 +907,7 @@ async function SendAutoDailyNotificationsFor7Days() {
     CheckAndSendTrialReminderNotificaitonSent(u);
     CheckAndSendNeedHelpDontMissoutNotificaitonSent(u);
     CheckAndSendLastDayToMakeItCountNotificaitonSent(u);
+    console.log("Sending Last Chance notification to user", u.id);
     CheckAndSendLastChanceToActNotificaitonSent(u);
     CheckAndSendTwoMinuteTrialLeftNotificaitonSent(u);
   }
