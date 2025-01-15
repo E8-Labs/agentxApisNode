@@ -282,6 +282,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                 "Charging for plan " + foundPlan.type,
                 foundPlan.type
               );
+              user = await db.User.findByPk(user.id);
               if (charge && charge.status) {
                 let historyCreated = await db.PaymentHistory.create({
                   title: GetTitleForPlan(foundPlan),
@@ -337,6 +338,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             "Charging for plan " + foundPlan.type,
             foundPlan.type
           );
+          user = await db.User.findByPk(user.id);
           if (charge && charge.status) {
             if (history.length > 0) {
               if (lastPlan.type != foundPlan.type) {
@@ -590,6 +592,7 @@ export async function ReChargeUserAccount(user) {
       "Charging for plan " + foundPlan.type,
       foundPlan.type
     );
+    user = await db.User.findByPk(user.id);
     console.log("Charge ", charge);
     if (charge && charge.status) {
       console.log("Charged for plan ", foundPlan);
