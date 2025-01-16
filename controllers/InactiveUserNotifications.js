@@ -10,44 +10,14 @@ export async function CheckAndSend7DaysInactivityNotifications() {
   let date7DaysAgo = new Date();
   date7DaysAgo.setDate(date7DaysAgo.getDate() - 7); // Correctly subtract 7 days from the current date
 
-  //All calls within last 7 days
-  let calls = await db.LeadCallsSent.findAll({
-    where: {
-      createdAt: {
-        [db.Sequelize.Op.gte]: date7DaysAgo,
-      },
-    },
-  });
-  let mainAgentIds = [];
-  if (calls && calls.length > 0) {
-    mainAgentIds = calls.map((call) => call.mainAgentId);
-  }
-  let mainAgents = await db.MainAgentModel.findAll({
-    where: {
-      id: {
-        [db.Sequelize.Op.in]: mainAgentIds,
-      },
-    },
-  });
-  let userIds = [];
-  if (mainAgents && mainAgents.length > 0) {
-    userIds = mainAgents.map((agent) => agent.userId);
-  }
-
-  let users = await db.User.findAll({
-    where: {
-      id: {
-        [db.Sequelize.Op.in]: userIds,
-      },
-    },
-  });
+  let users = await db.User.findAll();
 
   //send these users notifications
   console.log("InActiveNot: Found users to send ", users.length);
 
   for (const u of users) {
     let timeZone = u.timeZone || "America/Los_Angeles";
-    console.log("User Time zone is ", timeZone);
+    // console.log("User Time zone is ", timeZone);
     let plan = await db.PlanHistory.findOne({
       where: {
         userId: u.id,
@@ -58,6 +28,29 @@ export async function CheckAndSend7DaysInactivityNotifications() {
       console.log("User don't have active plan ", u.id);
       //   return;
     } else {
+      let agents = await db.MainAgentModel.findAll({
+        where: {
+          userId: u.id,
+        },
+      });
+      let agentIds = [];
+      if (agents && agents.length > 0) {
+        agentIds = agents.map((agent) => agent.id);
+      }
+      let callsMadeInLast7Days = await db.LeadCallsSent.findAll({
+        where: {
+          mainAgentId: {
+            [db.Sequelize.Op.in]: agentIds,
+          },
+          createdAt: {
+            [db.Sequelize.Op.gt]: date7DaysAgo,
+          },
+        },
+      });
+      console.log(`Calls made by ${u.id} are ${callsMadeInLast7Days.length}`);
+      if (callsMadeInLast7Days.length > 0) {
+        continue;
+      }
       //Check Trial Ticking
       SendInactiveNotificaiton(u, 8, NotificationTypes.SocialProof); // 1 days later after 7 days inactivity
       SendInactiveNotificaiton(u, 10, NotificationTypes.CompetitiveEdge); // 3 days later after 7 days inactivity
@@ -76,9 +69,9 @@ async function SendInactiveNotificaiton(
 ) {
   //   if (plan) {
   //check last call date
-  console.log("Sending for user ", user.id);
+  // console.log("Sending for user ", user.id);
   let days = await getDaysSinceLastCall(user.id);
-  console.log("User days passed ", days);
+  // console.log("User days passed ", days);
   //   let type = NotificationTypes.SocialProof;
   // Check if 1 hours (in milliseconds) or more have passed
   if (days == forDays) {
@@ -92,9 +85,9 @@ async function SendInactiveNotificaiton(
       await AddNotification(user, null, type);
     }
   } else {
-    console.log(
-      `Only ${days} gone by since last call ${user.id} so can not send for ${forDays}`
-    );
+    // console.log(
+    //   `Only ${days} gone by since last call ${user.id} so can not send for ${forDays}`
+    // );
     return;
   }
   //   }
