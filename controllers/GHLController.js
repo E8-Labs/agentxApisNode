@@ -64,14 +64,15 @@ export async function UpdateOrCreateUserInGhl(user) {
   });
   let closer = null;
   if (camp) {
-    closer = camp?.officeHoursUrl;
+    closer = camp?.name;
   }
   phone = formatPhoneNumber(phone);
   let plan = await db.PlanHistory.findOne({
     where: {
       userId: user.id,
-      status: "active",
     },
+    limit: 1,
+    order: [["createdAt", "DESC"]],
   });
   let totalAmountPaidForPlans = await db.PaymentHistory.sum("price", {
     where: {
@@ -104,7 +105,7 @@ export async function UpdateOrCreateUserInGhl(user) {
           plan: plan?.type || "None",
           planprice: plan?.price || 0, // Detailed payment information
           lead_source: "AgentX",
-          plan_status: plan ? plan.status : "cancelled",
+          plan_status: plan ? plan.status : "none",
           closer: closer,
         },
       });
@@ -140,7 +141,7 @@ export async function UpdateOrCreateUserInGhl(user) {
         plan: plan?.type || "None",
         planprice: Number(plan?.price || 0) || 0,
         lead_source: "AgentX",
-        plan_status: plan ? plan.status : "cancelled",
+        plan_status: plan ? plan.status : ""none"",
         closer: closer,
       });
       return false;
@@ -153,7 +154,7 @@ export async function UpdateOrCreateUserInGhl(user) {
       plan: plan?.type || "None",
       planprice: plan?.price || 0,
       lead_source: "AgentX",
-      plan_status: plan ? plan.status : "cancelled",
+      plan_status: plan ? plan.status : ""none"",
       closer: closer,
     });
     console.log(error);
