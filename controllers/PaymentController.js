@@ -575,8 +575,14 @@ export async function ReChargeUserAccount(user) {
     ordre: [["createdAt", "DESC"]],
   });
   // console.log("Plan ", lastPlan);
-
-  if (lastPlan && (user.totalSecondsAvailable <= 120 || user.isTrial)) {
+  let now = new Date(); // Current time
+  let createdAt = new Date(user.createdAt);
+  let timeDifference = now - createdAt;
+  if (
+    lastPlan &&
+    (user.totalSecondsAvailable <= 120 ||
+      (user.isTrial && timeDifference > 7 * 24 * 60 * 60 * 1000))
+  ) {
     console.log(
       "user have an active plan and has less than 120 min: So charge him"
     );
@@ -615,6 +621,10 @@ export async function ReChargeUserAccount(user) {
       user.isTrial = false;
       await user.save();
       return charge;
+    } else {
+      //Failed payment method
+      user.isTrial = false;
+      await user.save();
     }
     return null;
   } else {
@@ -674,6 +684,7 @@ export async function RechargeFunction() {
         await ReChargeUserAccount(u);
         console.log("\n\n------------------------------------------\n");
       } catch (error) {
+        console.log(error);
         console.log("error rechargign or cancelling trial");
       }
     }

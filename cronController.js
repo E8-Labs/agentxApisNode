@@ -29,16 +29,6 @@ import {
   ReChargeUserAccount,
 } from "./controllers/PaymentController.js";
 
-//Concurrent Calls- Set Limit to 100
-//https://docs.synthflow.ai/docs/concurrency-calls
-
-//This will push 100 leads into the cadence every day. If 100 leads are pushed, it will not psuh any more
-//Runs every 30 sec
-
-// CronRunCadenceCallsFirstBatch();
-
-// CronRunCadenceCallsSubsequentStages();
-
 const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
   "*/1 * * * *",
   CronRunCadenceCallsFirstBatch
@@ -51,13 +41,9 @@ const CronRunCadenceCallsSubsequentStagesCron = nodeCron.schedule(
 );
 CronRunCadenceCallsSubsequentStagesCron.start();
 
-// Schedule a cron job to run every day at midnight
-// cron.schedule("0 0 * * *", PhoneNumberCron);
-
 //Testing every min
 const CronPhone = nodeCron.schedule("0 0 * * *", PhoneNumberCron);
 CronPhone.start();
-// PhoneNumberCron();
 
 //Call status cron
 const CronCallOutcome = nodeCron.schedule(
@@ -76,9 +62,5 @@ const NotificationSendingCron = nodeCron.schedule(
 );
 NotificationSendingCron.start();
 
-const RechargeCron = nodeCron.schedule("*/5 * * * *", RechargeFunction);
+const RechargeCron = nodeCron.schedule("*/40 * * * *", RechargeFunction);
 RechargeCron.start();
-// RechargeFunction()
-// NotificationCron();
-
-// function CronRecharge

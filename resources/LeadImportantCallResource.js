@@ -70,11 +70,11 @@ async function getUserData(lead, currentUser = null) {
       let subAgentId = call.agentId;
       let agent = await db.AgentModel.findByPk(subAgentId);
       // callData.agent = agent;
-      return {
+      formattedCalls.push({
         ...call.dataValues, // Include existing call data
         durationFormatted: formattedDuration,
-        agent: agent,
-      };
+        agent: { name: agent.name, id: agent.id, type: agent.agentType },
+      });
     }
   }
 

@@ -51,6 +51,11 @@ export const CronRunCadenceCallsFirstBatch = async () => {
     console.log("Iteration", i);
     try {
       let leadCad = leadCadence[i];
+      // let lead = await db.LeadModel.findOne(leadCad.leadId)
+      let lead = await db.LeadModel.findByPk(leadCad.leadId);
+      if (lead) {
+        let user = await db.User.findByPk(lead.userId);
+      }
 
       let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
       if (!batch) {
@@ -90,7 +95,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       }
       console.log(`Here 1`);
       let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
-      let lead = await db.LeadModel.findByPk(leadCad.leadId);
+
       console.log("Finding agent for ", leadCad.mainAgentId);
       let mainAgent = await db.MainAgentModel.findByPk(leadCad.mainAgentId);
       console.log("Main Agent", mainAgent);
