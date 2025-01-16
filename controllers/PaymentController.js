@@ -228,7 +228,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           //set user trial mode
           user.isTrial = true;
           await user.save();
-
+          UpdateOrCreateUserInGhl(user);
           return res.send({
             status: true,
             message: "Successfully subscribed to plan",
