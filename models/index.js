@@ -60,6 +60,7 @@ import TeamModel from "./user/team/TeamModel.js";
 import { TestNumbers } from "./Testing/TestNumbers.js";
 import TeamLeadAssignModel from "./user/team/TeamLeadAssign.js";
 import TeamStageAssignModel from "./user/team/TeamStageAssignModel.js";
+import UserActivityModel from "./user/UserActivityModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -227,6 +228,8 @@ db.CadenceBatchModel.belongsTo(db.User, {
 db.User.hasMany(db.CadenceBatchModel, {
   foreignKey: "userId",
 });
+
+db.UserActivityModel = UserActivityModel(sequelize, Sequelize);
 
 db.CadenceBatchModel.belongsTo(db.Pipeline, {
   foreignKey: "pipelineId",
