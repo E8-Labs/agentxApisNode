@@ -15,7 +15,7 @@ export async function PushUserDataToGhl(
     type: "Customer",
     lastName: lastName,
     name: `${firstName} ${lastName}`,
-    source: "public api",
+    source: "AgentX",
     customField: customData,
   });
   console.log("Data pushing to ghl", data);
@@ -89,12 +89,14 @@ export async function UpdateOrCreateUserInGhl(user) {
       console.log("User already exists", contactId);
       // Update the contact's subscription details
       const data = JSON.stringify({
+        source: "AgentX",
         customField: {
           createdat: user.createdAt,
           totalpaidforminutes: totalAmountPaidForPlans,
           totalpaidforphonenumbers: totalAmountPaidForPhonePurchase,
           plan: plan?.type || "None",
           planprice: plan?.price || 0, // Detailed payment information
+          lead_source: "AgentX",
         },
       });
       console.log(data);
@@ -128,6 +130,7 @@ export async function UpdateOrCreateUserInGhl(user) {
         totalpaidforphonenumbers: Number(totalAmountPaidForPhonePurchase) || 0,
         plan: plan?.type || "None",
         planprice: Number(plan?.price || 0) || 0,
+        lead_source: "AgentX",
       });
       return false;
     }
@@ -138,6 +141,7 @@ export async function UpdateOrCreateUserInGhl(user) {
       totalpaidforphonenumbers: totalAmountPaidForPhonePurchase,
       plan: plan?.type || "None",
       planprice: plan?.price || 0,
+      lead_source: "AgentX",
     });
     console.log(error);
     console.error(
