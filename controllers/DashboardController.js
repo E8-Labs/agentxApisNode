@@ -166,9 +166,9 @@ export const GetDashboardData = async (req, res) => {
       if (stats.totalCallsGt10 > 0) {
         avDuration = stats.totalDurationGt10 / stats.totalCallsGt10;
       }
-      let formattedAvDuration = formatDuration(avDuration);
-      let av = stats.totalDuration / stats.totalCallsGt10;
 
+      let av = stats.totalDuration / stats.totalCallsGt10;
+      let formattedAvDuration = formatDuration(av);
       return res.send({
         status: true,
         data: {
