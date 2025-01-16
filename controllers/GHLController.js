@@ -59,9 +59,12 @@ export async function UpdateOrCreateUserInGhl(user) {
   if (!phone) {
     return;
   }
-  let camp = await db.CampaigneeModel.findOne({
-    where: { id: user.campaigneeId },
-  });
+  let camp = null;
+  if (user.campaigneeId) {
+    camp = await db.CampaigneeModel.findOne({
+      where: { id: user.campaigneeId },
+    });
+  }
   let closer = null;
   if (camp) {
     closer = camp?.name;
