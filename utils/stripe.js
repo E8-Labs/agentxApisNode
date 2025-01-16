@@ -382,6 +382,7 @@ export const chargeUser = async (
   const stripe = getStripeClient();
 
   try {
+    let user = await db.User.findByPk(userId);
     // Get the customer's Stripe customer ID
     const stripeCustomerId = await getStripeCustomerId(userId);
 
@@ -416,8 +417,6 @@ export const chargeUser = async (
     if (paymentIntent && paymentIntent.status === "succeeded") {
       // Payment succeeded
       if (type !== "PhonePurchase") {
-        let user = await db.User.findByPk(userId);
-
         user.isTrial = false;
         await user.save();
         await RedeemCodeOnPlanSubscription(user); //1656

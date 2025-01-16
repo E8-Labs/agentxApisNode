@@ -53,14 +53,14 @@ const CronCallOutcome = nodeCron.schedule(
 CronCallOutcome.start();
 
 //Release Number cron
-const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
-CronReleaseNumber.start();
+// const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
+// CronReleaseNumber.start();
 
 const NotificationSendingCron = nodeCron.schedule(
-  "*/59 * * * * *", //"*/59 * * * * *",
+  "*/5 * * * *", //"*/59 * * * * *",
   NotificationCron
 );
 NotificationSendingCron.start();
 
-const RechargeCron = nodeCron.schedule("*/40 * * * *", RechargeFunction);
-RechargeCron.start();
+// const RechargeCron = nodeCron.schedule("*/40 * * * *", RechargeFunction);
+// RechargeCron.start();

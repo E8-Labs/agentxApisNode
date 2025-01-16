@@ -10,6 +10,11 @@ const User = (sequelize, Sequelize) => {
       defaultValue: "",
     },
 
+    ghlUserId: {
+      type: Sequelize.STRING,
+      defaultValue: "",
+    },
+
     email: {
       type: Sequelize.STRING,
     },

@@ -25,9 +25,28 @@ export const verifyJwtToken = async (req, response, next) => {
   const apiKeyHeaders = req.headers["x-api-key"];
   console.log("Auth headers");
   console.log(authHeaders);
+  let data = JSON.stringify({
+    body: req.body || null,
+    query: req.query || null,
+    params: req.params || null,
+  });
   if (typeof authHeaders !== "undefined") {
     const parts = authHeaders.split(" ");
     req.token = parts[1];
+    const authData = await new Promise((resolve, reject) => {
+      JWT.verify(req.token, process.env.SecretJwtKey, (error, decoded) => {
+        if (error) reject(error);
+        else resolve(decoded);
+      });
+    });
+    let user = authData.user;
+    db.UserActivityModel.create({
+      action: req.url,
+      method: req.method,
+      activityData: data,
+      userId: user.id,
+      authMethod: "jwt",
+    });
     next();
   } else if (typeof apiKeyHeaders !== "undefined") {
     console.log("Auth through api key");
@@ -38,6 +57,13 @@ export const verifyJwtToken = async (req, response, next) => {
     });
     if (Key && Key.status == "active") {
       let user = await db.User.findByPk(Key.userId);
+      db.UserActivityModel.create({
+        action: req.url,
+        method: req.method,
+        activityData: data,
+        userId: user.id,
+        authMethod: "apiKey",
+      });
       if (user) {
         const token = await SignUser(user);
         req.token = token;
@@ -70,6 +96,11 @@ export const verifyJwtTokenWithTeam = async (req, response, next) => {
   const apiKeyHeaders = req.headers["x-api-key"];
   console.log("Auth headers");
   console.log(authHeaders);
+  let data = JSON.stringify({
+    body: req.body || null,
+    query: req.query || null,
+    params: req.params || null,
+  });
   if (typeof authHeaders !== "undefined") {
     const parts = authHeaders.split(" ");
     req.token = parts[1];
@@ -80,6 +111,13 @@ export const verifyJwtTokenWithTeam = async (req, response, next) => {
       });
     });
     let user = authData.user;
+    db.UserActivityModel.create({
+      action: req.url,
+      method: req.method,
+      activityData: data,
+      userId: user.id,
+      authMethod: "jwt",
+    });
     if (user.userRole == UserRole.Invitee) {
       req.admin = user;
       console.log("User is invited");
@@ -107,6 +145,13 @@ export const verifyJwtTokenWithTeam = async (req, response, next) => {
     });
     if (Key && Key.status == "active") {
       let user = await db.User.findByPk(Key.userId);
+      db.UserActivityModel.create({
+        action: req.url,
+        method: req.method,
+        activityData: data,
+        userId: user.id,
+        authMethod: "apiKey",
+      });
       if (user) {
         const token = await SignUser(user);
         req.token = token;

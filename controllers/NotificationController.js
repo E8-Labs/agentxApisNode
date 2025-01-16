@@ -41,8 +41,12 @@ import { generateInactive5DaysEmail } from "../emails/gamification/FiveDayInacti
 import { constants } from "../constants/constants.js";
 import { generateFeedbackRequest14DaysEmail } from "../emails/gamification/FeedbackRequestEmail.js";
 import { generatePlanUpgradeEmail } from "../emails/gamification/PlanUpgradeEmail.js";
-import { ExtractAreaCode } from "../utils/USAreaCodes.js";
+import { AreaCodes, ExtractAreaCode } from "../utils/USAreaCodes.js";
 import { CheckAndSend7DaysInactivityNotifications } from "./InactiveUserNotifications.js";
+import { generateFomoEmail } from "../emails/InactiveUserEmails/FomoEmail.js";
+import { generateExclusivityEmail } from "../emails/InactiveUserEmails/ExclusivityEmail.js";
+import { generateTerritoryUpdateEmail } from "../emails/InactiveUserEmails/TerritoryUpdate.js";
+import { generateSocialProofEmail } from "../emails/InactiveUserEmails/SocialProofEmail.js";
 
 async function GetNotificationTitle(
   user,
@@ -446,6 +450,47 @@ async function SendEmailForNotification(
       "Upgrade Plan"
     );
     email = user.email;
+  } else if (type == NotificationTypes.SocialProof) {
+    let location = ExtractAreaCode(user.phone);
+    console.log("Code ", location);
+    let city = location?.city || "Same city";
+    emailNot = generateSocialProofEmail(
+      user.name,
+      city,
+      constants.LeadPage,
+      "Upload Leads and Start Calling"
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.FOMOAlert) {
+    let location = ExtractAreaCode(user.phone);
+    let city = location?.city || "Same city";
+    emailNot = generateFomoEmail(
+      user.name,
+      city,
+      constants.LeadPage,
+      "Activate Your AI Now"
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.Exclusivity) {
+    let location = ExtractAreaCode(user.phone);
+    let city = location?.city || "Same city";
+    emailNot = generateExclusivityEmail(
+      user.name,
+      city,
+      constants.LeadPage,
+      "Start Now and Stay Ahead!"
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.TerritoryUpdate) {
+    let location = ExtractAreaCode(user.phone);
+    let city = location?.city || "Same city";
+    emailNot = generateTerritoryUpdateEmail(
+      user.name,
+      city,
+      constants.LeadPage,
+      "Start Winning Listings"
+    );
+    email = user.email;
   }
 
   if (!emailNot) {
@@ -573,6 +618,7 @@ export const NotificationCron = async () => {
       SendAutoDailyNotificationsFor7Days();
       CheckAndSend7DaysInactivityNotifications();
     } catch (error) {}
+    // return;
     let date = new Date().toISOString();
     console.log("Current time server ", date);
     const startOfToday = new Date();
@@ -913,8 +959,6 @@ async function SendAutoDailyNotificationsFor7Days() {
   }
 }
 
-// SendAutoDailyNotificationsFor7Days();
-
 export async function SendTestEmail(req, res) {
   let type = req.body.type;
   let email = GenerateTrialTickingEmail(
@@ -938,11 +982,3 @@ export async function SendTestEmail(req, res) {
     message: "Email sent",
   });
 }
-
-CheckAndSend7DaysInactivityNotifications();
-// NotificationCron();
-// let user = await db.User.findByPk(10);
-// SendNotificationsForNoCalls5Days(user);
-
-// AddNotification(user, null, NotificationTypes.SocialProof);
-// SendUpgradeSuggestionNotification();

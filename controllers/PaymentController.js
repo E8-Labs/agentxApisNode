@@ -44,6 +44,7 @@ import {
 import { constants } from "../constants/constants.js";
 import { generateFeedbackWithSenderDetails } from "../emails/FeedbackEmail.js";
 import { SendEmail } from "../services/MailService.js";
+import { UpdateOrCreateUserInGhl } from "./GHLController.js";
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
 // import { admin } from "../services/firebase-admin.js";
@@ -308,6 +309,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   "SubscribeFunc: Receiving user seconds After ",
                   user.totalSecondsAvailable
                 );
+                UpdateOrCreateUserInGhl(user);
                 return res.send({
                   status: true,
                   message: "Plan Upgraded",
@@ -383,7 +385,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               userId: user.id,
               environment: process.env.Environment,
             });
-
+            UpdateOrCreateUserInGhl(user);
             return res.send({
               status: true,
               message: "Plan subscribed " + foundPlan.type,
@@ -444,6 +446,7 @@ export const CancelPlan = async (req, res) => {
         //delete the numbe form our database
 
         // Format the response
+        UpdateOrCreateUserInGhl(user);
         let useRes = await UserProfileFullResource(user);
         res.send({
           status: true,
@@ -620,6 +623,7 @@ export async function ReChargeUserAccount(user) {
       user.totalSecondsAvailable += foundPlan.duration;
       user.isTrial = false;
       await user.save();
+      UpdateOrCreateUserInGhl(user);
       return charge;
     } else {
       //Failed payment method
