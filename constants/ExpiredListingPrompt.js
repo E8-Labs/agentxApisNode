@@ -38,7 +38,7 @@ Tone: Keep your tone empathetic and reassuring, even when addressing tough quest
 
   callScript: `
 [If they confirm]
-"Great, thank you for taking my call. I noticed your property at {address} recently came off the market, and I wanted to reach out to understand what your plans are moving forward. Did you manage to sell, or is the home still available?"
+"Great, thank you for taking my call. I noticed your property at {Address} recently came off the market, and I wanted to reach out to understand what your plans are moving forward. Did you manage to sell, or is the home still available?"
 
 [If Homeowner Responds Positively]
 Response: "That’s great to hear. We specialize in helping homeowners like yourself who have experienced challenges in selling their properties. Can I ask, what do you think held your home back from selling the first time?"

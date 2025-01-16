@@ -60,7 +60,7 @@ Tone:
   `,
 
   callScript: `
-"Hi , this is {agent_name} from [Brokerage Name]. We spoke a little while ago about your real estate goals. I just wanted to check in—are you still considering buying or selling within the next year or so?"
+"Hi , this is {agent_name} from {brokerage_name}. We spoke a little while ago about your real estate goals. I just wanted to check in—are you still considering buying or selling within the next year or so?"
 (Wait for a response, adjust the conversation based on interest)
 [Condition 1: If They Express Interest in Selling]
 Ask the following Seller KYC:

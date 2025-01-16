@@ -197,12 +197,12 @@ async function GetNotificationTitle(
     title = `${fromUser.name} accepted your invite`;
   }
   if (type == NotificationTypes.Hotlead) {
-    title = `${lead.firstName} is a hotlead 🔥`;
+    title = `${lead.firstName} is a hot lead 🔥`;
   }
   if (type == NotificationTypes.TotalHotlead) {
     //calculate hotleads today.
 
-    title = `You have ${hotleads} hotleads today 🔥`;
+    title = `You have ${hotleads} hot leads today 🔥`;
   }
   if (type == NotificationTypes.CallsMadeByAgent) {
     //calculate hotleads today.
