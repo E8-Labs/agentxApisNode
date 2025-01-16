@@ -167,12 +167,14 @@ export const GetDashboardData = async (req, res) => {
         avDuration = stats.totalDurationGt10 / stats.totalCallsGt10;
       }
       let formattedAvDuration = formatDuration(avDuration);
+      let av = stats.totalDuration / stats.totalCallsGt10;
 
       return res.send({
         status: true,
         data: {
           stats: {
             totalDuration: formatDuration(stats.totalDuration),
+            av: av,
             avDuration: avDuration,
             formattedAvDuration: formattedAvDuration,
             totalCalls: stats.totalCalls,
