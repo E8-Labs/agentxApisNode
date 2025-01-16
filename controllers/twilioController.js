@@ -9,6 +9,7 @@ import {
 } from "./actionController.js";
 import AvailablePhoneResource from "../resources/AvailablePhoneResource.js";
 import { chargeUser } from "../utils/stripe.js";
+import { UpdateOrCreateUserInGhl } from "./GHLController.js";
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -350,7 +351,7 @@ export const PurchasePhoneNumber = async (req, res) => {
         //   console.log("Sandbox environment so not actually buying number");
         //   purchasedNumber = { sid: `PHSID${phoneNumber}` };
         // } else {
-
+        UpdateOrCreateUserInGhl(user);
         purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
           phoneNumber,
         });
@@ -667,7 +668,9 @@ export const PhoneNumberCron = async () => {
             type: "PhonePurchase",
             price: PhoneNumberPrice,
             transactionId: chargeResult.paymentIntent.id,
+            environment: process.env.Environment,
           });
+          UpdateOrCreateUserInGhl(user);
           // Successful charge: update the next billing date
           phoneNumber.nextBillingDate = new Date(
             new Date().setMonth(new Date().getMonth() + 1)

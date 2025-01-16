@@ -26,6 +26,7 @@ import {
 } from "../utils/mediaservice.js";
 import { generateFeedbackWithSenderDetails } from "../emails/FeedbackEmail.js";
 import { SendEmail } from "../services/MailService.js";
+import { PushUserDataToGhl, UpdateOrCreateUserInGhl } from "./GHLController.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -142,6 +143,7 @@ export const LoginUser = async (req, res) => {
     // result == true
     // if (result) {
     const result = await SignUser(user);
+    UpdateOrCreateUserInGhl(user);
     return res.send({
       status: true,
       message: "User logged in",
@@ -287,6 +289,7 @@ export const RegisterUser = async (req, res) => {
     timeZone: timeZone,
     campaigneeId: campaignee?.id,
   });
+  UpdateOrCreateUserInGhl(user);
   let customerId = await generateStripeCustomerId(user.id);
   console.log("Stripe Custome Id Generated in Register");
 
@@ -294,7 +297,7 @@ export const RegisterUser = async (req, res) => {
     let agentService = req.body.agentService;
     let areaOfFocus = req.body.areaOfFocus;
     if (agentService && agentService.length > 0) {
-      agentService = JSON.parse(agentService);
+      // agentService = JSON.parse(agentService);
       for (let i = 0; i < agentService.length; i++) {
         let service = agentService[i];
         console.log("Adding Service", service);
@@ -320,7 +323,7 @@ export const RegisterUser = async (req, res) => {
       }
     }
     if (areaOfFocus && areaOfFocus.length > 0) {
-      areaOfFocus = JSON.parse(areaOfFocus);
+      // areaOfFocus = JSON.parse(areaOfFocus);
       for (let i = 0; i < areaOfFocus.length; i++) {
         let service = areaOfFocus[i];
         console.log("Adding Focus", service);

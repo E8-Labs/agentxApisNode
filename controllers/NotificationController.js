@@ -939,7 +939,7 @@ export async function SendTestEmail(req, res) {
   });
 }
 
-CheckAndSend7DaysInactivityNotifications();
+// CheckAndSend7DaysInactivityNotifications();
 // NotificationCron();
 // let user = await db.User.findByPk(10);
 // SendNotificationsForNoCalls5Days(user);
