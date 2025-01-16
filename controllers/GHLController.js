@@ -97,6 +97,7 @@ export async function UpdateOrCreateUserInGhl(user) {
           plan: plan?.type || "None",
           planprice: plan?.price || 0, // Detailed payment information
           lead_source: "AgentX",
+          plan_status: plan ? plan.status : "cancelled",
         },
       });
       console.log(data);
@@ -131,6 +132,7 @@ export async function UpdateOrCreateUserInGhl(user) {
         plan: plan?.type || "None",
         planprice: Number(plan?.price || 0) || 0,
         lead_source: "AgentX",
+        plan_status: plan ? plan.status : "cancelled",
       });
       return false;
     }
@@ -142,6 +144,7 @@ export async function UpdateOrCreateUserInGhl(user) {
       plan: plan?.type || "None",
       planprice: plan?.price || 0,
       lead_source: "AgentX",
+      plan_status: plan ? plan.status : "cancelled",
     });
     console.log(error);
     console.error(
