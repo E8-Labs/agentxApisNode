@@ -62,5 +62,5 @@ const NotificationSendingCron = nodeCron.schedule(
 );
 NotificationSendingCron.start();
 
-// const RechargeCron = nodeCron.schedule("*/40 * * * *", RechargeFunction);
-// RechargeCron.start();
+const RechargeCron = nodeCron.schedule("*/1 * * * * *", RechargeFunction);
+RechargeCron.start();
