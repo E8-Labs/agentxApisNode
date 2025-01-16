@@ -8,7 +8,10 @@ import {
   AttachActionToModel,
   CreateAndAttachCalendarAction,
 } from "./actionController.js";
-import { UpdateAssistantSynthflow } from "./synthflowController.js";
+import {
+  getInboudPromptText,
+  UpdateAssistantSynthflow,
+} from "./synthflowController.js";
 import {
   CreateAndAttachAction,
   CreateAndAttachInfoExtractor,
@@ -513,6 +516,24 @@ export async function ScheduleEvent(req, res) {
   }
 }
 
+async function updatePromptForInbound(agent, user) {
+  let prompt = await db.AgentPromptModel.findOne({
+    where: {
+      mainAgentId: agent.mainAgentId,
+      type: "inbound",
+    },
+  });
+  if (agent.agentType == "inbound") {
+    console.log("This is an inbound agent so updating prompt");
+    let inboundPromptText = await getInboudPromptText(prompt, agent, user);
+    let updatedSynthflow = await UpdateAssistantSynthflow(agent, {
+      agent: {
+        prompt: inboundPromptText,
+      },
+    });
+    //update to synthflow & also update in update agent api
+  }
+}
 export async function AddCalendarCalDotCom(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -599,6 +620,12 @@ export async function AddCalendarCalDotCom(req, res) {
             mainAgent,
             agentId
           );
+          let agent = await db.AgentModel.findByPk(agentId);
+          if (agent.agentType == "inbound") {
+            console.log("This is an inbound agent so updating prompt");
+            await updatePromptForInbound(agent, user);
+            //update to synthflow & also update in update agent api
+          }
           if (actionResult) {
             console.log("Action Create Result ", actionResult);
             let ids = actionResult.data;
@@ -612,6 +639,7 @@ export async function AddCalendarCalDotCom(req, res) {
             },
           });
           if (agents && agents.length > 0) {
+            console.log("Both agents");
             for (const agent of agents) {
               let created = await db.CalendarIntegration.create({
                 type: calendarType,
@@ -631,6 +659,13 @@ export async function AddCalendarCalDotCom(req, res) {
                 mainAgent,
                 agent.id
               );
+              // let agent = await db.AgentModel.findByPk(agentId);
+              if (agent.agentType == "inbound") {
+                console.log("Updating prompt for inbound");
+                console.log("This is an inbound agent so updating prompt");
+                await updatePromptForInbound(agent, user);
+                //update to synthflow & also update in update agent api
+              }
               if (actionResult) {
                 console.log("Action Create Result ", actionResult);
                 let ids = actionResult.data;

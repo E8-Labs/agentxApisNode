@@ -95,6 +95,7 @@ export async function UpdateOrCreateUserInGhl(user) {
           totalpaidforphonenumbers: totalAmountPaidForPhonePurchase,
           plan: plan?.type || "None",
           planprice: plan?.price || 0, // Detailed payment information
+          source: "AgentX",
         },
       });
       console.log(data);
@@ -128,6 +129,7 @@ export async function UpdateOrCreateUserInGhl(user) {
         totalpaidforphonenumbers: Number(totalAmountPaidForPhonePurchase) || 0,
         plan: plan?.type || "None",
         planprice: Number(plan?.price || 0) || 0,
+        source: "AgentX",
       });
       return false;
     }
@@ -138,6 +140,7 @@ export async function UpdateOrCreateUserInGhl(user) {
       totalpaidforphonenumbers: totalAmountPaidForPhonePurchase,
       plan: plan?.type || "None",
       planprice: plan?.price || 0,
+      source: "AgentX",
     });
     console.log(error);
     console.error(

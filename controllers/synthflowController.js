@@ -52,7 +52,7 @@ const __dirname = path.dirname(__filename);
 //Generate Prompt
 
 //user is admin user
-async function getInboudPromptText(prompt, assistant, user) {
+export async function getInboudPromptText(prompt, assistant, user) {
   let callScript = prompt.callScript;
 
   let greeting = prompt.greeting;
@@ -150,11 +150,14 @@ Stick to this rule to maintain control and professionalism in call handling.
     },
   });
   if (cal) {
+    console.log("Calendar found for agent", assistant.id);
     //add booking
     console.log("Calendar is connected so adding booking instructions");
     text = `${text}\n\n${prompt.booking}\nTimezone for the calendar: ${
       cal.timeZone || "America/Los_Angeles"
     }`;
+  } else {
+    console.log("Calendar not found for agent", assistant.id);
   }
   text = `${text}\n\n${objectionPromptText}`;
   text = `${text}\n\n${guardrailPromptText}`;
@@ -1391,6 +1394,20 @@ export const UpdateAgent = async (req, res) => {
           }
         }
       }
+
+      if (req.body.inboundObjective) {
+        let updated = await db.AgentPromptModel.update(
+          {
+            objective: req.body.inboundObjective,
+          },
+          {
+            where: {
+              mainAgentId: mainAgentId,
+              type: "inbound",
+            },
+          }
+        );
+      }
       if (req.body.inboundPrompt || req.body.inboundGreeting) {
         let updated = await db.AgentPromptModel.update(
           {
@@ -1405,14 +1422,31 @@ export const UpdateAgent = async (req, res) => {
           }
         );
         if (updated) {
+          let prompt = await db.AgentPromptModel.findOne({
+            where: {
+              mainAgentId: mainAgentId,
+              type: "inbound",
+            },
+          });
+          let agent = await db.AgentModel.findOne({
+            where: {
+              mainAgentId: mainAgentId,
+              agentType: "inbound",
+            },
+          });
           //console.log("Prompt updated");
+          let inboundPromptText = await getInboudPromptText(
+            prompt,
+            agent,
+            user
+          );
           if (agents) {
             for (let i = 0; i < agents.length; i++) {
               let a = agents[i];
               if (a.agentType == "inbound") {
                 let updatedSynthflow = await UpdateAssistantSynthflow(a, {
                   agent: {
-                    prompt: req.body.inboundPrompt,
+                    prompt: inboundPromptText, //req.body.inboundPrompt,
                     greeting_message: req.body.inboundGreeting,
                   },
                 });
@@ -1421,20 +1455,6 @@ export const UpdateAgent = async (req, res) => {
             }
           }
         }
-      }
-
-      if (req.body.inboundObjective) {
-        let updated = await db.AgentPromptModel.update(
-          {
-            objective: req.body.inboundObjective,
-          },
-          {
-            where: {
-              mainAgentId: mainAgentId,
-              type: "inbound",
-            },
-          }
-        );
       }
       if (req.body.outboundObjective) {
         let updated = await db.AgentPromptModel.update(
