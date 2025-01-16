@@ -59,6 +59,13 @@ export async function UpdateOrCreateUserInGhl(user) {
   if (!phone) {
     return;
   }
+  let camp = await db.CampaigneeModel.findOne({
+    where: { id: user.campaigneeId },
+  });
+  let closer = null;
+  if (camp) {
+    closer = camp?.officeHoursUrl;
+  }
   phone = formatPhoneNumber(phone);
   let plan = await db.PlanHistory.findOne({
     where: {
@@ -98,6 +105,7 @@ export async function UpdateOrCreateUserInGhl(user) {
           planprice: plan?.price || 0, // Detailed payment information
           lead_source: "AgentX",
           plan_status: plan ? plan.status : "cancelled",
+          closer: closer,
         },
       });
       console.log(data);
@@ -133,6 +141,7 @@ export async function UpdateOrCreateUserInGhl(user) {
         planprice: Number(plan?.price || 0) || 0,
         lead_source: "AgentX",
         plan_status: plan ? plan.status : "cancelled",
+        closer: closer,
       });
       return false;
     }
@@ -145,6 +154,7 @@ export async function UpdateOrCreateUserInGhl(user) {
       planprice: plan?.price || 0,
       lead_source: "AgentX",
       plan_status: plan ? plan.status : "cancelled",
+      closer: closer,
     });
     console.log(error);
     console.error(
