@@ -77,6 +77,9 @@ export async function UpdateOrCreateUserInGhl(user) {
     limit: 1,
     order: [["createdAt", "DESC"]],
   });
+
+  var isTrial = user.isTrial;
+
   let totalAmountPaidForPlans = await db.PaymentHistory.sum("price", {
     where: {
       userId: user.id,
@@ -94,6 +97,17 @@ export async function UpdateOrCreateUserInGhl(user) {
     },
   });
 
+  const customFields = {
+    createdat: user.createdAt,
+    totalpaidforminutes: Number(totalAmountPaidForPlans) || 0,
+    totalpaidforphonenumbers: Number(totalAmountPaidForPhonePurchase) || 0,
+    plan: plan?.type || "None",
+    planprice: Number(plan?.price || 0) || 0,
+    lead_source: "AgentX",
+    plan_status: isTrial ? "trial" : plan ? plan.status : "none",
+    closer: closer,
+  };
+
   try {
     if (user.ghlUserId != "") {
       const contactId = user.ghlUserId; // Get the first contact's ID
@@ -101,16 +115,7 @@ export async function UpdateOrCreateUserInGhl(user) {
       // Update the contact's subscription details
       const data = JSON.stringify({
         source: "AgentX",
-        customField: {
-          createdat: user.createdAt,
-          totalpaidforminutes: totalAmountPaidForPlans,
-          totalpaidforphonenumbers: totalAmountPaidForPhonePurchase,
-          plan: plan?.type || "None",
-          planprice: plan?.price || 0, // Detailed payment information
-          lead_source: "AgentX",
-          plan_status: plan ? plan.status : "none",
-          closer: closer,
-        },
+        customField: customFields,
       });
       console.log(data);
       const updateConfig = {
@@ -137,29 +142,25 @@ export async function UpdateOrCreateUserInGhl(user) {
       return true;
     } else {
       console.log("No user found with the provided phone number.");
-      await PushUserDataToGhl(user, user.name, "", user.email, user.phone, {
-        createdat: user.createdAt,
-        totalpaidforminutes: Number(totalAmountPaidForPlans) || 0,
-        totalpaidforphonenumbers: Number(totalAmountPaidForPhonePurchase) || 0,
-        plan: plan?.type || "None",
-        planprice: Number(plan?.price || 0) || 0,
-        lead_source: "AgentX",
-        plan_status: plan ? plan.status : "none",
-        closer: closer,
-      });
+      await PushUserDataToGhl(
+        user,
+        user.name,
+        "",
+        user.email,
+        user.phone,
+        customFields
+      );
       return false;
     }
   } catch (error) {
-    await PushUserDataToGhl(user, user.name, "", user.email, user.phone, {
-      createdat: user.createdAt,
-      totalpaidforminutes: totalAmountPaidForPlans,
-      totalpaidforphonenumbers: totalAmountPaidForPhonePurchase,
-      plan: plan?.type || "None",
-      planprice: plan?.price || 0,
-      lead_source: "AgentX",
-      plan_status: plan ? plan.status : "none",
-      closer: closer,
-    });
+    await PushUserDataToGhl(
+      user,
+      user.name,
+      "",
+      user.email,
+      user.phone,
+      customFields
+    );
     console.log(error);
     console.error(
       "Error updating user subscription in GHL:",
