@@ -127,7 +127,7 @@ export function GetTeamMembers(req, res) {
 }
 
 export function DeleteInvite(req, res) {
-  let { leadId, teamMemberUserId } = req.body;
+  // let { leadId, teamMemberUserId } = req.body;
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let user = await db.User.findByPk(authData.user.id);
@@ -142,6 +142,12 @@ export function DeleteInvite(req, res) {
       await db.TeamModel.destroy({
         where: {
           userId: user.id,
+          phone: phoneNumber,
+        },
+      });
+
+      await db.User.destroy({
+        where: {
           phone: phoneNumber,
         },
       });

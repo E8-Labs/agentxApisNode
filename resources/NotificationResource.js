@@ -1,5 +1,6 @@
 import db from "../models/index.js";
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
+import { NotificationTypes } from "../models/user/NotificationModel.js";
 
 const Op = db.Sequelize.Op;
 
@@ -49,8 +50,17 @@ async function getUserData(not, currentUser = null) {
   if (fromUserId) {
     fromUser = await db.User.findByPk(fromUserId);
   }
+
+  //Customized title
+  let title = null;
+  if (lead && not.type == NotificationTypes.LeadCalledBack) {
+    title = `${lead.firstName} called`;
+  } else {
+    title = not.title;
+  }
   const NotificationResource = {
     ...not.get(),
+    title: title,
     lead,
     agent,
     fromUser,
