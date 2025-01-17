@@ -168,7 +168,10 @@ export const GetDashboardData = async (req, res) => {
       }
 
       let av = stats.totalDuration / stats.totalCallsGt10;
-      let formattedAvDuration = formatDuration(av);
+      let formattedAvDuration = "N/A";
+      if (av) {
+        formattedAvDuration = formatDuration(av);
+      }
       return res.send({
         status: true,
         data: {

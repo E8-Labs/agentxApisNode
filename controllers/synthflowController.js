@@ -101,7 +101,7 @@ export async function getInboudPromptText(prompt, assistant, user) {
 
   let guardText = "";
   let objectionText = "";
-  for (const guardrail in guardrails) {
+  for (const guardrail of guardrails) {
     if (guardrail.type == "guardrail") {
       guardText = `${guardText}\n${guardrail.title}\n${guardrail.description}\n\n`;
     } else {
@@ -348,7 +348,7 @@ async function GetCompletePromptTextFrom(
 
   let guardText = "";
   let objectionText = "";
-  for (const guardrail in guardrails) {
+  for (const guardrail of guardrails) {
     if (guardrail.type == "guardrail") {
       guardText = `${guardText}\n${guardrail.title}\n${guardrail.description}\n\n`;
     } else {
