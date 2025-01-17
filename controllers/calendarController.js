@@ -356,6 +356,7 @@ export async function ScheduleEvent(req, res) {
     where: {
       email: user_email,
       userId: mainAgent.userId,
+      status: "active",
     },
   });
   if (!lead && lead_phone) {
@@ -363,6 +364,7 @@ export async function ScheduleEvent(req, res) {
       where: {
         phone: lead_phone,
         userId: mainAgent.userId,
+        status: "active",
       },
     });
   }
@@ -408,12 +410,6 @@ export async function ScheduleEvent(req, res) {
     },
     metadata: {},
   };
-
-  // return res.send({
-  //   status: true,
-  //   data: inputData,
-  //   message: "Meeting scheduled",
-  // });
 
   WriteToFile(JSON.stringify(inputData));
   try {
