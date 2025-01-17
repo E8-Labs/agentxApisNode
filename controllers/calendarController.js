@@ -100,6 +100,8 @@ export async function CheckCalendarAvailability(req, res) {
     });
   }
 
+  let currentDate = new Date();
+
   try {
     // Query the calendar API for availability
     let data = await fetchAvailableSlotsForNext15Days(
@@ -107,7 +109,7 @@ export async function CheckCalendarAvailability(req, res) {
       calIntegration.eventId,
       calIntegration.timeZone
     );
-    console.log(data);
+    // console.log(data);
     // let formatted = "";
     // if (data) {
     //   formatted = formatAvailableSlots(data);
@@ -115,6 +117,7 @@ export async function CheckCalendarAvailability(req, res) {
     // return;
 
     // const responseData = await response.json();
+    data.currentDate = currentDate;
 
     if (data) {
       return res.send({
@@ -329,9 +332,29 @@ export async function ScheduleEvent(req, res) {
     "------------------------------Scheduling Event Start-------------------------------"
   );
 
-  const { user_email, date, time, lead_name, lead_phone } = req.body;
+  const {
+    user_email,
+    date,
+    time,
+    lead_name,
+    lead_phone,
+    currentDate,
+    aiTimezone,
+    calendarTimezone,
+  } = req.body;
   WriteToFile("Schedule meeting with date and time:");
-  WriteToFile(JSON.stringify({ user_email, date, time }));
+  WriteToFile(
+    JSON.stringify({
+      user_email,
+      date,
+      time,
+      lead_name,
+      lead_phone,
+      currentDate,
+      aiTimezone,
+      calendarTimezone,
+    })
+  );
 
   const mainAgentId = req.query.mainAgentId;
   const modelId = req.query.modelId || null;

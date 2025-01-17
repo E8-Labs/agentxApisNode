@@ -8,6 +8,65 @@ const CAL_API_URL = "https://api.cal.com/v2";
 
 const API_URL_Synthflow_Actions = "https://api.synthflow.ai/v2/actions";
 
+const BookingActionParams = [
+  {
+    name: `date`,
+    description:
+      "The date (ISO 8601 format) on which the meeting would be scheduled i-e if user provides Nov 5 2025 then you would send 2025-11-05 in the action",
+    example:
+      "User says he wants to schedule a meeting on Nov 05 2025. ISO 8601 converted is 2025-11-05",
+    type: "string",
+  },
+  {
+    name: `time`,
+    description:
+      "The time (ISO 8601 format)  at which the meeting would take place ",
+    example: "9:00 pm",
+    type: "string",
+  },
+  {
+    name: `user_email`,
+    description: "The email of the user who will receive the meeting invite",
+    example: "my email is (abc@gmail.com).",
+    type: "string",
+  },
+  {
+    name: `lead_phone`,
+    description:
+      "The phone of the lead who will receive the meeting invite. You already have this as Lead Info",
+    example: "Lead Phone: 14086799068",
+    type: "string",
+  },
+  {
+    name: `lead_name`,
+    description:
+      "The name of the lead who will receive the meeting invite. You already have this as Lead Name",
+    example: "Lead Name: (Noah).",
+    type: "string",
+  },
+  {
+    name: `currentDate`,
+    description:
+      "This is the current date and time of the AI. Don't ask this from user. Just send the current date and time you have. But make sure the date is in utc timezone.",
+    example: "2025-01-17 17:33:25",
+    type: "string",
+  },
+  {
+    name: `aiTimezone`,
+    description:
+      "This is the timezone of the AI. Don't ask this from user. Just send the AI Timezone you have.",
+    example: "America/Los_Angeles",
+    type: "string",
+  },
+  {
+    name: `calendarTimezone`,
+    description:
+      "This is the timezone of the Calendar. Don't ask this from user. You will receive a value from check availability action for calendar timezone. Use that.",
+    example: "America/Los_Angeles",
+    type: "string",
+  },
+];
+
 function getApiClient(apiKey) {
   const apiClient = axios.create({
     baseURL: CAL_API_URL,
@@ -368,44 +427,7 @@ function GetCalendarActionApiData(user, assistant) {
     description:
       "Use the Create a Booking action to schedule a meeting, appointment, or event directly in the user's calendar. Ensure the booking aligns with the user's preferences and availability to avoid conflicts.",
     speech_while_using_the_tool: "One second, let me add this to the calendar",
-    variables_during_the_call: [
-      {
-        name: `date`,
-        description:
-          "The date (ISO 8601 format) on which the meeting would be scheduled i-e if user provides Nov 5 2025 then you would send 2025-11-05 in the action",
-        example:
-          "User says he wants to schedule a meeting on Nov 05 2025. ISO 8601 converted is 2025-11-05",
-        type: "string",
-      },
-      {
-        name: `time`,
-        description:
-          "The time (ISO 8601 format)  at which the meeting would take place ",
-        example: "9:00 pm",
-        type: "string",
-      },
-      {
-        name: `user_email`,
-        description:
-          "The email of the user who will receive the meeting invite",
-        example: "my email is (abc@gmail.com).",
-        type: "string",
-      },
-      {
-        name: `lead_phone`,
-        description:
-          "The phone of the lead who will receive the meeting invite. You already have this as Lead Info",
-        example: "Lead Phone: 14086799068",
-        type: "string",
-      },
-      {
-        name: `lead_name`,
-        description:
-          "The name of the lead who will receive the meeting invite. You already have this as Lead Name",
-        example: "Lead Name: (Noah).",
-        type: "string",
-      },
-    ],
+    variables_during_the_call: BookingActionParams,
     query_parameters: [
       {
         key: "date",
@@ -419,6 +441,10 @@ function GetCalendarActionApiData(user, assistant) {
         key: "user_email",
         value: "salmanmajid14@gmail.com",
       },
+      // {
+      //   key: "currentDate",
+      //   value: "salmanmajid14@gmail.com",
+      // },
     ],
     json_body_stringified: JSON.stringify({
       date: "<date>",
@@ -426,6 +452,9 @@ function GetCalendarActionApiData(user, assistant) {
       user_email: "<user_email>",
       lead_phone: "<lead_phone>",
       lead_name: "<lead_name>",
+      currentDate: "<currentDate>",
+      aiTimezone: "<aiTimezone>",
+      calendarTimezone: "<calendarTimezone>",
     }),
     prompt: `Use the result from <results.data.message> and respond accordingly. Use <results.data.status> to check whether the appointment was booked or not.If true then booked else not. To get more idea use <result.data.data>`,
   };
