@@ -756,6 +756,7 @@ export async function GetUserConnectedCalendars(req, res) {
   });
 }
 
+//with api key
 export async function GetCalendarSchedule(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {

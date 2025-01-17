@@ -648,17 +648,19 @@ async function MatchAndAssignLeadToMeeting(data, lead) {
     }
 
     // Check if leadId is null in the scheduled meeting row
-    if (scheduledMeeting.leadId === null) {
+    if (lead?.id != null) {
+      //(scheduledMeeting.leadId === null) {
       await scheduledMeeting.update({ leadId: lead.id });
 
       console.log(
         `Updated scheduled meeting (ID: ${meetingId}) with leadId: ${lead.id}`
       );
-    } else {
-      console.log(
-        `Scheduled meeting (ID: ${meetingId}) already has a leadId: ${scheduledMeeting.leadId}. Skipping update.`
-      );
     }
+    // else {
+    //   console.log(
+    //     `Scheduled meeting (ID: ${meetingId}) already has a leadId: ${scheduledMeeting.leadId}. Skipping update.`
+    //   );
+    // }
   } catch (error) {
     console.error("Error processing and updating the meeting:", error);
   }
