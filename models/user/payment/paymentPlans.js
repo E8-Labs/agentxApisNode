@@ -74,7 +74,7 @@ export const PayAsYouGoPlanTypes = {
 //   :
 // (
 export const PayAsYouGoPlans = [
-  { type: PayAsYouGoPlanTypes.Plan30Min, price: 0.15, duration: 30 * 60 },
+  { type: PayAsYouGoPlanTypes.Plan30Min, price: 0.51, duration: 30 * 60 },
   {
     type: PayAsYouGoPlanTypes.Plan120Min,
     price: 0.5,
