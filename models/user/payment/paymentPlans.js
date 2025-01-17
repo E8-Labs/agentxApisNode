@@ -55,20 +55,40 @@ export const PayAsYouGoPlanTypes = {
   Plan720Min: "Plan720",
 };
 
-// export const PayAsYouGoPlans = [
-//   { type: PayAsYouGoPlanTypes.Plan30Min, price: 45, duration: 30 * 60 },
-//   { type: PayAsYouGoPlanTypes.Plan120Min, price: 99, duration: 120 * 60 },
-//   { type: PayAsYouGoPlanTypes.Plan360Min, price: 270, duration: 360 * 60 },
-//   { type: PayAsYouGoPlanTypes.Plan720Min, price: 480, duration: 720 * 60 },
-// ];
-
-//For testing
-export const PayAsYouGoPlans = [
-  { type: PayAsYouGoPlanTypes.Plan30Min, price: 1, duration: 30 * 60 },
-  { type: PayAsYouGoPlanTypes.Plan120Min, price: 1, duration: 120 * 60 },
-  { type: PayAsYouGoPlanTypes.Plan360Min, price: 1, duration: 360 * 60 },
-  { type: PayAsYouGoPlanTypes.Plan720Min, price: 1, duration: 720 * 60 },
-];
+export const PayAsYouGoPlans =
+  process.env.environment != "Production"
+    ? [
+        { type: PayAsYouGoPlanTypes.Plan30Min, price: 45, duration: 30 * 60 },
+        { type: PayAsYouGoPlanTypes.Plan120Min, price: 99, duration: 120 * 60 },
+        {
+          type: PayAsYouGoPlanTypes.Plan360Min,
+          price: 270,
+          duration: 360 * 60,
+        },
+        {
+          type: PayAsYouGoPlanTypes.Plan720Min,
+          price: 480,
+          duration: 720 * 60,
+        },
+      ]
+    : (PayAsYouGoPlans = [
+        { type: PayAsYouGoPlanTypes.Plan30Min, price: 0.15, duration: 30 * 60 },
+        {
+          type: PayAsYouGoPlanTypes.Plan120Min,
+          price: 0.3,
+          duration: 120 * 60,
+        },
+        {
+          type: PayAsYouGoPlanTypes.Plan360Min,
+          price: 0.45,
+          duration: 360 * 60,
+        },
+        {
+          type: PayAsYouGoPlanTypes.Plan720Min,
+          price: 0.6,
+          duration: 720 * 60,
+        },
+      ]);
 
 export function FindPlanWithMinutes(minutes) {
   let p = null;
@@ -90,3 +110,4 @@ export function FindPlanWithPrice(price) {
   }
   return p;
 }
+// module.exports = { PayAsYouGoPlans };
