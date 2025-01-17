@@ -278,7 +278,7 @@ async function handleNewCall(
       user,
       null,
       NotificationTypes.LeadCalledBack,
-      null,
+      lead,
       null,
       null,
       0,
@@ -878,7 +878,7 @@ const SetAllTagsFromIEAndCall = async (
     tags.push("Failed");
   }
   if (endCallReason == "human_pick_up_cut_off" || jsonIE.humancalldrop) {
-    tags.push("Hangup");
+    // tags.push("Hangup");
   }
   console.log("Tags ", tags);
 

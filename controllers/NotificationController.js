@@ -186,7 +186,7 @@ async function GetNotificationTitle(
     title = `30 minutes added for using (${code})`;
   }
   if (type == NotificationTypes.LeadCalledBack) {
-    title = `${lead?.firstName || "New Lead"} called back`;
+    title = `${lead?.firstName || "New Lead"} called`;
   }
   if (type == NotificationTypes.NoCallsIn3Days) {
     title = `Your  calls have stopped for 3 days`;
