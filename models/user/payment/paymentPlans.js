@@ -77,17 +77,17 @@ export const PayAsYouGoPlans = [
   { type: PayAsYouGoPlanTypes.Plan30Min, price: 0.15, duration: 30 * 60 },
   {
     type: PayAsYouGoPlanTypes.Plan120Min,
-    price: 0.3,
+    price: 0.2,
     duration: 120 * 60,
   },
   {
     type: PayAsYouGoPlanTypes.Plan360Min,
-    price: 0.45,
+    price: 0.25,
     duration: 360 * 60,
   },
   {
     type: PayAsYouGoPlanTypes.Plan720Min,
-    price: 0.6,
+    price: 0.3,
     duration: 720 * 60,
   },
 ];
