@@ -146,11 +146,22 @@ export function DeleteInvite(req, res) {
         },
       });
 
-      await db.User.destroy({
-        where: {
-          phone: phoneNumber,
-        },
-      });
+      try {
+        await db.User.destroy({
+          where: {
+            phone: phoneNumber,
+          },
+        });
+      } catch (error) {
+        await db.User.update(
+          { phone: "", email: "" },
+          {
+            where: {
+              phone: phoneNumber,
+            },
+          }
+        );
+      }
 
       //Make a resource of the Teammodel
       // let teamRes = await TeamResource(invites);
