@@ -136,6 +136,16 @@ const User = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: true,
     },
+    subscriptionStartDate: {
+      // the day at which the subscription has started
+      type: Sequelize.DATE,
+      allowNull: true,
+    },
+    nextChargeDate: {
+      // the day at which the subscription has started
+      type: Sequelize.DATE,
+      allowNull: true,
+    },
   });
 
   return User;
