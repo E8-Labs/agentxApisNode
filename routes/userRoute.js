@@ -14,6 +14,7 @@ import {
   AddTestNumber,
   DeleteTestNumber,
   SendFeedbackEmail,
+  UploadVideo,
 } from "../controllers/userController.js";
 
 import {
@@ -21,6 +22,7 @@ import {
   ReadAllNotifications,
   SendTestNotification,
   SendTestEmail,
+  SendDesktopEmail,
 } from "../controllers/NotificationController.js";
 
 import {
@@ -131,6 +133,8 @@ UserRouter.post(
   verifyJwtTokenWithTeam,
   ReadAllNotifications
 );
+
+UserRouter.post("/uploadHowTo", uploadFiles, UploadVideo);
 
 //SendTestNotification
 UserRouter.post("/sendTestNotification", uploadFiles, SendTestNotification);

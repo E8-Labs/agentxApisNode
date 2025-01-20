@@ -48,6 +48,9 @@ import { constants } from "../constants/constants.js";
 import { generateFeedbackWithSenderDetails } from "../emails/FeedbackEmail.js";
 import { SendEmail } from "../services/MailService.js";
 import { UpdateOrCreateUserInGhl } from "./GHLController.js";
+import { detectDevice } from "../utils/auth.js";
+import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
+import { UserTypes } from "../models/user/userModel.js";
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
 // import { admin } from "../services/firebase-admin.js";
@@ -164,6 +167,7 @@ export const SetDefaultPaymentmethod = async (req, res) => {
 };
 
 export const SubscribePayasyougoPlan = async (req, res) => {
+  const isMobile = detectDevice(req);
   let { plan } = req.body; // mainAgentId is the mainAgent id
   let payNow = req.body.payNow || false; //if true, user pays regardless he has minutes or trial
   console.log("Plan is ", plan);
@@ -218,6 +222,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           !payNow
         ) {
           // give 30 min free for 7 days and set the subscription date to
+
           let dateAfter7Days = new Date();
           dateAfter7Days.setDate(dateAfter7Days.getDate() + 7);
           await UpdateUserSubscriptionStartDate(
@@ -241,6 +246,17 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           user.isTrial = true;
           await user.save();
           UpdateOrCreateUserInGhl(user);
+          if (isMobile) {
+            //Generate Desktop Email
+            if (user.userType != UserTypes.RealEstateAgent) {
+              let emailTemp = generateDesktopEmail();
+              let sent = await SendEmail(
+                user.email,
+                emailTemp.subject,
+                emailTemp.html
+              );
+            }
+          }
           return res.send({
             status: true,
             message: "Successfully subscribed to plan",
@@ -388,6 +404,19 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                 message: "Plan Upgraded",
                 data: null,
               });
+            }
+          } else {
+            // No last plan so first time user and it is selecting a plan other than 30 min
+            if (isMobile) {
+              //Generate Desktop Email
+              if (user.userType != UserTypes.RealEstateAgent) {
+                let emailTemp = generateDesktopEmail();
+                let sent = await SendEmail(
+                  user.email,
+                  emailTemp.subject,
+                  emailTemp.html
+                );
+              }
             }
           }
 

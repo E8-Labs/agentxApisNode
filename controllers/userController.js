@@ -15,7 +15,7 @@ console.log(import.meta.url);
 
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import { generateStripeCustomerId } from "../utils/stripe.js";
-import { UserRole } from "../models/user/userModel.js";
+import { UserRole, UserTypes } from "../models/user/userModel.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
@@ -27,6 +27,7 @@ import {
 import { generateFeedbackWithSenderDetails } from "../emails/FeedbackEmail.js";
 import { SendEmail } from "../services/MailService.js";
 import { PushUserDataToGhl, UpdateOrCreateUserInGhl } from "./GHLController.js";
+import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -290,6 +291,10 @@ export const RegisterUser = async (req, res) => {
     campaigneeId: campaignee?.id,
   });
   UpdateOrCreateUserInGhl(user);
+  // if (userType != UserTypes.RealEstateAgent) {
+  //   let emailTemp = generateDesktopEmail();
+  //   let sent = await SendEmail(email, emailTemp.subject, emailTemp.html);
+  // }
   let customerId = await generateStripeCustomerId(user.id);
   console.log("Stripe Custome Id Generated in Register");
 
@@ -521,6 +526,31 @@ export const UpdateProfile = async (req, res) => {
       res.send({ status: false, data: null, message: "Unauthenticated user" });
     }
   });
+};
+
+export const UploadVideo = async (req, res) => {
+  if (req.files && req.files.media) {
+    let file = req.files.media[0];
+
+    const mediaBuffer = file.buffer;
+    const mediaType = file.mimetype;
+    const mediaExt = path.extname(file.originalname);
+    const mediaFilename = `${req.body.videoName}`;
+    console.log("There is a file uploaded");
+
+    const image = await uploadMedia(
+      `howtos_${mediaFilename}`,
+      mediaBuffer,
+      "video/mp4",
+      "howtos"
+    );
+
+    return res.send({
+      status: true,
+      message: "Agent profile updated",
+      data: image,
+    });
+  }
 };
 
 export function AddTestNumber(req, res) {

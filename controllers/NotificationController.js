@@ -47,6 +47,7 @@ import { generateFomoEmail } from "../emails/InactiveUserEmails/FomoEmail.js";
 import { generateExclusivityEmail } from "../emails/InactiveUserEmails/ExclusivityEmail.js";
 import { generateTerritoryUpdateEmail } from "../emails/InactiveUserEmails/TerritoryUpdate.js";
 import { generateSocialProofEmail } from "../emails/InactiveUserEmails/SocialProofEmail.js";
+import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
 
 async function GetNotificationTitle(
   user,
@@ -959,17 +960,40 @@ async function SendAutoDailyNotificationsFor7Days() {
   }
 }
 
+export async function SendDesktopEmail(req, res) {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      console.log("User id ", userId);
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let type = req.body.type;
+      let email = generateDesktopEmail();
+
+      let sent = await SendEmail(user.email, email.subject, email.html);
+      res.send({
+        status: true,
+        message: "Email sent",
+      });
+    } else {
+      return res.send({ status: false, message: "Unauthenticated user" });
+    }
+  });
+}
+
 export async function SendTestEmail(req, res) {
   let type = req.body.type;
-  let email = GenerateTrialTickingEmail(
-    "Salman Khan",
-    "AgentX12"
-    // "Hello",
-    // "H",
-    // "E",
-    // "L",
-    // "L"
-  );
+  let email = generateDesktopEmail();
+  // "Salman Khan",
+  // "AgentX12"
+  // "Hello",
+  // "H",
+  // "E",
+  // "L",
+  // "L"
   // let email = generateMinutesRenewedEmail(
   //   "Salu bhai", // Name
   //   "120", // CTA_Link
