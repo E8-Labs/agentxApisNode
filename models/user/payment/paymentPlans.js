@@ -41,6 +41,11 @@ const PaymentHistory = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    chargeType: {
+      // "subscription"
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return PaymentHistory;
@@ -54,26 +59,13 @@ export const PayAsYouGoPlanTypes = {
   Plan360Min: "Plan360",
   Plan720Min: "Plan720",
 };
+export const ChargeTypes = {
+  Subscription: "Subscription",
+  MinutesRenewed: "MinutesRenewed",
+  PhonePurchase: "PhonePurchase",
+};
 
-// export const PayAsYouGoPlans =
-// process.env.environment != "Production"
-//   ? [
-//       { type: PayAsYouGoPlanTypes.Plan30Min, price: 45, duration: 30 * 60 },
-//       { type: PayAsYouGoPlanTypes.Plan120Min, price: 99, duration: 120 * 60 },
-//       {
-//         type: PayAsYouGoPlanTypes.Plan360Min,
-//         price: 270,
-//         duration: 360 * 60,
-//       },
-//       {
-//         type: PayAsYouGoPlanTypes.Plan720Min,
-//         price: 480,
-//         duration: 720 * 60,
-//       },
-//     ]
-//   :
-// (
-export const PayAsYouGoPlans = [
+let TestPlans = [
   { type: PayAsYouGoPlanTypes.Plan30Min, price: 0.51, duration: 30 * 60 },
   {
     type: PayAsYouGoPlanTypes.Plan120Min,
@@ -91,7 +83,26 @@ export const PayAsYouGoPlans = [
     duration: 720 * 60,
   },
 ];
-// );
+
+let LivePlans = [
+  { type: PayAsYouGoPlanTypes.Plan30Min, price: 45, duration: 30 * 60 },
+  { type: PayAsYouGoPlanTypes.Plan120Min, price: 99, duration: 120 * 60 },
+  {
+    type: PayAsYouGoPlanTypes.Plan360Min,
+    price: 270,
+    duration: 360 * 60,
+  },
+  {
+    type: PayAsYouGoPlanTypes.Plan720Min,
+    price: 480,
+    duration: 720 * 60,
+  },
+];
+
+export const PayAsYouGoPlans =
+  process.env.environment === "Production" ? LivePlans : TestPlans;
+
+console.log("Plans ", PayAsYouGoPlans);
 
 export function FindPlanWithMinutes(minutes) {
   let p = null;
@@ -108,6 +119,16 @@ export function FindPlanWithPrice(price) {
   let p = null;
   for (const plan of PayAsYouGoPlans) {
     if (plan.price == price) {
+      p = plan;
+    }
+  }
+  return p;
+}
+export function FindPlanWithtype(type) {
+  // in dollars
+  let p = null;
+  for (const plan of PayAsYouGoPlans) {
+    if (plan.type == type) {
       p = plan;
     }
   }

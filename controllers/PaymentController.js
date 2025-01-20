@@ -38,6 +38,9 @@ import {
   SetDefaultCard,
 } from "../utils/stripe.js";
 import {
+  FindPlanWithMinutes,
+  FindPlanWithPrice,
+  FindPlanWithtype,
   PayAsYouGoPlans,
   PayAsYouGoPlanTypes,
 } from "../models/user/payment/paymentPlans.js";
@@ -205,6 +208,8 @@ export const SubscribePayasyougoPlan = async (req, res) => {
       if (history && history.length > 0) {
         firstTime = false;
       }
+      let dateAfter30Days = new Date();
+      dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
 
       try {
         if (
@@ -212,7 +217,14 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           foundPlan.type == PayAsYouGoPlanTypes.Plan30Min &&
           !payNow
         ) {
-          // give 30 min free
+          // give 30 min free for 7 days and set the subscription date to
+          let dateAfter7Days = new Date();
+          dateAfter7Days.setDate(dateAfter7Days.getDate() + 7);
+          await UpdateUserSubscriptionStartDate(
+            user,
+            dateAfter7Days,
+            dateAfter7Days
+          );
           let TotalSeconds = foundPlan.duration;
           user.totalSecondsAvailable += TotalSeconds;
           let saved = await user.save();
@@ -240,18 +252,64 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             lastPlan = history[0];
           }
           if (lastPlan) {
-            // console.log("Found plan 229");
-            // if (
-            //   lastPlan.type == foundPlan.type &&
-            //   lastPlan.status == "active" && !payNow
-            // ) {
-            //   console.log("Same plan");
-            //   return res.send({
-            //     status: false,
-            //     message: "Already subscribed to to this plan",
-            //     data: null,
-            //   });
-            // }
+            //if the duration of the new plan is greater then it is upgrade
+            let upgrade = foundPlan.duration > lastPlan.duration;
+
+            if (user.isTrial) {
+              //If user upgrades or downgrades while on trial then charge immediately and set the sub date to current date
+              user.subscriptionStartDate = new Date();
+              user.nextChargeDate = dateAfter30Days; // set the next charge date to be 30 days later
+              await user.save();
+              payNow = true;
+              //let the flow run and the user be charged for this plan below
+            } else {
+              //If user is not on trial
+              if (upgrade && lastPlan.status == "active") {
+                //If user upgrades while on an active plan
+                //Charge immediately so let the flow run below
+                //Don't change the subscription date if not null
+                if (user.subscriptionStartDate == null) {
+                  user.subscriptionStartDate = new Date();
+                  user.nextChargeDate = dateAfter30Days;
+                  payNow = true;
+                  await user.save();
+                }
+              } else if (!upgrade && lastPlan.status == "active") {
+                //Subscription price don't change. It is same as the old
+                if (user.subscriptionStartDate == null) {
+                  user.subscriptionStartDate = new Date();
+                  user.nextChargeDate = new Date();
+                  await user.save();
+                }
+                //Dont charge user immediately
+                await db.PlanHistory.update(
+                  { status: "cancelled" },
+                  { where: { userId: user.id } }
+                ); //set all previous plans as cancelled
+                let planHistory = await db.PlanHistory.create({
+                  userId: user.id,
+                  type: foundPlan.type,
+                  price: foundPlan.price,
+                  status: "active",
+                  environment: process.env.Environment,
+                });
+                return res.send({
+                  status: true,
+                  message: "Plan updated",
+                  planHistory,
+                });
+              }
+              //If user comes back from cancelled subscription
+              else if (lastPlan.status == "cancelled") {
+                //If last plan is cancelled.
+                payNow = true; //payNow should be true
+                user.subscriptionStartDate = new Date();
+                user.nextChargeDate = dateAfter30Days;
+                await user.save();
+                //let the user be charged and continue the flow
+              }
+            }
+
             console.log("Update Plan");
             await db.PlanHistory.update(
               { status: "cancelled" },
@@ -333,6 +391,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             }
           }
 
+          //User directly purchased a plan that is not 30 minutes
           let price = foundPlan.price * 100; //cents
           let charge = await chargeUser(
             user.id,
@@ -340,9 +399,13 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             "Charging for plan " + foundPlan.type,
             foundPlan.type
           );
+          let dateNow = new Date();
+          // dateAfter7Days.setDate(date7DaysAgo.getDate() + 7);
+          // await UpdateUserSubscriptionStartDate(user, dateNow);
           user = await db.User.findByPk(user.id);
           if (charge && charge.status) {
             if (history.length > 0) {
+              // This  will never be true. Will remove in future
               if (lastPlan.type != foundPlan.type) {
                 //user updated his plan
                 await db.PlanHistory.update(
@@ -418,6 +481,16 @@ export const SubscribePayasyougoPlan = async (req, res) => {
   });
 };
 
+export async function UpdateUserSubscriptionStartDate(
+  user,
+  date,
+  nextChargeDate
+) {
+  user.subscriptionStartDate = date;
+  user.nextChargeDate = nextChargeDate;
+  await user.save();
+}
+
 export const CancelPlan = async (req, res) => {
   // console.log("ACCOUNT SSID ", process.env.TWILIO_ACCOUNT_SID);
   // const { phone } = req.body;
@@ -447,6 +520,9 @@ export const CancelPlan = async (req, res) => {
 
         // Format the response
         UpdateOrCreateUserInGhl(user);
+        user.nextChargeDate = null;
+        await user.save();
+        // await UpdateUserSubscriptionStartDate(user, null, null);
         let useRes = await UserProfileFullResource(user);
         res.send({
           status: true,
@@ -581,7 +657,44 @@ export async function ReChargeUserAccount(user) {
   let now = new Date(); // Current time
   let createdAt = new Date(user.createdAt);
   let timeDifference = now - createdAt;
-  if (
+
+  //Check the plan reach date
+  let nextChargeDate = new Date(user.nextChargeDate);
+  console.log("Next charge date", user.nextChargeDate);
+  console.log("Current date", now);
+  if (nextChargeDate < now) {
+    //charge date has reached
+    console.log("Subscription charge date has reached");
+    if (lastPlan && lastPlan.status == "active") {
+      console.log("Charging user");
+      let foundPlan = FindPlanWithtype(lastPlan.type);
+      let charge = await chargeUser(
+        user.id,
+        foundPlan.price * 100,
+        `Subscription payment for ${foundPlan.price}`,
+        foundPlan.type
+      );
+
+      let historyCreated = await db.PaymentHistory.create({
+        title: GetTitleForPlan(foundPlan),
+        description: `Payment for ${foundPlan.type}`,
+        type: foundPlan.type,
+        price: foundPlan.price,
+        userId: user.id,
+        environment: process.env.Environment,
+        transactionId: charge.paymentIntent.id,
+      });
+      let dateAfter30Days = new Date();
+      dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
+      user.nextChargeDate = dateAfter30Days;
+      console.log(
+        "SubscribeFunc: Receiving user seconds Before ",
+        user.totalSecondsAvailable
+      );
+      user.totalSecondsAvailable += foundPlan.duration;
+      await user.save();
+    }
+  } else if (
     lastPlan &&
     (user.totalSecondsAvailable <= 120 ||
       (user.isTrial && timeDifference > 7 * 24 * 60 * 60 * 1000))
@@ -632,9 +745,9 @@ export async function ReChargeUserAccount(user) {
     }
     return null;
   } else {
-    console.log("There is no plan", user.id);
+    console.log("Nothing to charge", user.id);
     console.log(
-      "So try to remove his free minutes from trial if 7 days have passed"
+      "So Check try to remove his free minutes from trial if 7 days have passed"
     );
     await RemoveTrialMinutesIf7DaysPassedAndNotCharged(user);
 
@@ -674,11 +787,11 @@ export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
     console.log("No  Trial have not passed", u.id);
   }
 }
-
+//Cron
 export async function RechargeFunction() {
   console.log("Cron Cancel plan or rechrage");
   // Correctly subtract 7 days from the current date
-  let users = await db.User.findAll();
+  let users = await db.User.findAll({ where: { id: 80 } });
   console.log("Total users ", users.length);
   // return;
   if (users && users.length > 0) {
@@ -697,4 +810,4 @@ export async function RechargeFunction() {
   // ReChargeUserAccount
 }
 
-// RechargeFunction();
+RechargeFunction();
