@@ -36,7 +36,7 @@ teamRouter.post(
 );
 
 teamRouter.post(
-  "deleteTeamMember",
+  "/deleteTeamMember",
   verifyJwtTokenWithTeam,
   uploadFiles,
   DeleteInvite
