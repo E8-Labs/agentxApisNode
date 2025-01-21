@@ -336,14 +336,17 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             data: null,
           });
         } else {
+          console.log("Not first time");
+
           let lastPlan = null;
           if (history && history.length > 0) {
             lastPlan = history[0];
           }
           if (lastPlan) {
+            console.log("There is a last plan");
             //if the duration of the new plan is greater then it is upgrade
             let upgrade = foundPlan.duration > lastPlan.duration;
-
+            console.log("Is user upgrading ", upgrade);
             if (user.isTrial) {
               //If user upgrades or downgrades while on trial then charge immediately and set the sub date to current date
               user.subscriptionStartDate = new Date();
@@ -354,17 +357,19 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             } else {
               //If user is not on trial
               if (upgrade && lastPlan.status == "active") {
+                console.log("Upgrade and active");
                 //If user upgrades while on an active plan
                 //Charge immediately so let the flow run below
                 //Don't change the subscription date if not null
                 payNow = true;
+                user.nextChargeDate = dateAfter30Days;
                 if (user.subscriptionStartDate == null) {
                   user.subscriptionStartDate = new Date();
-                  user.nextChargeDate = dateAfter30Days;
 
                   await user.save();
                 }
               } else if (!upgrade && lastPlan.status == "active") {
+                console.log("Not Upgrade and active");
                 //Subscription price don't change. It is same as the old
                 if (user.subscriptionStartDate == null) {
                   user.subscriptionStartDate = new Date();
@@ -391,6 +396,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               }
               //If user comes back from cancelled subscription
               else if (lastPlan.status == "cancelled") {
+                console.log("cancelled");
                 //If last plan is cancelled.
                 payNow = true; //payNow should be true
                 user.subscriptionStartDate = new Date();
@@ -400,7 +406,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               }
             }
 
-            console.log("Update Plan");
+            console.log("Update Plan", payNow);
             await db.PlanHistory.update(
               { status: "cancelled" },
               { where: { userId: user.id } }
