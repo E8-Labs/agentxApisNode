@@ -179,6 +179,10 @@ async function GetNotificationTitle(
     title = `Minutes Have Been Renewed! 🎉`;
     body = `${minutes} Minutes Added. Keep calling opportunities!`;
   }
+  if (type == NotificationTypes.SubscriptionRenewed) {
+    title = `Subscription has renewed`;
+    body = `${minutes} Minutes Added. Keep going!`;
+  }
 
   if (type == NotificationTypes.RedeemedAgentXCode) {
     title = `30 minutes added for using (${code})`;

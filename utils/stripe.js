@@ -377,7 +377,8 @@ export const chargeUser = async (
   userId,
   amount,
   description,
-  type = "PhonePurchase"
+  type = "PhonePurchase",
+  subscribe = false //If user is subscribing then this will be true
 ) => {
   const stripe = getStripeClient();
 
@@ -444,19 +445,36 @@ export const chargeUser = async (
               }
             }
           }
-          await AddNotification(
-            user,
-            null,
-            NotificationTypes.PlanRenewed,
-            null,
-            null,
-            null,
-            null,
-            0,
-            plan.duration / 60,
-            null,
-            null
-          );
+          if (subscribe) {
+            //SubscriptionRenewed
+            await AddNotification(
+              user,
+              null,
+              NotificationTypes.SubscriptionRenewed,
+              null,
+              null,
+              null,
+              null,
+              0,
+              plan.duration / 60,
+              null,
+              null
+            );
+          } else {
+            await AddNotification(
+              user,
+              null,
+              NotificationTypes.PlanRenewed,
+              null,
+              null,
+              null,
+              null,
+              0,
+              plan.duration / 60,
+              null,
+              null
+            );
+          }
         }
       } else {
         //Phone purchase

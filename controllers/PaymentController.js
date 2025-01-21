@@ -224,7 +224,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
   const isMobile = detectDevice(req);
   let { plan } = req.body; // mainAgentId is the mainAgent id
   let payNow = req.body.payNow || false; //if true, user pays regardless he has minutes or trial
-  let updateFuturePlan = req.body.updateFuturePlan || false;
+  let updateFuturePlan = req.body.updateFuturePlan || false; // If true then only set the plan and do nothing
   console.log("Plan is ", plan);
   if (!plan) {
     return res.send({
@@ -247,6 +247,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
       data: null,
     });
   }
+  console.log("Found plan", foundPlan);
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -282,7 +283,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           );
           await db.PlanHistory.create({
             userId: user.id,
-            plan: foundPlan.type,
+            type: foundPlan.type,
           });
           return res.send({
             status: true,
@@ -774,12 +775,13 @@ export async function ReChargeUserAccount(user) {
         user.id,
         foundPlan.price * 100,
         `Subscription payment for ${foundPlan.price}`,
-        foundPlan.type
+        foundPlan.type,
+        true
       );
 
       let historyCreated = await db.PaymentHistory.create({
-        title: GetTitleForPlan(foundPlan),
-        description: `Payment for ${foundPlan.type}`,
+        title: `${foundPlan.duration / 60} Min subscription renewed`,
+        description: `${foundPlan.duration / 60} Min subscription renewed`,
         type: foundPlan.type,
         price: foundPlan.price,
         userId: user.id,

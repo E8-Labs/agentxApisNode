@@ -29,6 +29,7 @@ export const NotificationTypes = {
   LastDayToMakeItCount: "LastDayToMakeItCount",
   TrialTime2MinLeft: "TrialTime2MinLeft", // when two minutes of trial time is left
   PlanRenewed: "PlanRenewed",
+  SubscriptionRenewed: "SubscriptionRenewed",
 
   //Gamifications
   FirstLeadUpload: "FirstLeadUpload", //First Lead list upload
