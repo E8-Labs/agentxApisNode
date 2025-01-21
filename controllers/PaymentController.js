@@ -820,7 +820,7 @@ export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
 export async function RechargeFunction() {
   console.log("Cron Cancel plan or rechrage");
   // Correctly subtract 7 days from the current date
-  let users = await db.User.findAll({ where: { id: 80 } });
+  let users = await db.User.findAll();
   console.log("Total users ", users.length);
   // return;
   if (users && users.length > 0) {

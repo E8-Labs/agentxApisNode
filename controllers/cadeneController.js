@@ -22,6 +22,33 @@ const simulate = process.env.CronEnvironment == "Sandbox" ? true : false;
 const failedSimulation = true; // to simulate failed calls and then mark them as errored on third try
 console.log("Simulate ", simulate);
 
+async function getPayingUserLeadIds() {
+  let usersWithMinutesRemaining = await db.User.findAll({
+    where: {
+      totalSecondsAvailable: {
+        [db.Sequelize.Op.gte]: 2 * 60, // gt or equal
+      },
+    },
+  });
+  let userIds =
+    usersWithMinutesRemaining && usersWithMinutesRemaining.length > 0
+      ? usersWithMinutesRemaining.map((user) => user.id)
+      : [];
+  let leads = await db.LeadModel.findAll({
+    where: {
+      id: {
+        [db.Sequelize.Op.in]: userIds,
+      },
+    },
+  });
+  let leadIds = [];
+  if (leads && leads.length > 0) {
+    leadIds = leads.map((lead) => lead.id);
+  }
+
+  return leadIds;
+}
+
 export const CronRunCadenceCallsFirstBatch = async () => {
   //Find Cadences to run for leads in the initial State (New Lead)
   //Step-1 Find all leadCadences which are not completed. All leads which are pending should be pushed
@@ -33,10 +60,14 @@ export const CronRunCadenceCallsFirstBatch = async () => {
   const endOfToday = new Date();
   endOfToday.setHours(23, 59, 59, 999); // Set to end of the day
 
+  const leadIds = await getPayingUserLeadIds(); //only fetch those users, whose minutes are above 2 min threshold
   let leadCadence = await db.LeadCadence.findAll({
     where: {
       status: CadenceStatus.Pending,
       callTriggerTime: { [db.Sequelize.Op.is]: null }, // Check if callTriggerTime is null
+      leadId: {
+        [db.Sequelize.Op.in]: leadIds,
+      },
     },
     limit: 100,
   });
@@ -269,12 +300,15 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
   );
   //Find Cadences to run for leads in the initial State (New Lead)
   //Step-1 Find all leadCadences which are not completed. All leads which are Started should be pushed
-
+  const leadIds = await getPayingUserLeadIds(); //only fetch those users, whose minutes are above 2 min threshold
   let leadCadence = await db.LeadCadence.findAll({
     where: {
       status: CadenceStatus.Started,
       batchId: {
         [db.Sequelize.Op.ne]: null,
+      },
+      leadId: {
+        [db.Sequelize.Op.in]: leadIds,
       },
     },
     limit: 50, // Limit the batch size to 2
