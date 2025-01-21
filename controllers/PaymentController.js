@@ -343,9 +343,10 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             lastPlan = history[0];
           }
           if (lastPlan) {
+            let lastPlanFound = FindPlanWithtype(lastPlan.type);
             console.log("There is a last plan");
             //if the duration of the new plan is greater then it is upgrade
-            let upgrade = foundPlan.duration > lastPlan.duration;
+            let upgrade = foundPlan.duration > lastPlanFound.duration;
             console.log("Is user upgrading ", upgrade);
             if (user.isTrial) {
               //If user upgrades or downgrades while on trial then charge immediately and set the sub date to current date
