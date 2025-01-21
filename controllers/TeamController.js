@@ -141,7 +141,7 @@ export function DeleteInvite(req, res) {
 
       await db.TeamModel.destroy({
         where: {
-          userId: user.id,
+          invitingUserId: user.id,
           phone: phoneNumber,
         },
       });
