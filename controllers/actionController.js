@@ -175,7 +175,7 @@ function GetActionApiData(user, assistant, type = "kb") {
       name: `Check Availability For ${user.name}`,
       description:
         "Use the Check Availability action to verify the user's calendar for open time slots when booking a meeting, appointment, or event. Ensure you accurately query their schedule to find suitable availability and provide relevant options. ",
-      speech_while_using_the_tool: "One second, let me check the calendar",
+      speech_while_using_the_tool: "",
       variables_during_the_call: [
         // {
         //   name: `date`,
