@@ -160,10 +160,10 @@ export async function CheckAndSendTrialReminderNotificaitonSent(user) {
     console.log("User is not on trial");
     return;
   }
-  if (leads > 0) {
-    console.log("User have already added leads");
-    return;
-  }
+  // if (leads > 0) {
+  //   console.log("User have already added leads");
+  //   return;
+  // }
   //check the datetime to see if it is gt 3 hours and less than 4
   let now = new Date(); // Current time
   let createdAt = new Date(user.createdAt); // Convert user.createdAt to a Date object
@@ -205,10 +205,10 @@ export async function CheckAndSendNeedHelpDontMissoutNotificaitonSent(user) {
     console.log("User is not on trial");
     return;
   }
-  if (leads > 0) {
-    console.log("User have already added leads");
-    return;
-  }
+  // if (leads > 0) {
+  //   console.log("User have already added leads");
+  //   return;
+  // }
   //check the datetime to see if it is gt 3 hours and less than 4
   let now = new Date(); // Current time
   let createdAt = new Date(user.createdAt); // Convert user.createdAt to a Date object
@@ -274,10 +274,10 @@ export async function CheckAndSendLastChanceToActNotificaitonSent(user) {
     console.log("No  Trial have not passed", u.id);
   }
 
-  if (leads > 0) {
-    console.log("User have already added leads");
-    return;
-  }
+  // if (leads > 0) {
+  //   console.log("User have already added leads");
+  //   return;
+  // }
 
   // Check if 99 hours (in milliseconds) or more have passed
   if (timeDifference >= 123 * 60 * 60 * 1000) {
@@ -312,10 +312,10 @@ export async function CheckAndSendLastDayToMakeItCountNotificaitonSent(user) {
     console.log("User is not on trial");
     return;
   }
-  if (leads > 0) {
-    console.log("User have already added leads");
-    return;
-  }
+  // if (leads > 0) {
+  //   console.log("User have already added leads");
+  //   return;
+  // }
   //check the datetime to see if it is gt 3 hours and less than 4
   let now = new Date(); // Current time
   let createdAt = new Date(user.createdAt); // Convert user.createdAt to a Date object
