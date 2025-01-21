@@ -834,6 +834,19 @@ async function SendNotificationsForHotlead(user) {
         },
       },
     });
+    console.log(`Calls made by ${user.name} | ${totalCalls}`);
+    if (totalCalls > 1) {
+      await AddNotification(
+        user,
+        null,
+        NotificationTypes.CallsMadeByAgent,
+        null,
+        null,
+        null,
+        0,
+        totalCalls
+      );
+    }
 
     if (totalCalls == 0) {
       console.log("Total calls were 0 576 line");
@@ -899,19 +912,6 @@ async function SendNotificationsForHotlead(user) {
       }
     }
 
-    console.log(`Calls made by ${user.name} | ${totalCalls}`);
-    if (totalCalls > 1) {
-      await AddNotification(
-        user,
-        null,
-        NotificationTypes.CallsMadeByAgent,
-        null,
-        null,
-        null,
-        0,
-        totalCalls
-      );
-    }
     if (hotleads > 1) {
       await AddNotification(
         user,

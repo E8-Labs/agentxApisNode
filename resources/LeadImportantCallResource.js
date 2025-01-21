@@ -36,6 +36,10 @@ async function getUserData(lead, currentUser = null) {
       leadId: lead.id,
     },
   });
+  let stage = null;
+  if (lead.stage) {
+    stage = await db.PipelineStages.findByPk(lead.stage);
+  }
   let tags = leadTags.map((tag) => tag.tag);
 
   let sheetTags = await db.LeadSheetTagModel.findAll({
@@ -123,6 +127,7 @@ async function getUserData(lead, currentUser = null) {
     emails: emails,
     booking: scheduled,
     pipeline: pipeline,
+    stage: stage,
   };
 
   return LeadResource;
