@@ -284,10 +284,11 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                 //If user upgrades while on an active plan
                 //Charge immediately so let the flow run below
                 //Don't change the subscription date if not null
+                payNow = true;
                 if (user.subscriptionStartDate == null) {
                   user.subscriptionStartDate = new Date();
                   user.nextChargeDate = dateAfter30Days;
-                  payNow = true;
+
                   await user.save();
                 }
               } else if (!upgrade && lastPlan.status == "active") {
