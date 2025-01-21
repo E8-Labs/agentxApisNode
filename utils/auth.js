@@ -40,7 +40,7 @@ export async function GetTeamAdminFor(user) {
 
 export const detectDevice = (req) => {
   const userAgent = req.headers["user-agent"];
-
+  console.log("User agent ", userAgent);
   const isMobile = /Mobile|Android|iP(hone|od|ad)|Windows Phone/i.test(
     userAgent
   );

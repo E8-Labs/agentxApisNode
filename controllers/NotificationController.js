@@ -172,7 +172,7 @@ async function GetNotificationTitle(
     body = "Final call! Your 30 minutes of AI talk time expire at midnight.";
   }
   if (type == NotificationTypes.TrialTime2MinLeft) {
-    title = `2 min Reminder!`;
+    title = `5 min Reminder!`;
     body = "Trial ending soon. Just 2 minutes left! Your plan will auto-renew.";
   }
   if (type == NotificationTypes.PlanRenewed) {
@@ -359,7 +359,7 @@ async function SendEmailForNotification(
       lead?.phone, // Leadphone
       recording || "", // LinkToRecording
       meetingDate, // MeetingDateTime
-      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      constants.LeadPage, // CTA_Link
       "View Hot Lead and Take Action" // CTA_Text
     );
     email = user.email;
@@ -372,19 +372,19 @@ async function SendEmailForNotification(
   } else if (type === NotificationTypes.NoCallsIn3Days) {
     emailNot = GenerateCallsStoppedEmail(
       user.name, // Name
-      "https://ai.myagentx.com/webinar", // CTA_Link
+      userCtaLink, // CTA_Link
       "Join the Live Webinar Now" // CTA_Text
     );
   } else if (type === NotificationTypes.Trial30MinTicking) {
     emailNot = GenerateTrialTickingEmail(
       user.name, // Name
-      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      constants.LeadPage, // CTA_Link
       "Start Calling" // CTA_Text
     );
   } else if (type === NotificationTypes.X3MoreLikeyToWin) {
     emailNot = GenerateThreeTimesWinEmail(
       user.name, // Name
-      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      constants.LeadPage, // CTA_Link
       "Upload Leads Now" // CTA_Text
     );
   } else if (type === NotificationTypes.NeedHand) {
@@ -396,7 +396,7 @@ async function SendEmailForNotification(
   } else if (type === NotificationTypes.TrialReminder) {
     emailNot = generateTrialReminderEmail(
       user.name, // Name
-      userCtaLink, // CTA_Link
+      constants.LeadPage, // CTA_Link
       "Start Calling" // CTA_Text
     );
   } else if (type === NotificationTypes.NeedHelpDontMissOut) {
@@ -414,20 +414,20 @@ async function SendEmailForNotification(
   } else if (type === NotificationTypes.LastDayToMakeItCount) {
     emailNot = generateTrialEndsTonightEmail(
       user.name, // Name
-      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      constants.LeadPage, // CTA_Link
       "Start Calling" // CTA_Text
     );
   } else if (type === NotificationTypes.TrialTime2MinLeft) {
     emailNot = generateFiveMinutesLeftEmail(
       user.name, // Name
-      "https://ai.myagentx.com/dashboard/myAccount", // CTA_Link
+      constants.BillingPage, // CTA_Link
       "Manage Plan" // CTA_Text
     );
   } else if (type === NotificationTypes.PlanRenewed) {
     let plan = FindPlanWithMinutes(minutes);
     emailNot = generateMinutesRenewedEmail(
       user.name, // Name
-      `${minutes} minutes`, // Minutes
+      `${minutes}`, // Minutes
       `${plan?.price || "Unknown"}` // Price
     );
   } else if (type == NotificationTypes.Inactive5Days) {

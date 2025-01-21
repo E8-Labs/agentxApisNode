@@ -166,10 +166,65 @@ export const SetDefaultPaymentmethod = async (req, res) => {
   });
 };
 
+// export const SetFuturePlan = async (req, res) => {
+//   const isMobile = detectDevice(req);
+//   let { plan } = req.body; // mainAgentId is the mainAgent id
+//   // let payNow = req.body.payNow || false; //if true, user pays regardless he has minutes or trial
+//   console.log("Plan is ", plan);
+//   if (!plan) {
+//     return res.send({
+//       status: false,
+//       message: "Missing required parameter: plan",
+//       data: null,
+//     });
+//   }
+//   let foundPlan = null;
+//   console.log(PayAsYouGoPlans);
+//   PayAsYouGoPlans.map((p) => {
+//     if (p.type == plan) {
+//       foundPlan = p;
+//     }
+//   });
+//   if (!foundPlan) {
+//     return res.status(404).send({
+//       status: false,
+//       message: "No such plan " + plan,
+//       data: null,
+//     });
+//   }
+//   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+//     if (authData) {
+//       let userId = authData.user.id;
+//       let user = await db.User.findOne({
+//         where: {
+//           id: userId,
+//         },
+//       });
+
+// await db.PlanHistory.update(
+//   { status: "cancelled" },
+//   {
+//     where: {
+//       userId: user.id,
+//     },
+//   }
+// );
+// await db.PlanHistory.create({
+//   userId: user.id,
+//   plan: foundPlan.type,
+// })
+
+//       return res.send({status: true, message: "Plan has changed successfully", data: null})
+//     } else {
+//       console.log("No such user");
+//     }
+//   });
+// };
 export const SubscribePayasyougoPlan = async (req, res) => {
   const isMobile = detectDevice(req);
   let { plan } = req.body; // mainAgentId is the mainAgent id
   let payNow = req.body.payNow || false; //if true, user pays regardless he has minutes or trial
+  let updateFuturePlan = req.body.updateFuturePlan || false;
   console.log("Plan is ", plan);
   if (!plan) {
     return res.send({
@@ -216,7 +271,24 @@ export const SubscribePayasyougoPlan = async (req, res) => {
       dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
 
       try {
-        if (
+        if (updateFuturePlan) {
+          await db.PlanHistory.update(
+            { status: "cancelled" },
+            {
+              where: {
+                userId: user.id,
+              },
+            }
+          );
+          await db.PlanHistory.create({
+            userId: user.id,
+            plan: foundPlan.type,
+          });
+          return res.send({
+            status: true,
+            message: "Plan has changed successfully",
+          });
+        } else if (
           firstTime &&
           foundPlan.type == PayAsYouGoPlanTypes.Plan30Min &&
           !payNow
@@ -840,4 +912,4 @@ export async function RechargeFunction() {
   // ReChargeUserAccount
 }
 
-RechargeFunction();
+// RechargeFunction();
