@@ -21,7 +21,7 @@ import { BatchStatus } from "../models/pipeline/CadenceBatchModel.js";
 const simulate = process.env.CronEnvironment == "Sandbox" ? true : false;
 const failedSimulation = true; // to simulate failed calls and then mark them as errored on third try
 console.log("Simulate ", simulate);
-const AvgCallTimeSeconds = 4 * 60; //seconds
+const AvgCallTimeSeconds = 3 * 60; //seconds
 
 async function getPayingUserLeadIds(user = null) {
   let usersWithMinutesRemaining = await db.User.findAll({
