@@ -270,9 +270,20 @@ export const SubscribePayasyougoPlan = async (req, res) => {
       }
       let dateAfter30Days = new Date();
       dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
-
+      if (isMobile) {
+        //Generate Desktop Email
+        if (user.userType != UserTypes.RealEstateAgent) {
+          let emailTemp = generateDesktopEmail();
+          let sent = await SendEmail(
+            user.email,
+            emailTemp.subject,
+            emailTemp.html
+          );
+        }
+      }
       try {
         if (updateFuturePlan) {
+          console.log("Updating future plan");
           await db.PlanHistory.update(
             { status: "cancelled" },
             {
@@ -285,6 +296,17 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             userId: user.id,
             type: foundPlan.type,
           });
+          // if (isMobile) {
+          //   //Generate Desktop Email
+          //   if (user.userType != UserTypes.RealEstateAgent) {
+          //     let emailTemp = generateDesktopEmail();
+          //     let sent = await SendEmail(
+          //       user.email,
+          //       emailTemp.subject,
+          //       emailTemp.html
+          //     );
+          //   }
+          // }
           return res.send({
             status: true,
             message: "Plan has changed successfully",
@@ -319,17 +341,17 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           user.isTrial = true;
           await user.save();
           UpdateOrCreateUserInGhl(user);
-          if (isMobile) {
-            //Generate Desktop Email
-            if (user.userType != UserTypes.RealEstateAgent) {
-              let emailTemp = generateDesktopEmail();
-              let sent = await SendEmail(
-                user.email,
-                emailTemp.subject,
-                emailTemp.html
-              );
-            }
-          }
+          // if (isMobile) {
+          //   //Generate Desktop Email
+          //   if (user.userType != UserTypes.RealEstateAgent) {
+          //     let emailTemp = generateDesktopEmail();
+          //     let sent = await SendEmail(
+          //       user.email,
+          //       emailTemp.subject,
+          //       emailTemp.html
+          //     );
+          //   }
+          // }
           return res.send({
             status: true,
             message: "Successfully subscribed to plan",
@@ -488,17 +510,17 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             }
           } else {
             // No last plan so first time user and it is selecting a plan other than 30 min
-            if (isMobile) {
-              //Generate Desktop Email
-              if (user.userType != UserTypes.RealEstateAgent) {
-                let emailTemp = generateDesktopEmail();
-                let sent = await SendEmail(
-                  user.email,
-                  emailTemp.subject,
-                  emailTemp.html
-                );
-              }
-            }
+            // if (isMobile) {
+            //   //Generate Desktop Email
+            //   if (user.userType != UserTypes.RealEstateAgent) {
+            //     let emailTemp = generateDesktopEmail();
+            //     let sent = await SendEmail(
+            //       user.email,
+            //       emailTemp.subject,
+            //       emailTemp.html
+            //     );
+            //   }
+            // }
           }
 
           //User directly purchased a plan that is not 30 minutes
