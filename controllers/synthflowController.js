@@ -532,7 +532,7 @@ export const MakeACall = async (
       stage: lead.stage,
       status: "success",
       endCallReason: "no-answer", //MaxTriesReached
-      duration: 50,
+      // duration: 50,
       batchId: batchId,
     });
     await addCallTry(leadCadence, lead, assistant, calls, batchId, "success"); //errored

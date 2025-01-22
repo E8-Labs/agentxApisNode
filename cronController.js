@@ -30,7 +30,7 @@ import {
 } from "./controllers/PaymentController.js";
 
 const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
-  "*/1 * * * *",
+  "*/30 * * * * *",
   CronRunCadenceCallsFirstBatch
 );
 CronRunCadenceCallsFirstBatchCron.start();
@@ -52,9 +52,9 @@ const CronCallOutcome = nodeCron.schedule(
 );
 CronCallOutcome.start();
 
-//Release Number cron
-// const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
-// CronReleaseNumber.start();
+// Release Number cron
+const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
+CronReleaseNumber.start();
 
 const NotificationSendingCron = nodeCron.schedule(
   "*/1 * * * *", //"*/59 * * * * *",

@@ -21,7 +21,7 @@ import { BatchStatus } from "../models/pipeline/CadenceBatchModel.js";
 const simulate = process.env.CronEnvironment == "Sandbox" ? true : false;
 const failedSimulation = true; // to simulate failed calls and then mark them as errored on third try
 console.log("Simulate ", simulate);
-const AvgCallTimeSeconds = 3 * 60; //seconds
+const AvgCallTimeSeconds = 4 * 60; //seconds
 
 async function getPayingUserLeadIds(user = null) {
   let usersWithMinutesRemaining = await db.User.findAll({
@@ -38,9 +38,10 @@ async function getPayingUserLeadIds(user = null) {
     usersWithMinutesRemaining && usersWithMinutesRemaining.length > 0
       ? usersWithMinutesRemaining.map((user) => user.id)
       : [];
+  console.log("user ids ", userIds);
   let leads = await db.LeadModel.findAll({
     where: {
-      id: {
+      userId: {
         [db.Sequelize.Op.in]: userIds,
       },
     },
@@ -65,6 +66,8 @@ export const CronRunCadenceCallsFirstBatch = async () => {
   endOfToday.setHours(23, 59, 59, 999); // Set to end of the day
 
   const leadIds = await getPayingUserLeadIds(); //only fetch those users, whose minutes are above 2 min threshold
+  // return;
+  // console.log("Lead ids of paying users", JSON.stringify(leadIds));
   let leadCadence = await db.LeadCadence.findAll({
     where: {
       status: CadenceStatus.Pending,
@@ -77,6 +80,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
   });
 
   console.log(`Found ${leadCadence.length} leads to start batch calls`);
+  // return;
   if (leadCadence.length == 0) {
     console.log(`Found No new leads to start batch calls today`);
     return;
@@ -91,8 +95,9 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       if (lead) {
         let user = await db.User.findByPk(lead.userId);
         //check the total number of ongoing calls atm
-        let leadIds = getPayingUserLeadIds(user);
+        let leadIds = await getPayingUserLeadIds(user);
         const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+        // console.log("Finding calls in lead ids ", JSON.stringify(leadIds));
         let calls = await db.LeadCallsSent.findAll({
           where: {
             leadId: {
@@ -107,9 +112,13 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           },
         });
 
-        console.log(user.id + " Current ongoing calls ", calls.length);
+        console.log(
+          user.id + `lead ${lead.id} Current ongoing calls `,
+          calls.length
+        );
         //avg call time 3 min
         if (user.totalSecondsAvailable < calls.length * AvgCallTimeSeconds) {
+          console.log("Wait for current ongoing calls then place next.");
           continue; //to the next call & don't place further calls for this user
         }
         // if(user.totalSecondsAvailable)
@@ -145,7 +154,9 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           batchId: leadCad.batchId,
         },
       });
-      console.log(`${batch.id} Batch ${batch.batchSize} Calls: ${count}`);
+      console.log(
+        `${leadCad.batchId} Batch ${batch.batchSize} Calls: ${count}`
+      );
       if (count >= batch?.batchSize) {
         console.log("Batch size limit reached so will push calls tomorrow");
         continue;
@@ -156,7 +167,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 
       console.log("Finding agent for ", leadCad.mainAgentId);
       let mainAgent = await db.MainAgentModel.findByPk(leadCad.mainAgentId);
-      console.log("Main Agent", mainAgent);
+      // console.log("Main Agent", mainAgent);
       let pipelineStageForLead = await db.PipelineStages.findByPk(lead.stage);
       console.log(
         `Found Lead ${lead?.firstName} at stage ${pipelineStageForLead?.stageTitle} in Pipeline ${pipeline?.title} Assigned to ${mainAgent?.name}`
@@ -295,6 +306,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
                 {
                   where: {
                     batchId: leadCad.batchId,
+                    leadId: leadCad.leadId,
                   },
                 }
               );
@@ -350,8 +362,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
     if (lead) {
       let user = await db.User.findByPk(lead.userId);
       //check the total number of ongoing calls atm
-      let leadIds = getPayingUserLeadIds(user);
+      let leadIds = await getPayingUserLeadIds(user);
       const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
+      // console.log("Finding calls in lead ids ", JSON.stringify(leadIds));
       let calls = await db.LeadCallsSent.findAll({
         where: {
           leadId: {
@@ -366,9 +379,13 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         },
       });
 
-      console.log(user.id + " SubsequentCurrent ongoing calls ", calls.length);
+      console.log(
+        user.id + `lead ${lead.id} Current ongoing calls `,
+        calls.length
+      );
       //avg call time 3 min
       if (user.totalSecondsAvailable < calls.length * AvgCallTimeSeconds) {
+        console.log("Wait for current ongoing calls then place next.");
         continue; //to the next call & don't place further calls for this user
       }
       // if(user.totalSecondsAvailable)
