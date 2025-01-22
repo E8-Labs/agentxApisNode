@@ -287,14 +287,14 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           //Generate Desktop Email
           console.log("User id ", user.id);
           console.log("Checking user type for email", user.userType);
-          if (user.userType != UserTypes.RealEstateAgent) {
-            let emailTemp = generateDesktopEmail();
-            let sent = await SendEmail(
-              user.email,
-              emailTemp.subject,
-              emailTemp.html
-            );
-          }
+          // if (user.userType != UserTypes.RealEstateAgent) {
+          let emailTemp = generateDesktopEmail();
+          let sent = await SendEmail(
+            user.email,
+            emailTemp.subject,
+            emailTemp.html
+          );
+          // }
         }
       }
       try {
