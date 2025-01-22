@@ -171,9 +171,9 @@ async function GetNotificationTitle(
     title = `Last Day to Make It Count! ⏰`;
     body = "Final call! Your 30 minutes of AI talk time expire at midnight.";
   }
-  if (type == NotificationTypes.TrialTime2MinLeft) {
+  if (type == NotificationTypes.TrialTime5MinLeft) {
     title = `5 min Reminder!`;
-    body = "Trial ending soon. Just 2 minutes left! Your plan will auto-renew.";
+    body = "Just 5 minutes left! Your plan will auto-renew.";
   }
   if (type == NotificationTypes.PlanRenewed) {
     title = `Minutes Have Been Renewed! 🎉`;
@@ -194,7 +194,7 @@ async function GetNotificationTitle(
     title = `${lead?.firstName || "New Lead"} called`;
   }
   if (type == NotificationTypes.NoCallsIn3Days) {
-    title = `Your  calls have stopped for 3 days`;
+    title = `Your calls have stopped for 3 days`;
   }
   if (type == NotificationTypes.PaymentFailed) {
     title = `Urgent! Payment method failed`;
@@ -421,7 +421,7 @@ async function SendEmailForNotification(
       constants.LeadPage, // CTA_Link
       "Start Calling" // CTA_Text
     );
-  } else if (type === NotificationTypes.TrialTime2MinLeft) {
+  } else if (type === NotificationTypes.TrialTime5MinLeft) {
     emailNot = generateFiveMinutesLeftEmail(
       user.name, // Name
       constants.BillingPage, // CTA_Link

@@ -333,6 +333,10 @@ export const PurchasePhoneNumber = async (req, res) => {
 
     try {
       const userId = authData.user.id;
+      let user = await db.User.findByPk(userId);
+      if (!user) {
+        return res.send({ status: false, message: "User doesn't exist" });
+      }
       const environment = process.env.ENVIRONMENT || "Sandbox";
       console.log("Live env so acutall purchasing number", environment);
 
@@ -351,12 +355,17 @@ export const PurchasePhoneNumber = async (req, res) => {
         //   console.log("Sandbox environment so not actually buying number");
         //   purchasedNumber = { sid: `PHSID${phoneNumber}` };
         // } else {
-        UpdateOrCreateUserInGhl(user);
+
+        // purchasedNumber = {
+        //   sid: `PHSID-${phoneNumber}`,
+        //   phoneNumber: phoneNumber,
+        // };
         purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
           phoneNumber,
         });
         // }
 
+        UpdateOrCreateUserInGhl(authData.user);
         if (!purchasedNumber || !purchasedNumber.sid) {
           //return the charge
           return res.status(500).send({
@@ -400,6 +409,7 @@ export const PurchasePhoneNumber = async (req, res) => {
         });
       }
     } catch (error) {
+      console.log(error);
       return res.status(200).send({
         status: false,
         message: error.message,

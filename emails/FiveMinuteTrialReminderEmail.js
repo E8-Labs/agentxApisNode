@@ -78,8 +78,8 @@ const HtmlTemplateTwoMinutesLeft = `
     <div class="header">Just 5 Minutes Left on Your Trial!</div>
     <div class="body">
       <p>Hi {First_Name},</p>
-      <p>Your 30-minute trial is almost up—you’ve got just <span class="bold">5 minutes</span> left to make the most of it!</p>
-      <p>Your plan will <span class="bold">automatically renew</span> at your selected level from our pay-as-you-go plans, so you can keep calling without interruption.</p>
+      <p>Your <span class="bold">30-minute trial</span> is almost up—you’ve got just <span class="bold">5 minutes</span> left to make the most of it!</p>
+      <p>Your plan will <span class="bold">automatically renew</span> at your selected plan, so you can keep calling without interruption.</p>
       <p>👉 <a href="{CTA_Link}" class="hyperlink"><span class="bold">Want to adjust your plan?</span></a> Visit your account now to make any changes before your minutes renew.</p>
       <p>Stay connected and keep the momentum going—your next listing appointment is just a call away!</p>
       <a href="{CTA_Link}" class="cta"><p class="ctaText">{CTA_Text}</p></a>
