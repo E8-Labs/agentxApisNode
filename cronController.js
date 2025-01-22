@@ -28,16 +28,84 @@ import {
   RechargeFunction,
   ReChargeUserAccount,
 } from "./controllers/PaymentController.js";
-
+import { RemoveLock, TryToLockFile } from "./services/FileService.js";
+import { ProcessTypes } from "./models/webhooks/cronLock.js";
+const runCronJob = async () => {
+  console.log("Executing cron job at:", new Date());
+  // Simulate an asynchronous task (e.g., database processing, API call, etc.)
+  await new Promise((resolve) => setTimeout(resolve, 10000)); // Task runs for 20 seconds
+  console.log("Cron job completed at:", new Date());
+};
 const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
-  "*/30 * * * * *",
-  CronRunCadenceCallsFirstBatch
+  "*/10 * * * * *",
+  async () => {
+    try {
+      // Check if the lock file exists
+      let cronRunning = await db.CronLockTable.findOne({
+        where: { process: ProcessTypes.BatchCron },
+      });
+
+      if (cronRunning) {
+        console.log("Cron is already running");
+        return;
+      }
+      let created = await db.CronLockTable.create({
+        process: ProcessTypes.BatchCron,
+      });
+      // Execute the job function
+      console.log("Calling the cron function");
+      await CronRunCadenceCallsFirstBatch();
+      // await runCronJob();
+      console.log("Cron completed");
+      await db.CronLockTable.destroy({
+        where: {
+          process: ProcessTypes.BatchCron,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      console.error("Error during task execution:", error.message);
+    } finally {
+      // Remove the lock file
+    }
+  }
 );
 CronRunCadenceCallsFirstBatchCron.start();
 
 const CronRunCadenceCallsSubsequentStagesCron = nodeCron.schedule(
   "*/1 * * * *",
-  CronRunCadenceCallsSubsequentStages
+  async () => {
+    try {
+      // Check if the lock file exists
+      let cronRunning = await db.CronLockTable.findOne({
+        where: { process: ProcessTypes.SubsequentCron },
+      });
+
+      if (cronRunning) {
+        console.log("Sub: Cron is already running");
+        return;
+      } else {
+        let created = await db.CronLockTable.create({
+          process: ProcessTypes.SubsequentCron,
+        });
+        // Execute the job function
+        console.log("Calling the cron function");
+        await CronRunCadenceCallsSubsequentStages();
+        await db.CronLockTable.destroy({
+          where: {
+            process: ProcessTypes.SubsequentCron,
+          },
+        });
+      }
+
+      // await runCronJob();
+    } catch (error) {
+      console.log(error);
+      console.error("Error during task execution:", error.message);
+    } finally {
+      // Remove the lock file
+    }
+  }
 );
 CronRunCadenceCallsSubsequentStagesCron.start();
 
