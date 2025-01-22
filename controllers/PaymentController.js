@@ -298,6 +298,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           });
           if (isMobile) {
             //Generate Desktop Email
+            console.log("User id ", user.id);
             console.log("Checking user type for email", user.userType);
             if (user.userType != UserTypes.RealEstateAgent) {
               let emailTemp = generateDesktopEmail();
