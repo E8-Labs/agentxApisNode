@@ -270,17 +270,17 @@ export const SubscribePayasyougoPlan = async (req, res) => {
       }
       let dateAfter30Days = new Date();
       dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
-      if (isMobile) {
-        //Generate Desktop Email
-        if (user.userType != UserTypes.RealEstateAgent) {
-          let emailTemp = generateDesktopEmail();
-          let sent = await SendEmail(
-            user.email,
-            emailTemp.subject,
-            emailTemp.html
-          );
-        }
-      }
+      // if (isMobile) {
+      //   //Generate Desktop Email
+      //   if (user.userType != UserTypes.RealEstateAgent) {
+      //     let emailTemp = generateDesktopEmail();
+      //     let sent = await SendEmail(
+      //       user.email,
+      //       emailTemp.subject,
+      //       emailTemp.html
+      //     );
+      //   }
+      // }
       try {
         if (updateFuturePlan) {
           console.log("Updating future plan");
@@ -296,17 +296,18 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             userId: user.id,
             type: foundPlan.type,
           });
-          // if (isMobile) {
-          //   //Generate Desktop Email
-          //   if (user.userType != UserTypes.RealEstateAgent) {
-          //     let emailTemp = generateDesktopEmail();
-          //     let sent = await SendEmail(
-          //       user.email,
-          //       emailTemp.subject,
-          //       emailTemp.html
-          //     );
-          //   }
-          // }
+          if (isMobile) {
+            //Generate Desktop Email
+            console.log("Checking user type for email", user.userType);
+            if (user.userType != UserTypes.RealEstateAgent) {
+              let emailTemp = generateDesktopEmail();
+              let sent = await SendEmail(
+                user.email,
+                emailTemp.subject,
+                emailTemp.html
+              );
+            }
+          }
           return res.send({
             status: true,
             message: "Plan has changed successfully",
