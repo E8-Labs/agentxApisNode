@@ -167,7 +167,10 @@ export const GetDashboardData = async (req, res) => {
         avDuration = stats.totalDurationGt10 / stats.totalCallsGt10;
       }
 
-      let av = stats.totalDuration / stats.totalCallsGt10;
+      let av = 0;
+      if (stats.totalCallsGt10 > 0) {
+        avg = stats.totalDuration / stats.totalCallsGt10;
+      }
       let formattedAvDuration = "N/A";
       if (av) {
         formattedAvDuration = formatDuration(av);
