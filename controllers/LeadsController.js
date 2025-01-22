@@ -1407,8 +1407,9 @@ export const GetCallLogs = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
+      let user = await db.User.findByPk(userId);
       let offset = Number(req.query.offset) || 0;
-
+      let teamIds = await GetTeamIds(user);
       try {
         const { name, duration, status, startDate, endDate, stageIds } =
           req.query; // duration in seconds
@@ -1418,7 +1419,9 @@ export const GetCallLogs = async (req, res) => {
 
         // Define filters for LeadModel (related model)
         const leadFilters = {
-          userId, // Ensure the lead belongs to the user
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          }, // Ensure the lead belongs to the user
         };
 
         if (name) {
