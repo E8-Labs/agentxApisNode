@@ -1,6 +1,7 @@
 import JWT from "jsonwebtoken";
 import db from "../models/index.js";
 import { UserRole } from "../models/user/userModel.js";
+import { detectDevice } from "../utils/auth.js";
 
 const SignUser = async (user) => {
   return new Promise((resolve, reject) => {
@@ -92,6 +93,8 @@ export const verifyJwtToken = async (req, response, next) => {
 };
 
 export const verifyJwtTokenWithTeam = async (req, response, next) => {
+  let isMobile = detectDevice(req);
+  console.log("This is on mobile = ", isMobile);
   const authHeaders = req.headers["authorization"];
   const apiKeyHeaders = req.headers["x-api-key"];
   console.log("Auth headers");
