@@ -19,7 +19,7 @@ import { AssignLeads } from "./pipelineController.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
 import LeadImportantCallResource from "../resources/LeadImportantCallResource.js";
-import { GetTeamIds } from "../utils/auth.js";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 
@@ -98,6 +98,7 @@ export const AddLeads = async (req, res) => {
           userId: user.id,
         },
       });
+      let admin = await GetTeamAdminFor(user);
       let teamIds = await GetTeamIds(user);
       let sheet = await db.LeadSheetModel.findOne({
         where: {
@@ -111,7 +112,7 @@ export const AddLeads = async (req, res) => {
       if (!sheet) {
         sheet = await db.LeadSheetModel.create({
           sheetName: sheetName,
-          userId: userId,
+          userId: admin.id,
         });
         if (tags) {
           for (const tag of tags) {
@@ -192,7 +193,7 @@ export const AddLeads = async (req, res) => {
               let createdLead = await db.LeadModel.create({
                 ...lead,
                 extraColumns: JSON.stringify(extraColumns),
-                userId: userId,
+                userId: admin.id,
                 sheetId: sheet.id,
               });
               dbLeads.push(createdLead);
@@ -244,7 +245,7 @@ export const AddLeads = async (req, res) => {
           //assign leads here as well
           console.log("Assigning leads in Add Leads Function");
           let pipeline = await AssignLeads(
-            user,
+            admin,
             pipelineId,
             leadIds,
             ids,
@@ -258,14 +259,14 @@ export const AddLeads = async (req, res) => {
 
       //call the api for webhook of this user
       if (dbLeads.length > 0) {
-        await postDataToWebhook(user, leadsRes, WebhookTypes.TypeNewLeadAdded);
+        await postDataToWebhook(admin, leadsRes, WebhookTypes.TypeNewLeadAdded);
       }
       //Send First Lead Notification
       if (leadsCountBefore == 0) {
         //send now
 
         await AddNotification(
-          user,
+          admin,
           null,
           NotificationTypes.FirstLeadUpload,
           null,
