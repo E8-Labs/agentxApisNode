@@ -873,6 +873,7 @@ export const GetTransactionsHistory = async (req, res) => {
             [db.Sequelize.Op.in]: teamIds,
           },
         },
+        order: [["createdAt", "DESC"]],
       });
       // let resource = await UserProfileFullResource(user);
       res.send({
