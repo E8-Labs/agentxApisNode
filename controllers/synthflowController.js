@@ -46,6 +46,7 @@ import { constants } from "../constants/constants.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import { AddNotification } from "./NotificationController.js";
+import { WriteToFile } from "../services/FileService.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -843,7 +844,7 @@ async function initiateCall(
   test = false
 ) {
   console.log("IS call test ", test);
-  console.log("Call data is ", data);
+  WriteToFile("Call data is ", JSON.stringify(data));
   try {
     let synthKey = process.env.SynthFlowApiKey;
 
