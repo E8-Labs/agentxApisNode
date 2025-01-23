@@ -387,9 +387,9 @@ Stick to this rule to maintain control and professionalism in call handling.
   let basePrompt = "";
   basePrompt = `${basePrompt}\n\n${greeting}`;
   basePrompt = `${basePrompt}\n\n${prompt.objective}\n\n`;
-  // basePrompt = `${basePrompt}\n\n${companyAgentInfo}`;
-  // basePrompt = `${basePrompt}\n\n${prompt.personalCharacteristics}`;
-  // basePrompt = `${basePrompt}\n\n${prompt.communication}`;
+  basePrompt = `${basePrompt}\n\n${companyAgentInfo}`;
+  basePrompt = `${basePrompt}\n\n${prompt.personalCharacteristics}`;
+  basePrompt = `${basePrompt}\n\n${prompt.communication}`;
   basePrompt = `${basePrompt}\n\n${callScript}`;
   // text = `${text}\n\n${prompt.booking}`;
   //check if the user have connected calendar for this agent
@@ -398,17 +398,17 @@ Stick to this rule to maintain control and professionalism in call handling.
       mainAgentId: assistant.mainAgentId,
     },
   });
-  if (cal) {
-    //add booking
-    console.log("Calendar is connected so adding booking instructions");
-    basePrompt = `${basePrompt}\n\n${
-      prompt.booking
-    }\nTimezone for the calendar: ${cal.timeZone || "America/Los_Angeles"}`;
-  }
-  // basePrompt = `${basePrompt}\n\n${objectionPromptText}`;
-  // basePrompt = `${basePrompt}\n\n${guardrailPromptText}`;
-  // basePrompt = `${basePrompt}\n\n${prompt.streetAddress}`;
-  // basePrompt = `${basePrompt}\n\n${prompt.getTools}`;
+  // if (cal) {
+  //   //add booking
+  //   console.log("Calendar is connected so adding booking instructions");
+  //   basePrompt = `${basePrompt}\n\n${
+  //     prompt.booking
+  //   }\nTimezone for the calendar: ${cal.timeZone || "America/Los_Angeles"}`;
+  // }
+  basePrompt = `${basePrompt}\n\n${objectionPromptText}`;
+  basePrompt = `${basePrompt}\n\n${guardrailPromptText}`;
+  basePrompt = `${basePrompt}\n\n${prompt.streetAddress}`;
+  basePrompt = `${basePrompt}\n\n${prompt.getTools}`;
 
   //lead info
   let leadInfo = `
