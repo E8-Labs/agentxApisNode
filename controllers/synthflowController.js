@@ -398,13 +398,13 @@ Stick to this rule to maintain control and professionalism in call handling.
       mainAgentId: assistant.mainAgentId,
     },
   });
-  // if (cal) {
-  //   //add booking
-  //   console.log("Calendar is connected so adding booking instructions");
-  //   basePrompt = `${basePrompt}\n\n${
-  //     prompt.booking
-  //   }\nTimezone for the calendar: ${cal.timeZone || "America/Los_Angeles"}`;
-  // }
+  if (cal) {
+    //add booking
+    console.log("Calendar is connected so adding booking instructions");
+    basePrompt = `${basePrompt}\n\n${
+      prompt.booking
+    }\nTimezone for the calendar: ${cal.timeZone || "America/Los_Angeles"}`;
+  }
   basePrompt = `${basePrompt}\n\n${objectionPromptText}`;
   basePrompt = `${basePrompt}\n\n${guardrailPromptText}`;
   basePrompt = `${basePrompt}\n\n${prompt.streetAddress}`;
@@ -425,9 +425,9 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
 
   // console.log("Script", text);
   return {
-    callScript: basePrompt,
-    greeting: greeting,
-    customVariables: customVariables,
+    callScript: `You're a dating coach.`, //basePrompt,
+    greeting: "Hello there! How's it going?",
+    // customVariables: customVariables,
   };
 }
 
