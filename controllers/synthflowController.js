@@ -425,9 +425,9 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
 
   // console.log("Script", text);
   return {
-    callScript: `You're a dating coach.`, //basePrompt,
-    greeting: "Hello there! How's it going?",
-    // customVariables: customVariables,
+    callScript: basePrompt,
+    greeting: greeting,
+    customVariables: customVariables,
   };
 }
 
