@@ -1,4 +1,4 @@
-import { constants } from "./constants";
+import { constants } from "./constants.js";
 
 export const ReactivationOutbound = {
   companyAgentInfo: `#Company and Agent Information 
