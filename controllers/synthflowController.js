@@ -844,8 +844,9 @@ async function initiateCall(
   test = false
 ) {
   console.log("IS call test ", test);
-  WriteToFile("Call data is ", JSON.stringify(data));
+
   try {
+    WriteToFile(JSON.stringify(data));
     let synthKey = process.env.SynthFlowApiKey;
 
     let config = {
