@@ -110,25 +110,25 @@ const CronRunCadenceCallsSubsequentStagesCron = nodeCron.schedule(
 CronRunCadenceCallsSubsequentStagesCron.start();
 
 //Testing every min
-const CronPhone = nodeCron.schedule("0 0 * * *", PhoneNumberCron);
-CronPhone.start();
+// const CronPhone = nodeCron.schedule("0 0 * * *", PhoneNumberCron);
+// CronPhone.start();
 
-//Call status cron
-const CronCallOutcome = nodeCron.schedule(
-  "*/59 * * * * *",
-  SetOutcomeforpreviousCalls
-);
-CronCallOutcome.start();
+// //Call status cron
+// const CronCallOutcome = nodeCron.schedule(
+//   "*/59 * * * * *",
+//   SetOutcomeforpreviousCalls
+// );
+// CronCallOutcome.start();
 
-// Release Number cron
-const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
-CronReleaseNumber.start();
+// // Release Number cron
+// const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
+// CronReleaseNumber.start();
 
-const NotificationSendingCron = nodeCron.schedule(
-  "*/5 * * * *", //"*/59 * * * * *",
-  NotificationCron
-);
-NotificationSendingCron.start();
+// const NotificationSendingCron = nodeCron.schedule(
+//   "*/5 * * * *", //"*/59 * * * * *",
+//   NotificationCron
+// );
+// NotificationSendingCron.start();
 
-const RechargeCron = nodeCron.schedule("*/1 * * * *", RechargeFunction);
-RechargeCron.start();
+// const RechargeCron = nodeCron.schedule("*/1 * * * *", RechargeFunction);
+// RechargeCron.start();
