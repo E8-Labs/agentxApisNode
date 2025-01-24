@@ -100,6 +100,7 @@ export const AddLeads = async (req, res) => {
       });
       let admin = await GetTeamAdminFor(user);
       let teamIds = await GetTeamIds(user);
+      user = admin;
       let sheet = await db.LeadSheetModel.findOne({
         where: {
           sheetName: sheetName,
@@ -408,6 +409,9 @@ export const AddSmartList = async (req, res) => {
           id: userId,
         },
       });
+
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       let sheet = await db.LeadSheetModel.create({
         sheetName: sheetName,

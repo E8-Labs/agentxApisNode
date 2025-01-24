@@ -645,6 +645,7 @@ export const TestAI = async (req, res) => {
       });
 
       let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       let agent = await db.AgentModel.findByPk(agentId);
       if (!agent) {
@@ -676,7 +677,7 @@ export const TestAI = async (req, res) => {
       let lead = await db.LeadModel.findOne({
         where: {
           phone: phone,
-          userId: user.id,
+          userId: admin.id,
           status: "active",
         },
       });
@@ -1074,6 +1075,7 @@ export const BuildAgent = async (req, res) => {
       });
 
       let admin = await GetTeamAdminFor(user);
+      user = admin;
       console.log("BuildAgent", req.body);
 
       const name = req.body.name;
@@ -1321,7 +1323,7 @@ export const UpdateAgent = async (req, res) => {
         },
       });
       let admin = await GetTeamAdminFor(user);
-
+      user = admin;
       let mainAgentId = req.body.mainAgentId;
       let agent = await db.MainAgentModel.findByPk(mainAgentId);
       if (!agent) {
@@ -1988,6 +1990,9 @@ export const AddKyc = async (req, res) => {
         },
       });
 
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
+
       let mainAgent = await db.MainAgentModel.findByPk(mainAgentId);
       let prompts = await db.AgentPromptModel.findAll({
         where: {
@@ -2165,6 +2170,8 @@ export const UpdateKyc = async (req, res) => {
           id: userId,
         },
       });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       let mainAgent = await db.MainAgentModel.findByPk(mainAgentId);
       let prompts = await db.AgentPromptModel.findAll({

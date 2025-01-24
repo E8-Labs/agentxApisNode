@@ -575,6 +575,8 @@ export const CreatePipelineCadence = async (req, res) => {
           id: userId,
         },
       });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       let pipeline = null;
       if (!pipelineId) {
@@ -585,7 +587,7 @@ export const CreatePipelineCadence = async (req, res) => {
 
         pipeline = await db.Pipeline.create({
           title: "Default Pipeline",
-          userId: userId,
+          userId: user.id,
         });
         pipelineId = pipeline.id;
       } else {
@@ -814,6 +816,9 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
           id: userId,
         },
       });
+
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       //Get New Lead Stage of the Pipeline
       let pipeline = await AssignLeads(
