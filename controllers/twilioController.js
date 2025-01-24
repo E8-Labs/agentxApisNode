@@ -109,53 +109,60 @@ export const ReleasePhoneNumber = async (req, res) => {
       if (user) {
         let agent = await db.AgentModel.findOne({
           where: {
-            phoneNumber: phoneNumber,
-            // id: inboundAgentId,
+            // phoneNumber: phoneNumber,
+            id: inboundAgentId,
           },
         });
 
         let newAgent = await db.AgentModel.findByPk(newAgentId);
-        if (agent) {
-          agent.phoneNumber = "";
-          // let saved = await agent.save();
-          await db.AgentModel.update(
-            { phoneNumber: "" },
-            {
-              where: {
-                userId: agent.userId,
-                phoneNumber: phoneNumber,
-                agentType: "inbound",
-              },
-            }
-          );
-          //release phone from that inbound model
-          let updated = await UpdateAssistantSynthflow(agent, {
-            phone_number: null,
-          });
-
-          let updatedNew = await UpdateAssistantSynthflow(newAgent, {
-            phone_number: phoneNumber,
-          });
-
-          newAgent.phoneNumber = phoneNumber;
-          await newAgent.save();
-
-          return res.status(200).send({
-            status: true,
-            message: "Phone Number Released",
-            data: { agent1: agent, agent2: newAgent },
-          });
-        } else {
-          return res.status(200).send({
-            status: false,
-            message: "No such agent",
-            data: agent,
-          });
+        // if (agent) {
+        // agent.phoneNumber = "";
+        // let saved = await agent.save();
+        let agents = await db.AgentModel.findAll({
+          where: {
+            phoneNumber: phoneNumber,
+          },
+        });
+        if (agents && agents.length > 0) {
+          for (const ag of agents) {
+            let updated = await UpdateAssistantSynthflow(ag, {
+              phone_number: null,
+            });
+          }
         }
+        await db.AgentModel.update(
+          { phoneNumber: "" },
+          {
+            where: {
+              userId: agent.userId,
+              phoneNumber: phoneNumber,
+              agentType: "inbound",
+            },
+          }
+        );
+        //release phone from that inbound model
+        let updated = await UpdateAssistantSynthflow(agent, {
+          phone_number: null,
+        });
+
+        let updatedNew = await UpdateAssistantSynthflow(newAgent, {
+          phone_number: phoneNumber,
+        });
+
+        newAgent.phoneNumber = phoneNumber;
+        await newAgent.save();
+
+        return res.status(200).send({
+          status: true,
+          message: "Phone Number Released",
+          data: { agent1: agent, agent2: newAgent },
+        });
+        // } else {
       } else {
         return res.status(200).send({
           status: false,
-          message: "Unauthenticated number",
+          message: "No such agent",
+          data: agent,
         });
       }
     } else {
