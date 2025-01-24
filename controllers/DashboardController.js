@@ -15,6 +15,8 @@ import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 
+const VoiceMailDuration = 15;
+
 export const GetDashboardData = async (req, res) => {
   let duration = parseInt(req.query.duration || 7); // Parse duration as an integer
 
@@ -96,7 +98,7 @@ export const GetDashboardData = async (req, res) => {
       for (const call of callsInCurrentPeriod) {
         stats.totalDuration += call.duration || 0;
         stats.totalCalls += 1;
-        if (call.duration > 10) stats.totalCallsGt10 += 1;
+        if (call.duration > VoiceMailDuration) stats.totalCallsGt10 += 1;
         if (call.notinterested) stats.notInterested += 1;
         if (call.hotlead) stats.hotLeads += 1;
         if (

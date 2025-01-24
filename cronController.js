@@ -120,7 +120,7 @@ const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
 CronReleaseNumber.start();
 
 const NotificationSendingCron = nodeCron.schedule(
-  "*/5 * * * *", //"*/59 * * * * *",
+  "*/1 * * * *", //"*/59 * * * * *",
   NotificationCron
 );
 NotificationSendingCron.start();
