@@ -48,7 +48,7 @@ import { constants } from "../constants/constants.js";
 import { generateFeedbackWithSenderDetails } from "../emails/FeedbackEmail.js";
 import { SendEmail } from "../services/MailService.js";
 import { UpdateOrCreateUserInGhl } from "./GHLController.js";
-import { detectDevice } from "../utils/auth.js";
+import { detectDevice, GetTeamAdminFor } from "../utils/auth.js";
 import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
 import { UserTypes } from "../models/user/userModel.js";
 import {
@@ -85,6 +85,8 @@ export const AddPaymentMethod = async (req, res) => {
           id: userId,
         },
       });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       try {
         let added = await addPaymentMethod(user, source);
@@ -131,6 +133,8 @@ export const GetPaymentmethods = async (req, res) => {
           id: userId,
         },
       });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       let added = await getPaymentMethods(user.id);
       return res.send({
@@ -177,60 +181,6 @@ export const SetDefaultPaymentmethod = async (req, res) => {
   });
 };
 
-// export const SetFuturePlan = async (req, res) => {
-//   const isMobile = detectDevice(req);
-//   let { plan } = req.body; // mainAgentId is the mainAgent id
-//   // let payNow = req.body.payNow || false; //if true, user pays regardless he has minutes or trial
-//   console.log("Plan is ", plan);
-//   if (!plan) {
-//     return res.send({
-//       status: false,
-//       message: "Missing required parameter: plan",
-//       data: null,
-//     });
-//   }
-//   let foundPlan = null;
-//   console.log(PayAsYouGoPlans);
-//   PayAsYouGoPlans.map((p) => {
-//     if (p.type == plan) {
-//       foundPlan = p;
-//     }
-//   });
-//   if (!foundPlan) {
-//     return res.status(404).send({
-//       status: false,
-//       message: "No such plan " + plan,
-//       data: null,
-//     });
-//   }
-//   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
-//     if (authData) {
-//       let userId = authData.user.id;
-//       let user = await db.User.findOne({
-//         where: {
-//           id: userId,
-//         },
-//       });
-
-// await db.PlanHistory.update(
-//   { status: "cancelled" },
-//   {
-//     where: {
-//       userId: user.id,
-//     },
-//   }
-// );
-// await db.PlanHistory.create({
-//   userId: user.id,
-//   plan: foundPlan.type,
-// })
-
-//       return res.send({status: true, message: "Plan has changed successfully", data: null})
-//     } else {
-//       console.log("No such user");
-//     }
-//   });
-// };
 export const SubscribePayasyougoPlan = async (req, res) => {
   const isMobile = detectDevice(req);
   let { plan } = req.body; // mainAgentId is the mainAgent id
@@ -267,6 +217,9 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           id: userId,
         },
       });
+
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       let history = await db.PlanHistory.findAll({
         where: {
