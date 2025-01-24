@@ -33,6 +33,7 @@ import {
   CheckAndSendTwoMinuteTrialLeftNotificaitonSent,
 } from "./CheckAndSendTrialNotificaitons.js";
 import {
+  SendAppointmentNotifications,
   SendFeedbackNotificationsAfter14Days,
   SendNotificationsForNoCalls5Days,
   SendUpgradeSuggestionNotification,
@@ -670,6 +671,7 @@ export const NotificationCron = async () => {
         SendNotificationsForNoCalls(u);
         SendNotificationsForNoCalls5Days(u);
         SendFeedbackNotificationsAfter14Days(u);
+        SendAppointmentNotifications(u);
         if (userDateTime > ninePM) {
           console.log(
             `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`

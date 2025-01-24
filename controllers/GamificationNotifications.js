@@ -166,3 +166,52 @@ export const SendUpgradeSuggestionNotification = async (user) => {
     NotificationTypes.PlanUpgradeSuggestionFor30MinPlan
   );
 };
+
+export async function SendAppointmentNotifications(user) {
+  console.log("Checking schedule not for ", user.id);
+  let agentIds = [];
+  let agents = await db.MainAgentModel.findAll({
+    where: {
+      userId: user.id,
+    },
+  });
+  if (agents && agents.length > 0) {
+    agentIds = agents.map((item) => item.id);
+  }
+
+  let totalSchedules = await db.ScheduledBooking.count({
+    where: {
+      mainAgentId: {
+        [db.Sequelize.Op.in]: agentIds,
+      },
+    },
+  });
+  console.log("Total Schedules are ", totalSchedules);
+  if (totalSchedules == 1) {
+    let sent = await db.NotificationModel.findOne({
+      where: {
+        userId: user.id,
+        type: NotificationTypes.FirstAppointment,
+      },
+    });
+    if (!sent) AddNotification(user, null, NotificationTypes.FirstAppointment);
+  }
+  if (totalSchedules == 3) {
+    let sent = await db.NotificationModel.findOne({
+      where: {
+        userId: user.id,
+        type: NotificationTypes.ThreeAppointments,
+      },
+    });
+    if (!sent) AddNotification(user, null, NotificationTypes.ThreeAppointments);
+  }
+  if (totalSchedules == 7) {
+    let sent = await db.NotificationModel.findOne({
+      where: {
+        userId: user.id,
+        type: NotificationTypes.SevenAppointments,
+      },
+    });
+    if (!sent) AddNotification(user, null, NotificationTypes.SevenAppointments);
+  }
+}
