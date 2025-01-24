@@ -120,7 +120,7 @@ export function generateFeedbackWithSenderDetails(
     `;
 
   return {
-    subject: "Cancelled Feedback",
+    subject: "Feedback",
     html: HtmlTemplateFeedbackWithSenderDetails,
   };
 }

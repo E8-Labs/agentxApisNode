@@ -51,6 +51,10 @@ import { UpdateOrCreateUserInGhl } from "./GHLController.js";
 import { detectDevice } from "../utils/auth.js";
 import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
 import { UserTypes } from "../models/user/userModel.js";
+import {
+  trackAddPaymentInfo,
+  trackStartTrialEvent,
+} from "../services/facebookConversionsApi.js";
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
 // import { admin } from "../services/firebase-admin.js";
@@ -89,6 +93,13 @@ export const AddPaymentMethod = async (req, res) => {
           user.inviteCodeUsed = inviteCode;
           await user.save();
         }
+        await trackAddPaymentInfo(
+          added.data,
+          user.get(),
+          req,
+          "ai.myagentx.com",
+          "website"
+        );
         return res.send({
           status: added.status,
           message: added.status ? "Payment method added" : added.error,
@@ -296,6 +307,17 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           );
           // }
         }
+        await trackStartTrialEvent(
+          {
+            plan: foundPlan.type,
+            price: foundPlan.price,
+            duration: foundPlan.duration / 60,
+          },
+          user.get(),
+          req,
+          "ai.myagentx.com",
+          "website"
+        );
       }
       try {
         if (updateFuturePlan) {
@@ -464,7 +486,9 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                 user.id,
                 price,
                 "Charging for plan " + foundPlan.type,
-                foundPlan.type
+                foundPlan.type,
+                false,
+                req
               );
               user = await db.User.findByPk(user.id);
               if (charge && charge.status) {
@@ -535,7 +559,9 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             user.id,
             price,
             "Charging for plan " + foundPlan.type,
-            foundPlan.type
+            foundPlan.type,
+            false,
+            req
           );
           let dateNow = new Date();
           // dateAfter7Days.setDate(date7DaysAgo.getDate() + 7);

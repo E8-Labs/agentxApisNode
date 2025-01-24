@@ -10,6 +10,7 @@ import {
   PayAsYouGoPlanTypes,
 } from "../models/user/payment/paymentPlans.js";
 import { SendUpgradeSuggestionNotification } from "../controllers/GamificationNotifications.js";
+import { trackPurchaseEvent } from "../services/facebookConversionsApi.js";
 
 // Initialize Stripe for both environments
 const stripeTest = new Stripe(process.env.STRIPE_TEST_SECRET_KEY);
@@ -378,7 +379,8 @@ export const chargeUser = async (
   amount,
   description,
   type = "PhonePurchase",
-  subscribe = false //If user is subscribing then this will be true
+  subscribe = false, //If user is subscribing then this will be true
+  req = null
 ) => {
   const stripe = getStripeClient();
 
@@ -425,6 +427,19 @@ export const chargeUser = async (
         //Notificaiton for Plan Renewal
         let plan = FindPlanWithPrice(amount / 100);
         if (plan) {
+          trackPurchaseEvent(
+            {
+              ...paymentIntent,
+              type: type,
+              price: plan.price,
+              value: plan.price,
+              duration: plan.duration,
+            },
+            user.get,
+            req,
+            "ai.myagentx.com",
+            "website"
+          );
           if (plan.type == PayAsYouGoPlanTypes.Plan30Min) {
             console.log("User subscribed to 30 min plan");
             //check and send the plan upgrade suggestion not
@@ -478,6 +493,19 @@ export const chargeUser = async (
         }
       } else {
         //Phone purchase
+        trackPurchaseEvent(
+          {
+            ...paymentIntent,
+            type: type,
+            price: 2,
+            value: plan.price,
+            // phone: "Phone Purchase",
+          },
+          user.get,
+          req,
+          "ai.myagentx.com",
+          "website"
+        );
       }
 
       return {

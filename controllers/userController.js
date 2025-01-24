@@ -28,6 +28,10 @@ import { generateFeedbackWithSenderDetails } from "../emails/FeedbackEmail.js";
 import { SendEmail } from "../services/MailService.js";
 import { PushUserDataToGhl, UpdateOrCreateUserInGhl } from "./GHLController.js";
 import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
+import {
+  trackContactEvent,
+  trackLeadEvent,
+} from "../services/facebookConversionsApi.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -272,7 +276,7 @@ export const RegisterUser = async (req, res) => {
     );
   }
 
-  let user = await db.User.create({
+  let userDataRegisteration = {
     email: email,
     userType: userType,
     name: name,
@@ -289,7 +293,16 @@ export const RegisterUser = async (req, res) => {
     primaryClientType: primaryClientType,
     timeZone: timeZone,
     campaigneeId: campaignee?.id,
-  });
+  };
+  let user = await db.User.create(userDataRegisteration);
+
+  await trackLeadEvent(
+    userDataRegisteration,
+    userDataRegisteration,
+    req,
+    "ai.myagentx.com",
+    "website"
+  );
   UpdateOrCreateUserInGhl(user);
   // if (userType != UserTypes.RealEstateAgent) {
   //   let emailTemp = generateDesktopEmail();
@@ -1137,6 +1150,23 @@ export const SendFeedbackEmail = async (req, res) => {
             process.env.FeedbackEmail,
             email.subject,
             email.html
+          );
+          let eventData = {
+            contactReason: "General Feedback",
+            contactMethod: "Email", // Default contact method
+            interactionDetails: feedback || null,
+            title: title,
+          };
+          trackContactEvent(
+            eventData,
+            {
+              name: user.name,
+              id: user.id,
+              email: user.email,
+              phone: user.phone,
+              profile_image: user.thumb_profile_image,
+            },
+            req
           );
           console.log("Email sent");
         } catch (error) {
