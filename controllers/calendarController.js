@@ -84,7 +84,8 @@ export async function CheckCalendarAvailability(req, res) {
   // const { agentId } = req.body;
   const mainAgentId = req.query.mainAgentId;
   const agentId = req.query.agentId || null;
-
+  console.log("Data is ");
+  console.log({ agentId, mainAgentId });
   let filter = { mainAgentId: mainAgentId };
   if (agentId) {
     filter.agentId = agentId;
