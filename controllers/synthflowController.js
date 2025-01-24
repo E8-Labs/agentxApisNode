@@ -2419,11 +2419,11 @@ export async function CreateAssistantSynthflow(
       is_recording: true,
     },
   };
-  //console.log("Inside 2");
+  console.log("Inside 2");
   try {
     let result = await axios.request(options);
-    //console.log("Inside 3");
-    //console.log("Create Assistant Api result ", result);
+    console.log("Inside 3");
+    console.log("Create Assistant Api result ", result);
 
     if (result.status == 200) {
       let assistant = await db.AgentModel.create({
@@ -2431,6 +2431,7 @@ export async function CreateAssistantSynthflow(
         modelId: result.data?.response?.model_id || null,
       });
       if (assistant) {
+        console.log("Here inside assistant");
         try {
           let extractors = InfoExtractors;
           let IEIds = extractors.map((item) => {
@@ -2460,7 +2461,7 @@ export async function CreateAssistantSynthflow(
           // }
           // let createdAction = await CreateAndAttachAction(user, "kb");
         } catch (error) {
-          //console.log("Error creating action kb ", error);
+          console.log("Error creating action kb ", error);
         }
         // try {
         //   let createdAction = await CreateAndAttachAction(user, "booking");
@@ -2476,7 +2477,7 @@ export async function CreateAssistantSynthflow(
     }
     return result;
   } catch (error) {
-    //console.log("Inside error: ", error);
+    console.log("Inside error: ", error);
     return null;
   }
 }
