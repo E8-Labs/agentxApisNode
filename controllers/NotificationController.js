@@ -73,16 +73,31 @@ async function GetNotificationTitle(
   console.log("City is ", city);
   //Inactive User
   if (type == NotificationTypes.SocialProof) {
-    title = `Sarah in ${city} got 2 Listings!`;
+    if (typeof city !== "undefined") {
+      title = `Sarah in ${city} got 2 Listings!`;
+    } else {
+      title = `Sarah got 2 Listings!`;
+    }
+
     body = "More calls = more opportunities. Upload your leads now.";
   }
   if (type == NotificationTypes.CompetitiveEdge) {
     title = `Secure Your Edge!`;
-    body = `Few agents in ${city || "New York"} use AI. Act before others join`;
+    if (typeof city !== "undefined") {
+      body = `Few agents in ${
+        city || "New York"
+      } use AI. Act before others join`;
+    } else {
+      body = `Few agents use AI. Act before others join`;
+    }
   }
   if (type == NotificationTypes.FOMOAlert) {
     title = `Don’t Miss Out!`;
-    body = "4 listings secured in [Same City] in the last 2 weeks";
+    if (typeof city !== "undefined") {
+      body = `4 listings secured in ${city} in the last 2 weeks`;
+    } else {
+      body = `4 listings secured in the last 2 weeks`;
+    }
   }
   if (type == NotificationTypes.TrainingReminder) {
     title = `Need Help?`;

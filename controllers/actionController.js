@@ -165,10 +165,15 @@ function GetActionApiData(user, assistant, type = "kb") {
     return GetCalendarActionApiData(user, assistant);
   }
   if (type == "availability") {
+    let BaseUrl =
+      process.env.Environment === "Production"
+        ? "https://www.blindcircle.com/agentx"
+        : "https://www.blindcircle.com/agentxtest";
     return {
       http_mode: "GET", // Set to tomorrow's date
       url:
-        "https://www.blindcircle.com/agentx/api/calendar/getAvailability?mainAgentId=" +
+        BaseUrl +
+        "/api/calendar/getAvailability?mainAgentId=" +
         assistant.mainAgentId +
         `&agentId=${assistant.id}`,
       run_action_before_call_start: true,
@@ -415,10 +420,15 @@ export async function CreateAndAttachCalendarAction(
 }
 
 function GetCalendarActionApiData(user, assistant) {
+  let BaseUrl =
+    process.env.Environment === "Production"
+      ? "https://www.blindcircle.com/agentx"
+      : "https://www.blindcircle.com/agentxtest";
   return {
     http_mode: "POST", // Set to tomorrow's date
     url:
-      "https://www.blindcircle.com/agentx/api/calendar/schedule?modelId=" +
+      BaseUrl +
+      "/api/calendar/schedule?modelId=" +
       assistant.id +
       `&mainAgentId=${assistant.mainAgentId}` +
       `&agentId=${assistant.id}`,
