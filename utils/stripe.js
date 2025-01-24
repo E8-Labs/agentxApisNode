@@ -435,7 +435,7 @@ export const chargeUser = async (
               value: plan.price,
               duration: plan.duration,
             },
-            user.get,
+            user.get(),
             req,
             "ai.myagentx.com",
             "website"
@@ -501,7 +501,7 @@ export const chargeUser = async (
             value: plan.price,
             // phone: "Phone Purchase",
           },
-          user.get,
+          user.get(),
           req,
           "ai.myagentx.com",
           "website"
