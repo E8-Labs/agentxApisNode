@@ -69,10 +69,10 @@ async function SendNotificaitonFor1KOr2KCalls(assistant) {
   });
 
   let user = await db.User.findByPk(assistant.userId);
-  if (callsCount == 1) {
+  if (callsCount == 1000) {
     await AddNotification(user, null, NotificationTypes.ThousandCalls);
   }
-  if (callsCount == 2) {
+  if (callsCount == 2000) {
     await AddNotification(user, null, NotificationTypes.TwoThousandCalls);
   }
 }
