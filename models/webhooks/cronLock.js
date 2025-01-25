@@ -11,6 +11,7 @@ const CronLockTable = (sequelize, Sequelize) => {
 
 export const ProcessTypes = {
   BatchCron: "batchCron",
+  BookingCron: "BookingCron",
   SubsequentCron: "subsequentCron",
   RechargeCron: "RechargeCron",
 };

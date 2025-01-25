@@ -53,6 +53,11 @@ const ScheduledBooking = (sequelize, Sequelize) => {
       allowNull: true,
       defaultValue: "",
     },
+    cadenceCompleted: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
   });
 
   return ScheduledBooking;

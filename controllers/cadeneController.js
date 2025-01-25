@@ -15,6 +15,12 @@ import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 import { calculateDifferenceInMinutes } from "../utils/dateutil.js";
 import { addCallTry, MakeACall } from "../controllers/synthflowController.js";
 import { BatchStatus } from "../models/pipeline/CadenceBatchModel.js";
+import { constants } from "../constants/constants.js";
+import {
+  GetAgentPipeline,
+  GetAgentsWorkingOnStage,
+  GetPipelineStageWithIdentifier,
+} from "../utils/agentUtility.js";
 
 //Concurrent Calls- Set Limit to 100
 //https://docs.synthflow.ai/docs/concurrency-calls
@@ -822,3 +828,200 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
     }
   }
 };
+
+const isBookingWithin10Minutes = (bookingDateTime) => {
+  const currentTime = new Date(); // Get current time
+  const bookingTime = new Date(bookingDateTime); // Convert booking datetime to a Date object
+
+  // Calculate the time difference in milliseconds
+  const timeDifference = bookingTime - currentTime;
+
+  // Convert time difference to minutes and check if it's 10 minutes or more
+  return timeDifference <= 10 * 60 * 1000; // 10 minutes in milliseconds
+};
+const getBookingsWithin49Hours = async () => {
+  const currentTime = new Date();
+
+  // Calculate the time range
+  const HoursLater48 = new Date(currentTime.getTime() + 48 * 60 * 60 * 1000); // 48 hours later
+  const now = new Date(currentTime.getTime()); //0 hours later
+
+  // Fetch bookings within the range
+  const bookings = await db.ScheduledBooking.findAll({
+    where: {
+      datetime: {
+        [db.Sequelize.Op.gte]: now, // Greater than or equal to 10 minutes later
+        [db.Sequelize.Op.lte]: HoursLater48, // Less than or equal to 48 hours later
+      },
+      cadenceCompleted: false, // calls are not sent already
+    },
+  });
+
+  return bookings;
+};
+
+export const CadenceBookedCalls = async () => {
+  let meetings = await getBookingsWithin49Hours();
+  console.log(`Found ${meetings.length} meetings to call in the next 49 hours`);
+  for (let meeting of meetings) {
+    console.log("Running for meeting ", meeting.id);
+    let leadId = meeting.leadId;
+    let lead = null;
+    if (meeting.leadId) {
+      lead = await db.LeadModel.findByPk(meeting.leadId);
+    } else {
+      continue;
+    }
+    let mainAgent = await db.MainAgentModel.findByPk(meeting.mainAgentId);
+    if (mainAgent) {
+      let user = await db.User.findByPk(mainAgent.userId);
+      if (user.totalSecondsAvailable > constants.MinThresholdSeconds) {
+        //check the pipeline of the agent
+        let pipeline = await GetAgentPipeline(mainAgent.id);
+        if (!pipeline) {
+          console.log("No pipeline for main agent ", mainAgent.id);
+          continue;
+        }
+        let bookedStage = await GetPipelineStageWithIdentifier(
+          "booked",
+          pipeline.id
+        );
+        let pipeliceCadenceForBookingStage = await db.PipelineCadence.findOne({
+          where: {
+            pipelineId: pipeline.id,
+            stage: bookedStage.id,
+          },
+        });
+        console.log("Finding for stage ", bookedStage.id);
+        if (!pipeliceCadenceForBookingStage) {
+          console.log(
+            "No agent work in booking stage for this pipeline",
+            pipeline.id
+          );
+          continue;
+        }
+        let mainAgentForBooking = await db.MainAgentModel.findByPk(
+          pipeliceCadenceForBookingStage.mainAgentId
+        );
+        let cadenceCallsToBeSent = await db.CadenceCalls.findAll({
+          where: {
+            pipelineCadenceId: pipeliceCadenceForBookingStage.id,
+          },
+        });
+        if (cadenceCallsToBeSent && cadenceCallsToBeSent.length > 0) {
+          console.log(`Total calls to be sent ${cadenceCallsToBeSent.length}`);
+
+          let callsAlreadySent = await db.LeadCallsSent.findAll({
+            where: {
+              leadId: lead.id,
+              mainAgentId: pipeliceCadenceForBookingStage.mainAgentId,
+              stage: bookedStage.id,
+            },
+          });
+          let nextCallTobeSent = 0;
+          if (callsAlreadySent && callsAlreadySent.length >= 0) {
+            console.log(`Total calls already sent ${callsAlreadySent.length}`);
+            if (cadenceCallsToBeSent.length == callsAlreadySent.length) {
+              meeting.cadenceCompleted = true;
+              await meeting.save();
+              console.log(`Meeting ${meeting.id} cadence completed`);
+              continue;
+            }
+            nextCallTobeSent = callsAlreadySent.length;
+            let nextCadenceCall = cadenceCallsToBeSent[nextCallTobeSent];
+            let TimeToCallBeforeMeeting =
+              Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
+              Number(nextCadenceCall.waitTimeHours) * 60 +
+              Number(nextCadenceCall.waitTimeMinutes);
+
+            let diff = Math.abs(calculateDifferenceInMinutes(meeting.datetime)); // in minutes
+            WriteToFile(`Time remaining in meeting ${diff} min`);
+            console.log(
+              "Next Call should be sent ",
+              TimeToCallBeforeMeeting + " min before meeting"
+            );
+
+            if (
+              diff * 60 <= TimeToCallBeforeMeeting * 60 - 10 &&
+              diff * 60 > 0
+            ) {
+              console.log("Send booking call");
+              let leadCad = await db.LeadCadence.findOne({
+                where: {
+                  leadId: lead.id,
+                  mainAgentId: mainAgentForBooking.id,
+                  pipelineId: pipeline.id,
+                  status: "Started",
+                },
+              });
+              if (!leadCad) {
+                leadCad = await db.LeadCadence.create({
+                  leadId: lead.id,
+                  mainAgentId: mainAgentForBooking.id,
+                  pipelineId: pipeline.id,
+                  status: "Started",
+                  // batchId:
+                });
+              }
+              await CheckAndTryToPlaceCall(
+                leadCad,
+                lead,
+                mainAgentForBooking,
+                callsAlreadySent,
+                null
+              );
+            }
+          } // complete
+        }
+      } else {
+        WriteToFile(
+          `Can not place call for meeting ${meeting.id} because user ${user.id} has only ${user.totalSecondsAvailable}`
+        );
+      }
+    } else {
+      console.log("Agent doesn't exist");
+    }
+  }
+};
+
+async function CheckAndTryToPlaceCall(
+  leadCad,
+  lead,
+  mainAgent,
+  calls,
+  batch = null
+) {
+  try {
+    let tries = await db.LeadCallTriesModel.count({
+      where: {
+        leadCadenceId: leadCad.id,
+        stage: lead.stage,
+        mainAgentId: mainAgent.id,
+        status: "error",
+      },
+    });
+    WriteToFile(
+      `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
+    );
+    if (tries < 3) {
+      let called = await MakeACall(leadCad, simulate, calls, batch?.id);
+      WriteToFile("First Call initiated");
+      if (called.status) {
+      }
+    } else {
+      //set cad errored
+      leadCad.status = CadenceStatus.Errored;
+      let saved = await leadCad?.save();
+
+      lead.stage = null;
+      await lead.save();
+    }
+
+    //if you want to simulate
+    //let called = await MakeACall(leadCad, true, calls);
+  } catch (error) {
+    console.log("Error Sending Call ", error);
+  }
+}
+
+// CadenceBookedCalls();
