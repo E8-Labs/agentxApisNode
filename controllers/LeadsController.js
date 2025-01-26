@@ -19,7 +19,7 @@ import { AssignLeads } from "./pipelineController.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import { WebhookTypes } from "../models/webhooks/WebhookModel.js";
 import LeadImportantCallResource from "../resources/LeadImportantCallResource.js";
-import { GetTeamIds } from "../utils/auth.js";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 
@@ -98,7 +98,9 @@ export const AddLeads = async (req, res) => {
           userId: user.id,
         },
       });
+      let admin = await GetTeamAdminFor(user);
       let teamIds = await GetTeamIds(user);
+      user = admin;
       let sheet = await db.LeadSheetModel.findOne({
         where: {
           sheetName: sheetName,
@@ -111,7 +113,7 @@ export const AddLeads = async (req, res) => {
       if (!sheet) {
         sheet = await db.LeadSheetModel.create({
           sheetName: sheetName,
-          userId: userId,
+          userId: admin.id,
         });
         if (tags) {
           for (const tag of tags) {
@@ -192,7 +194,7 @@ export const AddLeads = async (req, res) => {
               let createdLead = await db.LeadModel.create({
                 ...lead,
                 extraColumns: JSON.stringify(extraColumns),
-                userId: userId,
+                userId: admin.id,
                 sheetId: sheet.id,
               });
               dbLeads.push(createdLead);
@@ -244,7 +246,7 @@ export const AddLeads = async (req, res) => {
           //assign leads here as well
           console.log("Assigning leads in Add Leads Function");
           let pipeline = await AssignLeads(
-            user,
+            admin,
             pipelineId,
             leadIds,
             ids,
@@ -258,14 +260,14 @@ export const AddLeads = async (req, res) => {
 
       //call the api for webhook of this user
       if (dbLeads.length > 0) {
-        await postDataToWebhook(user, leadsRes, WebhookTypes.TypeNewLeadAdded);
+        await postDataToWebhook(admin, leadsRes, WebhookTypes.TypeNewLeadAdded);
       }
       //Send First Lead Notification
       if (leadsCountBefore == 0) {
         //send now
 
         await AddNotification(
-          user,
+          admin,
           null,
           NotificationTypes.FirstLeadUpload,
           null,
@@ -407,6 +409,9 @@ export const AddSmartList = async (req, res) => {
           id: userId,
         },
       });
+
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       let sheet = await db.LeadSheetModel.create({
         sheetName: sheetName,
@@ -1407,8 +1412,9 @@ export const GetCallLogs = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
+      let user = await db.User.findByPk(userId);
       let offset = Number(req.query.offset) || 0;
-
+      let teamIds = await GetTeamIds(user);
       try {
         const { name, duration, status, startDate, endDate, stageIds } =
           req.query; // duration in seconds
@@ -1418,7 +1424,9 @@ export const GetCallLogs = async (req, res) => {
 
         // Define filters for LeadModel (related model)
         const leadFilters = {
-          userId, // Ensure the lead belongs to the user
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          }, // Ensure the lead belongs to the user
         };
 
         if (name) {

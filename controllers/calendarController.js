@@ -84,7 +84,8 @@ export async function CheckCalendarAvailability(req, res) {
   // const { agentId } = req.body;
   const mainAgentId = req.query.mainAgentId;
   const agentId = req.query.agentId || null;
-
+  console.log("Data is ");
+  console.log({ agentId, mainAgentId });
   let filter = { mainAgentId: mainAgentId };
   if (agentId) {
     filter.agentId = agentId;
@@ -477,7 +478,7 @@ export async function ScheduleEvent(req, res) {
       // }
       let agentIds = [];
       let agents = await db.MainAgentModel.findAll({
-        wehre: {
+        where: {
           userId: user.id,
         },
       });
@@ -485,22 +486,22 @@ export async function ScheduleEvent(req, res) {
         agentIds = agents?.map((item) => item.id) || [];
       }
 
-      let totalSchedules = await db.ScheduledBooking.count({
-        where: {
-          mainAgentId: {
-            [db.Sequelize.Op.in]: agentIds,
-          },
-        },
-      });
-      if (totalSchedules == 1) {
-        AddNotification(user, null, NotificationTypes.FirstAppointment);
-      }
-      if (totalSchedules == 3) {
-        AddNotification(user, null, NotificationTypes.ThreeAppointments);
-      }
-      if (totalSchedules == 7) {
-        AddNotification(user, null, NotificationTypes.SevenAppointments);
-      }
+      // let totalSchedules = await db.ScheduledBooking.count({
+      //   where: {
+      //     mainAgentId: {
+      //       [db.Sequelize.Op.in]: agentIds,
+      //     },
+      //   },
+      // });
+      // if (totalSchedules == 1) {
+      //   AddNotification(user, null, NotificationTypes.FirstAppointment);
+      // }
+      // if (totalSchedules == 3) {
+      //   AddNotification(user, null, NotificationTypes.ThreeAppointments);
+      // }
+      // if (totalSchedules == 7) {
+      //   AddNotification(user, null, NotificationTypes.SevenAppointments);
+      // }
       await AddNotification(
         user,
         null,

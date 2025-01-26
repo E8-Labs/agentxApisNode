@@ -61,6 +61,7 @@ import { TestNumbers } from "./Testing/TestNumbers.js";
 import TeamLeadAssignModel from "./user/team/TeamLeadAssign.js";
 import TeamStageAssignModel from "./user/team/TeamStageAssignModel.js";
 import UserActivityModel from "./user/UserActivityModel.js";
+import CronLockTable from "./webhooks/cronLock.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -213,6 +214,7 @@ db.PipelineCadence = PipelineCadence(sequelize, Sequelize);
 db.CadenceBatchModel = CadenceBatchModel(sequelize, Sequelize);
 db.LeadCadence = LeadCadence(sequelize, Sequelize);
 
+db.CronLockTable = CronLockTable(sequelize, Sequelize);
 // db.PipelineCadence.hasMany(db.LeadCadence, {
 //   foreignKey: "pipelineCadenceId",
 // });

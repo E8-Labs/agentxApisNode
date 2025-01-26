@@ -40,12 +40,14 @@ export async function GetTeamAdminFor(user) {
 
 export const detectDevice = (req) => {
   const userAgent = req.headers["user-agent"];
-
+  console.log("User agent ", userAgent);
   const isMobile = /Mobile|Android|iP(hone|od|ad)|Windows Phone/i.test(
     userAgent
   );
+  console.log("Is Mobile ", isMobile);
   // req.isMobile = isMobile;
 
   // next();
   return isMobile;
 };
+// User agent  Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1

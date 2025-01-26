@@ -33,6 +33,7 @@ import {
   CheckAndSendTwoMinuteTrialLeftNotificaitonSent,
 } from "./CheckAndSendTrialNotificaitons.js";
 import {
+  SendAppointmentNotifications,
   SendFeedbackNotificationsAfter14Days,
   SendNotificationsForNoCalls5Days,
   SendUpgradeSuggestionNotification,
@@ -72,16 +73,31 @@ async function GetNotificationTitle(
   console.log("City is ", city);
   //Inactive User
   if (type == NotificationTypes.SocialProof) {
-    title = `Sarah in ${city} got 2 Listings!`;
+    if (typeof city !== "undefined") {
+      title = `Sarah in ${city} got 2 Listings!`;
+    } else {
+      title = `Sarah got 2 Listings!`;
+    }
+
     body = "More calls = more opportunities. Upload your leads now.";
   }
   if (type == NotificationTypes.CompetitiveEdge) {
     title = `Secure Your Edge!`;
-    body = `Few agents in ${city || "New York"} use AI. Act before others join`;
+    if (typeof city !== "undefined") {
+      body = `Few agents in ${
+        city || "New York"
+      } use AI. Act before others join`;
+    } else {
+      body = `Few agents use AI. Act before others join`;
+    }
   }
   if (type == NotificationTypes.FOMOAlert) {
     title = `Don’t Miss Out!`;
-    body = "4 listings secured in [Same City] in the last 2 weeks";
+    if (typeof city !== "undefined") {
+      body = `4 listings secured in ${city} in the last 2 weeks`;
+    } else {
+      body = `4 listings secured in the last 2 weeks`;
+    }
   }
   if (type == NotificationTypes.TrainingReminder) {
     title = `Need Help?`;
@@ -171,13 +187,17 @@ async function GetNotificationTitle(
     title = `Last Day to Make It Count! ⏰`;
     body = "Final call! Your 30 minutes of AI talk time expire at midnight.";
   }
-  if (type == NotificationTypes.TrialTime2MinLeft) {
-    title = `2 min Reminder!`;
-    body = "Trial ending soon. Just 2 minutes left! Your plan will auto-renew.";
+  if (type == NotificationTypes.TrialTime5MinLeft) {
+    title = `5 min Reminder!`;
+    body = "Just 5 minutes left! Your plan will auto-renew.";
   }
   if (type == NotificationTypes.PlanRenewed) {
     title = `Minutes Have Been Renewed! 🎉`;
     body = `${minutes} Minutes Added. Keep calling opportunities!`;
+  }
+  if (type == NotificationTypes.SubscriptionRenewed) {
+    title = `Subscription has renewed`;
+    body = `${minutes} Minutes Added. Keep going!`;
   }
 
   if (type == NotificationTypes.RedeemedAgentXCode) {
@@ -190,7 +210,7 @@ async function GetNotificationTitle(
     title = `${lead?.firstName || "New Lead"} called`;
   }
   if (type == NotificationTypes.NoCallsIn3Days) {
-    title = `Your  calls have stopped for 3 days`;
+    title = `Your calls have stopped for 3 days`;
   }
   if (type == NotificationTypes.PaymentFailed) {
     title = `Urgent! Payment method failed`;
@@ -359,7 +379,7 @@ async function SendEmailForNotification(
       lead?.phone, // Leadphone
       recording || "", // LinkToRecording
       meetingDate, // MeetingDateTime
-      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      constants.LeadPage, // CTA_Link
       "View Hot Lead and Take Action" // CTA_Text
     );
     email = user.email;
@@ -372,19 +392,19 @@ async function SendEmailForNotification(
   } else if (type === NotificationTypes.NoCallsIn3Days) {
     emailNot = GenerateCallsStoppedEmail(
       user.name, // Name
-      "https://ai.myagentx.com/webinar", // CTA_Link
+      userCtaLink, // CTA_Link
       "Join the Live Webinar Now" // CTA_Text
     );
   } else if (type === NotificationTypes.Trial30MinTicking) {
     emailNot = GenerateTrialTickingEmail(
       user.name, // Name
-      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      constants.LeadPage, // CTA_Link
       "Start Calling" // CTA_Text
     );
   } else if (type === NotificationTypes.X3MoreLikeyToWin) {
     emailNot = GenerateThreeTimesWinEmail(
       user.name, // Name
-      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      constants.LeadPage, // CTA_Link
       "Upload Leads Now" // CTA_Text
     );
   } else if (type === NotificationTypes.NeedHand) {
@@ -396,7 +416,7 @@ async function SendEmailForNotification(
   } else if (type === NotificationTypes.TrialReminder) {
     emailNot = generateTrialReminderEmail(
       user.name, // Name
-      userCtaLink, // CTA_Link
+      constants.LeadPage, // CTA_Link
       "Start Calling" // CTA_Text
     );
   } else if (type === NotificationTypes.NeedHelpDontMissOut) {
@@ -414,20 +434,20 @@ async function SendEmailForNotification(
   } else if (type === NotificationTypes.LastDayToMakeItCount) {
     emailNot = generateTrialEndsTonightEmail(
       user.name, // Name
-      "https://ai.myagentx.com/dashboard/leads", // CTA_Link
+      constants.LeadPage, // CTA_Link
       "Start Calling" // CTA_Text
     );
-  } else if (type === NotificationTypes.TrialTime2MinLeft) {
+  } else if (type === NotificationTypes.TrialTime5MinLeft) {
     emailNot = generateFiveMinutesLeftEmail(
       user.name, // Name
-      "https://ai.myagentx.com/dashboard/myAccount", // CTA_Link
+      constants.BillingPage, // CTA_Link
       "Manage Plan" // CTA_Text
     );
   } else if (type === NotificationTypes.PlanRenewed) {
     let plan = FindPlanWithMinutes(minutes);
     emailNot = generateMinutesRenewedEmail(
       user.name, // Name
-      `${minutes} minutes`, // Minutes
+      `${minutes}`, // Minutes
       `${plan?.price || "Unknown"}` // Price
     );
   } else if (type == NotificationTypes.Inactive5Days) {
@@ -666,6 +686,7 @@ export const NotificationCron = async () => {
         SendNotificationsForNoCalls(u);
         SendNotificationsForNoCalls5Days(u);
         SendFeedbackNotificationsAfter14Days(u);
+        SendAppointmentNotifications(u);
         if (userDateTime > ninePM) {
           console.log(
             `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`

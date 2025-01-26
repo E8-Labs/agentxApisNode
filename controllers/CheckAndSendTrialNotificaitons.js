@@ -104,7 +104,7 @@ export async function CheckAndSendLikelyToWinNotificaitonSent(user) {
     );
   }
 }
-//Day 2: sent 1 day & 3 hr after account creation
+//Day 2: sent 1 day & 3 hr after account creation 27 hours
 export async function CheckAndSendNeedHandNotificaitonSent(user) {
   let leads = await db.LeadModel.count({
     where: {
@@ -149,7 +149,7 @@ export async function CheckAndSendNeedHandNotificaitonSent(user) {
     await AddNotification(user, null, type, null, null, null, null, null, 0);
   }
 }
-//Day 3: sent 2 day & 3 hr after account creation
+//Day 3: sent 2 day & 3 hr after account creation 51 hours
 export async function CheckAndSendTrialReminderNotificaitonSent(user) {
   let leads = await db.LeadModel.count({
     where: {
@@ -160,10 +160,10 @@ export async function CheckAndSendTrialReminderNotificaitonSent(user) {
     console.log("User is not on trial");
     return;
   }
-  if (leads > 0) {
-    console.log("User have already added leads");
-    return;
-  }
+  // if (leads > 0) {
+  //   console.log("User have already added leads");
+  //   return;
+  // }
   //check the datetime to see if it is gt 3 hours and less than 4
   let now = new Date(); // Current time
   let createdAt = new Date(user.createdAt); // Convert user.createdAt to a Date object
@@ -194,7 +194,7 @@ export async function CheckAndSendTrialReminderNotificaitonSent(user) {
     await AddNotification(user, null, type, null, null, null, null, null, 0);
   }
 }
-//Day 5: sent 4 day & 3 hr after account creation
+//Day 5: sent 4 day & 3 hr after account creation 99 hours
 export async function CheckAndSendNeedHelpDontMissoutNotificaitonSent(user) {
   let leads = await db.LeadModel.count({
     where: {
@@ -205,10 +205,10 @@ export async function CheckAndSendNeedHelpDontMissoutNotificaitonSent(user) {
     console.log("User is not on trial");
     return;
   }
-  if (leads > 0) {
-    console.log("User have already added leads");
-    return;
-  }
+  // if (leads > 0) {
+  //   console.log("User have already added leads");
+  //   return;
+  // }
   //check the datetime to see if it is gt 3 hours and less than 4
   let now = new Date(); // Current time
   let createdAt = new Date(user.createdAt); // Convert user.createdAt to a Date object
@@ -239,7 +239,7 @@ export async function CheckAndSendNeedHelpDontMissoutNotificaitonSent(user) {
     await AddNotification(user, null, type, null, null, null, null, null, 0);
   }
 }
-//Day 6: sent 5 day & 3 hr after account creation
+//Day 6: sent 5 day & 3 hr after account creation 123 hours
 export async function CheckAndSendLastChanceToActNotificaitonSent(user) {
   let u = user;
   let leads = await db.LeadModel.count({
@@ -262,7 +262,7 @@ export async function CheckAndSendLastChanceToActNotificaitonSent(user) {
 
   //If 7 days have passed
   console.log("Checking If Trial have passed", user.id);
-  if (timeDifference > 7 * 24 * 60 * 60 * 1000) {
+  if (timeDifference > 123 * 60 * 60 * 1000) {
     console.log("Yes  Trial have passed", u.id);
     console.log("More than 7 days have passed and still on trial");
     user.isTrial = false;
@@ -274,10 +274,10 @@ export async function CheckAndSendLastChanceToActNotificaitonSent(user) {
     console.log("No  Trial have not passed", u.id);
   }
 
-  if (leads > 0) {
-    console.log("User have already added leads");
-    return;
-  }
+  // if (leads > 0) {
+  //   console.log("User have already added leads");
+  //   return;
+  // }
 
   // Check if 99 hours (in milliseconds) or more have passed
   if (timeDifference >= 123 * 60 * 60 * 1000) {
@@ -312,10 +312,10 @@ export async function CheckAndSendLastDayToMakeItCountNotificaitonSent(user) {
     console.log("User is not on trial");
     return;
   }
-  if (leads > 0) {
-    console.log("User have already added leads");
-    return;
-  }
+  // if (leads > 0) {
+  //   console.log("User have already added leads");
+  //   return;
+  // }
   //check the datetime to see if it is gt 3 hours and less than 4
   let now = new Date(); // Current time
   let createdAt = new Date(user.createdAt); // Convert user.createdAt to a Date object
@@ -365,7 +365,7 @@ export async function CheckAndSendTwoMinuteTrialLeftNotificaitonSent(user) {
   let now = new Date(); // Current time
   let createdAt = new Date(user.createdAt); // Convert user.createdAt to a Date object
 
-  let type = NotificationTypes.TrialTime2MinLeft;
+  let type = NotificationTypes.TrialTime5MinLeft;
   // Calculate the difference in milliseconds
   let timeDifference = now - createdAt;
 

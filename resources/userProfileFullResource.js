@@ -88,7 +88,10 @@ async function getUserData(user, currentUser = null) {
     alreadyAssignedGlobal:
       alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
     availableMinutes: user.totalSecondsAvailable / 60,
-    totalSecondsAvailable: user.totalSecondsAvailable,
+    totalSecondsAvailable: admin
+      ? admin.totalSecondsAvailable
+      : user.totalSecondsAvailable,
+    isTrial: admin ? admin.isTrial : user.isTrial,
     unread: unread,
     focusAreas,
     services,

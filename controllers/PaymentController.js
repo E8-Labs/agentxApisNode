@@ -48,9 +48,13 @@ import { constants } from "../constants/constants.js";
 import { generateFeedbackWithSenderDetails } from "../emails/FeedbackEmail.js";
 import { SendEmail } from "../services/MailService.js";
 import { UpdateOrCreateUserInGhl } from "./GHLController.js";
-import { detectDevice } from "../utils/auth.js";
+import { detectDevice, GetTeamAdminFor } from "../utils/auth.js";
 import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
 import { UserTypes } from "../models/user/userModel.js";
+import {
+  trackAddPaymentInfo,
+  trackStartTrialEvent,
+} from "../services/facebookConversionsApi.js";
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
 // import { admin } from "../services/firebase-admin.js";
@@ -81,6 +85,8 @@ export const AddPaymentMethod = async (req, res) => {
           id: userId,
         },
       });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       try {
         let added = await addPaymentMethod(user, source);
@@ -89,6 +95,13 @@ export const AddPaymentMethod = async (req, res) => {
           user.inviteCodeUsed = inviteCode;
           await user.save();
         }
+        await trackAddPaymentInfo(
+          added.data,
+          user.get(),
+          req,
+          "ai.myagentx.com",
+          "website"
+        );
         return res.send({
           status: added.status,
           message: added.status ? "Payment method added" : added.error,
@@ -120,6 +133,8 @@ export const GetPaymentmethods = async (req, res) => {
           id: userId,
         },
       });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       let added = await getPaymentMethods(user.id);
       return res.send({
@@ -170,6 +185,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
   const isMobile = detectDevice(req);
   let { plan } = req.body; // mainAgentId is the mainAgent id
   let payNow = req.body.payNow || false; //if true, user pays regardless he has minutes or trial
+  let updateFuturePlan = req.body.updateFuturePlan || false; // If true then only set the plan and do nothing
   console.log("Plan is ", plan);
   if (!plan) {
     return res.send({
@@ -192,6 +208,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
       data: null,
     });
   }
+  console.log("Found plan", foundPlan);
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -200,6 +217,9 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           id: userId,
         },
       });
+
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       let history = await db.PlanHistory.findAll({
         where: {
@@ -214,9 +234,65 @@ export const SubscribePayasyougoPlan = async (req, res) => {
       }
       let dateAfter30Days = new Date();
       dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
-
+      // if (isMobile) {
+      //   //Generate Desktop Email
+      //   if (user.userType != UserTypes.RealEstateAgent) {
+      //     let emailTemp = generateDesktopEmail();
+      //     let sent = await SendEmail(
+      //       user.email,
+      //       emailTemp.subject,
+      //       emailTemp.html
+      //     );
+      //   }
+      // }
+      if (firstTime) {
+        //send the email
+        if (isMobile) {
+          //Generate Desktop Email
+          console.log("User id ", user.id);
+          console.log("Checking user type for email", user.userType);
+          // if (user.userType != UserTypes.RealEstateAgent) {
+          let emailTemp = generateDesktopEmail();
+          let sent = await SendEmail(
+            user.email,
+            emailTemp.subject,
+            emailTemp.html
+          );
+          // }
+        }
+        await trackStartTrialEvent(
+          {
+            plan: foundPlan.type,
+            price: foundPlan.price,
+            duration: foundPlan.duration / 60,
+          },
+          user.get(),
+          req,
+          "ai.myagentx.com",
+          "website"
+        );
+      }
       try {
-        if (
+        if (updateFuturePlan) {
+          console.log("Updating future plan");
+          await db.PlanHistory.update(
+            { status: "cancelled" },
+            {
+              where: {
+                userId: user.id,
+              },
+            }
+          );
+          await db.PlanHistory.create({
+            userId: user.id,
+            type: foundPlan.type,
+          });
+
+          return res.send({
+            status: true,
+            message: "Plan has changed successfully",
+          });
+        } else if (
           firstTime &&
           foundPlan.type == PayAsYouGoPlanTypes.Plan30Min &&
           !payNow
@@ -246,31 +322,35 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           user.isTrial = true;
           await user.save();
           UpdateOrCreateUserInGhl(user);
-          if (isMobile) {
-            //Generate Desktop Email
-            if (user.userType != UserTypes.RealEstateAgent) {
-              let emailTemp = generateDesktopEmail();
-              let sent = await SendEmail(
-                user.email,
-                emailTemp.subject,
-                emailTemp.html
-              );
-            }
-          }
+          // if (isMobile) {
+          //   //Generate Desktop Email
+          //   if (user.userType != UserTypes.RealEstateAgent) {
+          //     let emailTemp = generateDesktopEmail();
+          //     let sent = await SendEmail(
+          //       user.email,
+          //       emailTemp.subject,
+          //       emailTemp.html
+          //     );
+          //   }
+          // }
           return res.send({
             status: true,
             message: "Successfully subscribed to plan",
             data: null,
           });
         } else {
+          console.log("Not first time");
+
           let lastPlan = null;
           if (history && history.length > 0) {
             lastPlan = history[0];
           }
           if (lastPlan) {
+            let lastPlanFound = FindPlanWithtype(lastPlan.type);
+            console.log("There is a last plan");
             //if the duration of the new plan is greater then it is upgrade
-            let upgrade = foundPlan.duration > lastPlan.duration;
-
+            let upgrade = foundPlan.duration > lastPlanFound.duration;
+            console.log("Is user upgrading ", upgrade);
             if (user.isTrial) {
               //If user upgrades or downgrades while on trial then charge immediately and set the sub date to current date
               user.subscriptionStartDate = new Date();
@@ -281,16 +361,19 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             } else {
               //If user is not on trial
               if (upgrade && lastPlan.status == "active") {
+                console.log("Upgrade and active");
                 //If user upgrades while on an active plan
                 //Charge immediately so let the flow run below
                 //Don't change the subscription date if not null
+                payNow = true;
+                user.nextChargeDate = dateAfter30Days;
                 if (user.subscriptionStartDate == null) {
                   user.subscriptionStartDate = new Date();
-                  user.nextChargeDate = dateAfter30Days;
-                  payNow = true;
+
                   await user.save();
                 }
               } else if (!upgrade && lastPlan.status == "active") {
+                console.log("Not Upgrade and active");
                 //Subscription price don't change. It is same as the old
                 if (user.subscriptionStartDate == null) {
                   user.subscriptionStartDate = new Date();
@@ -317,6 +400,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               }
               //If user comes back from cancelled subscription
               else if (lastPlan.status == "cancelled") {
+                console.log("cancelled");
                 //If last plan is cancelled.
                 payNow = true; //payNow should be true
                 user.subscriptionStartDate = new Date();
@@ -326,7 +410,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               }
             }
 
-            console.log("Update Plan");
+            console.log("Update Plan", payNow);
             await db.PlanHistory.update(
               { status: "cancelled" },
               { where: { userId: user.id } }
@@ -355,7 +439,9 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                 user.id,
                 price,
                 "Charging for plan " + foundPlan.type,
-                foundPlan.type
+                foundPlan.type,
+                false,
+                req
               );
               user = await db.User.findByPk(user.id);
               if (charge && charge.status) {
@@ -407,17 +493,17 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             }
           } else {
             // No last plan so first time user and it is selecting a plan other than 30 min
-            if (isMobile) {
-              //Generate Desktop Email
-              if (user.userType != UserTypes.RealEstateAgent) {
-                let emailTemp = generateDesktopEmail();
-                let sent = await SendEmail(
-                  user.email,
-                  emailTemp.subject,
-                  emailTemp.html
-                );
-              }
-            }
+            // if (isMobile) {
+            //   //Generate Desktop Email
+            //   if (user.userType != UserTypes.RealEstateAgent) {
+            //     let emailTemp = generateDesktopEmail();
+            //     let sent = await SendEmail(
+            //       user.email,
+            //       emailTemp.subject,
+            //       emailTemp.html
+            //     );
+            //   }
+            // }
           }
 
           //User directly purchased a plan that is not 30 minutes
@@ -426,7 +512,9 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             user.id,
             price,
             "Charging for plan " + foundPlan.type,
-            foundPlan.type
+            foundPlan.type,
+            false,
+            req
           );
           let dateNow = new Date();
           // dateAfter7Days.setDate(date7DaysAgo.getDate() + 7);
@@ -701,12 +789,13 @@ export async function ReChargeUserAccount(user) {
         user.id,
         foundPlan.price * 100,
         `Subscription payment for ${foundPlan.price}`,
-        foundPlan.type
+        foundPlan.type,
+        true
       );
 
       let historyCreated = await db.PaymentHistory.create({
-        title: GetTitleForPlan(foundPlan),
-        description: `Payment for ${foundPlan.type}`,
+        title: `${foundPlan.duration / 60} Min subscription renewed`,
+        description: `${foundPlan.duration / 60} Min subscription renewed`,
         type: foundPlan.type,
         price: foundPlan.price,
         userId: user.id,
@@ -820,7 +909,7 @@ export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
 export async function RechargeFunction() {
   console.log("Cron Cancel plan or rechrage");
   // Correctly subtract 7 days from the current date
-  let users = await db.User.findAll({ where: { id: 80 } });
+  let users = await db.User.findAll();
   console.log("Total users ", users.length);
   // return;
   if (users && users.length > 0) {
@@ -839,4 +928,4 @@ export async function RechargeFunction() {
   // ReChargeUserAccount
 }
 
-RechargeFunction();
+// RechargeFunction();

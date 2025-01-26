@@ -137,11 +137,11 @@ export function DeleteInvite(req, res) {
           message: "No such user",
         });
       }
-      let phoneNumber = req.body.phoneNumber;
+      let phoneNumber = req.body.phone;
 
       await db.TeamModel.destroy({
         where: {
-          userId: user.id,
+          invitingUserId: user.id,
           phone: phoneNumber,
         },
       });

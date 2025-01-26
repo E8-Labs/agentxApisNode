@@ -46,6 +46,7 @@ import { constants } from "../constants/constants.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import { AddNotification } from "./NotificationController.js";
+import { WriteToFile } from "../services/FileService.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -532,7 +533,7 @@ export const MakeACall = async (
       stage: lead.stage,
       status: "success",
       endCallReason: "no-answer", //MaxTriesReached
-      duration: 50,
+      // duration: 50,
       batchId: batchId,
     });
     await addCallTry(leadCadence, lead, assistant, calls, batchId, "success"); //errored
@@ -644,6 +645,7 @@ export const TestAI = async (req, res) => {
       });
 
       let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       let agent = await db.AgentModel.findByPk(agentId);
       if (!agent) {
@@ -675,7 +677,7 @@ export const TestAI = async (req, res) => {
       let lead = await db.LeadModel.findOne({
         where: {
           phone: phone,
-          userId: user.id,
+          userId: admin.id,
           status: "active",
         },
       });
@@ -843,8 +845,9 @@ async function initiateCall(
   test = false
 ) {
   console.log("IS call test ", test);
-  console.log("Call data is ", data);
+
   try {
+    WriteToFile(JSON.stringify(data));
     let synthKey = process.env.SynthFlowApiKey;
 
     let config = {
@@ -1072,6 +1075,7 @@ export const BuildAgent = async (req, res) => {
       });
 
       let admin = await GetTeamAdminFor(user);
+      user = admin;
       console.log("BuildAgent", req.body);
 
       const name = req.body.name;
@@ -1319,7 +1323,7 @@ export const UpdateAgent = async (req, res) => {
         },
       });
       let admin = await GetTeamAdminFor(user);
-
+      user = admin;
       let mainAgentId = req.body.mainAgentId;
       let agent = await db.MainAgentModel.findByPk(mainAgentId);
       if (!agent) {
@@ -1986,6 +1990,9 @@ export const AddKyc = async (req, res) => {
         },
       });
 
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
+
       let mainAgent = await db.MainAgentModel.findByPk(mainAgentId);
       let prompts = await db.AgentPromptModel.findAll({
         where: {
@@ -2163,6 +2170,8 @@ export const UpdateKyc = async (req, res) => {
           id: userId,
         },
       });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
 
       let mainAgent = await db.MainAgentModel.findByPk(mainAgentId);
       let prompts = await db.AgentPromptModel.findAll({
@@ -2392,6 +2401,7 @@ export async function CreateAssistantSynthflow(
       "content-type": "application/json",
       Authorization: `Bearer ${synthKey}`,
     },
+    timeout: 60000 * 3, // Timeout in milliseconds (3 min )
     data: {
       type: type,
       name: agentData.name,
@@ -2410,11 +2420,11 @@ export async function CreateAssistantSynthflow(
       is_recording: true,
     },
   };
-  //console.log("Inside 2");
+  console.log("Inside 2");
   try {
     let result = await axios.request(options);
-    //console.log("Inside 3");
-    //console.log("Create Assistant Api result ", result);
+    console.log("Inside 3");
+    console.log("Create Assistant Api result ", result);
 
     if (result.status == 200) {
       let assistant = await db.AgentModel.create({
@@ -2422,6 +2432,7 @@ export async function CreateAssistantSynthflow(
         modelId: result.data?.response?.model_id || null,
       });
       if (assistant) {
+        console.log("Here inside assistant");
         try {
           let extractors = InfoExtractors;
           let IEIds = extractors.map((item) => {
@@ -2451,7 +2462,7 @@ export async function CreateAssistantSynthflow(
           // }
           // let createdAction = await CreateAndAttachAction(user, "kb");
         } catch (error) {
-          //console.log("Error creating action kb ", error);
+          console.log("Error creating action kb ", error);
         }
         // try {
         //   let createdAction = await CreateAndAttachAction(user, "booking");
@@ -2467,7 +2478,7 @@ export async function CreateAssistantSynthflow(
     }
     return result;
   } catch (error) {
-    //console.log("Inside error: ", error);
+    console.log("Inside error: ", error);
     return null;
   }
 }

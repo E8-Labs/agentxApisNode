@@ -52,6 +52,11 @@ async function getUserData(call, currentUser = null) {
     PipelineStages = await db.PipelineStages.findByPk(callData.LeadModel.stage);
     callData.PipelineStages = PipelineStages;
   }
+  let callStage = null;
+  if (callData.stage) {
+    callStage = await db.PipelineStages.findByPk(callData.stage);
+    callData.callStage = callStage;
+  }
 
   const LeadCallResource = callData;
 

@@ -74,7 +74,7 @@ export function generateDesktopEmail() {
         </head>
         <body>
           <div class="container">
-            <div class="header">Only 2 Days Left to Maximize Your Trial</div>
+            <div class="header">Welcome to AgentX! Continue on Desktop</div>
             <div class="body">
               <p>Hi Visionary,</p>
               <p>Welcome to <strong>AgentX</strong>, where we redefine what’s possible in real estate. You’ve just taken the first step toward building your own AI—a tool so powerful, it could reshape how you connect, communicate, and close deals.</p>
