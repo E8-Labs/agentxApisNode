@@ -303,7 +303,7 @@ export async function RedeemCodeOnPlanSubscription(user) {
     });
 
     //only redeem if inviting user has active plan
-    if (plan) {
+    if (plan && invitingUser.totalSecondsAvailable > 120) {
       console.log(
         "RedeemFunc: Inviting user seconds Before ",
         invitingUser.totalSecondsAvailable
