@@ -60,16 +60,19 @@ export async function getInboudPromptText(prompt, assistant, user) {
   let companyAgentInfo = prompt.companyAgentInfo;
   companyAgentInfo = companyAgentInfo.replace(/{agent_name}/g, assistant.name);
   companyAgentInfo = companyAgentInfo.replace(
-    /{agent_role}/g,
+    /{agent_role}/gi,
     assistant.agentRole
   );
   companyAgentInfo = companyAgentInfo.replace(
     /{brokerage_name}/g,
     user.brokerage
   );
-  companyAgentInfo = companyAgentInfo.replace(/{CU_status}/g, assistant.status);
   companyAgentInfo = companyAgentInfo.replace(
-    /{CU_address}/g,
+    /{CU_status}/gi,
+    assistant.status
+  );
+  companyAgentInfo = companyAgentInfo.replace(
+    /{CU_address}/gi,
     assistant.address
   );
   companyAgentInfo = companyAgentInfo.replace(
@@ -91,8 +94,8 @@ export async function getInboudPromptText(prompt, assistant, user) {
   callScript = callScript.replace(/{agent_name}/g, assistant.name);
   callScript = callScript.replace(/{brokerage_name}/g, user.brokerage);
 
-  callScript = callScript.replace(/{CU_status}/g, assistant.status);
-  callScript = callScript.replace(/{CU_address}/g, assistant.address);
+  callScript = callScript.replace(/{CU_status}/gi, assistant.status);
+  callScript = callScript.replace(/{CU_address}/gi, assistant.address);
 
   let guardrails = await db.ObjectionAndGuradrails.findAll({
     where: {
@@ -198,7 +201,10 @@ async function GetCompletePromptTextFrom(
   if (user.brokerage_name != null && user.brokerage_name != "") {
     customVariables.push(`brokerage_name: ${user.brokerage_name}`);
   }
-  companyAgentInfo = companyAgentInfo.replace(/{CU_status}/g, assistant.status);
+  companyAgentInfo = companyAgentInfo.replace(
+    /{CU_status}/gi,
+    assistant.status
+  );
 
   if (assistant.status != null && assistant.status != "") {
     customVariables.push(`CU_status: ${assistant.status}`);
@@ -233,12 +239,12 @@ async function GetCompletePromptTextFrom(
   greeting = greeting.replace(/{Phone Number}/g, lead.phone);
   customVariables.push(`Phone Number: ${lead.phone ?? "Not Provided"}`);
 
-  greeting = greeting.replace(/{Email}/g, lead.email);
+  greeting = greeting.replace(/{Email}/gi, lead.email);
   customVariables.push(
     `Email: ${lead.email && lead.email != "" ? lead.email : "Not Provided"}`
   );
 
-  greeting = greeting.replace(/{Address}/g, lead.address);
+  greeting = greeting.replace(/{Address}/gi, lead.address);
   customVariables.push(
     `Address: ${
       lead.address && lead.address != "" ? lead.address : "Not Provided"
@@ -251,15 +257,15 @@ async function GetCompletePromptTextFrom(
   callScript = callScript.replace(/{agent_name}/g, assistant.name);
   callScript = callScript.replace(/{brokerage_name}/g, user.brokerage);
 
-  callScript = callScript.replace(/{CU_status}/g, assistant.status);
-  callScript = callScript.replace(/{CU_address}/g, assistant.address);
+  callScript = callScript.replace(/{CU_status}/gi, assistant.status);
+  callScript = callScript.replace(/{CU_address}/gi, assistant.address);
 
   callScript = callScript.replace(/{first_name}/g, lead.firstName);
   callScript = callScript.replace(/{firstName}/g, lead.firstName);
   callScript = callScript.replace(/{First Name}/g, lead.firstName);
   callScript = callScript.replace(/{Last Name}/g, lead.lastName);
-  callScript = callScript.replace(/{Email}/g, lead.email);
-  callScript = callScript.replace(/{Address}/g, lead.address);
+  callScript = callScript.replace(/{Email}/gi, lead.email);
+  callScript = callScript.replace(/{Address}/gi, lead.address);
 
   // console.log("Call script before");
   // console.log(callScript);
@@ -1033,8 +1039,8 @@ async function CreatePromptForAgent(
   // callScript = callScript.replace(/{seller_kyc}/g, seller_kyc);
   // callScript = callScript.replace(/{buyer_kyc}/g, buyer_kyc);
 
-  callScript = callScript.replace(/{CU_status}/g, CUStatus);
-  callScript = callScript.replace(/{CU_address}/g, CUAddress);
+  callScript = callScript.replace(/{CU_status}/gi, CUStatus);
+  callScript = callScript.replace(/{CU_address}/gi, CUAddress);
 
   if (p) {
     let obj = p.objective;
@@ -2122,7 +2128,7 @@ export const AddKyc = async (req, res) => {
             //   "No Buyer kyc already added replacing buyer",
             //   kycBuyerText
             // );
-            kycBuyerText = `Buyer Motivation:\n${kycBuyerMotivationText}\nBuyer Need:\n${kycBuyerNeedsText}\nuyer Urgency:\n${kycBuyerUrgencyText}\n`;
+            kycBuyerText = `Buyer Motivation:\n${kycBuyerMotivationText}\nBuyer Need:\n${kycBuyerNeedsText}\nBuyer Urgency:\n${kycBuyerUrgencyText}\n`;
             for (let p of prompts) {
               let callScript = p.callScript;
               // callScript = callScript.replace(/{seller_kyc}/g, seller_kyc);
