@@ -314,6 +314,14 @@ export async function RedeemCodeOnPlanSubscription(user) {
         "RedeemFunc: Inviting user seconds After ",
         invitingUser.totalSecondsAvailable
       );
+      await AddNotification(
+        invitingUser,
+        null,
+        NotificationTypes.RedeemedAgentXCodeMine,
+        null,
+        null,
+        inviteCodeUsed
+      );
     } else {
       console.log("RedeemFunc: Inviting user don't have an active plan");
     }
@@ -336,14 +344,6 @@ export async function RedeemCodeOnPlanSubscription(user) {
       user,
       null,
       NotificationTypes.RedeemedAgentXCode,
-      null,
-      null,
-      inviteCodeUsed
-    );
-    await AddNotification(
-      invitingUser,
-      null,
-      NotificationTypes.RedeemedAgentXCodeMine,
       null,
       null,
       inviteCodeUsed
