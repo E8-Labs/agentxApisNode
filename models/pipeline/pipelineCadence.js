@@ -10,6 +10,8 @@ const PipelineCadence = (sequelize, Sequelize) => {
         model: "MainAgentModels",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     stage: {
       type: Sequelize.INTEGER,
@@ -18,6 +20,8 @@ const PipelineCadence = (sequelize, Sequelize) => {
         model: "PipelineStages",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
 
     pipelineId: {
@@ -42,6 +46,8 @@ const PipelineCadence = (sequelize, Sequelize) => {
         model: "PipelineStages",
         key: "id",
       },
+      onDelete: "SET NULL",
+      onUpdate: "SET NULL",
     },
   });
 

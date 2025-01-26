@@ -38,6 +38,8 @@ const CalendarIntegration = (sequelize, Sequelize) => {
         model: "MainAgentModels", //
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     agentId: {
       type: Sequelize.INTEGER,
@@ -46,6 +48,8 @@ const CalendarIntegration = (sequelize, Sequelize) => {
         model: "AgentModels", //
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     userId: {
       type: Sequelize.INTEGER,
@@ -54,6 +58,8 @@ const CalendarIntegration = (sequelize, Sequelize) => {
         model: "Users", //
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
   });
 

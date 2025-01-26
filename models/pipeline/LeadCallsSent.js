@@ -34,8 +34,8 @@ const LeadCallsSent = (sequelize, Sequelize) => {
         model: "LeadCadences",
         key: "id",
       },
-      onDelete: "CASCADE",
-      onUpdate: "CASCADE",
+      onDelete: "SET NULL",
+      onUpdate: "SET NULL",
     },
     stage: {
       type: Sequelize.INTEGER,
@@ -44,6 +44,8 @@ const LeadCallsSent = (sequelize, Sequelize) => {
         model: "PipelineStages",
         key: "id",
       },
+      onDelete: "SET NULL",
+      onUpdate: "SET NULL",
     },
     duration: {
       type: Sequelize.DOUBLE,
