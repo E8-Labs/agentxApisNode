@@ -100,16 +100,16 @@ let TestPlans = [
 // ];
 
 let LivePlans = [
-  { type: PayAsYouGoPlanTypes.Plan30Min, price: 0.55, duration: 30 * 60 },
-  { type: PayAsYouGoPlanTypes.Plan120Min, price: 0.56, duration: 120 * 60 },
+  { type: PayAsYouGoPlanTypes.Plan30Min, price: 0.6, duration: 30 * 60 },
+  { type: PayAsYouGoPlanTypes.Plan120Min, price: 0.61, duration: 120 * 60 },
   {
     type: PayAsYouGoPlanTypes.Plan360Min,
-    price: 0.57,
+    price: 0.62,
     duration: 360 * 60,
   },
   {
     type: PayAsYouGoPlanTypes.Plan720Min,
-    price: 0.58,
+    price: 0.63,
     duration: 720 * 60,
   },
 ];
