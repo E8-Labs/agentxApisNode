@@ -20,6 +20,8 @@ export const KycModel = (sequelize, Sequelize) => {
         model: "Users", //
         key: "id",
       },
+      onDelete: "CASCADE", // Automatically delete related KycModel records
+      onUpdate: "CASCADE",
     },
     mainAgentId: {
       type: Sequelize.INTEGER,

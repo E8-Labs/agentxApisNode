@@ -32,6 +32,12 @@ import {
   trackContactEvent,
   trackLeadEvent,
 } from "../services/facebookConversionsApi.js";
+import {
+  DeleteAssistantSynthflow,
+  DeleteKyc,
+  DeleteKycQuesiton,
+} from "./synthflowController.js";
+import { DeleteCalendar } from "./calendarController.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -564,6 +570,72 @@ export const UploadVideo = async (req, res) => {
       data: image,
     });
   }
+};
+
+async function deleteAllAgents(user) {
+  console.log("Deleting agents");
+  let agents = await db.AgentModel.findAll({
+    where: {
+      userId: user.id,
+    },
+  });
+  console.log(agents.length);
+  if (agents && agents.length > 0) {
+    for (let agent of agents) {
+      let del = await DeleteAssistantSynthflow(agent.modelId);
+      await agent.destroy();
+    }
+  }
+  console.log("Deleted all agents");
+}
+
+async function deleteKycs(user) {
+  console.log("Deleting kycs");
+  let kycs = await db.KycModel.findAll({
+    where: {
+      userId: user.id,
+    },
+  });
+  if (kycs && kycs.length > 0) {
+    for (let kyc of kycs) {
+      let del = await DeleteKycQuesiton(kyc.id);
+    }
+  }
+  console.log("Deleted all kycs");
+}
+
+async function deleteCalendars(user) {
+  console.log("Deleting calendars");
+  let cals = await db.CalendarIntegration.findAll({
+    where: {
+      userId: user.id,
+    },
+  });
+  console.log("Total calendars ", cals.length);
+  if (cals && cals.length > 0) {
+    for (let cal of cals) {
+      try {
+        let del = await DeleteCalendar(cal);
+      } catch (error) {
+        console.error("Error del cal ", error.message);
+      }
+    }
+  }
+  console.log("Deleted all calendars");
+}
+
+export const DeleteUserProfile = async (req, res) => {
+  let userId = req.body.userId;
+  let user = await db.User.findByPk(userId);
+  if (!user) {
+    return res.send({ status: false, message: "No such user" });
+  }
+  //delete all agents
+  await deleteAllAgents(user);
+  await deleteKycs(user);
+  await deleteCalendars(user);
+  // await user.destroy();
+  return res.send({ status: true, message: "Profile deleted" });
 };
 
 export function AddTestNumber(req, res) {

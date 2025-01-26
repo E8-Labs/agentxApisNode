@@ -2285,7 +2285,7 @@ export const UpdateKyc = async (req, res) => {
   });
 };
 
-async function DeleteKycQuesiton(kycId) {
+export async function DeleteKycQuesiton(kycId) {
   let kyc = await db.KycModel.findByPk(kycId);
   if (kyc && kyc.actionId) {
     //remove the action
@@ -2527,7 +2527,7 @@ export async function DeleteActionSynthflow(actionId) {
   try {
     let result = await axios.request(options);
     //console.log("Inside 3");
-    console.log("Delete Action Api result ", result);
+    // console.log("Delete Action Api result ", result);
 
     if (result.status == 200) {
       return true;

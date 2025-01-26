@@ -9,6 +9,7 @@ import {
   CreateAndAttachCalendarAction,
 } from "./actionController.js";
 import {
+  DeleteActionSynthflow,
   getInboudPromptText,
   UpdateAssistantSynthflow,
 } from "./synthflowController.js";
@@ -814,4 +815,28 @@ export async function GetCalendarSchedule(req, res) {
       });
     }
   });
+}
+
+export async function DeleteCalendar(calendar) {
+  let data = calendar.data || null;
+  console.log("Calendar", calendar);
+  if (data) {
+    try {
+      let actions = JSON.stringify(data);
+      console.log("Total actions ", actions.length);
+      if (actions && actions.length > 0) {
+        for (let action of actions) {
+          let del = DeleteActionSynthflow(action);
+        }
+      }
+      console.log("Del cal from db");
+      calendar.destroy();
+      return true;
+    } catch (error) {
+      console.log("Error deleting calendar");
+      return false;
+    }
+  } else {
+    return true;
+  }
 }

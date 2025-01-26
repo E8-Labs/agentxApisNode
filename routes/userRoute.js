@@ -1,7 +1,9 @@
 import express from "express";
 import multer from "multer";
 
-import { verifyJwtTokenWithTeam } from "../middleware/jwtmiddleware.js";
+import verifyJwtToken, {
+  verifyJwtTokenWithTeam,
+} from "../middleware/jwtmiddleware.js";
 import {
   LoginUser,
   RegisterUser,
@@ -15,6 +17,7 @@ import {
   DeleteTestNumber,
   SendFeedbackEmail,
   UploadVideo,
+  DeleteUserProfile,
 } from "../controllers/userController.js";
 
 import {
@@ -74,6 +77,7 @@ UserRouter.get(
   GetTransactionsHistory
 );
 
+UserRouter.post("/deleteProfile", verifyJwtToken, DeleteUserProfile);
 UserRouter.post(
   "/sendFeedback",
   verifyJwtTokenWithTeam,
