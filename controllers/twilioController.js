@@ -372,9 +372,11 @@ export const PurchasePhoneNumber = async (req, res) => {
         });
         // }
 
-        UpdateOrCreateUserInGhl(authData.user);
         if (!purchasedNumber || !purchasedNumber.sid) {
           //return the charge
+          //Send email to admin about failed twilio transaction: Include salman as well
+          //Data: Phone, payment id, transaction id from stripe,
+          //User details as well.
           return res.status(500).send({
             status: false,
             message: "Failed to purchase phone number.",
@@ -400,7 +402,7 @@ export const PurchasePhoneNumber = async (req, res) => {
           phone: phoneNumber,
           transactionId: charge.paymentIntent.id,
         });
-
+        UpdateOrCreateUserInGhl(authData.user);
         return res.send({
           status: true,
           message: "Phone number purchased successfully.",
