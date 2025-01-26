@@ -1,7 +1,7 @@
 const UserActivityModel = (sequelize, Sequelize) => {
   const UserActivityModel = sequelize.define("UserActivityModel", {
     activityData: {
-      type: Sequelize.STRING,
+      type: Sequelize.TEXT("medium"),
       allowNull: true,
     },
     action: {
