@@ -255,16 +255,20 @@ async function handleNewCall(
   // console.log("Agent is ", assistant);
 
   let sheet = null;
-  if (assistant.agentType == "inbound") {
+  let lead = await FindLead(leadPhone, assistant.userId);
+  if (assistant.agentType == "inbound" && !lead) {
+    //don't create sheet if lead already exists
     sheet = await findOrCreateSheet(assistant, constants.InboudLeadSheetName);
   }
-  const lead = await findOrCreateLead(
-    leadPhone,
-    assistant.userId,
-    sheet,
-    leadData,
-    assistant
-  );
+  if (!lead) {
+    lead = await findOrCreateLead(
+      leadPhone,
+      assistant.userId,
+      sheet,
+      leadData,
+      assistant
+    );
+  }
   // if (assistant.agentType == "inbound") {
   //   try {
   //     await AddOrUpdateTag("Inbound", lead);
@@ -347,6 +351,35 @@ async function findOrCreateSheet(assistant, sheetName) {
   return sheet;
 }
 
+async function FindLead(leadPhone, userId) {
+  let phone = leadPhone.replace("+", "");
+  let sheets = await db.LeadSheetModel.findAll({
+    where: {
+      userId: userId,
+      status: "deleted",
+    },
+  });
+  let ids = [];
+  if (sheets && sheets.length > 0) {
+    ids = sheets.map((sheet) => sheet.id);
+  } else {
+  }
+  let lead = await db.LeadModel.findOne({
+    where: {
+      phone: {
+        [db.Sequelize.Op.like]: `%${phone}%`,
+      },
+      sheetId: {
+        [db.Sequelize.Op.notIn]: ids,
+      },
+      userId: userId,
+    },
+  });
+  if (lead) {
+    return lead;
+  }
+  return null;
+}
 async function findOrCreateLead(leadPhone, userId, sheet, leadData, assistant) {
   if (!sheet) {
     //get any Sheet fromthat user

@@ -323,7 +323,7 @@ Recent Renovations or Upgrades:
 Exterior Features:
 Current Condition:    `,
 
-  greeting: `Hi {First Name}. This is this {agent_name} with {brokerage_name}! How’s it going?`,
+  greeting: `Hi this is this {agent_name} with {brokerage_name}! Can i ask who's calling?`,
 
   booking: constants.BookingInstruction,
 
