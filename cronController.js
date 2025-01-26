@@ -167,7 +167,7 @@ const RechargeCron = nodeCron.schedule("*/1 * * * *", async () => {
   try {
     // Check if the lock file exists
     let cronRunning = await db.CronLockTable.findOne({
-      where: { process: ProcessTypes.BatchCron },
+      where: { process: ProcessTypes.RechargeCron },
     });
 
     if (cronRunning) {
