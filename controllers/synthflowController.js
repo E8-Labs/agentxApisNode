@@ -2128,7 +2128,7 @@ export const AddKyc = async (req, res) => {
             //   "No Buyer kyc already added replacing buyer",
             //   kycBuyerText
             // );
-            kycBuyerText = `Buyer Motivation:\n${kycBuyerMotivationText}\nBuyer Need:\n${kycBuyerNeedsText}\nuyer Urgency:\n${kycBuyerUrgencyText}\n`;
+            kycBuyerText = `Buyer Motivation:\n${kycBuyerMotivationText}\nBuyer Need:\n${kycBuyerNeedsText}\nBuyer Urgency:\n${kycBuyerUrgencyText}\n`;
             for (let p of prompts) {
               let callScript = p.callScript;
               // callScript = callScript.replace(/{seller_kyc}/g, seller_kyc);
