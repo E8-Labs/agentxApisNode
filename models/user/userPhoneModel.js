@@ -33,6 +33,8 @@ const UserPhoneNumbers = (sequelize, Sequelize) => {
         model: "Users",
         key: "id",
       },
+      // onDelete: "CASCADE",
+      // onUpdate: "CASCADE",
     },
   });
 
