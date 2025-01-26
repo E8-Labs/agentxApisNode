@@ -2401,6 +2401,7 @@ export async function CreateAssistantSynthflow(
       "content-type": "application/json",
       Authorization: `Bearer ${synthKey}`,
     },
+    timeout: 60000 * 3, // Timeout in milliseconds (3 min )
     data: {
       type: type,
       name: agentData.name,
