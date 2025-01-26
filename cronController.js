@@ -107,7 +107,7 @@ CronRunCadenceCallsSubsequentStagesCron.start();
 
 //Booked Calls
 const CronRunCadenceCallsBookingCron = nodeCron.schedule(
-  "*/2 * * * * *",
+  "*5 * * * *",
   async () => {
     try {
       // Check if the lock file exists
