@@ -114,8 +114,8 @@ let LivePlans = [
   },
 ];
 
-export const PayAsYouGoPlans =
-  process.env.environment === "Production" ? LivePlans : TestPlans;
+export const PayAsYouGoPlans = LivePlans;
+// process.env.environment === "Production" ? LivePlans : TestPlans;
 
 console.log("Plans ", PayAsYouGoPlans);
 
