@@ -286,6 +286,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           await db.PlanHistory.create({
             userId: user.id,
             type: foundPlan.type,
+            environment: process.env.Environment,
           });
 
           return res.send({
@@ -767,7 +768,11 @@ export async function ReChargeUserAccount(user) {
   console.log("Total Seconds less than ", user.totalSecondsAvailable);
 
   let lastPlan = await db.PlanHistory.findOne({
-    where: { userId: user.id, status: "active" },
+    where: {
+      userId: user.id,
+      status: "active",
+      environment: process.env.Environment,
+    },
     ordre: [["createdAt", "DESC"]],
   });
   // console.log("Plan ", lastPlan);
