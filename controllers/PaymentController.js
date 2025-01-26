@@ -286,6 +286,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           await db.PlanHistory.create({
             userId: user.id,
             type: foundPlan.type,
+            environment: process.env.Environment,
           });
 
           return res.send({
