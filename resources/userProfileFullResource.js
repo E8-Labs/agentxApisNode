@@ -47,7 +47,7 @@ async function getUserData(user, currentUser = null) {
   let planHistory = await db.PlanHistory.findAll({
     where: {
       userId: admin ? admin.id : user.id,
-      environment: process.env.Environment,
+      // environment: process.env.Environment,
     },
     order: [["createdAt", "DESC"]],
     limit: 1,
