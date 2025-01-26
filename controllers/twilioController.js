@@ -776,7 +776,9 @@ export const DeleteNumber = async (req, res) => {
           .remove();
         console.log("Relase number response ", del);
         //delete the numbe form our database
-        await phoneNumber.destroy();
+        // await phoneNumber.destroy();
+        phoneNumber.status = "inactive";
+        await phoneNumber.save();
         let updated = await db.AgentModel.update(
           {
             phoneNumber: "",
