@@ -493,19 +493,20 @@ export const chargeUser = async (
         }
       } else {
         //Phone purchase
-        trackPurchaseEvent(
-          {
-            ...paymentIntent,
-            type: type,
-            price: 2,
-            value: plan.price,
-            // phone: "Phone Purchase",
-          },
-          user.get(),
-          req,
-          "ai.myagentx.com",
-          "website"
-        );
+        try {
+          trackPurchaseEvent(
+            {
+              ...paymentIntent,
+              type: type,
+              price: 2,
+              value: 2,
+            },
+            user.get(),
+            req,
+            "ai.myagentx.com",
+            "website"
+          );
+        } catch (error) {}
       }
 
       return {
