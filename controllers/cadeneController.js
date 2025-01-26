@@ -929,6 +929,7 @@ export const CadenceBookedCalls = async () => {
             }
             nextCallTobeSent = callsAlreadySent.length;
             let nextCadenceCall = cadenceCallsToBeSent[nextCallTobeSent];
+            console.log("next call ", nextCadenceCall);
             let TimeToCallBeforeMeeting =
               Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
               Number(nextCadenceCall.waitTimeHours) * 60 +
