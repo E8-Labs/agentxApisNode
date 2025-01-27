@@ -490,13 +490,16 @@ export async function CanMakeCalls(user) {
     },
     order: [["createdAt", "DESC"]],
   });
-  if (!plan) {
-    return { status: false, message: "User is not subscribed to any plan" };
-  }
   if (user.totalSecondsAvailable <= 120) {
-    let charge = await ReChargeUserAccount(user);
-    return { status: false, message: "User have no balance" };
+    return {
+      status: false,
+      message: "User is not subscribed to any plan & have less than 2 min",
+    };
   }
+  // if (user.totalSecondsAvailable <= 120) {
+  //   let charge = await ReChargeUserAccount(user);
+  //   return { status: false, message: "User have no balance" };
+  // }
 
   return { status: true, message: "User cab be charged" };
 }
@@ -550,6 +553,7 @@ export const MakeACall = async (
   let user = await db.User.findByPk(assistant.userId);
   let canMakeCalls = await CanMakeCalls(user);
   if (canMakeCalls.status == false) {
+    console.log("User can not make calls", canMakeCalls);
     await addCallTry(leadCadence, lead, assistant, calls, batchId, "error"); //errored
 
     return { status: false, data: null };
