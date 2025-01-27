@@ -84,38 +84,38 @@ let TestPlans = [
   },
 ];
 
-// let LivePlans = [
-//   { type: PayAsYouGoPlanTypes.Plan30Min, price: 45, duration: 30 * 60 },
-//   { type: PayAsYouGoPlanTypes.Plan120Min, price: 99, duration: 120 * 60 },
-//   {
-//     type: PayAsYouGoPlanTypes.Plan360Min,
-//     price: 270,
-//     duration: 360 * 60,
-//   },
-//   {
-//     type: PayAsYouGoPlanTypes.Plan720Min,
-//     price: 480,
-//     duration: 720 * 60,
-//   },
-// ];
-
 let LivePlans = [
-  { type: PayAsYouGoPlanTypes.Plan30Min, price: 0.6, duration: 30 * 60 },
-  { type: PayAsYouGoPlanTypes.Plan120Min, price: 0.61, duration: 120 * 60 },
+  { type: PayAsYouGoPlanTypes.Plan30Min, price: 45, duration: 30 * 60 },
+  { type: PayAsYouGoPlanTypes.Plan120Min, price: 99, duration: 120 * 60 },
   {
     type: PayAsYouGoPlanTypes.Plan360Min,
-    price: 0.62,
+    price: 270,
     duration: 360 * 60,
   },
   {
     type: PayAsYouGoPlanTypes.Plan720Min,
-    price: 0.63,
+    price: 480,
     duration: 720 * 60,
   },
 ];
 
-export const PayAsYouGoPlans = LivePlans;
-// process.env.environment === "Production" ? LivePlans : TestPlans;
+// let LivePlans = [
+//   { type: PayAsYouGoPlanTypes.Plan30Min, price: 0.6, duration: 30 * 60 },
+//   { type: PayAsYouGoPlanTypes.Plan120Min, price: 0.61, duration: 120 * 60 },
+//   {
+//     type: PayAsYouGoPlanTypes.Plan360Min,
+//     price: 0.62,
+//     duration: 360 * 60,
+//   },
+//   {
+//     type: PayAsYouGoPlanTypes.Plan720Min,
+//     price: 0.63,
+//     duration: 720 * 60,
+//   },
+// ];
+
+export const PayAsYouGoPlans =
+  process.env.environment === "Production" ? LivePlans : TestPlans;
 
 console.log("Plans ", PayAsYouGoPlans);
 
