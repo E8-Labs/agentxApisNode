@@ -374,30 +374,38 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   await user.save();
                 }
               } else if (!upgrade && lastPlan.status == "active") {
-                console.log("Not Upgrade and active");
+                console.log("Downgrade and active");
                 //Subscription price don't change. It is same as the old
                 if (user.subscriptionStartDate == null) {
                   user.subscriptionStartDate = new Date();
                   user.nextChargeDate = new Date();
                   await user.save();
                 }
-                //Dont charge user immediately
-                await db.PlanHistory.update(
-                  { status: "cancelled" },
-                  { where: { userId: user.id } }
-                ); //set all previous plans as cancelled
-                let planHistory = await db.PlanHistory.create({
-                  userId: user.id,
-                  type: foundPlan.type,
-                  price: foundPlan.price,
-                  status: "active",
-                  environment: process.env.Environment,
-                });
-                return res.send({
-                  status: true,
-                  message: "Plan updated",
-                  planHistory,
-                });
+
+                //if downgrade and user have minutes available
+                if (
+                  user.totalSecondsAvailable > constants.MinThresholdSeconds
+                ) {
+                  //Dont charge user immediately
+                  await db.PlanHistory.update(
+                    { status: "cancelled" },
+                    { where: { userId: user.id } }
+                  ); //set all previous plans as cancelled
+                  let planHistory = await db.PlanHistory.create({
+                    userId: user.id,
+                    type: foundPlan.type,
+                    price: foundPlan.price,
+                    status: "active",
+                    environment: process.env.Environment,
+                  });
+                  return res.send({
+                    status: true,
+                    message: "Plan updated",
+                    planHistory,
+                  });
+                } else {
+                  payNow = true;
+                }
               }
               //If user comes back from cancelled subscription
               else if (lastPlan.status == "cancelled") {
@@ -477,7 +485,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   data: historyCreated,
                 });
               } else {
-                console.log("Charge is ", charge);
+                console.log("Charge failed ", charge);
                 return res.send({
                   status: false,
                   message: "Error upgrading ",
