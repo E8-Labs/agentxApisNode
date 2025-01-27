@@ -509,7 +509,9 @@ export const MakeACall = async (
   simulate = false,
   calls = [],
   batchId = null,
-  maxTriesReached = false
+  maxTriesReached = false,
+  bookingCall = false,
+  meeting = null
 ) => {
   // setLoading(true);
   let leadId = leadCadence.leadId,
@@ -544,6 +546,7 @@ export const MakeACall = async (
       endCallReason: "no-answer", //MaxTriesReached
       // duration: 50,
       batchId: batchId,
+      meeting: meeting?.id,
     });
     await addCallTry(leadCadence, lead, assistant, calls, batchId, "success"); //errored
 
@@ -572,6 +575,7 @@ export const MakeACall = async (
       status: "failed",
       duration: 50,
       batchId: batchId,
+      meeting: meeting?.id,
     });
     // await addCallTry(leadCadence, lead, assistant, calls, batchId, "success"); //errored
 
@@ -632,7 +636,9 @@ export const MakeACall = async (
       mainAgentModel,
       calls,
       batchId,
-      false // test call is false as this is real call
+      false, // test call is false as this is real call
+      bookingCall, // is this a booking call
+      meeting
     );
     return res;
     //initiate call here
@@ -852,7 +858,9 @@ async function initiateCall(
   mainAgentModel,
   calls = [],
   batchId,
-  test = false
+  test = false,
+  bookingCall = false,
+  meeting = null
 ) {
   console.log("IS call test ", test);
 
@@ -910,6 +918,8 @@ async function initiateCall(
           pipelineId: leadCadence?.pipelineId,
           batchId: batchId,
           testCall: test,
+          bookingCall: bookingCall,
+          meeting: meeting?.id,
         });
 
         //console.log("Saved ", saved);
@@ -933,43 +943,13 @@ async function initiateCall(
           // let saved = await leadCadence?.save();
         }
       }
-      // const callId =
-      //   json?.response?.call_id ||
-      //   `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`;
-      //console.log("In else: call not initiated");
-      // Add failed call in the database if required
-      // const saved = await db.LeadCallsSent.create({
-      //   leadCadenceId: leadCadence?.id,
-      //   synthflowCallId: callId,
-      //   leadId: lead.id,
-      //   transcript: "",
-      //   summary: "",
-      //   status: "failed",
-      //   agentId: assistant.id,
-      //   stage: lead?.stage,
-      //   mainAgentId: mainAgentModel.id,
-      //   batchId: batchId,
-      // });
+
       return { status: false, message: "call is not initiated", data: null };
     }
   } catch (error) {
     await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
     console.log("Error during Sending Call API call: ", error);
-    // const callId = `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`;
-    //console.log("In else: call not initiated");
-    // Add failed call in the database if required
-    // const saved = await db.LeadCallsSent.create({
-    //   leadCadenceId: leadCadence?.id,
-    //   synthflowCallId: callId,
-    //   leadId: lead.id,
-    //   transcript: "",
-    //   summary: "",
-    //   status: "failed",
-    //   agentId: assistant.id,
-    //   stage: lead?.stage,
-    //   mainAgentId: mainAgentModel.id,
-    //   batchId: batchId,
-    // });
+
     return {
       status: false,
       message: "call is not initiated due to API error",

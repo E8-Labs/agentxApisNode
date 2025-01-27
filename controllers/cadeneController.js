@@ -916,7 +916,9 @@ export const CadenceBookedCalls = async () => {
             where: {
               leadId: lead.id,
               mainAgentId: pipeliceCadenceForBookingStage.mainAgentId,
-              stage: bookedStage.id,
+              // stage: bookedStage.id,
+              // bookingCall: true,
+              meeting: meeting.id,
             },
           });
           let nextCallTobeSent = 0;
@@ -965,12 +967,14 @@ export const CadenceBookedCalls = async () => {
                   // batchId:
                 });
               }
+              // lead.stage = bookedStage.id;
               await CheckAndTryToPlaceCall(
                 leadCad,
                 lead,
                 mainAgentForBooking,
                 callsAlreadySent,
-                null
+                null,
+                meeting
               );
             }
           } // complete
@@ -991,13 +995,14 @@ async function CheckAndTryToPlaceCall(
   lead,
   mainAgent,
   calls,
-  batch = null
+  batch = null,
+  meeting
 ) {
   try {
     let tries = await db.LeadCallTriesModel.count({
       where: {
         leadCadenceId: leadCad.id,
-        stage: lead.stage,
+        // stage: lead.stage,
         mainAgentId: mainAgent.id,
         status: "error",
       },
@@ -1006,8 +1011,16 @@ async function CheckAndTryToPlaceCall(
       `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
     );
     if (tries < 3) {
-      let called = await MakeACall(leadCad, simulate, calls, batch?.id);
-      WriteToFile("First Call initiated");
+      let called = await MakeACall(
+        leadCad,
+        simulate,
+        calls,
+        batch?.id,
+        false,
+        true,
+        meeting // meeting for which the call will be sent
+      );
+      WriteToFile("Meeting Call initiated");
       if (called.status) {
       }
     } else {
@@ -1015,8 +1028,8 @@ async function CheckAndTryToPlaceCall(
       leadCad.status = CadenceStatus.Errored;
       let saved = await leadCad?.save();
 
-      lead.stage = null;
-      await lead.save();
+      // lead.stage = null;
+      // await lead.save();
     }
 
     //if you want to simulate
