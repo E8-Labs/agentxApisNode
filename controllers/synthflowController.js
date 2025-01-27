@@ -552,7 +552,7 @@ export const MakeACall = async (
   if (canMakeCalls.status == false) {
     await addCallTry(leadCadence, lead, assistant, calls, batchId, "error"); //errored
 
-    return { status: false, data: sent };
+    return { status: false, data: null };
   }
   if (maxTriesReached) {
     // If user has tried 3 times and call errored or wasn't successfull then we add a call with status maxTries Failed
