@@ -77,8 +77,7 @@ export const LoginUser = async (req, res) => {
   const verificationCode = req.body.verificationCode;
   const phone = req.body.phone;
 
-  if (false) {
-    //(process.env.Environment === "Production") {
+  if (process.env.Environment === "Production") {
     let dbCode = await db.PhoneVerificationCodeModel.findOne({
       where: {
         phone: {
@@ -223,8 +222,7 @@ export const RegisterUser = async (req, res) => {
   //Website owners
   let website = req.body.website;
 
-  if (false) {
-    //(process.env.Environment === "Production") {
+  if (process.env.Environment === "Production") {
     let dbCode = await db.PhoneVerificationCodeModel.findOne({
       where: {
         phone: {
