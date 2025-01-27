@@ -755,7 +755,7 @@ export const SendPhoneVerificationCode = async (req, res) => {
           phone,
           `This is your verification code for AgentX ${randomCode}`
         );
-        res.send({ status: true, message: "Code sent", code: randomCode });
+        res.send({ status: true, message: "Code sent", code: null });
       }
     } catch (error) {
       console.log("Exception email", error);

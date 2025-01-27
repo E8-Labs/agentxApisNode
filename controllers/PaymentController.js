@@ -287,6 +287,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             userId: user.id,
             type: foundPlan.type,
             environment: process.env.Environment,
+            price: foundPlan.price,
           });
 
           return res.send({
