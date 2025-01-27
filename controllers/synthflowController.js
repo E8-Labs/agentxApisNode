@@ -490,13 +490,16 @@ export async function CanMakeCalls(user) {
     },
     order: [["createdAt", "DESC"]],
   });
-  if (!plan) {
-    return { status: false, message: "User is not subscribed to any plan" };
-  }
   if (user.totalSecondsAvailable <= 120) {
-    let charge = await ReChargeUserAccount(user);
-    return { status: false, message: "User have no balance" };
+    return {
+      status: false,
+      message: "User is not subscribed to any plan & have less than 2 min",
+    };
   }
+  // if (user.totalSecondsAvailable <= 120) {
+  //   let charge = await ReChargeUserAccount(user);
+  //   return { status: false, message: "User have no balance" };
+  // }
 
   return { status: true, message: "User cab be charged" };
 }
