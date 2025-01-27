@@ -590,7 +590,12 @@ async function processInfoExtractors(
   }
 }
 
-async function extractIEAndStoreKycs(extractors, lead, callId) {
+async function extractIEAndStoreKycs(
+  extractors,
+  lead,
+  callId
+  // assistant = null
+) {
   console.log("Extractors ", extractors);
   const keys = Object.keys(extractors);
   const ie = {};
@@ -610,7 +615,7 @@ async function extractIEAndStoreKycs(extractors, lead, callId) {
       ie["meetingscheduled"] = true;
       //logic to add meeting to the database and attach to lead
       try {
-        MatchAndAssignLeadToMeeting(data, lead);
+        MatchAndAssignLeadToMeeting(data, lead, assistant);
       } catch (error) {
         console.log("error finding meeting id");
       }
@@ -658,7 +663,7 @@ async function extractIEAndStoreKycs(extractors, lead, callId) {
 }
 
 // async function MatchAndAssignLeadToMeeting()
-async function MatchAndAssignLeadToMeeting(data, lead) {
+async function MatchAndAssignLeadToMeeting(data, lead, assistant = null) {
   try {
     console.log("Trying to check and match lead with meeting scheduled");
     // Extract the meeting ID from the provided data
@@ -684,7 +689,17 @@ async function MatchAndAssignLeadToMeeting(data, lead) {
     if (lead?.id != null) {
       //(scheduledMeeting.leadId === null) {
       await scheduledMeeting.update({ leadId: lead.id });
-
+      let user = await db.User.findByPk(lead.userId);
+      await AddNotification(
+        user,
+        null,
+        NotificationTypes.MeetingBooked,
+        lead,
+        assistant,
+        null,
+        null,
+        scheduledMeeting.datetime
+      );
       console.log(
         `Updated scheduled meeting (ID: ${meetingId}) with leadId: ${lead.id}`
       );

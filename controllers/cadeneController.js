@@ -891,6 +891,7 @@ export const CadenceBookedCalls = async () => {
             pipelineId: pipeline.id,
             stage: bookedStage.id,
           },
+          order: [["createdAt", "DESC"]],
         });
         console.log("Finding for stage ", bookedStage.id);
         if (!pipeliceCadenceForBookingStage) {
