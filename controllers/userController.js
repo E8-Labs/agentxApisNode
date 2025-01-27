@@ -77,7 +77,7 @@ export const LoginUser = async (req, res) => {
   const verificationCode = req.body.verificationCode;
   const phone = req.body.phone;
 
-  if (verificationCode !== "111222") {
+  if (process.env.Environment === "Production") {
     let dbCode = await db.PhoneVerificationCodeModel.findOne({
       where: {
         phone: {
@@ -99,6 +99,15 @@ export const LoginUser = async (req, res) => {
     }
     dbCode.status = "used";
     await dbCode.save();
+  } else {
+    if (verificationCode !== "111222") {
+      return res.send({
+        status: false,
+        message: "Invalid verification code",
+        data: null,
+        code: verificationCode,
+      });
+    }
   }
   // const salt = await bcrypt.genSalt(10);
   // const hashed = await bcrypt.hash(password, salt);
@@ -213,7 +222,7 @@ export const RegisterUser = async (req, res) => {
   //Website owners
   let website = req.body.website;
 
-  if (verificationCode !== "111222") {
+  if (process.env.Environment === "Production") {
     let dbCode = await db.PhoneVerificationCodeModel.findOne({
       where: {
         phone: {
@@ -237,6 +246,15 @@ export const RegisterUser = async (req, res) => {
     await dbCode.save();
 
     console.log("Db Code is ", dbCode);
+  } else {
+    if (verificationCode !== "111222") {
+      return res.send({
+        status: false,
+        message: "Invalid verification code",
+        data: null,
+        code: verificationCode,
+      });
+    }
   }
 
   let u = await db.User.findOne({
@@ -682,30 +700,6 @@ export function generateRandomCode(length = 7) {
 
 export const SendPhoneVerificationCode = async (req, res) => {
   let phone = req.body.phone;
-  let testNumbers = [
-    "14086799068",
-    "14086799067",
-    "14086799066",
-    "14086799065",
-    "14086799064",
-    "14086799063",
-    "14086799062",
-    "14086799061",
-    "14086799060",
-    "923058191079",
-    "923058191078",
-    "923058191077",
-    "923058191076",
-    "923058191075",
-    "923058191074",
-    "923058191073",
-    "923058191072",
-    "923058191071",
-    "923058191070",
-    "923281575712",
-    "923011958712",
-    "18183043205",
-  ];
 
   console.log(`Phone number is ${phone}`);
   let login = req.body.login || false;
@@ -728,6 +722,9 @@ export const SendPhoneVerificationCode = async (req, res) => {
   if (user && !login) {
     res.send({ status: false, data: null, message: "Taken" });
   } else {
+    if (process.env.Environment == "Sandbox") {
+      return res.send({ status: true, message: "Code sent", code: "111222" });
+    }
     const randomCode = generateRandomCode(6);
     db.PhoneVerificationCodeModel.destroy({
       where: {
@@ -756,7 +753,7 @@ export const SendPhoneVerificationCode = async (req, res) => {
           phone,
           `This is your verification code for AgentX ${randomCode}`
         );
-        res.send({ status: true, message: "Code sent", code: null });
+        res.send({ status: true, message: "Code sent", code: randomCode });
       }
     } catch (error) {
       console.log("Exception email", error);
