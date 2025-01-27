@@ -553,6 +553,7 @@ export const MakeACall = async (
   let user = await db.User.findByPk(assistant.userId);
   let canMakeCalls = await CanMakeCalls(user);
   if (canMakeCalls.status == false) {
+    console.log("User can not make calls", canMakeCalls);
     await addCallTry(leadCadence, lead, assistant, calls, batchId, "error"); //errored
 
     return { status: false, data: null };
