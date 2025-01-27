@@ -174,26 +174,72 @@ export const ReleasePhoneNumber = async (req, res) => {
   });
 };
 
+const searchPhoneNumbers = async (
+  countryCodes,
+  areaCode,
+  contains,
+  twilioClient
+) => {
+  const results = [];
+
+  for (const countryCode of countryCodes) {
+    const options = {
+      countryCode, // Specify the current country in the loop
+      ...(areaCode && { areaCode }),
+      ...(contains && { contains }),
+    };
+
+    // Search for available numbers for the current country
+    const numbers = await twilioClient
+      .availablePhoneNumbers(countryCode)
+      .local.list(options);
+
+    console.log(`Numbers for ${countryCode}: `, numbers);
+
+    // Combine results from each country
+    results.push(...numbers);
+  }
+
+  return results;
+};
+
 export const ListAvailableNumbers = async (req, res) => {
   console.log("ACCOUNT SSID ", process.env.TWILIO_ACCOUNT_SID);
   const { countryCode, areaCode, contains } = req.query;
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       try {
+        const countryCodes = ["US", "CA"];
         // Set up the search options based on the request query
-        const options = {
-          countryCode: countryCode || "US", // default to 'US' if not specified
-          ...(areaCode && { areaCode }),
-          ...(contains && { contains }),
-        };
+        // const options = {
+        //   countryCode: countryCode || "US", // default to 'US' if not specified
+        //   ...(areaCode && { areaCode }),
+        //   ...(contains && { contains }),
+        // };
 
         // Retrieve pricing for the specified country
         // const price = await getPhoneNumberPricing(options.countryCode);
 
+        let numbers = [];
         // Search for available numbers
-        const numbers = await twilioClient
-          .availablePhoneNumbers(options.countryCode)
-          .local.list(options);
+        for (const countryCode of countryCodes) {
+          const options = {
+            countryCode, // Specify the current country in the loop
+            ...(areaCode && { areaCode }),
+            ...(contains && { contains }),
+          };
+
+          // Search for available numbers for the current country
+          const phoneNumbers = await twilioClient
+            .availablePhoneNumbers(countryCode)
+            .local.list(options);
+
+          console.log(`Numbers for ${countryCode}: `, numbers);
+
+          // Combine results from each country
+          numbers.push(...phoneNumbers);
+        }
+
         console.log("Numbers ", numbers);
         // Format the response
         res.send({
@@ -204,6 +250,7 @@ export const ListAvailableNumbers = async (req, res) => {
             friendlyName: number.friendlyName,
             region: number.region,
             locality: number.locality,
+            country: number.isoCountry,
             price: `${process.env.TWILIO_PHONE_NUMBER_PRICE}`,
           })),
         });
