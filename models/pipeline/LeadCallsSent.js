@@ -178,6 +178,16 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       // allowNull: false,
       defaultValue: false,
     },
+    bookingCall: {
+      type: Sequelize.BOOLEAN,
+      // allowNull: false,
+      defaultValue: false,
+    },
+    meeting: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      defaultValue: null,
+    },
     movedToStage: {
       type: Sequelize.INTEGER,
       allowNull: true,
