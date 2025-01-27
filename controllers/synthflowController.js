@@ -548,12 +548,12 @@ export const MakeACall = async (
   }
 
   let user = await db.User.findByPk(assistant.userId);
-  let canMakeCalls = await CanMakeCalls(user);
-  if (canMakeCalls.status == false) {
-    await addCallTry(leadCadence, lead, assistant, calls, batchId, "error"); //errored
+  // let canMakeCalls = await CanMakeCalls(user);
+  // if (canMakeCalls.status == false) {
+  //   await addCallTry(leadCadence, lead, assistant, calls, batchId, "error"); //errored
 
-    return { status: false, data: sent };
-  }
+  //   return { status: false, data: sent };
+  // }
   if (maxTriesReached) {
     // If user has tried 3 times and call errored or wasn't successfull then we add a call with status maxTries Failed
     let sent = null;
