@@ -67,6 +67,7 @@ const allowedOrigins = [
   "https://agentx-umber.vercel.app",
   "http://localhost:3000",
   "https://ai.myagentx.com",
+  "ai.myagentx.com",
   "https://yet-another-allowed-origin.com",
   "https://agentx-git-test-salman-majid-alis-projects.vercel.app",
 ];
