@@ -788,6 +788,7 @@ export async function SetDefaultCard(paymentMethodId, userId) {
       };
     }
 
+    console.log("Stripe customer id ", stripeCustomerId);
     // Retrieve the payment method to ensure it exists
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 

@@ -164,7 +164,9 @@ export const SetDefaultPaymentmethod = async (req, res) => {
         },
       });
 
-      let added = await SetDefaultCard(paymentMethodId, user.id);
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
+      let added = await SetDefaultCard(paymentMethodId, admin.id);
       return res.send({
         status: added.status,
         message: added.status
