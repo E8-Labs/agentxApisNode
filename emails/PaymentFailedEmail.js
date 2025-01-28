@@ -84,7 +84,7 @@ const HtmlTemplatePaymentMethodFailed = `
       <a href="{CTA_Link}" class="cta"><p class="btnText">{CTA_Text}</p></a>
     </div>
     <div class="footer">
-      © 2023 AgentX, All Rights Reserved.
+      © 2025 AgentX, All Rights Reserved.
     </div>
   </div>
 </body>

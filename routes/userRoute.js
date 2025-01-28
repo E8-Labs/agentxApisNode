@@ -113,6 +113,7 @@ UserRouter.post(
 UserRouter.post(
   "/setDefaultPaymentMethod",
   verifyJwtTokenWithTeam,
+  uploadFiles,
   SetDefaultPaymentmethod
 );
 

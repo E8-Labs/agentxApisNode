@@ -11,6 +11,7 @@ import {
 } from "../models/user/payment/paymentPlans.js";
 import { SendUpgradeSuggestionNotification } from "../controllers/GamificationNotifications.js";
 import { trackPurchaseEvent } from "../services/facebookConversionsApi.js";
+import { SendPaymentFailedNotification } from "../services/MailService.js";
 
 // Initialize Stripe for both environments
 const stripeTest = new Stripe(process.env.STRIPE_TEST_SECRET_KEY);
@@ -108,28 +109,28 @@ export const addPaymentMethod = async (user, token) => {
     }
 
     // Perform a $1 authorization to validate the card
-    const authorization = await stripe.paymentIntents.create({
-      amount: 100, // $1.00 in cents
-      currency: "usd",
-      payment_method: paymentMethod.id,
-      customer: stripeCustomerId,
-      capture_method: "manual", // Authorize only, do not capture
-      confirm: true,
-      automatic_payment_methods: {
-        enabled: true,
-        allow_redirects: "never", // Disable redirects
-      },
-      //   The return_url is used when the payment flow involves redirect-based authentication methods such as 3D Secure. For cards requiring 3D Secure, the user is redirected to their bank or card issuer's authentication page (e.g., for entering a password or an OTP). Once the authentication is complete, the user is redirected back to your application using the return_url.
-      //   return_url: `${process.env.FRONTEND_URL}/payment-result`, // Optional: Provide a return URL for redirect-based methods
-    });
+    // const authorization = await stripe.paymentIntents.create({
+    //   amount: 100, // $1.00 in cents
+    //   currency: "usd",
+    //   payment_method: paymentMethod.id,
+    //   customer: stripeCustomerId,
+    //   capture_method: "manual", // Authorize only, do not capture
+    //   confirm: true,
+    //   automatic_payment_methods: {
+    //     enabled: true,
+    //     allow_redirects: "never", // Disable redirects
+    //   },
+    //   //   The return_url is used when the payment flow involves redirect-based authentication methods such as 3D Secure. For cards requiring 3D Secure, the user is redirected to their bank or card issuer's authentication page (e.g., for entering a password or an OTP). Once the authentication is complete, the user is redirected back to your application using the return_url.
+    //   //   return_url: `${process.env.FRONTEND_URL}/payment-result`, // Optional: Provide a return URL for redirect-based methods
+    // });
 
-    // Check the authorization status
-    if (authorization.status !== "requires_capture") {
-      throw new Error("The card does not have sufficient funds or is invalid.");
-    }
+    // // Check the authorization status
+    // if (authorization.status !== "requires_capture") {
+    //   throw new Error("The card does not have sufficient funds or is invalid.");
+    // }
 
-    // Cancel the authorization after successful validation
-    await stripe.paymentIntents.cancel(authorization.id);
+    // // Cancel the authorization after successful validation
+    // await stripe.paymentIntents.cancel(authorization.id);
 
     // Set the payment method as the default if none exists
 
@@ -366,41 +367,21 @@ export async function RedeemGiftOnAbortPlanCancellation(user) {
     console.log("Cancelltation abort reward already redeemed");
   }
 }
-/**
- * Charge a user using their payment method.
- * @param {number} userId - The ID of the user.
- * @param {number} amount - The amount to charge in cents (e.g., 100 = $1.00).
- * @param {string} description - Description for the charge.
- * @param {string} environment - The environment ("Sandbox" or "Production").
- * @returns {Object} - PaymentIntent details or an error message.
- */
-export const chargeUser = async (
-  userId,
+
+async function TryAndChargePayment(
+  // paymentMethodId,
+  user,
   amount,
+  // currency = "usd",
+  stripeCustomerId,
+  paymentMethodId,
   description,
-  type = "PhonePurchase",
+  type,
   subscribe = false, //If user is subscribing then this will be true
-  req = null
-) => {
-  const stripe = getStripeClient();
-
+  req = null,
+  stripe
+) {
   try {
-    let user = await db.User.findByPk(userId);
-    // Get the customer's Stripe customer ID
-    const stripeCustomerId = await getStripeCustomerId(userId);
-
-    // Retrieve the default or first available payment method
-    const paymentMethodResult = await getUserDefaultPaymentMethod(userId);
-
-    if (!paymentMethodResult.status) {
-      throw new Error(
-        paymentMethodResult.message || "No payment method found."
-      );
-    }
-
-    const paymentMethodId = paymentMethodResult.paymentMethod.id;
-
-    // Create and confirm a PaymentIntent using the retrieved payment method
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "usd",
@@ -411,11 +392,9 @@ export const chargeUser = async (
       confirm: true,
       payment_method_types: ["card"],
       automatic_payment_methods: {
-        enabled: false, // Disable automatic payment method handling
+        enabled: false, // Enable automatic payment method handling
       },
     });
-
-    // console.log("Payment ", paymentIntent);
 
     if (paymentIntent && paymentIntent.status === "succeeded") {
       // Payment succeeded
@@ -516,46 +495,67 @@ export const chargeUser = async (
       };
     } else if (paymentIntent && paymentIntent.status === "requires_action") {
       // Handle 3D Secure authentication
-      console.log("Additional authentication is required.");
-      AddNotification(user, null, NotificationTypes.PaymentFailed);
+      // console.log("Additional authentication is required.", paymentIntent);
+      // AddNotification(user, null, NotificationTypes.PaymentFailed);
+      let paymentMethodHandlingResult = await handleFailedPaymentMethod(
+        user.id,
+        paymentMethodId
+      );
+      console.log(
+        "Payment method handling result:",
+        paymentMethodHandlingResult
+      );
       return {
         status: false,
         message: "Additional authentication is required.",
         paymentIntent,
+        cardFailed: true,
       };
     } else {
-      AddNotification(user, null, NotificationTypes.PaymentFailed);
+      // AddNotification(user, null, NotificationTypes.PaymentFailed);
+      let paymentMethodHandlingResult = await handleFailedPaymentMethod(
+        user.id,
+        paymentMethodId
+      );
+      console.log(
+        "Payment method handling result:",
+        paymentMethodHandlingResult
+      );
       // Handle other statuses (e.g., requires_payment_method, canceled, etc.)
       console.log(`Payment failed with status: ${paymentIntent.status}`);
       return {
         status: false,
         message: `Payment failed with status: ${paymentIntent.status}`,
         paymentIntent,
+        cardFailed: true,
       };
     }
   } catch (error) {
     // Catch and log Stripe errors
+    // console.log("Stripe error notification is ", error);
     if (error.type === "StripeCardError") {
       // Card errors
       console.error("Card error:", error.message);
-      try {
-        let user = await db.User.findByPk(userId);
-        await AddNotification(
-          user,
-          null,
-          NotificationTypes.PaymentFailed,
-          null,
-          null,
-          null
-        );
-      } catch (error) {
-        console.log("Error creating payment not ", error);
-      }
+      await handleFailedPaymentMethod(user.id, paymentMethodId);
+      // try {
+      //   // let user = await db.User.findByPk(userId);
+      //   await AddNotification(
+      //     user,
+      //     null,
+      //     NotificationTypes.PaymentFailed,
+      //     null,
+      //     null,
+      //     null
+      //   );
+      // } catch (error) {
+      //   console.log("Error creating payment not ", error);
+      // }
       return {
         status: false,
         message: "Card payment failed.",
         reason: error.code, // Stripe error code (e.g., 'card_declined')
         error: error.message,
+        cardFailed: true,
       };
     } else if (error.type === "StripeInvalidRequestError") {
       // Invalid requests
@@ -565,6 +565,7 @@ export const chargeUser = async (
         message: "Invalid payment request.",
         reason: error.code,
         error: error.message,
+        cardFailed: false,
       };
     } else if (error.type === "StripeAPIError") {
       // API errors
@@ -574,6 +575,7 @@ export const chargeUser = async (
         message: "Payment service error.",
         reason: error.code,
         error: error.message,
+        cardFailed: false,
       };
     } else if (error.type === "StripeConnectionError") {
       // Connection issues
@@ -583,6 +585,7 @@ export const chargeUser = async (
         message: "Connection to payment service failed.",
         reason: error.code,
         error: error.message,
+        cardFailed: false,
       };
     } else if (error.type === "StripeAuthenticationError") {
       // Authentication with Stripe's API failed
@@ -592,6 +595,7 @@ export const chargeUser = async (
         message: "Authentication with payment service failed.",
         reason: error.code,
         error: error.message,
+        cardFailed: false,
       };
     } else {
       // Generic error handling
@@ -600,13 +604,178 @@ export const chargeUser = async (
         status: false,
         message: "An unexpected error occurred.",
         error: error.message,
+        cardFailed: true,
       };
     }
   }
+}
+/**
+ * Charge a user using their payment method.
+ * @param {number} userId - The ID of the user.
+ * @param {number} amount - The amount to charge in cents (e.g., 100 = $1.00).
+ * @param {string} description - Description for the charge.
+ * @param {string} environment - The environment ("Sandbox" or "Production").
+ * @returns {Object} - PaymentIntent details or an error message.
+ */
+export const chargeUser = async (
+  userId,
+  amount,
+  description,
+  type = "PhonePurchase",
+  subscribe = false, //If user is subscribing then this will be true
+  req = null
+) => {
+  const stripe = getStripeClient();
+
+  try {
+    let user = await db.User.findByPk(userId);
+    // Get the customer's Stripe customer ID
+    const stripeCustomerId = await getStripeCustomerId(userId);
+
+    // Retrieve the default or first available payment method
+    const paymentMethodResult = await getUserDefaultPaymentMethod(userId);
+    const PaymentMethods = await getPaymentMethods(user.id);
+
+    if (!paymentMethodResult.status) {
+      return {
+        status: false,
+        message: "No payment method added",
+      };
+    }
+
+    const paymentMethodId = paymentMethodResult.paymentMethod.id;
+    let paymentMethodIds = [paymentMethodId];
+    if (PaymentMethods && PaymentMethods.data.length > 0) {
+      PaymentMethods.data.map((pm) => {
+        if (!paymentMethodIds.includes(pm.id)) {
+          paymentMethodIds.push(pm.id);
+        }
+      });
+    }
+    console.log("User have total payment methods ", paymentMethodIds.length);
+    // Create and confirm a PaymentIntent using the retrieved payment method
+
+    let result = null;
+    let index = 1;
+    for (const p of paymentMethodIds) {
+      console.log("Try ", index);
+      index += 1;
+      let res = await TryAndChargePayment(
+        user,
+        amount,
+        stripeCustomerId,
+        p,
+        description,
+        type,
+        subscribe,
+        req,
+        stripe
+      );
+      if (res && res.status) {
+        console.log("Charge succeded");
+        result = res;
+        break;
+      } else {
+        result = res;
+        console.log("Try failed");
+        if (res.status == false) {
+          console.log("Charge failed", res);
+          if (res.cardFailed) {
+            //retry
+          } else {
+            result = res;
+            break;
+          }
+        }
+      }
+    }
+    console.log("Here all tries done ", result);
+    if (
+      result &&
+      result.status == false &&
+      typeof result.cardFailed != "undefined" &&
+      result.cardFailed == true
+    ) {
+      //send Card declined email
+      SendPaymentFailedNotification(user);
+    }
+    return result;
+  } catch (error) {
+    // Generic error handling
+    console.error("Unhandled error:", error);
+    return {
+      status: false,
+      message: "An unexpected error occurred.",
+      error: error.message,
+      cardFailed: true,
+    };
+  }
 };
 
+const handleFailedPaymentMethod = async (userId, failedPaymentMethodId) => {
+  console.log("Handling payment method failed", failedPaymentMethodId);
+  const stripe = getStripeClient();
+
+  try {
+    // Retrieve all payment methods for the user
+    const paymentMethods = await stripe.paymentMethods.list({
+      customer: await getStripeCustomerId(userId),
+      type: "card",
+    });
+
+    // If there's only one card, remove it
+    if (paymentMethods.data.length === 1) {
+      console.log("Only one payment method available. Removing it.");
+      await stripe.paymentMethods.detach(failedPaymentMethodId);
+      return {
+        status: true,
+        message: "Removed the only payment method for the user.",
+      };
+    }
+
+    // If multiple cards exist, remove the failed one and set the next as default
+    console.log("Multiple payment methods available. Removing failed one.");
+    await stripe.paymentMethods.detach(failedPaymentMethodId);
+
+    const remainingMethods = paymentMethods.data.filter(
+      (method) => method.id !== failedPaymentMethodId
+    );
+
+    if (remainingMethods.length > 0) {
+      const newDefaultPaymentMethod = remainingMethods[0];
+      console.log(
+        "Setting new default payment method:",
+        newDefaultPaymentMethod.id
+      );
+
+      await stripe.customers.update(await getStripeCustomerId(userId), {
+        invoice_settings: {
+          default_payment_method: newDefaultPaymentMethod.id,
+        },
+      });
+
+      return {
+        status: true,
+        message: "Failed payment method removed, and new default set.",
+      };
+    }
+
+    return {
+      status: true,
+      message: "Failed payment method removed. No payment methods left.",
+    };
+  } catch (error) {
+    console.error("Error handling failed payment method:", error);
+    return {
+      status: false,
+      message: "Failed to handle payment method removal.",
+      error: error.message,
+    };
+  }
+};
 export async function SetDefaultCard(paymentMethodId, userId) {
   // const { userId, paymentMethodId } = req.body;
+  console.log("Setting default ", paymentMethodId);
   const stripe = getStripeClient();
   try {
     // Retrieve the user's Stripe customer ID
