@@ -49,6 +49,7 @@ import { generateExclusivityEmail } from "../emails/InactiveUserEmails/Exclusivi
 import { generateTerritoryUpdateEmail } from "../emails/InactiveUserEmails/TerritoryUpdate.js";
 import { generateSocialProofEmail } from "../emails/InactiveUserEmails/SocialProofEmail.js";
 import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
+import { GetTeamIds } from "../utils/auth.js";
 
 async function GetNotificationTitle(
   user,
@@ -533,6 +534,7 @@ export const GetNotifications = async (req, res) => {
           id: userId,
         },
       });
+      let teamIds = await GetTeamIds(user);
       if (!user) {
         res.send({
           status: false,
@@ -546,7 +548,9 @@ export const GetNotifications = async (req, res) => {
         },
         {
           where: {
-            userId: user.id,
+            userId: {
+              [db.Sequelize.Op.in]: teamIds,
+            },
           },
         }
       );
