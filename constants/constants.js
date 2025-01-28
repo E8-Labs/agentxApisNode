@@ -1,5 +1,7 @@
 export const constants = {
   RedeemCodeSeconds: 30 * 60, // Seconds
+  AdminNotifyEmail1: "noahdeveloperr@gmail.com",
+  AdminNotifyEmail2: "salman@e8-labs.com",
   GiftDontCancelPlanSeconds: 30 * 60, // Seconds
   MinThresholdSeconds: 2 * 60,
   DefaultTimezone: "America/Los_Angeles",

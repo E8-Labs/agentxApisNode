@@ -115,7 +115,20 @@ You have the tool create_booking. Make sure to get the user email and phone numb
 
 `,
 
-  objectionHandling: ``,
+  objectionHandling: `
+{objections}
+##Objection 4: "How did you get my information?"
+Response:
+"That’s a great question, and I understand the concern. We work with a database of public records available to real estate professionals, and we only reach out to share valuable updates in the area. If you’re interested, I can keep you informed on any important market activity that might impact your property’s value. If not, just let me know."
+
+
+##Objection 7: "I'm not interested in buying or selling."
+Response:
+"Totally understandable. A lot of homeowners aren’t looking to make any immediate moves but appreciate knowing how the local market might impact their property’s value. Would you be open to occasional updates on significant changes in the area?"
+Objection 8: "Are you an AI?"
+Response:
+"Yes, I am! I’m here to notify homeowners like yourself with accurate and timely real estate updates happening in your neighborhood. How am I doing so far?"
+   `,
 
   guardRails: `
   #Guardrails
@@ -333,7 +346,19 @@ You have the tool create_booking. Make sure to get the user email and phone numb
 `,
 
   objectionHandling: `
-  `,
+{objections}
+##Objection 4: "How did you get my information?"
+Response:
+"That’s a great question, and I understand the concern. We work with a database of public records available to real estate professionals, and we only reach out to share valuable updates in the area. If you’re interested, I can keep you informed on any important market activity that might impact your property’s value. If not, just let me know."
+
+
+##Objection 7: "I'm not interested in buying or selling."
+Response:
+"Totally understandable. A lot of homeowners aren’t looking to make any immediate moves but appreciate knowing how the local market might impact their property’s value. Would you be open to occasional updates on significant changes in the area?"
+Objection 8: "Are you an AI?"
+Response:
+"Yes, I am! I’m here to notify homeowners like yourself with accurate and timely real estate updates happening in your neighborhood. How am I doing so far?"
+   `,
   guardRails: `
   #Guardrails
   

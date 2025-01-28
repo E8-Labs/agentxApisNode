@@ -652,7 +652,7 @@ export const DeleteUserProfile = async (req, res) => {
   await deleteAllAgents(user);
   await deleteKycs(user);
   await deleteCalendars(user);
-  // await user.destroy();
+  await user.destroy();
   return res.send({ status: true, message: "Profile deleted" });
 };
 
