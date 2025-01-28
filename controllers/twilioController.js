@@ -10,6 +10,9 @@ import {
 import AvailablePhoneResource from "../resources/AvailablePhoneResource.js";
 import { chargeUser } from "../utils/stripe.js";
 import { UpdateOrCreateUserInGhl } from "./GHLController.js";
+import { generateFailedTwilioTransactionEmail } from "../emails/system/FailedTwilioPhonePurchaseEmail.js";
+import { SendEmail } from "../services/MailService.js";
+import { constants } from "../constants/constants.js";
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -424,6 +427,30 @@ export const PurchasePhoneNumber = async (req, res) => {
           //Send email to admin about failed twilio transaction: Include salman as well
           //Data: Phone, payment id, transaction id from stripe,
           //User details as well.
+          try {
+            let emailNot = generateFailedTwilioTransactionEmail(
+              user.id,
+              user.name,
+              user.email,
+              user.phone,
+              phoneNumber,
+              charge.id,
+              JSON.stringify({ charge: charge, twilio: purchasedNumber })
+            );
+
+            let sent = await SendEmail(
+              constants.AdminNotifyEmail1,
+              emailNot.subject,
+              emailNot.html
+            );
+            let sent2 = await SendEmail(
+              constants.AdminNotifyEmail2,
+              emailNot.subject,
+              emailNot.html
+            );
+          } catch (error) {
+            console.log("Error sending transaction email");
+          }
           return res.status(500).send({
             status: false,
             message: "Failed to purchase phone number.",
