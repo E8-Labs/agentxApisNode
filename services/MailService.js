@@ -1,4 +1,7 @@
 import nodemailer from "nodemailer";
+import db from "../models/index.js";
+import { NotificationTypes } from "../models/user/NotificationModel.js";
+import { AddNotification } from "../controllers/NotificationController.js";
 
 const transporter = nodemailer.createTransport({
   pool: true,
@@ -28,5 +31,42 @@ export async function SendEmail(to, subject, html) {
   } catch (error) {
     console.error("Exception email:", error);
     return { status: false, message: "An error occurred" };
+  }
+}
+
+export async function SendPaymentFailedNotification(user) {
+  try {
+    // let user = await db.User.findByPk(userId);
+    //Check if can send
+    let date1MonthAgo = new Date();
+    date1MonthAgo.setDate(date1MonthAgo.getDate() - 30);
+    let sent = await db.NotificationModel.findOne({
+      where: {
+        userId: user.id,
+        type: NotificationTypes.PaymentFailed,
+        createdAt: {
+          [db.Sequelize.Op.gte]: date1MonthAgo,
+        },
+      },
+    });
+    if (sent) {
+      console.log(
+        "Payment failed notification already sent on ",
+        sent.createdAt
+      );
+      return;
+    }
+
+    console.log("Should send payment failed notification");
+    await AddNotification(
+      user,
+      null,
+      NotificationTypes.PaymentFailed,
+      null,
+      null,
+      null
+    );
+  } catch (error) {
+    console.log("Error creating payment not ", error);
   }
 }

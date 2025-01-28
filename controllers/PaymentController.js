@@ -156,6 +156,7 @@ export const SetDefaultPaymentmethod = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let paymentMethodId = req.body.paymentMethodId;
+      console.log("Payment method to set default ", req.body);
       let userId = authData.user.id;
       let user = await db.User.findOne({
         where: {
@@ -489,7 +490,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                 console.log("Charge failed ", charge);
                 return res.send({
                   status: false,
-                  message: "Error upgrading ",
+                  message: charge?.message || "Error upgrading ",
                   data: null,
                 });
               }
@@ -584,7 +585,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           }
           return res.send({
             status: false,
-            message: "Some error occurred ",
+            message: charge?.message || "Some error occurred ",
             data: null,
           });
         }

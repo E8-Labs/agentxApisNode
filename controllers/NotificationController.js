@@ -387,7 +387,7 @@ async function SendEmailForNotification(
   } else if (type === NotificationTypes.PaymentFailed) {
     emailNot = GeneratePaymentMethodFailedEmail(
       user.name, // Name
-      "https://ai.myagentx.com/dashboard/myAccount", // CTA_Link
+      "https://ai.myagentx.com/dashboard/myAccount?tab=2", // CTA_Link
       "Update Payment Method Now" // CTA_Text
     );
   } else if (type === NotificationTypes.NoCallsIn3Days) {
