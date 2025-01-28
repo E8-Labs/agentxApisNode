@@ -839,6 +839,7 @@ const isBookingWithin10Minutes = (bookingDateTime) => {
   // Convert time difference to minutes and check if it's 10 minutes or more
   return timeDifference <= 10 * 60 * 1000; // 10 minutes in milliseconds
 };
+//Check for deleted leads as well.
 const getBookingsWithin49Hours = async () => {
   const currentTime = new Date();
 
@@ -869,6 +870,9 @@ export const CadenceBookedCalls = async () => {
     let lead = null;
     if (meeting.leadId) {
       lead = await db.LeadModel.findByPk(meeting.leadId);
+      if (lead.status == "deleted") {
+        continue;
+      }
     } else {
       continue;
     }
