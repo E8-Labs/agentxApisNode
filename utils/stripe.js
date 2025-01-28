@@ -517,6 +517,7 @@ export const chargeUser = async (
     } else if (paymentIntent && paymentIntent.status === "requires_action") {
       // Handle 3D Secure authentication
       console.log("Additional authentication is required.");
+      AddNotification(user, null, NotificationTypes.PaymentFailed);
       return {
         status: false,
         message: "Additional authentication is required.",
