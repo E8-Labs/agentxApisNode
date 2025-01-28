@@ -97,7 +97,17 @@ export function generateTeamMemberInviteEmail(
 
   // Replace placeholders with actual values
   let emailHTML = HtmlTemplateTeamMemberInvite;
-  const variables = { First_Name, Inviter_Name, CTA_Link };
+  let parts = First_Name.split(" ");
+  let firstName = First_Name;
+  if (parts.length > 0) {
+    firstName = parts[0];
+  }
+
+  let parts2 = Inviter_Name.split(" ");
+  if (parts2.length > 0) {
+    Inviter_Name = parts[0];
+  }
+  const variables = { firstName, Inviter_Name, CTA_Link };
 
   for (const [key, value] of Object.entries(variables)) {
     const placeholder = new RegExp(`{${key}}`, "g");
