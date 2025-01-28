@@ -524,6 +524,7 @@ export const chargeUser = async (
         paymentIntent,
       };
     } else {
+      AddNotification(user, null, NotificationTypes.PaymentFailed);
       // Handle other statuses (e.g., requires_payment_method, canceled, etc.)
       console.log(`Payment failed with status: ${paymentIntent.status}`);
       return {
