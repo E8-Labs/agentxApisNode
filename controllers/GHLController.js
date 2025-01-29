@@ -8,6 +8,9 @@ export async function PushUserDataToGhl(
   phone,
   customData = {}
 ) {
+  if (user.userRole == "Invitee") {
+    return;
+  }
   let data = JSON.stringify({
     email: email,
     phone: phone,
