@@ -48,7 +48,12 @@ import { constants } from "../constants/constants.js";
 import { generateFeedbackWithSenderDetails } from "../emails/FeedbackEmail.js";
 import { SendEmail } from "../services/MailService.js";
 import { UpdateOrCreateUserInGhl } from "./GHLController.js";
-import { detectDevice, GetTeamAdminFor } from "../utils/auth.js";
+import {
+  detectDevice,
+  GetTeamAdminFor,
+  GetTrialStartDate,
+  IsTrialActive,
+} from "../utils/auth.js";
 import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
 import { UserTypes } from "../models/user/userModel.js";
 import {
@@ -789,13 +794,16 @@ export async function ReChargeUserAccount(user) {
   });
   // console.log("Plan ", lastPlan);
   let now = new Date(); // Current time
-  let createdAt = new Date(user.createdAt);
+  let trialStartDate = await GetTrialStartDate(user);
+  let createdAt = new Date(trialStartDate);
   let timeDifference = now - createdAt;
 
   //Check the plan reach date
   let nextChargeDate = new Date(user.nextChargeDate);
   console.log("Next charge date", user.nextChargeDate);
   console.log("Current date", now);
+
+  let isTrialActive = await IsTrialActive(user);
   if (nextChargeDate < now) {
     //charge date has reached
     console.log("Subscription charge date has reached");
@@ -831,11 +839,11 @@ export async function ReChargeUserAccount(user) {
     }
   } else if (
     lastPlan &&
-    (user.totalSecondsAvailable <= 120 ||
+    (user.totalSecondsAvailable <= constants.MinThresholdSeconds ||
       (user.isTrial && timeDifference > 7 * 24 * 60 * 60 * 1000))
   ) {
     console.log(
-      "user have an active plan and has less than 120 min: So charge him"
+      "user have an active plan and has less than 120 sec: So charge him"
     );
     console.log("There is a last plan", user.id);
     let foundPlan = null;
@@ -900,10 +908,8 @@ export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
 
   //check the datetime to see if it is gt 3 hours and less than 4
   let now = new Date(); // Current time
-  let createdAt = new Date(user.createdAt); // Convert user.createdAt to a Date object
-
-  // let type = NotificationTypes.LastChanceToAct;
-  // Calculate the difference in milliseconds
+  let trialStartDate = await GetTrialStartDate(user);
+  let createdAt = new Date(trialStartDate);
   let timeDifference = now - createdAt;
 
   //If 7 days have passed

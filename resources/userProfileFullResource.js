@@ -2,6 +2,7 @@ import { generateAlphaNumericInviteCode } from "../controllers/userController.js
 import db from "../models/index.js";
 import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
 import { UserTypes } from "../models/user/userModel.js";
+import { GetTeamAdminFor } from "../utils/auth.js";
 import { getPaymentMethods } from "../utils/stripe.js";
 
 const Op = db.Sequelize.Op;
@@ -86,6 +87,13 @@ async function getUserData(user, currentUser = null) {
   let waitlist = false;
   if (user.userType == UserTypes.WebsiteAgent) {
     waitlist = true;
+  } else {
+    if (user.userRole == "Invitee") {
+      let admin = await GetTeamAdminFor(user);
+      if (admin.userType == UserTypes.WebsiteAgent) {
+        waitlist = true;
+      }
+    }
   }
 
   const UserFullResource = {

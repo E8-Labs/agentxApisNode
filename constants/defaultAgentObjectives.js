@@ -101,8 +101,8 @@ export const AgentObjectives = [
       "Greet clients, manage appointments, and ensure smooth office operations. Provide front-desk support for incoming calls. ",
     prompt: Prompts.ReceptionistOutbound,
     promptInbound: Prompts.ReceptionistInbound,
-    objections: [],
-    guardrails: [],
+    objections: ExpiredListingObjections,
+    guardrails: ExpiredListingGuardrails,
   },
   {
     id: 100,
@@ -111,7 +111,7 @@ export const AgentObjectives = [
     details: "",
     prompt: Prompts.OthersOutbound,
     promptInbound: Prompts.OthersInbound,
-    objections: [],
-    guardrails: [],
+    objections: ExpiredListingObjections,
+    guardrails: ExpiredListingGuardrails,
   },
 ];
