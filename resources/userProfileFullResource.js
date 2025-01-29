@@ -1,6 +1,7 @@
 import { generateAlphaNumericInviteCode } from "../controllers/userController.js";
 import db from "../models/index.js";
 import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
+import { UserTypes } from "../models/user/userModel.js";
 import { getPaymentMethods } from "../utils/stripe.js";
 
 const Op = db.Sequelize.Op;
@@ -82,6 +83,11 @@ async function getUserData(user, currentUser = null) {
     where: { id: user.campaigneeId || 1 },
   });
 
+  let waitlist = false;
+  if (user.userType == UserTypes.WebsiteAgent) {
+    waitlist = true;
+  }
+
   const UserFullResource = {
     ...user.get(),
     plan: planHistory && planHistory.length > 0 ? planHistory[0] : null,
@@ -97,6 +103,7 @@ async function getUserData(user, currentUser = null) {
     services,
     cards: cards,
     campaignee: campaignee,
+    waitlist: waitlist,
     // admin: admin,
   };
 
