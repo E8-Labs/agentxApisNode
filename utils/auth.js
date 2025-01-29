@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
 import { UserRole } from "../models/user/userModel.js";
 
 export async function GetTeamIds(user) {
@@ -38,6 +39,42 @@ export async function GetTeamAdminFor(user) {
   return admin;
 }
 
+export async function GetTrialStartDate(user) {
+  let startDate = user.createdAt;
+  let firstPlan = await db.PlanHistory.findOne({
+    where: {
+      userId: user.id,
+      type: PayAsYouGoPlanTypes.Plan30Min,
+    },
+    order: [["createdAt", "ASC"]],
+  });
+  if (firstPlan) {
+    //if first plan then this is the trial start date.
+    startDate = firstPlan.createdAt;
+  }
+  return startDate;
+}
+
+export async function IsTrialActive(user) {
+  let startDate = user.createdAt;
+  let firstPlan = await db.PlanHistory.findOne({
+    where: {
+      userId: user.id,
+      type: PayAsYouGoPlanTypes.Plan30Min,
+    },
+    order: [["createdAt", "ASC"]],
+  });
+  if (firstPlan) {
+    //if first plan then this is the trial start date.
+    startDate = firstPlan.createdAt;
+  }
+  let trialStartDate = new Date(startDate);
+  let now = new Date();
+  let timeDifference = now - trialStartDate;
+  let isTrial = user.isTrial && timeDifference < 7 * 24 * 60 * 60 * 1000;
+  console.log("Is user on trial", isTrial);
+  return isTrial;
+}
 export const detectDevice = (req) => {
   const userAgent = req.headers["user-agent"];
   console.log("User agent ", userAgent);
