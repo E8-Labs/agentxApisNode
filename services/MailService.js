@@ -2,6 +2,8 @@ import nodemailer from "nodemailer";
 import db from "../models/index.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import { AddNotification } from "../controllers/NotificationController.js";
+import { generateFailedSubscriptionEmail } from "../emails/system/FailedSubscriptionEmail.js";
+import { constants } from "../constants/constants.js";
 
 const transporter = nodemailer.createTransport({
   pool: true,
@@ -34,72 +36,6 @@ export async function SendEmail(to, subject, html) {
   }
 }
 
-// export async function SendPaymentFailedNotification(user) {
-//   try {
-//     // let user = await db.User.findByPk(userId);
-//     //Check if can send
-//     let date1MonthAgo = new Date();
-//     date1MonthAgo.setDate(date1MonthAgo.getDate() - 30);
-
-//     let date3DaysAgo = new Date();
-//     date3DaysAgo.setDate(date3DaysAgo.getDate() - 3);
-
-//     let date6DaysAgo = new Date();
-//     date6DaysAgo.setDate(date6DaysAgo.getDate() - 6);
-
-//     let totalNotsIn6Days = await db.NotificationModel.count({
-//       where: {
-//         userId: user.id,
-//         type: NotificationTypes.PaymentFailed,
-//         createdAt: {
-//           [db.Sequelize.Op.gte]: date6DaysAgo,
-//         },
-//       },
-//     });
-//     if (totalNotsIn6Days >= 2) {
-//       //Don't send any notification
-//     } else {
-//       let totalNotsIn3Days = await db.NotificationModel.count({
-//         where: {
-//           userId: user.id,
-//           type: NotificationTypes.PaymentFailed,
-//           createdAt: {
-//             [db.Sequelize.Op.gte]: date3DaysAgo,
-//           },
-//         },
-//       });
-//     }
-
-//     let sent = await db.NotificationModel.findOne({
-//       where: {
-//         userId: user.id,
-//         type: NotificationTypes.PaymentFailed,
-//         createdAt: {
-//           [db.Sequelize.Op.gte]: date1MonthAgo,
-//         },
-//       },
-//     });
-//     if (sent) {
-//       console.log(
-//         "Payment failed notification already sent on ",
-//         sent.createdAt
-//       );
-//       return;
-//     }
-
-//     console.log("Should send payment failed notification");
-//     await AddNotification(
-//       user,
-//       null,
-//       NotificationTypes.PaymentFailed,
-//       null,
-//       null,
-//       null
-//     );
-//   } catch (error) {
-//     console.log("Error creating payment not ", error);
-//   }
-// }
 export async function SendPaymentFailedNotification(user) {
   try {
     const date1MonthAgo = new Date();
@@ -155,5 +91,37 @@ export async function SendPaymentFailedNotification(user) {
     console.log("Notification sent successfully.");
   } catch (error) {
     console.log("Error creating payment notification:", error);
+  }
+}
+
+export async function SendSubscriptionFailedEmail(
+  user,
+  plan,
+  failureReason,
+  charge
+) {
+  try {
+    let emailNot = generateFailedSubscriptionEmail(
+      user.id,
+      user.name,
+      user.email,
+      user.phone,
+      plan.type,
+      failureReason,
+      JSON.stringify({ charge: charge })
+    );
+
+    let sent = await SendEmail(
+      constants.AdminNotifyEmail1,
+      emailNot.subject,
+      emailNot.html
+    );
+    let sent2 = await SendEmail(
+      constants.AdminNotifyEmail2,
+      emailNot.subject,
+      emailNot.html
+    );
+  } catch (error) {
+    console.log("Error sending transaction email");
   }
 }
