@@ -11,7 +11,10 @@ import {
 } from "../models/user/payment/paymentPlans.js";
 import { SendUpgradeSuggestionNotification } from "../controllers/GamificationNotifications.js";
 import { trackPurchaseEvent } from "../services/facebookConversionsApi.js";
-import { SendPaymentFailedNotification } from "../services/MailService.js";
+import {
+  SendPaymentFailedNotification,
+  SendSubscriptionFailedEmail,
+} from "../services/MailService.js";
 
 // Initialize Stripe for both environments
 const stripeTest = new Stripe(process.env.STRIPE_TEST_SECRET_KEY);
@@ -381,6 +384,7 @@ async function TryAndChargePayment(
   req = null,
   stripe
 ) {
+  let plan = FindPlanWithPrice(amount / 100);
   try {
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
@@ -404,7 +408,7 @@ async function TryAndChargePayment(
         await RedeemCodeOnPlanSubscription(user); //1656
 
         //Notificaiton for Plan Renewal
-        let plan = FindPlanWithPrice(amount / 100);
+
         if (plan) {
           trackPurchaseEvent(
             {
@@ -517,6 +521,7 @@ async function TryAndChargePayment(
         user.id,
         paymentMethodId
       );
+      SendSubscriptionFailedEmail(user, plan, error.message, error);
       console.log(
         "Payment method handling result:",
         paymentMethodHandlingResult
@@ -537,6 +542,7 @@ async function TryAndChargePayment(
       // Card errors
       console.error("Card error:", error.message);
       await handleFailedPaymentMethod(user.id, paymentMethodId);
+      SendSubscriptionFailedEmail(user, plan, error.message, error);
       // try {
       //   // let user = await db.User.findByPk(userId);
       //   await AddNotification(
