@@ -107,6 +107,10 @@ export const AddPaymentMethod = async (req, res) => {
           "ai.myagentx.com",
           "website"
         );
+        await db.User.update(
+          { lastPaymentMethodAddedAt: new Date() },
+          { where: { id: user.id } }
+        );
         return res.send({
           status: added.status,
           message: added.status ? "Payment method added" : added.error,
