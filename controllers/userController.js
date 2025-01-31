@@ -934,6 +934,12 @@ export const GetProfileMine = async (req, res) => {
         message: "User profile details",
         data: resource,
       });
+    } else {
+      return res.send({
+        status: false,
+        message: "Unauthenticated user",
+        data: null,
+      });
     }
   });
 };

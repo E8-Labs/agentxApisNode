@@ -36,6 +36,63 @@ export async function SendEmail(to, subject, html) {
   }
 }
 
+// export async function SendPaymentFailedNotification(user) {
+//   try {
+//     const date1MonthAgo = new Date();
+//     date1MonthAgo.setDate(date1MonthAgo.getDate() - 30);
+
+//     const date3DaysAgo = new Date();
+//     date3DaysAgo.setDate(date3DaysAgo.getDate() - 3);
+
+//     // Step 1: Check total notifications sent in the past month
+//     const totalNotsIn1Month = await db.NotificationModel.count({
+//       where: {
+//         userId: user.id,
+//         type: NotificationTypes.PaymentFailed,
+//         createdAt: {
+//           [db.Sequelize.Op.gte]: date1MonthAgo,
+//         },
+//       },
+//     });
+
+//     // If the user has already received 2 notifications, stop
+//     if (totalNotsIn1Month >= 2) {
+//       console.log("Notification already sent twice in the past month.");
+//       return;
+//     }
+
+//     // Step 2: Check if a notification was sent in the last 3 days
+//     const recentNotification = await db.NotificationModel.findOne({
+//       where: {
+//         userId: user.id,
+//         type: NotificationTypes.PaymentFailed,
+//         createdAt: {
+//           [db.Sequelize.Op.gte]: date3DaysAgo,
+//         },
+//       },
+//     });
+
+//     if (recentNotification) {
+//       console.log("Notification already sent in the last 3 days.");
+//       return;
+//     }
+
+//     // Step 3: Send the notification
+//     console.log("Sending payment failed notification.");
+//     await AddNotification(
+//       user,
+//       null,
+//       NotificationTypes.PaymentFailed,
+//       null,
+//       null,
+//       null
+//     );
+
+//     console.log("Notification sent successfully.");
+//   } catch (error) {
+//     console.log("Error creating payment notification:", error);
+//   }
+// }
 export async function SendPaymentFailedNotification(user) {
   try {
     const date1MonthAgo = new Date();
@@ -44,30 +101,38 @@ export async function SendPaymentFailedNotification(user) {
     const date3DaysAgo = new Date();
     date3DaysAgo.setDate(date3DaysAgo.getDate() - 3);
 
-    // Step 1: Check total notifications sent in the past month
+    // Step 1: Fetch the last payment method added timestamp
+    const userRecord = await db.User.findByPk(user.id);
+    const lastPaymentMethodAddedAt =
+      userRecord?.lastPaymentMethodAddedAt || new Date(0); // Default to epoch time if null
+
+    // Step 2: Check total notifications sent in the past month, but only after the last payment method update
     const totalNotsIn1Month = await db.NotificationModel.count({
       where: {
         userId: user.id,
         type: NotificationTypes.PaymentFailed,
         createdAt: {
           [db.Sequelize.Op.gte]: date1MonthAgo,
+          [db.Sequelize.Op.gte]: lastPaymentMethodAddedAt, // Reset if a new payment method was added
         },
       },
     });
 
-    // If the user has already received 2 notifications, stop
     if (totalNotsIn1Month >= 2) {
-      console.log("Notification already sent twice in the past month.");
+      console.log(
+        "Notification already sent twice since last payment method update."
+      );
       return;
     }
 
-    // Step 2: Check if a notification was sent in the last 3 days
+    // Step 3: Check if a notification was sent in the last 3 days (after last payment method update)
     const recentNotification = await db.NotificationModel.findOne({
       where: {
         userId: user.id,
         type: NotificationTypes.PaymentFailed,
         createdAt: {
           [db.Sequelize.Op.gte]: date3DaysAgo,
+          [db.Sequelize.Op.gte]: lastPaymentMethodAddedAt,
         },
       },
     });
@@ -77,7 +142,7 @@ export async function SendPaymentFailedNotification(user) {
       return;
     }
 
-    // Step 3: Send the notification
+    // Step 4: Send the notification
     console.log("Sending payment failed notification.");
     await AddNotification(
       user,

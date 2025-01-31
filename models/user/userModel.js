@@ -146,6 +146,10 @@ const User = (sequelize, Sequelize) => {
       type: Sequelize.DATE,
       allowNull: true,
     },
+    lastPaymentMethodAddedAt: {
+      type: Sequelize.DATE,
+      allowNull: true,
+    },
   });
 
   return User;
