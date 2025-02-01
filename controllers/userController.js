@@ -126,7 +126,9 @@ export const LoginUser = async (req, res) => {
   // const hashed = await bcrypt.hash(password, salt);
   const user = await User.findOne({
     where: {
-      phone: phone,
+      phone: {
+        [db.Sequelize.Op.like]: `%${phone}%`,
+      },
     },
   });
 
@@ -144,7 +146,9 @@ export const LoginUser = async (req, res) => {
     if (user.userRole == UserRole.Invitee) {
       let invite = await db.TeamModel.findOne({
         where: {
-          phone: phone,
+          phone: {
+            [db.Sequelize.Op.like]: `%${phone}%`,
+          },
         },
       });
       if (invite) {
@@ -272,7 +276,9 @@ export const RegisterUser = async (req, res) => {
 
   let u = await db.User.findOne({
     where: {
-      phone: phone,
+      phone: {
+        [db.Sequelize.Op.like]: `%${phone}%`,
+      },
     },
   });
   if (u) {
@@ -890,7 +896,9 @@ export const CheckPhoneExists = async (req, res) => {
 
   let user = await db.User.findOne({
     where: {
-      phone: phone,
+      phone: {
+        [db.Sequelize.Op.like]: `%${phone}%`,
+      },
     },
   });
 
