@@ -37,7 +37,9 @@ export const GetDashboardData = async (req, res) => {
 
     if (authData) {
       let userId = authData.user.id;
-
+      if (req.query.userId) {
+        userId = req.query.userId;
+      }
       // Fetch user and agents
       let user = await db.User.findOne({ where: { id: userId } });
       let teamIds = await GetTeamIds(user);
