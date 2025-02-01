@@ -1599,6 +1599,7 @@ export const DeleteAgent = async (req, res) => {
         });
       }
 
+      let modelId = agent.modelId;
       let agents = await db.AgentModel.findAll({
         where: {
           mainAgentId: agent.mainAgentId,
@@ -1655,6 +1656,7 @@ export const DeleteAgent = async (req, res) => {
         await agent.destroy();
       }
 
+      let assistantDel = await DeleteAssistantSynthflow(modelId);
       // let agentRes = await AgentResource(agent);
       return res.send({
         status: true,
