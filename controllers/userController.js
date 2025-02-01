@@ -80,6 +80,8 @@ export const LoginUser = async (req, res) => {
     phone = "+" + phone;
   }
 
+  console.log(`Checking if ${process.env.AdminPhone} contains ${phone}`);
+
   if (process.env.AdminPhone.includes(phone)) {
     console.log("Admin login");
     if (verificationCode !== process.env.AdminCode) {
