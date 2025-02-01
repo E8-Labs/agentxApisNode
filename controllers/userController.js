@@ -75,7 +75,10 @@ export const LoginUser = async (req, res) => {
   // const email = req.body.email;
   // const password = req.body.password;
   const verificationCode = req.body.verificationCode;
-  const phone = req.body.phone;
+  let phone = req.body.phone;
+  if (!phone.startsWith("+")) {
+    phone = "+" + phone;
+  }
 
   if (process.env.AdminPhone.includes(phone)) {
     console.log("Admin login");
