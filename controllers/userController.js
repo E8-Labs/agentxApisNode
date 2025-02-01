@@ -76,9 +76,8 @@ export const LoginUser = async (req, res) => {
   // const password = req.body.password;
   const verificationCode = req.body.verificationCode;
   let phone = req.body.phone;
-  // if (!phone.startsWith("+")) {
-  //   phone = "+" + phone;
-  // }
+
+  phone = phone.replace("+", "");
 
   console.log(`Checking if ${process.env.AdminPhone} contains ${phone}`);
 
@@ -210,7 +209,10 @@ export const RegisterUser = async (req, res) => {
   const farm = req.body.farm || "";
   const email = req.body.email;
   const userType = req.body.userType;
-  const phone = req.body.phone;
+  let phone = req.body.phone;
+  // if (!phone.startsWith("+")) {
+  phone = phone.replace("+", "");
+  // }
   const verificationCode = req.body.verificationCode;
   const brokerage = req.body.brokerage;
   const averageTransactionPerYear =
@@ -719,6 +721,8 @@ export function generateRandomCode(length = 7) {
 
 export const SendPhoneVerificationCode = async (req, res) => {
   let phone = req.body.phone;
+
+  phone = phone.replace("+", "");
 
   console.log(`Phone number is ${phone}`);
   let login = req.body.login || false;
