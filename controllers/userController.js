@@ -77,7 +77,15 @@ export const LoginUser = async (req, res) => {
   const verificationCode = req.body.verificationCode;
   const phone = req.body.phone;
 
-  if (process.env.Environment === "Production") {
+  if (process.env.AdminPhone.includes(phone)) {
+    console.log("Admin login");
+    if (verificationCode !== process.env.AdminCode) {
+      return res.send({
+        status: false,
+        message: "Invalid code",
+      });
+    }
+  } else if (process.env.Environment === "Production") {
     let dbCode = await db.PhoneVerificationCodeModel.findOne({
       where: {
         phone: {
