@@ -42,17 +42,17 @@ const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
       });
 
       if (cronRunning) {
-        console.log("Cron is already running");
+        console.log("Batch:Cron is already running");
         return;
       }
       let created = await db.CronLockTable.create({
         process: ProcessTypes.BatchCron,
       });
       // Execute the job function
-      console.log("Calling the cron function");
+      console.log("Batch:Calling the cron function");
       await CronRunCadenceCallsFirstBatch();
       // await runCronJob();
-      console.log("Cron completed");
+      console.log("Batch:Cron completed");
       await db.CronLockTable.destroy({
         where: {
           process: ProcessTypes.BatchCron,
@@ -60,7 +60,12 @@ const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
       });
     } catch (error) {
       console.log(error);
-      console.error("Error during task execution:", error.message);
+      await db.CronLockTable.destroy({
+        where: {
+          process: ProcessTypes.BatchCron,
+        },
+      });
+      console.error("Batch:Error during task execution:", error.message);
     } finally {
       // Remove the lock file
     }
