@@ -76,9 +76,8 @@ export const LoginUser = async (req, res) => {
   // const password = req.body.password;
   const verificationCode = req.body.verificationCode;
   let phone = req.body.phone;
-  // if (!phone.startsWith("+")) {
-  //   phone = "+" + phone;
-  // }
+
+  phone = phone.replace("+", "");
 
   console.log(`Checking if ${process.env.AdminPhone} contains ${phone}`);
 
@@ -126,7 +125,9 @@ export const LoginUser = async (req, res) => {
   // const hashed = await bcrypt.hash(password, salt);
   const user = await User.findOne({
     where: {
-      phone: phone,
+      phone: {
+        [db.Sequelize.Op.like]: `%${phone}%`,
+      },
     },
   });
 
@@ -144,7 +145,9 @@ export const LoginUser = async (req, res) => {
     if (user.userRole == UserRole.Invitee) {
       let invite = await db.TeamModel.findOne({
         where: {
-          phone: phone,
+          phone: {
+            [db.Sequelize.Op.like]: `%${phone}%`,
+          },
         },
       });
       if (invite) {
@@ -206,7 +209,10 @@ export const RegisterUser = async (req, res) => {
   const farm = req.body.farm || "";
   const email = req.body.email;
   const userType = req.body.userType;
-  const phone = req.body.phone;
+  let phone = req.body.phone;
+  // if (!phone.startsWith("+")) {
+  phone = phone.replace("+", "");
+  // }
   const verificationCode = req.body.verificationCode;
   const brokerage = req.body.brokerage;
   const averageTransactionPerYear =
@@ -272,7 +278,9 @@ export const RegisterUser = async (req, res) => {
 
   let u = await db.User.findOne({
     where: {
-      phone: phone,
+      phone: {
+        [db.Sequelize.Op.like]: `%${phone}%`,
+      },
     },
   });
   if (u) {
@@ -714,6 +722,8 @@ export function generateRandomCode(length = 7) {
 export const SendPhoneVerificationCode = async (req, res) => {
   let phone = req.body.phone;
 
+  phone = phone.replace("+", "");
+
   console.log(`Phone number is ${phone}`);
   let login = req.body.login || false;
   if (phone == null || phone == "") {
@@ -890,7 +900,9 @@ export const CheckPhoneExists = async (req, res) => {
 
   let user = await db.User.findOne({
     where: {
-      phone: phone,
+      phone: {
+        [db.Sequelize.Op.like]: `%${phone}%`,
+      },
     },
   });
 
