@@ -14,6 +14,7 @@ import LeadRouter from "./routes/leadRoute.js";
 import CalendarRouter from "./routes/calendarRoute.js";
 
 import teamRouter from "./routes/TeamRoute.js";
+import AdminRouter from "./routes/adminRoute.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -105,6 +106,7 @@ app.use("/api/pipeline", PipelineRouter);
 app.use("/api/leads", LeadRouter);
 app.use("/api/calendar", CalendarRouter);
 app.use("/api/team", teamRouter);
+app.use("/api/admin", AdminRouter);
 // app.use("/api/admin", AdminRouter);
 
 const server = app.listen(process.env.Port, () => {
