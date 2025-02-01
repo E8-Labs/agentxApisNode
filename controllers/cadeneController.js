@@ -221,6 +221,13 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         order: [["createdAt", "ASC"]],
       });
       if (calls && calls.length > 0) {
+        if (callCadence.length == calls.length) {
+          leadCad.status = CadenceStatus.Started;
+          leadCad.callTriggerTime = new Date();
+          await leadCad.save();
+          //Don't send anymore calls and set the status to Started. This happened because of an error
+          continue;
+        }
         WriteToFile(`Calls sent to this lead ", ${calls.length}`);
         //Get the next call from callCadence to be sent
         WriteToFile("Next call to be sent is ", calls.length + 1);
