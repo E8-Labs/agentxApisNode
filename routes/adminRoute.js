@@ -16,6 +16,6 @@ const uploadMedia = multer().fields([
 
 let AdminRouter = express.Router();
 
-AdminRouter.post("/users", verifyJwtTokenWithTeam, uploadFiles, GetUsers);
+AdminRouter.get("/users", verifyJwtTokenWithTeam, uploadFiles, GetUsers);
 
 export default AdminRouter;
