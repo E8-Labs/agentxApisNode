@@ -166,6 +166,7 @@ export const UserTypes = {
   InsuranceAgent: "InsuranceAgent",
   RecruiterAgent: "RecruiterAgent",
   TaxAgent: "TaxAgent",
+  Admin: "admin",
 };
 
 export const UserRole = {

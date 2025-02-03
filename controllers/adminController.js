@@ -5,6 +5,7 @@ import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import UserProfileLiteResource from "../resources/userProfileLiteResource.js";
 const limit = 50;
 import { Op } from "sequelize";
+import { UserTypes } from "../models/user/userModel.js";
 
 export async function GetUsers(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -16,13 +17,21 @@ export async function GetUsers(req, res) {
     }
 
     let offset = Number(req.query.offset || 0) || 0;
-    let limit = Number(req.query.limit || 10) || 10; // Default limit
+    // let limit = Number(req.query.limit || limit) || limit; // Default limit
 
     if (authData) {
       let userId = authData.user.id;
 
       // Fetch user and check role
-      let user = await db.User.findOne({ where: { id: userId } });
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+          userType: {
+            [db.Sequelize.Op.notIn]: [UserTypes.Admin],
+          },
+          userRole: "AgentX",
+        },
+      });
       if (!user) {
         return res.status(401).send({
           status: false,
