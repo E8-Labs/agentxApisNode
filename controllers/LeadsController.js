@@ -665,8 +665,8 @@ export const GetSheets = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
-      if (req.body.userId) {
-        userId = req.body.userId;
+      if (req.query.userId) {
+        userId = req.query.userId;
       }
       let admin = req.admin;
       console.log("Admin is ", admin?.id);
