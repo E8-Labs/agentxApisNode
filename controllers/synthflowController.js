@@ -1080,26 +1080,27 @@ export const BuildAgent = async (req, res) => {
 
       let selectedObjective = null;
       if (user.userType == UserTypes.RealEstateAgent) {
-        for (let i = 0; i < AgentObjectives.length; i++) {
-          console.log(
-            `matching ${AgentObjectives[i].id} == ${agentObjectiveId} `
-          );
-          if (
-            AgentObjectives[i].id == agentObjectiveId ||
-            AgentObjectives[i].title == agentObjective
-          ) {
-            selectedObjective = AgentObjectives[i];
-          }
-        }
       } else {
-        agentObjective = "Other Users";
+        agentObjective = "";
         agentObjectiveId = 1001;
         console.log(
           "Other user type: So last objective is for the other user types"
         );
 
-        selectedObjective = AgentObjectives[AgentObjectives.length - 1];
-        console.log(selectedObjective.prompt);
+        // selectedObjective = AgentObjectives[AgentObjectives.length - 1];
+        // console.log(selectedObjective.prompt);
+      }
+
+      for (let i = 0; i < AgentObjectives.length; i++) {
+        console.log(
+          `matching ${AgentObjectives[i].id} == ${agentObjectiveId} `
+        );
+        if (
+          AgentObjectives[i].id == agentObjectiveId ||
+          AgentObjectives[i].title == agentObjective
+        ) {
+          selectedObjective = AgentObjectives[i];
+        }
       }
 
       let mainAgent = await db.MainAgentModel.create({

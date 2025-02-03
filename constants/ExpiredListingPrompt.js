@@ -38,8 +38,7 @@ Intonation: Use rising intonation to encourage engagement and falling intonation
 Tone: Keep your tone empathetic and reassuring, even when addressing tough questions or objections.
         `,
 
-  callScript: `
-[If they confirm]
+  callScript: `[If they confirm]
 "Great, thank you for taking my call. I noticed your property at {Address} recently came off the market, and I wanted to reach out to understand what your plans are moving forward. Did you manage to sell, or is the home still available?"
 
 [If Homeowner Responds Positively]
@@ -226,8 +225,7 @@ Intonation: Use rising intonation to encourage engagement and falling intonation
 Tone: Keep your tone empathetic and reassuring, even when addressing tough questions or objections.  
           `,
 
-  callScript: `
-If Homeowner Says: "I Missed Your Call, What Was It About?"
+  callScript: `If Homeowner Says: "I Missed Your Call, What Was It About?"
 Response: "Thank you for calling back! I was reaching out because I noticed your property at {Address} recently came off the market. I wanted to check in to see if it’s still available or if you’ve already sold it."
 (pause wait for response)
 
