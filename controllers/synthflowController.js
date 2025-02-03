@@ -47,6 +47,7 @@ import LeadCallResource from "../resources/LeadCallResource.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import { AddNotification } from "./NotificationController.js";
 import { WriteToFile } from "../services/FileService.js";
+import { UserTypes } from "../models/user/userModel.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -1070,24 +1071,35 @@ export const BuildAgent = async (req, res) => {
 
       const name = req.body.name;
       const agentRole = req.body.agentRole || "";
-      const agentObjective = req.body.agentObjective;
-      const agentObjectiveId = Number(req.body.agentObjectiveId);
+      let agentObjective = req.body.agentObjective;
+      let agentObjectiveId = Number(req.body.agentObjectiveId);
       const agentType = req.body.agentType?.toLowerCase() || "both"; //inbound, outbound, both
       const status = req.body.status;
       const address = req.body.address;
       const agentObjectiveDescription = req.body.agentObjectiveDescription;
 
       let selectedObjective = null;
-      for (let i = 0; i < AgentObjectives.length; i++) {
-        console.log(
-          `matching ${AgentObjectives[i].id} == ${agentObjectiveId} `
-        );
-        if (
-          AgentObjectives[i].id == agentObjectiveId ||
-          AgentObjectives[i].title == agentObjective
-        ) {
-          selectedObjective = AgentObjectives[i];
+      if (user.userType == UserTypes.RealEstateAgent) {
+        for (let i = 0; i < AgentObjectives.length; i++) {
+          console.log(
+            `matching ${AgentObjectives[i].id} == ${agentObjectiveId} `
+          );
+          if (
+            AgentObjectives[i].id == agentObjectiveId ||
+            AgentObjectives[i].title == agentObjective
+          ) {
+            selectedObjective = AgentObjectives[i];
+          }
         }
+      } else {
+        agentObjective = "Other Users";
+        agentObjectiveId = 1001;
+        console.log(
+          "Other user type: So last objective is for the other user types"
+        );
+
+        selectedObjective = AgentObjectives[AgentObjectives.length - 1];
+        console.log(selectedObjective.prompt);
       }
 
       let mainAgent = await db.MainAgentModel.create({

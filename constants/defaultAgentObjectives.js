@@ -104,6 +104,7 @@ export const AgentObjectives = [
     objections: ExpiredListingObjections,
     guardrails: ExpiredListingGuardrails,
   },
+
   {
     id: 100,
     icon: "",
@@ -113,5 +114,16 @@ export const AgentObjectives = [
     promptInbound: Prompts.OthersInbound,
     objections: ExpiredListingObjections,
     guardrails: ExpiredListingGuardrails,
+  },
+  //For all user types other than RealEstate
+  {
+    id: 1001,
+    icon: "",
+    title: "Other Users",
+    details: "",
+    prompt: Prompts.OtherAgentsOutbound,
+    promptInbound: Prompts.OtherAgentsInbound,
+    objections: [], //ExpiredListingObjections,
+    guardrails: [], //ExpiredListingGuardrails,
   },
 ];

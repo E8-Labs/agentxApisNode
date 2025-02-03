@@ -27,6 +27,10 @@ import {
   ReceptionistInbound,
   ReceptionistOutbound,
 } from "./ReceptionistPrompt.js";
+import {
+  OtherAgentsInbound,
+  OtherAgentsOutbound,
+} from "./OtherAgentsPrompt.js";
 
 export const Prompts = {
   CommunityUpdate: CommunityUpdateOutbound,
@@ -45,4 +49,7 @@ export const Prompts = {
   AgentRecruitingOutbound: AgentRecruitingOutbound,
   ReceptionistInbound: ReceptionistInbound,
   ReceptionistOutbound: ReceptionistOutbound,
+
+  OtherAgentsOutbound: OtherAgentsOutbound,
+  OtherAgentsInbound: OtherAgentsInbound,
 };
