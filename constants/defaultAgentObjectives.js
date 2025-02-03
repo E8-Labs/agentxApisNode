@@ -119,8 +119,8 @@ export const AgentObjectives = [
   {
     id: 1001,
     icon: "",
-    title: "Other Users",
-    details: "",
+    title: "", //Other Users
+    details: "Other Users",
     prompt: Prompts.OtherAgentsOutbound,
     promptInbound: Prompts.OtherAgentsInbound,
     objections: [], //ExpiredListingObjections,
