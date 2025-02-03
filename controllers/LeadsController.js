@@ -665,6 +665,9 @@ export const GetSheets = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
+      if (req.body.userId) {
+        userId = req.body.userId;
+      }
       let admin = req.admin;
       console.log("Admin is ", admin?.id);
       console.log("Current User is ", userId);
@@ -844,7 +847,10 @@ export const GetLeads = async (req, res) => {
     if (authData) {
       try {
         const { sheetId, stageIds, fromDate, toDate, noStage } = req.query; // Fetching query parameters
-        const userId = authData.user.id;
+        let userId = authData.user.id;
+        if (req.query.userId) {
+          userId = req.query.userId;
+        }
         let offset = Number(req.query.offset) || 0;
         // Validate the user
         const user = await db.User.findOne({
