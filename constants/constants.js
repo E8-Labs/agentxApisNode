@@ -4,6 +4,7 @@ export const constants = {
   AdminNotifyEmail2: "salman@e8-labs.com",
   GiftDontCancelPlanSeconds: 30 * 60, // Seconds
   MinThresholdSeconds: 2 * 60,
+  phoneNumberCost: 200, //cents
   DefaultTimezone: "America/Los_Angeles",
   LeadPage: "ai.myagentx.com/dashboard/leads",
   AgentsPage: "ai.myagentx.com/dashboard/myAgentX",

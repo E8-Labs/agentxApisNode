@@ -398,7 +398,7 @@ export const PurchasePhoneNumber = async (req, res) => {
       console.log("Live env so acutall purchasing number", environment);
 
       // Charge user for phone number
-      const phoneNumberCost = 60; //200; // Monthly cost in cents
+      const phoneNumberCost = constants.phoneNumberCost; //200; // Monthly cost in cents
       let charge = await chargeUser(
         userId,
         phoneNumberCost,
