@@ -889,19 +889,25 @@ export const GetLeads = async (req, res) => {
         }
         if (stageIds && stageIds != "") {
           console.log("No stage ", noStage);
-          // if (noStage == "true" || noStage == 1 || noStage == true) {
-          //   leadFilters.stage = {
-          //     [db.Sequelize.Op.or]: [
-          //       { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) }, // Matches stage IDs
-          //       { [db.Sequelize.Op.is]: null }, // Matches null values
-          //     ],
-          //   };
-          // }
-          // else {
+          if (noStage == "true" || noStage == 1 || noStage == true) {
+            leadFilters.stage = {
+              [db.Sequelize.Op.or]: [
+                { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) }, // Matches stage IDs
+                { [db.Sequelize.Op.is]: null }, // Matches null values
+              ],
+            };
+          } else {
+            leadFilters.stage = {
+              [db.Sequelize.Op.in]: stageIds.split(",").map(Number),
+            };
+          }
+        } else if (noStage == "true" || noStage == 1 || noStage == true) {
           leadFilters.stage = {
-            [db.Sequelize.Op.in]: stageIds.split(",").map(Number),
+            [db.Sequelize.Op.or]: [
+              // { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) }, // Matches stage IDs
+              { [db.Sequelize.Op.is]: null }, // Matches null values
+            ],
           };
-          // }
         }
 
         // Fetch leads first based on general filters
