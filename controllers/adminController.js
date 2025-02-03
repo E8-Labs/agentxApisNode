@@ -26,10 +26,6 @@ export async function GetUsers(req, res) {
       let user = await db.User.findOne({
         where: {
           id: userId,
-          userType: {
-            [db.Sequelize.Op.notIn]: [UserTypes.Admin],
-          },
-          userRole: "AgentX",
         },
       });
       if (!user) {
@@ -50,6 +46,9 @@ export async function GetUsers(req, res) {
 
       let whereCondition = {
         userRole: "AgentX",
+        userType: {
+          [db.Sequelize.Op.notIn]: [UserTypes.Admin],
+        },
       };
 
       if (searchQuery) {
