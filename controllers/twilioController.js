@@ -617,7 +617,10 @@ export const AssignPhoneNumber = async (req, res) => {
           });
           if (assistants && assistants.length > 0) {
             let action = null;
-            if (liveTransferNumber && liveTransfer) {
+            if (
+              liveTransferNumber &&
+              (liveTransfer == true || liveTransfer == "true")
+            ) {
               if (!assistants[0].liveTransferActionId) {
                 action = await CreateAndAttachInfoExtractor(mainAgentId, {
                   actionType: "live_transfer",
@@ -633,7 +636,7 @@ export const AssignPhoneNumber = async (req, res) => {
                     liveTransferNumber
                   )
                 ) {
-                  console.log("Update IE not implemented");
+                  // console.log("Update IE not implemented");
                   console.log("Update Action here");
                   let updated = await UpdateLiveTransferAction(
                     actionId,
@@ -641,6 +644,8 @@ export const AssignPhoneNumber = async (req, res) => {
                   );
                 }
               }
+            } else {
+              console.log("Live transfer is false");
             }
             for (let i = 0; i < assistants.length; i++) {
               let assistant = assistants[i];

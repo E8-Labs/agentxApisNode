@@ -166,6 +166,7 @@ export const UserTypes = {
   InsuranceAgent: "InsuranceAgent",
   RecruiterAgent: "RecruiterAgent",
   TaxAgent: "TaxAgent",
+  DebtCollectorAgent: "DebtCollectorAgent",
   Admin: "admin",
 };
 

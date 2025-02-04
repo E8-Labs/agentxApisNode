@@ -301,8 +301,11 @@ async function GetCompletePromptTextFrom(
   console.log("Extra columns");
   console.log(typeof lead.extraColumns);
   console.log("Obtained keys ", keys);
-  let extraColumns = JSON.parse(lead.extraColumns);
-  console.log(lead.extraColumns);
+  let extraColumns = {};
+  if (lead.extraColumns) {
+    extraColumns = JSON.parse(lead.extraColumns);
+    console.log(lead.extraColumns);
+  }
   let extraColumsDic = {};
   // for (const col of extraColumns) {
   //   let key = Object.keys(col)[0];
@@ -727,6 +730,11 @@ export const TestAI = async (req, res) => {
         console.log("Lead already exists ", lead.id);
       }
 
+      //add extra columns to lead
+      if (Object.keys(extraColumns)?.length > 0) {
+        lead.extraColumns = JSON.stringify(extraColumns);
+      }
+
       let pcadence = await db.PipelineCadence.findOne({
         where: {
           mainAgentId: mainAgentModel.id,
@@ -782,6 +790,9 @@ export const TestAI = async (req, res) => {
           lead,
           true // test is set to true
         );
+
+        console.log("Call Script: ", basePrompt.callScript);
+        console.log("Call Greeting: ", basePrompt.greeting);
         // let greeting = prompt.greeting;
         // greeting = greeting?.replace(/{First Name}/g, lead.firstName);
         // greeting = greeting?.replace(/{agent_name}/g, agent.name);
