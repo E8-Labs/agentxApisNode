@@ -88,6 +88,11 @@ const NotificationModel = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: true,
     },
+    synthflowCallId: {
+      // Agent Id of the sub agent not the main agent model
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
     codeRedeemed: {
       type: Sequelize.STRING,
       allowNull: true,

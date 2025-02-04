@@ -264,7 +264,8 @@ export const AddNotification = async (
   totalCalls = 0,
   minutes = 0,
   recording = null,
-  meetingDate = null
+  meetingDate = null,
+  synthflowCallId = null
 ) => {
   // console.log("Data in add not ", { user, fromUser, type, lead, agent, code });
   try {
@@ -289,6 +290,7 @@ export const AddNotification = async (
       agentId: agent?.id,
       codeRedeemed: code,
       body: body,
+      synthflowCallId: synthflowCallId,
     });
 
     let resource = await NotificationResource(not);
@@ -557,7 +559,9 @@ export const GetNotifications = async (req, res) => {
 
       let nots = await db.NotificationModel.findAll({
         where: {
-          userId: user.id,
+          userId: {
+            [db.Sequelize.Op.in]: teamIds,
+          },
         },
         offset: offset,
         limit: limit,
