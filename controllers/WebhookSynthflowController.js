@@ -286,7 +286,11 @@ async function handleNewCall(
       null,
       null,
       0,
-      0
+      0,
+      0,
+      null,
+      null,
+      callId
     );
   } catch (error) {
     console.log("errorr sending notification");
