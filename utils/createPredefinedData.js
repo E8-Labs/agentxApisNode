@@ -317,6 +317,46 @@ export async function createAreaOfFocusValues(db) {
   Start = 900;
   data = AddArrayToData(data, taxAgentFocusArea, UserTypes.TaxAgent, Start);
 
+  const DebtCollectorFocusArea = [
+    {
+      id: 1,
+      title: "Consumer Debt",
+      description: "e.g., credit card, medical, personal loans",
+    },
+    {
+      id: 2,
+      title: "Commercial Debt",
+      description: "e.g., unpaid business invoices, B2B collections",
+    },
+    {
+      id: 3,
+      title: "Auto Loan Debt",
+      description: "(e.g., repossession collections)",
+    },
+    {
+      id: 4,
+      title: "Mortgage & Foreclosure Debt",
+      description: "",
+    },
+    {
+      id: 5,
+      title: "Student Loan Debt",
+      description: "",
+    },
+    {
+      id: 6,
+      title: "Utility & Telecommunications Debt",
+      description: "",
+    },
+  ];
+  Start = 1000;
+  data = AddArrayToData(
+    data,
+    DebtCollectorFocusArea,
+    UserTypes.DebtCollectorAgent,
+    Start
+  );
+
   for (const ser of data) {
     try {
       await db.AreaOfFocus.create(ser);
@@ -731,6 +771,54 @@ export async function createAgentServices(db) {
   for (const ser of taxAgentServices) {
     let id = ser.id;
     data.push({ ...ser, agentType: UserTypes.TaxAgent, id: Start + id });
+  }
+
+  const debtCollectorAgentServices = [
+    {
+      id: 1,
+      title: "Debt Recovery Outreach",
+      description: "Contact debtors and negotiate payment arrangements.",
+    },
+    {
+      id: 2,
+      title: "Skip Tracing Assistance",
+      description:
+        "Locate debtors who have changed addresses or contact details.",
+    },
+    {
+      id: 3,
+      title: "Automated Payment Reminders",
+      description: "Send timely reminders to encourage on-time payments",
+    },
+    {
+      id: 4,
+      title: "Compliance & Regulatory Guidance",
+      description: "Ensure collection practices align with legal requirements.",
+    },
+    {
+      id: 5,
+      title: "Dispute Resolution",
+      description: "Address and resolve debtor disputes efficiently.",
+    },
+    {
+      id: 6,
+      title: "Debt Settlement Negotiation",
+      description: "Work with debtors on settlements or payment plans.",
+    },
+    {
+      id: 7,
+      title: "Legal Action Assistance",
+      description: "Support legal escalation for non-compliant debtors.",
+    },
+  ];
+  Start = 1000;
+  for (const ser of debtCollectorAgentServices) {
+    let id = ser.id;
+    data.push({
+      ...ser,
+      agentType: UserTypes.DebtCollectorAgent,
+      id: Start + id,
+    });
   }
 
   for (const ser of data) {
