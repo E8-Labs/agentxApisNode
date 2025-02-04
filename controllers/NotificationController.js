@@ -49,7 +49,8 @@ import { generateExclusivityEmail } from "../emails/InactiveUserEmails/Exclusivi
 import { generateTerritoryUpdateEmail } from "../emails/InactiveUserEmails/TerritoryUpdate.js";
 import { generateSocialProofEmail } from "../emails/InactiveUserEmails/SocialProofEmail.js";
 import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
-import { GetTeamIds } from "../utils/auth.js";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
+import { UserRole } from "../models/user/userModel.js";
 
 async function GetNotificationTitle(
   user,
@@ -268,6 +269,9 @@ export const AddNotification = async (
   synthflowCallId = null
 ) => {
   // console.log("Data in add not ", { user, fromUser, type, lead, agent, code });
+  if (user.userRole == UserRole.Invitee) {
+    return;
+  }
   try {
     let { title, body } = await GetNotificationTitle(
       user,
@@ -536,6 +540,7 @@ export const GetNotifications = async (req, res) => {
           id: userId,
         },
       });
+      let admin = await GetTeamAdminFor(user);
       let teamIds = await GetTeamIds(user);
       if (!user) {
         res.send({
@@ -559,9 +564,10 @@ export const GetNotifications = async (req, res) => {
 
       let nots = await db.NotificationModel.findAll({
         where: {
-          userId: {
-            [db.Sequelize.Op.in]: teamIds,
-          },
+          // userId: {
+          //   [db.Sequelize.Op.in]: teamIds,
+          // },
+          userId: admin.id,
         },
         offset: offset,
         limit: limit,
@@ -675,6 +681,7 @@ export const NotificationCron = async () => {
         id: {
           [db.Sequelize.Op.notIn]: userIds,
         },
+        userRole: UserRole.AgentX,
       },
     });
     console.log("Users to send daily notificaitons", users.length);
@@ -714,6 +721,9 @@ export const NotificationCron = async () => {
 };
 
 async function SendNotificationsForNoCalls(user) {
+  if (user.userRole == UserRole.Invitee) {
+    return;
+  }
   console.log("Sending No Calls Not to ", user.id);
   try {
     let ids = [];
@@ -796,6 +806,9 @@ async function SendNotificationsForNoCalls(user) {
 }
 
 async function SendNotificationsForHotlead(user) {
+  if (user.userRole == UserRole.Invitee) {
+    return;
+  }
   console.log("Sending hotlead to ", user.id);
   try {
     let ids = [];
@@ -951,6 +964,7 @@ async function SendAutoDailyNotificationsFor7Days() {
       createdAt: {
         [db.Sequelize.Op.gt]: date7DaysAgo,
       },
+      userRole: UserRole.AgentX,
     },
   });
   console.log("Users to send 7 days notificaitons", users.length);
