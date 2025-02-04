@@ -5,12 +5,17 @@ import { NotificationTypes } from "../models/user/NotificationModel.js";
 
 import { AddNotification } from "../controllers/NotificationController.js";
 import { id } from "date-fns/locale";
+import { UserRole } from "../models/user/userModel.js";
 
 export async function CheckAndSend7DaysInactivityNotifications() {
   let date7DaysAgo = new Date();
   date7DaysAgo.setDate(date7DaysAgo.getDate() - 7); // Correctly subtract 7 days from the current date
 
-  let users = await db.User.findAll();
+  let users = await db.User.findAll({
+    where: {
+      userRole: UserRole.AgentX,
+    },
+  });
 
   //send these users notifications
   console.log("InActiveNot: Found users to send ", users.length);
