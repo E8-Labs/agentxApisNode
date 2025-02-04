@@ -49,7 +49,7 @@ import { generateExclusivityEmail } from "../emails/InactiveUserEmails/Exclusivi
 import { generateTerritoryUpdateEmail } from "../emails/InactiveUserEmails/TerritoryUpdate.js";
 import { generateSocialProofEmail } from "../emails/InactiveUserEmails/SocialProofEmail.js";
 import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
-import { GetTeamIds } from "../utils/auth.js";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { UserRole } from "../models/user/userModel.js";
 
 async function GetNotificationTitle(
@@ -540,6 +540,7 @@ export const GetNotifications = async (req, res) => {
           id: userId,
         },
       });
+      let admin = await GetTeamAdminFor(user);
       let teamIds = await GetTeamIds(user);
       if (!user) {
         res.send({
@@ -563,9 +564,10 @@ export const GetNotifications = async (req, res) => {
 
       let nots = await db.NotificationModel.findAll({
         where: {
-          userId: {
-            [db.Sequelize.Op.in]: teamIds,
-          },
+          // userId: {
+          //   [db.Sequelize.Op.in]: teamIds,
+          // },
+          userId: admin.id,
         },
         offset: offset,
         limit: limit,
