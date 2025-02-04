@@ -644,6 +644,8 @@ export const AssignPhoneNumber = async (req, res) => {
                   );
                 }
               }
+            } else {
+              console.log("Live transfer is false");
             }
             for (let i = 0; i < assistants.length; i++) {
               let assistant = assistants[i];
