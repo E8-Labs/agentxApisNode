@@ -732,7 +732,7 @@ export const TestAI = async (req, res) => {
 
       //add extra columns to lead
       if (Object.keys(extraColumns)?.length > 0) {
-        lead.extraColumns = extraColumns;
+        lead.extraColumns = JSON.stringify(extraColumns);
       }
 
       let pcadence = await db.PipelineCadence.findOne({
