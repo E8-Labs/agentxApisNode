@@ -58,6 +58,7 @@ async function getPayingUserLeadIds(user = null) {
     leadIds = leads.map((lead) => lead.id);
   }
 
+  console.log("Lead Ids ", leadIds);
   return leadIds;
 }
 
@@ -83,8 +84,9 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         [db.Sequelize.Op.in]: leadIds,
       },
     },
-    limit: 100,
+    limit: 200,
   });
+  // console.log("LEad Cad", leadCadence)
 
   WriteToFile(`Found ${leadCadence.length} leads to start batch calls`);
   // return;
@@ -94,6 +96,9 @@ export const CronRunCadenceCallsFirstBatch = async () => {
   }
 
   for (let i = 0; i < leadCadence.length; i++) {
+    console.log(
+      `LeadCad , ${leadCadence[i].id} : Batch=${leadCadence.batchId}`
+    );
     WriteToFile("Iteration", i);
     try {
       let leadCad = leadCadence[i];

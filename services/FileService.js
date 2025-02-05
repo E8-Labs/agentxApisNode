@@ -11,7 +11,7 @@ export async function WriteToFile(string, string2 = null) {
   if (string2) {
     string += " " + string2;
   }
-  console.log(string);
+  // console.log(string);
 
   const folderPath = path.join(__dirname, "/Files");
   const chunkFilePath = path.join(folderPath, "LogFile.txt");
