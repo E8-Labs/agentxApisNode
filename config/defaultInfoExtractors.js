@@ -9,9 +9,58 @@ export const InfoExtractorTypes = {
   Hotlead: "info_extractor_hotlead",
   NoDecision: "info_extractor_nodecisionmaker",
   WrongNumber: "info_extractor_wrongnumber",
+  ConversationDetected: "conversation_detected",
 };
 
 export const InfoExtractors = [
+  {
+    actionId: "1738770725055x423528638807525000",
+    identifier: "info_extractor_conversation_detected",
+    question: "conversation_detected",
+    actiontype: "yes_no",
+    description: `Determine whether a conversation occurred between the AI and the Human based on the transcript provided. A conversation is defined as any two-way exchange, meaning the Human responded to at least one AI prompt, regardless of response length (e.g., "Yes," "No," "Maybe").
+The goal is not to assess engagement level or lead quality but simply to confirm that the AI and Human interacted. Return True if the Human provided at least one response after the AI spoke.
+However, voicemails should not be considered conversations, even if the AI delivers a message. If the transcript shows that the AI left a voicemail without any Human response, return False.
+
+Conditions for True:
+Any Response from the Human
+If the Human responds verbally to the AI, even with a single word or a short phrase.
+Examples:
+AI: "Hey, is this [First Name]?"
+Human: "Yes." (Conversation detected)
+AI: "Would you be open to learning more?"
+Human: "Maybe."  (Conversation detected)
+AI: "Are you currently handling your own prospecting?"
+Human: "No."  (Conversation detected)
+Multiple Exchanges
+If the Human engages in back-and-forth dialogue with the AI.
+
+`,
+    examples: [
+      `No Response from the Human
+The AI speaks, but the Human says nothing, hangs up, or stays silent.
+`,
+      "AI: Are you looking to add more listings to your pipeline? Human: Yeah, I could use more appointments.  (Conversation detected)",
+      `AI: "How do you currently manage cold calling?" Human: "I usually do it myself, but I don’t have much time."  (Conversation detected)
+`,
+      `AI: "Hey, is this John?"
+(Dead silence, no response, then hang-up.)  (No conversation)
+`,
+      `Call Ends Before a Response
+The AI begins talking, but the call is disconnected before the Human can reply.
+Examples:
+AI: "Hi, I’m calling about—" → Call disconnects immediately.  (No conversation)
+`,
+      `Voicemail Detection
+The transcript suggests that the AI left a voicemail without any interaction from the Human.
+Examples:
+AI: "Hey, this is AgentX calling about listings in your area. Call me back when you get a chance!" 
+(No Human response, just AI leaving a message.)(No conversation)
+AI: "Hi, just wanted to follow up on our last discussion. Feel free to call back."
+(No Human response, voicemail detected.) (No conversation)
+`,
+    ],
+  },
   {
     actionId: "1732717527256x812317125806893300",
     identifier: "info_extractor_meetingscheduled",

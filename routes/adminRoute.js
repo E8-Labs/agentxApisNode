@@ -6,6 +6,7 @@ import {
   GetUsers,
   AddAnAffiliate,
   GetAffiliates,
+  DeleteAnAffiliate,
 } from "../controllers/adminController.js";
 
 const uploadFiles = multer().fields([
@@ -26,6 +27,12 @@ AdminRouter.post(
   verifyJwtTokenWithTeam,
   uploadFiles,
   AddAnAffiliate
+);
+AdminRouter.post(
+  "/deleteAffiliate",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  DeleteAnAffiliate
 );
 AdminRouter.get(
   "/getAffiliates",
