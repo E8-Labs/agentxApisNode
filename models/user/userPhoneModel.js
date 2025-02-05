@@ -36,6 +36,10 @@ const UserPhoneNumbers = (sequelize, Sequelize) => {
       // onDelete: "CASCADE",
       // onUpdate: "CASCADE",
     },
+    subAccountSid: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return UserPhoneNumbers;

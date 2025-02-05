@@ -29,6 +29,7 @@ const simulate = false; //process.env.CronEnvironment == "Sandbox" ? true : fals
 // const failedSimulation = true; // to simulate failed calls and then mark them as errored on third try
 console.log("Simulate ", simulate);
 const AvgCallTimeSeconds = 3 * 60; //seconds
+const MaxLeadsToFetch = 5000;
 
 async function getPayingUserLeadIds(user = null) {
   let usersWithMinutesRemaining = await db.User.findAll({
@@ -58,7 +59,9 @@ async function getPayingUserLeadIds(user = null) {
     leadIds = leads.map((lead) => lead.id);
   }
 
-  console.log("Lead Ids ", leadIds);
+  // for (let i = leadIds.length - 1; i > leadIds.length - 20; i--) {
+  //   console.log("Lead Id: ", leadIds[i]);
+  // }
   return leadIds;
 }
 
@@ -76,6 +79,17 @@ export const CronRunCadenceCallsFirstBatch = async () => {
   const leadIds = await getPayingUserLeadIds(); //only fetch those users, whose minutes are above 2 min threshold
   // return;
   // console.log("Lead ids of paying users", JSON.stringify(leadIds));
+  // let leadCadence = await db.LeadCadence.findAll({
+  //   where: {
+  //     status: CadenceStatus.Pending,
+  //     callTriggerTime: { [db.Sequelize.Op.is]: null }, // Check if callTriggerTime is null
+  //     leadId: {
+  //       [db.Sequelize.Op.in]: leadIds,
+  //     },
+  //   },
+  //   limit: 200,
+  // });
+
   let leadCadence = await db.LeadCadence.findAll({
     where: {
       status: CadenceStatus.Pending,
@@ -84,8 +98,18 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         [db.Sequelize.Op.in]: leadIds,
       },
     },
-    limit: 200,
+    include: [
+      {
+        model: db.CadenceBatchModel,
+        required: true, // Ensures only leads with a valid batch are fetched
+        where: {
+          status: { [db.Sequelize.Op.ne]: BatchStatus.Paused }, // Exclude batches that are paused
+        },
+      },
+    ],
+    limit: MaxLeadsToFetch,
   });
+
   // console.log("LEad Cad", leadCadence)
 
   WriteToFile(`Found ${leadCadence.length} leads to start batch calls`);
@@ -96,12 +120,10 @@ export const CronRunCadenceCallsFirstBatch = async () => {
   }
 
   for (let i = 0; i < leadCadence.length; i++) {
-    console.log(
-      `LeadCad , ${leadCadence[i].id} : Batch=${leadCadence.batchId}`
-    );
+    let leadCad = leadCadence[i];
+    console.log(`LeadCad , ${leadCad.id} : Batch=${leadCad.batchId}`);
     WriteToFile("Iteration", i);
     try {
-      let leadCad = leadCadence[i];
       // let lead = await db.LeadModel.findOne(leadCad.leadId)
       let lead = await db.LeadModel.findByPk(leadCad.leadId);
       if (lead) {
@@ -359,17 +381,36 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
   //Find Cadences to run for leads in the initial State (New Lead)
   //Step-1 Find all leadCadences which are not completed. All leads which are Started should be pushed
   const leadIds = await getPayingUserLeadIds(); //only fetch those users, whose minutes are above 2 min threshold
+  // let leadCadence = await db.LeadCadence.findAll({
+  //   where: {
+  //     status: CadenceStatus.Started,
+  //     batchId: {
+  //       [db.Sequelize.Op.ne]: null,
+  //     },
+  //     leadId: {
+  //       [db.Sequelize.Op.in]: leadIds,
+  //     },
+  //   },
+  //   limit: 50, // Limit the batch size to 2
+  // });
   let leadCadence = await db.LeadCadence.findAll({
     where: {
       status: CadenceStatus.Started,
-      batchId: {
-        [db.Sequelize.Op.ne]: null,
-      },
+      batchId: { [db.Sequelize.Op.ne]: null }, // Check if batchId is null
       leadId: {
         [db.Sequelize.Op.in]: leadIds,
       },
     },
-    limit: 50, // Limit the batch size to 2
+    include: [
+      {
+        model: db.CadenceBatchModel,
+        required: true, // Ensures only leads with a valid batch are fetched
+        where: {
+          status: { [db.Sequelize.Op.ne]: BatchStatus.Paused }, // Exclude batches that are paused
+        },
+      },
+    ],
+    limit: MaxLeadsToFetch,
   });
   let newLeads = [];
 

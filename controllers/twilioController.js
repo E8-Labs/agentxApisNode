@@ -18,6 +18,56 @@ const twilioClient = twilio(
   process.env.TWILIO_AUTH_TOKEN
 );
 
+export const findOrCreateTwilioSubAccount = async (user) => {
+  let userId = user.id;
+  let userName = user.name;
+
+  try {
+    // 1. Check if the user already has a Twilio sub-account
+    let userTwilioAccount = await db.UserTwilioAccounts.findOne({
+      where: { userId },
+    });
+
+    if (userTwilioAccount) {
+      console.log(`Found existing Twilio sub-account for user: ${userId}`);
+      return userTwilioAccount.subAccountSid;
+    }
+
+    // 2. If no sub-account exists, create a new one
+    console.log("Creating a new Twilio sub-account for user:", userId);
+    let subAccount = await twilioClient.api.accounts.create({
+      friendlyName: `AgentX - ${userName}`,
+    });
+
+    // 3. Store the new sub-account SID in the database
+    userTwilioAccount = await db.UserTwilioAccounts.create({
+      userId,
+      subAccountSid: subAccount.sid,
+    });
+
+    console.log("Sub-account created:", subAccount.sid);
+    return subAccount.sid;
+  } catch (error) {
+    console.error("Error finding or creating Twilio sub-account:", error);
+    return null;
+    // throw error;
+  }
+};
+
+async function GetTwilioClient(user) {
+  let userTwilioAccount = await db.UserTwilioAccounts.findOne({
+    where: { userId: user.id },
+  });
+  if (userTwilioAccount) {
+    const subAccountClient = twilio(
+      userTwilioAccount.subAccountSid,
+      process.env.TWILIO_AUTH_TOKEN
+    );
+    return subAccountClient;
+  }
+  return twilioClient;
+}
+
 const getPhoneNumberPricing = async (countryCode) => {
   try {
     const pricing = await twilioClient.pricing.v1.phoneNumbers
@@ -275,106 +325,6 @@ export const ListAvailableNumbers = async (req, res) => {
   });
 };
 
-// export const PurchasePhoneNumberOld = async (req, res) => {
-//   const { phoneNumber, mainAgentId } = req.body;
-
-//   console.log("Data received ", { phoneNumber, mainAgentId });
-//   // Verify JWT Token
-//   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
-//     if (error) {
-//       return res.status(401).send({
-//         status: false,
-//         message: "Unauthorized access. Invalid token.",
-//         token: req.token,
-//         data: authData,
-//       });
-//     }
-
-//     try {
-//       const userId = authData.user.id;
-
-//       // Retrieve user from the database
-//       const user = await db.User.findOne({ where: { id: userId } });
-//       if (!user) {
-//         return res.status(404).send({
-//           status: false,
-//           message: "User not found.",
-//         });
-//       }
-
-//       // Check if the environment is live
-//       if (process.env.ENVIRONMENT === "Sandbox") {
-//         // return res.send({
-//         //   status: false,
-//         //   message: "This operation is only available in live mode.",
-//         // });
-//       }
-
-//       // Attempt to purchase the phone number via Twilio API
-//       let sid = process.env.PLATFORM_PHONE_NUMBER_SID;
-
-//       try {
-//         // return res.send({
-//         //   status: true,
-//         //   message: "Phone number purchased successfully.",
-//         //   data: {
-//         //     sid: "sid",
-//         //     phoneNumber: phoneNumber,
-//         //   },
-//         // });
-//         const purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
-//           phoneNumber,
-//         });
-
-//         if (purchasedNumber && purchasedNumber.sid) {
-//           sid = purchasedNumber.sid;
-//         } else {
-//           return res.status(500).send({
-//             status: false,
-//             message: "Failed to purchase phone number.",
-//           });
-//         }
-//       } catch (twilioError) {
-//         // Handle Twilio error
-//         console.log("Phone purchase error", twilioError);
-//         return res.status(200).send({
-//           status: false,
-//           message: "An error occurred while communicating with Twilio.",
-//           error: twilioError.message,
-//           twilioError: twilioError,
-//         });
-//       }
-
-//       // Save the purchased phone number in the database
-//       const phoneCreated = await db.UserPhoneNumbers.create({
-//         phone: phoneNumber,
-//         phoneSid: sid,
-//         phoneStatus: "active",
-//         userId: user.id,
-//       });
-
-//       // Respond with success
-//       return res.send({
-//         status: true,
-//         message: "Phone number purchased successfully.",
-//         data: {
-//           sid: sid,
-//           phoneNumber: phoneNumber,
-//         },
-//       });
-//     } catch (error) {
-//       // Catch any errors and respond with an error message
-//       return res.status(500).send({
-//         status: false,
-//         message: "An error occurred while purchasing the phone number.",
-//         error: error.message,
-//       });
-//     }
-//   });
-// };
-
-// API to purchase a phone number
-
 export const PurchasePhoneNumber = async (req, res) => {
   const { phoneNumber, mainAgentId, paymentMethodId } = req.body;
 
@@ -417,7 +367,15 @@ export const PurchasePhoneNumber = async (req, res) => {
         //   sid: `PHSID-${phoneNumber}`,
         //   phoneNumber: phoneNumber,
         // };
-        purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
+        let subAccountSid = await findOrCreateTwilioSubAccount(user);
+        const subAccountClient = twilio(
+          subAccountSid,
+          process.env.TWILIO_AUTH_TOKEN
+        );
+        // purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
+        //   phoneNumber,
+        // });
+        purchasedNumber = await subAccountClient.incomingPhoneNumbers.create({
           phoneNumber,
         });
         // }
@@ -463,6 +421,7 @@ export const PurchasePhoneNumber = async (req, res) => {
           phoneSid: purchasedNumber.sid,
           phoneStatus: "active",
           userId,
+          subAccountSid: subAccountSid,
           nextBillingDate: new Date(
             new Date().setMonth(new Date().getMonth() + 1)
           ),
@@ -851,14 +810,42 @@ export const DeleteNumber = async (req, res) => {
           });
         }
 
-        //Release the phone number from twilio
-        const del = await twilioClient
-          .incomingPhoneNumbers(phoneNumber.phoneSid)
-          .remove();
-        console.log("Relase number response ", del);
-        //delete the numbe form our database
-        // await phoneNumber.destroy();
-        phoneNumber.status = "inactive";
+        const { subAccountSid } = phoneNumber;
+
+        if (!subAccountSid) {
+          //if not associated to subaccount
+          //Purchased before adding twilio subaccounts
+          //Release the phone number from twilio
+          const del = await twilioClient
+            .incomingPhoneNumbers(phoneNumber.phoneSid)
+            .remove();
+          console.log("Relase number response ", del);
+          //delete the numbe form our database
+          // await phoneNumber.destroy();
+          phoneNumber.status = "inactive";
+        } else {
+          //if associated to subaccount
+          //Release the phone number from twilio
+          const subAccountClient = twilio(
+            subAccountSid,
+            process.env.TWILIO_AUTH_TOKEN
+          );
+
+          const del = await subAccountClient
+            .incomingPhoneNumbers(phoneNumber.phoneSid)
+            .remove();
+          console.log(
+            `Released phone number: ${phoneNumber} (SID: ${phoneNumber.phoneSid})`
+          );
+          // const del = await twilioClient
+          //   .incomingPhoneNumbers(phoneNumber.phoneSid)
+          //   .remove();
+          // console.log("Relase number response ", del);
+          //delete the numbe form our database
+          // await phoneNumber.destroy();
+          phoneNumber.status = "inactive";
+        }
+
         await phoneNumber.save();
         let updated = await db.AgentModel.update(
           {
