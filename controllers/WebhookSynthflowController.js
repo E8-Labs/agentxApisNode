@@ -328,6 +328,7 @@ async function handleNewCall(
     batchId: null,
     pipelineId: pipeline?.id || null,
     endCallReason: endCallReason,
+    conversation_detected: jsonIE?.conversation_detected,
   });
 
   await handleInfoExtractorValues(
@@ -564,6 +565,7 @@ async function updateCallStatus(
     dbCall.dnd = jsonIE?.dnd;
     dbCall.wrongnumber = jsonIE?.wrongnumber;
     dbCall.meetingscheduled = jsonIE?.meetingscheduled;
+    dbCall.conversation_detected = jsonIE?.conversation_detected;
     dbCall.callmeback = jsonIE?.callmeback;
     dbCall.humancalldrop = jsonIE?.humancalldrop;
     dbCall.voicemail = jsonIE?.voicemail;

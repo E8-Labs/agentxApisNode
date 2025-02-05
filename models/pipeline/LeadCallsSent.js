@@ -197,6 +197,10 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       // allowNull: false,
       defaultValue: "",
     },
+    conversation_detected: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
   });
   LeadCallsSent.associate = (models) => {
     LeadCallsSent.belongsTo(models.LeadModel, {
