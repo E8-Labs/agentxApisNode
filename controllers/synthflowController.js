@@ -1703,6 +1703,9 @@ export const GetAgents = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
+      if (req.query.userId) {
+        userId = req.query.userId;
+      }
       //   if(userId == null)
       let user = await db.User.findOne({
         where: {
