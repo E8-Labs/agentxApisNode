@@ -4,6 +4,10 @@ const CampaigneeModel = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       defaultValue: "",
     },
+    phone: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
     uniqueUrl: {
       type: Sequelize.STRING,
       allowNull: false,

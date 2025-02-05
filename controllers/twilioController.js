@@ -810,7 +810,7 @@ export const DeleteNumber = async (req, res) => {
           });
         }
 
-        const { subAccountSid } = phoneNumber;
+        const subAccountSid = phoneNumber.subAccountSid;
 
         if (!subAccountSid) {
           //if not associated to subaccount
