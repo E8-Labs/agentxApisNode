@@ -29,7 +29,9 @@ export const findOrCreateTwilioSubAccount = async (user) => {
     });
 
     if (userTwilioAccount) {
-      console.log(`Found existing Twilio sub-account for user: ${userId}`);
+      console.log(
+        `Found existing Twilio sub-account for user: ${userId} => ${userTwilioAccount.subAccountSid}`
+      );
       return userTwilioAccount.subAccountSid;
     }
 
@@ -368,16 +370,22 @@ export const PurchasePhoneNumber = async (req, res) => {
         //   phoneNumber: phoneNumber,
         // };
         let subAccountSid = await findOrCreateTwilioSubAccount(user);
-        const subAccountClient = twilio(
-          subAccountSid,
-          process.env.TWILIO_AUTH_TOKEN
-        );
+        console.log("Using subaccount ", subAccountSid);
+        console.log("Using main auth tok ", process.env.TWILIO_AUTH_TOKEN);
+        // const subAccountClient = twilio(
+        //   subAccountSid,
+        //   process.env.TWILIO_AUTH_TOKEN
+        // );
         // purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
         //   phoneNumber,
         // });
-        purchasedNumber = await subAccountClient.incomingPhoneNumbers.create({
-          phoneNumber,
-        });
+
+        purchasedNumber = await twilioClient.api
+          .accounts(subAccountSid) // 👈 Specify sub-account here
+          .incomingPhoneNumbers.create({ phoneNumber });
+        // purchasedNumber = await subAccountClient.incomingPhoneNumbers.create({
+        //   phoneNumber,
+        // });
         // purchasedNumber = { sid: `${phoneNumber}` };
         // }
 

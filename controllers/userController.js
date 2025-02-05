@@ -38,6 +38,7 @@ import {
   DeleteKycQuesiton,
 } from "./synthflowController.js";
 import { DeleteCalendar } from "./calendarController.js";
+import { findOrCreateTwilioSubAccount } from "./twilioController.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -123,6 +124,7 @@ export const LoginUser = async (req, res) => {
   }
   // const salt = await bcrypt.genSalt(10);
   // const hashed = await bcrypt.hash(password, salt);
+
   const user = await User.findOne({
     where: {
       phone: {
@@ -180,6 +182,11 @@ export const LoginUser = async (req, res) => {
     // if (result) {
     const result = await SignUser(user);
     UpdateOrCreateUserInGhl(user);
+    try {
+      let created = await findOrCreateTwilioSubAccount(user);
+    } catch (error) {
+      console.log("Error twilio account creation ", error);
+    }
     return res.send({
       status: true,
       message: "User logged in",
@@ -349,6 +356,11 @@ export const RegisterUser = async (req, res) => {
     "website"
   );
   UpdateOrCreateUserInGhl(user);
+  try {
+    let created = await findOrCreateTwilioSubAccount(user);
+  } catch (error) {
+    console.log("Error twilio account creation ", error);
+  }
   // if (userType != UserTypes.RealEstateAgent) {
   //   let emailTemp = generateDesktopEmail();
   //   let sent = await SendEmail(email, emailTemp.subject, emailTemp.html);
@@ -952,6 +964,13 @@ export const GetProfileMine = async (req, res) => {
           message: "No such user",
           data: null,
         });
+      }
+      try {
+        let created = await findOrCreateTwilioSubAccount(user);
+      } catch (error) {
+        console.log("Error twilio account creation ", error);
+      }
+      if (created) {
       }
       let resource = await UserProfileFullResource(user);
       res.send({
