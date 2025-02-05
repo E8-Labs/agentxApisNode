@@ -36,7 +36,7 @@ export const findOrCreateTwilioSubAccount = async (user) => {
     // 2. If no sub-account exists, create a new one
     console.log("Creating a new Twilio sub-account for user:", userId);
     let subAccount = await twilioClient.api.accounts.create({
-      friendlyName: `AgentX - ${userName}`,
+      friendlyName: `AgentX - ${user.id} - ${userName}`,
     });
 
     // 3. Store the new sub-account SID in the database
@@ -378,6 +378,7 @@ export const PurchasePhoneNumber = async (req, res) => {
         purchasedNumber = await subAccountClient.incomingPhoneNumbers.create({
           phoneNumber,
         });
+        // purchasedNumber = { sid: `${phoneNumber}` };
         // }
 
         if (!purchasedNumber || !purchasedNumber.sid) {
@@ -435,7 +436,7 @@ export const PurchasePhoneNumber = async (req, res) => {
           phone: phoneNumber,
           transactionId: charge.paymentIntent.id,
         });
-        UpdateOrCreateUserInGhl(authData.user);
+        UpdateOrCreateUserInGhl(user);
         return res.send({
           status: true,
           message: "Phone number purchased successfully.",

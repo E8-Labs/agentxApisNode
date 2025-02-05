@@ -62,6 +62,7 @@ import TeamLeadAssignModel from "./user/team/TeamLeadAssign.js";
 import TeamStageAssignModel from "./user/team/TeamStageAssignModel.js";
 import UserActivityModel from "./user/UserActivityModel.js";
 import CronLockTable from "./webhooks/cronLock.js";
+import { UserTwilioAccounts } from "./user/UserTwilioAccount.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -94,7 +95,10 @@ db.TestNumbers = TestNumbers(sequelize, Sequelize);
 db.UserIndustry = UserIndustry(sequelize, Sequelize);
 db.AreaOfFocus = AreaOfFocus(sequelize, Sequelize);
 db.AgentService = AgentService(sequelize, Sequelize);
+
 db.User = User(sequelize, Sequelize);
+db.UserTwilioAccounts = UserTwilioAccounts(sequelize, Sequelize);
+
 db.UserFocusModel = UserFocusModel(sequelize, Sequelize);
 db.UserServicesModel = UserServicesModel(sequelize, Sequelize);
 db.UserPhoneNumbers = UserPhoneNumbers(sequelize, Sequelize);
