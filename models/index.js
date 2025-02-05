@@ -214,6 +214,9 @@ db.PipelineCadence = PipelineCadence(sequelize, Sequelize);
 db.CadenceBatchModel = CadenceBatchModel(sequelize, Sequelize);
 db.LeadCadence = LeadCadence(sequelize, Sequelize);
 
+db.LeadCadence.belongsTo(db.CadenceBatchModel, { foreignKey: "batchId" });
+db.CadenceBatchModel.hasMany(db.LeadCadence, { foreignKey: "batchId" });
+
 db.CronLockTable = CronLockTable(sequelize, Sequelize);
 // db.PipelineCadence.hasMany(db.LeadCadence, {
 //   foreignKey: "pipelineCadenceId",
