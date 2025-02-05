@@ -1,5 +1,5 @@
 export const UserTwilioAccounts = (sequelize, Sequelize) => {
-  const UserTwilioAccounts = sequelize.define("db.UserTwilioAccounts", {
+  const UserTwilioAccounts = sequelize.define("UserTwilioAccounts", {
     userId: {
       type: Sequelize.INTEGER,
       allowNull: false,
