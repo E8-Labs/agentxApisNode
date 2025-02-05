@@ -168,40 +168,40 @@ const NotificationSendingCron = nodeCron.schedule(
 );
 NotificationSendingCron.start();
 
-const RechargeCron = nodeCron.schedule("*/1 * * * *", async () => {
-  try {
-    // Check if the lock file exists
-    let cronRunning = await db.CronLockTable.findOne({
-      where: { process: ProcessTypes.RechargeCron },
-    });
+// const RechargeCron = nodeCron.schedule("*/1 * * * *", async () => {
+//   try {
+//     // Check if the lock file exists
+//     let cronRunning = await db.CronLockTable.findOne({
+//       where: { process: ProcessTypes.RechargeCron },
+//     });
 
-    if (cronRunning) {
-      console.log("Cron is already running");
-      return;
-    }
-    let created = await db.CronLockTable.create({
-      process: ProcessTypes.RechargeCron,
-    });
-    // Execute the job function
-    console.log("Calling the recharge cron function");
-    await RechargeFunction();
-    // await runCronJob();
-    console.log("Recharge Cron completed");
-    await db.CronLockTable.destroy({
-      where: {
-        process: ProcessTypes.RechargeCron,
-      },
-    });
-  } catch (error) {
-    console.log(error);
-    console.error("Error during task execution:", error.message);
-    await db.CronLockTable.destroy({
-      where: {
-        process: ProcessTypes.RechargeCron,
-      },
-    });
-  } finally {
-    // Remove the lock file
-  }
-});
-RechargeCron.start();
+//     if (cronRunning) {
+//       console.log("Cron is already running");
+//       return;
+//     }
+//     let created = await db.CronLockTable.create({
+//       process: ProcessTypes.RechargeCron,
+//     });
+//     // Execute the job function
+//     console.log("Calling the recharge cron function");
+//     await RechargeFunction();
+//     // await runCronJob();
+//     console.log("Recharge Cron completed");
+//     await db.CronLockTable.destroy({
+//       where: {
+//         process: ProcessTypes.RechargeCron,
+//       },
+//     });
+//   } catch (error) {
+//     console.log(error);
+//     console.error("Error during task execution:", error.message);
+//     await db.CronLockTable.destroy({
+//       where: {
+//         process: ProcessTypes.RechargeCron,
+//       },
+//     });
+//   } finally {
+//     // Remove the lock file
+//   }
+// });
+// RechargeCron.start();
