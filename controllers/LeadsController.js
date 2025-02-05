@@ -1424,6 +1424,9 @@ export const GetCallLogs = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
+      if (req.query.userId) {
+        userId = req.query.userId;
+      }
       let user = await db.User.findByPk(userId);
       let offset = Number(req.query.offset) || 0;
       let teamIds = await GetTeamIds(user);
