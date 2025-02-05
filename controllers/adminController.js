@@ -78,3 +78,147 @@ export async function GetUsers(req, res) {
     }
   });
 }
+
+export async function GetAffiliates(req, res) {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    let offset = Number(req.query.offset || 0) || 0;
+    // let limit = Number(req.query.limit || limit) || limit; // Default limit
+
+    if (authData) {
+      let userId = authData.user.id;
+
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      let affiliates = await db.CampaigneeModel.findAll();
+
+      return res.send({ status: true, data: affiliates });
+    }
+  });
+}
+
+export async function AddAnAffiliate(req, res) {
+  let { name, email, phone, uniqueUrl, officeHoursUrl } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    let offset = Number(req.query.offset || 0) || 0;
+    // let limit = Number(req.query.limit || limit) || limit; // Default limit
+
+    if (authData) {
+      let userId = authData.user.id;
+
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      let affiliate = await db.CampaigneeModel.create({
+        name: name,
+        email: email,
+        phone: phone,
+        status: "Active",
+        officeHoursUrl: officeHoursUrl,
+        uniqueUrl: uniqueUrl,
+      });
+
+      return res.send({
+        status: true,
+        data: affiliate,
+        message: "Affiliate created",
+      });
+    }
+  });
+}
+
+export async function DeleteAnAffiliate(req, res) {
+  let { id } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    let offset = Number(req.query.offset || 0) || 0;
+    // let limit = Number(req.query.limit || limit) || limit; // Default limit
+
+    if (authData) {
+      let userId = authData.user.id;
+
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      let affiliateDel = await db.CampaigneeModel.destroy({
+        where: {
+          id: id,
+        },
+      });
+
+      return res.send({
+        status: true,
+        data: affiliateDel,
+        message: "Affiliate deleted",
+      });
+    }
+  });
+}
