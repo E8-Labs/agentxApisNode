@@ -970,8 +970,7 @@ export const GetProfileMine = async (req, res) => {
       } catch (error) {
         console.log("Error twilio account creation ", error);
       }
-      if (created) {
-      }
+
       let resource = await UserProfileFullResource(user);
       res.send({
         status: true,
