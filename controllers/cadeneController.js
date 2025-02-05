@@ -58,9 +58,9 @@ async function getPayingUserLeadIds(user = null) {
     leadIds = leads.map((lead) => lead.id);
   }
 
-  for (let i = leadIds.length - 1; i > leadIds.length - 20; i--) {
-    console.log("Lead Id: ", leadIds[i]);
-  }
+  // for (let i = leadIds.length - 1; i > leadIds.length - 20; i--) {
+  //   console.log("Lead Id: ", leadIds[i]);
+  // }
   return leadIds;
 }
 
@@ -106,7 +106,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         },
       },
     ],
-    limit: 200,
+    limit: 1000,
   });
 
   // console.log("LEad Cad", leadCadence)
