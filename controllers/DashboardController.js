@@ -100,7 +100,7 @@ export const GetDashboardData = async (req, res) => {
       for (const call of callsInCurrentPeriod) {
         stats.totalDuration += call.duration || 0;
         stats.totalCalls += 1;
-        if (call.duration > VoiceMailDuration) stats.totalCallsGt10 += 1;
+        if (call.conversation_detected == true) stats.totalCallsGt10 += 1;
         if (call.notinterested) stats.notInterested += 1;
         if (call.hotlead) stats.hotLeads += 1;
         if (
