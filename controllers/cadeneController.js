@@ -58,7 +58,9 @@ async function getPayingUserLeadIds(user = null) {
     leadIds = leads.map((lead) => lead.id);
   }
 
-  console.log("Lead Ids ", leadIds);
+  for (let i = leadIds.length - 1; i > leadIds.length - 20; i--) {
+    console.log("Lead Id: ", leadIds[i]);
+  }
   return leadIds;
 }
 
@@ -96,12 +98,10 @@ export const CronRunCadenceCallsFirstBatch = async () => {
   }
 
   for (let i = 0; i < leadCadence.length; i++) {
-    console.log(
-      `LeadCad , ${leadCadence[i].id} : Batch=${leadCadence.batchId}`
-    );
+    let leadCad = leadCadence[i];
+    console.log(`LeadCad , ${leadCad.id} : Batch=${leadCad.batchId}`);
     WriteToFile("Iteration", i);
     try {
-      let leadCad = leadCadence[i];
       // let lead = await db.LeadModel.findOne(leadCad.leadId)
       let lead = await db.LeadModel.findByPk(leadCad.leadId);
       if (lead) {
