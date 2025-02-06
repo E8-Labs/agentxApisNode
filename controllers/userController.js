@@ -244,6 +244,7 @@ export const RegisterUser = async (req, res) => {
   let company = req.body.company;
   let projectsPerYear = req.body.projectsPerYear;
   let primaryClientType = req.body.primaryClientType; // residential, commercial, both
+  let collectionStrategies = req.body.collectionStrategies || null; // residential, commercial, both
 
   //Website owners
   let website = req.body.website;
@@ -346,6 +347,10 @@ export const RegisterUser = async (req, res) => {
     timeZone: timeZone,
     campaigneeId: campaignee?.id,
   };
+  if (collectionStrategies) {
+    userDataRegisteration.collectionStrategies =
+      JSON.stringify(collectionStrategies);
+  }
   let user = await db.User.create(userDataRegisteration);
 
   await trackLeadEvent(

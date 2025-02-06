@@ -150,6 +150,10 @@ const User = (sequelize, Sequelize) => {
       type: Sequelize.DATE,
       allowNull: true,
     },
+    collectionStrategies: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return User;

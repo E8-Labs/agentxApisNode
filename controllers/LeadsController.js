@@ -23,7 +23,7 @@ import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 
-const limit = 500;
+const limit = 100;
 /**
  * Check for stage conflicts among agents.
  * @param {Array<number>} mainAgentIds - Array of agent IDs to check.
