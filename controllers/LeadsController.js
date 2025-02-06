@@ -23,7 +23,7 @@ import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 
-const limit = 500;
+const limit = 100;
 /**
  * Check for stage conflicts among agents.
  * @param {Array<number>} mainAgentIds - Array of agent IDs to check.
@@ -1312,113 +1312,6 @@ export const GetUniqueTags = async (req, res) => {
     }
   });
 };
-
-// export const GetCallLogs = async (req, res) => {
-//   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
-//     if (authData) {
-//       let userId = authData.user.id;
-//       let offset = Number(req.query.offset) || 0;
-//       let user = await db.User.findOne({
-//         where: {
-//           id: userId,
-//         },
-//       });
-
-//       try {
-//         const { name, duration, status, startDate, endDate, stageIds } =
-//           req.query; // duration in seconds
-
-//         // Define filters
-//         const filters = {};
-
-//         if (name) {
-//           filters[Op.or] = [
-//             { "$LeadModel.firstName$": { [Op.like]: `%${name}%` } },
-//             { "$LeadModel.lastName$": { [Op.like]: `%${name}%` } },
-//           ];
-//         }
-
-//         if (duration) {
-//           const [minDuration, maxDuration] = duration.split("-");
-//           filters.duration = {
-//             [Op.gte]: parseFloat(minDuration) || 0,
-//             [Op.lte]: parseFloat(maxDuration) || Number.MAX_SAFE_INTEGER,
-//           };
-//         }
-
-//         if (status) {
-//           filters.status = { [Op.like]: `%${status}%` };
-//         }
-
-//         if (startDate && endDate) {
-//           const adjustedFromDate = new Date(startDate);
-//           adjustedFromDate.setHours(0, 0, 0, 0);
-
-//           // Set endDate to the end of the day (23:59:59.999)
-//           const adjustedToDate = new Date(endDate);
-//           adjustedToDate.setHours(23, 59, 59, 999);
-//           let dates = [adjustedFromDate, adjustedToDate];
-//           console.log("Dates ", dates);
-
-//           filters.createdAt = {
-//             [Op.between]: dates,
-//           };
-//         }
-
-//         if (stageIds) {
-//           const stagesArray = stageIds
-//             .split(",")
-//             .map((id) => parseInt(id.trim(), 10));
-//           filters.stage = { [Op.in]: stagesArray };
-//         }
-
-//         // Query to fetch call logs
-//         const callLogs = await db.LeadCallsSent.findAll({
-//           where: filters,
-//           order: [["createdAt", "DESC"]],
-//           offset: offset,
-//           limit: limit,
-//           include: [
-//             {
-//               model: db.LeadModel,
-//               as: "LeadModel",
-//               where: {
-//                 userId,
-//               },
-//             },
-//             // {
-//             //   model: db.PipelineStages,
-//             //   as: "PipelineStages",
-//             // },
-//           ],
-//         });
-
-//         let callsWithCompleteData = [];
-//         callLogs.map((call) => {
-//           if (call.leadId != null) {
-//             callsWithCompleteData.push(call);
-//           }
-//         });
-
-//         let callRes = await LeadCallResource(callsWithCompleteData);
-//         return res.status(200).json({ success: true, data: callRes });
-//       } catch (error) {
-//         console.error("Error fetching call logs:", error);
-//         return res.status(500).json({ success: false, error: "Server error" });
-//       }
-
-//       return res.send({
-//         status: true,
-//         data: leadSheets,
-//         message: "Lead Sheets List",
-//       });
-//     } else {
-//       return res.status(403).json({ success: false, error: "Unauthorized" });
-//     }
-//   });
-// };
-
-//Updated For Team
 
 export const GetCallLogs = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {

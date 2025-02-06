@@ -327,6 +327,49 @@ export const ListAvailableNumbers = async (req, res) => {
   });
 };
 
+const movePhoneNumberToMainAccount = async (
+  subAccountSid,
+  phoneSid,
+  phoneNumber
+) => {
+  try {
+    console.log(
+      `Moving phone number (SID: ${phoneSid}) from sub-account ${subAccountSid} to main account.`
+    );
+
+    // ✅ Authenticate using the Sub-Account credentials
+    const subAccountClient = twilio(
+      subAccountSid,
+      process.env.TWILIO_AUTH_TOKEN
+    );
+
+    // ✅ Step 1: Release (remove) the phone number from the sub-account
+    await subAccountClient.incomingPhoneNumbers(phoneSid).remove();
+
+    console.log(`Phone number ${phoneNumber} released from sub-account.`);
+
+    // ✅ Step 2: Authenticate using the Main Account credentials to re-purchase the number
+    const mainAccountClient = twilio(
+      process.env.TWILIO_ACCOUNT_SID,
+      process.env.TWILIO_AUTH_TOKEN
+    );
+
+    // ✅ Step 3: Re-purchase the released phone number under the main account
+    const purchasedNumber = await mainAccountClient.incomingPhoneNumbers.create(
+      { phoneNumber }
+    );
+
+    console.log(
+      `Phone number ${purchasedNumber.phoneNumber} successfully re-purchased under main account.`
+    );
+
+    return purchasedNumber;
+  } catch (error) {
+    console.error("Error transferring phone number to main account:", error);
+    throw error;
+  }
+};
+
 export const PurchasePhoneNumber = async (req, res) => {
   const { phoneNumber, mainAgentId, paymentMethodId } = req.body;
 
@@ -369,24 +412,22 @@ export const PurchasePhoneNumber = async (req, res) => {
         //   sid: `PHSID-${phoneNumber}`,
         //   phoneNumber: phoneNumber,
         // };
-        let subAccountSid = await findOrCreateTwilioSubAccount(user);
-        console.log("Using subaccount ", subAccountSid);
-        console.log("Using main auth tok ", process.env.TWILIO_AUTH_TOKEN);
+        // let subAccountSid = await findOrCreateTwilioSubAccount(user);
+        // console.log("Using subaccount ", subAccountSid);
+        // console.log("Using main auth tok ", process.env.TWILIO_AUTH_TOKEN);
         // const subAccountClient = twilio(
         //   subAccountSid,
         //   process.env.TWILIO_AUTH_TOKEN
         // );
-        // purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
-        //   phoneNumber,
-        // });
+        purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
+          phoneNumber,
+        });
 
-        purchasedNumber = await twilioClient.api
-          .accounts(subAccountSid) // 👈 Specify sub-account here
-          .incomingPhoneNumbers.create({ phoneNumber });
-        // purchasedNumber = await subAccountClient.incomingPhoneNumbers.create({
-        //   phoneNumber,
-        // });
-        // purchasedNumber = { sid: `${phoneNumber}` };
+        // purchasedNumber = await twilioClient.api
+        //   .accounts(subAccountSid) // 👈 Specify sub-account here
+        //   .incomingPhoneNumbers.create({ phoneNumber });
+
+        // purchasedNumber = { sid: `PN11baf5ec7bab815d57a4c037a1c8201d` };
         // }
 
         if (!purchasedNumber || !purchasedNumber.sid) {
@@ -423,6 +464,7 @@ export const PurchasePhoneNumber = async (req, res) => {
             message: "Failed to purchase phone number.",
           });
         }
+        // await movePhoneNumberToMainAccount(subAccountSid, purchasedNumber.sid);
 
         // Save number in database
         await db.UserPhoneNumbers.create({

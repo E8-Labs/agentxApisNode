@@ -803,6 +803,23 @@ export async function AssignLeads(
   }
 }
 
+const getLeadIdsBySheetId = async (sheetId) => {
+  try {
+    const leads = await LeadModel.findAll({
+      attributes: ["id"], // Fetch only the 'id' field
+      where: {
+        sheetId: sheetId, // Filter by sheetId
+      },
+      raw: true, // Returns plain JSON instead of Sequelize instances
+    });
+
+    return leads.map((lead) => lead.id); // Extracting only the IDs
+  } catch (error) {
+    console.error("Error fetching lead IDs:", error);
+    // throw error;
+    return [];
+  }
+};
 //Start Calling | Updated For Team
 export const AssignLeadsToPipelineAndAgents = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -814,6 +831,7 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       leadIds,
       batchSize,
       startTimeDifFromNow,
+      sheetId,
     });
     if (authData) {
       let userId = authData.user.id;
@@ -826,6 +844,10 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       let admin = await GetTeamAdminFor(user);
       user = admin;
 
+      //if select all
+      if (sheetId) {
+        leadIds = await getLeadIdsBySheetId(sheetId);
+      }
       //Get New Lead Stage of the Pipeline
       let pipeline = await AssignLeads(
         user,
