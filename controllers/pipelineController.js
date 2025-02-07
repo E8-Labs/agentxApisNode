@@ -823,8 +823,14 @@ const getLeadIdsBySheetId = async (sheetId) => {
 //Start Calling | Updated For Team
 export const AssignLeadsToPipelineAndAgents = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
-    let { pipelineId, mainAgentIds, leadIds, batchSize, startTimeDifFromNow } =
-      req.body;
+    let {
+      pipelineId,
+      mainAgentIds,
+      leadIds,
+      batchSize,
+      startTimeDifFromNow,
+      sheetId,
+    } = req.body;
     console.log("Data in assign leads", {
       pipelineId,
       mainAgentIds,
