@@ -267,11 +267,20 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
 
   return {
     totalUsers,
-    trialUsers: { count: trialUsers, percentage: trialPercentage },
+    trialUsers: {
+      count: trialUsers,
+      percentage: Number(trialPercentage).toFixed(2),
+    },
     usersOnPlans,
     activeUsers: {
-      DAU: { count: dailyActiveUsers, percentage: dauPercentage },
-      MAU: { count: monthlyActiveUsers, percentage: mauPercentage },
+      DAU: {
+        count: dailyActiveUsers,
+        percentage: Number(dauPercentage).toFixed(2),
+      },
+      MAU: {
+        count: monthlyActiveUsers,
+        percentage: Number(mauPercentage).toFixed(2),
+      },
     },
     weeklySignups,
     avgSessionDuration: `${sessionStats.avgSessionDuration}`,
@@ -280,22 +289,28 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
     topVoices,
     uniquePhoneUsers: {
       count: uniquePhoneUsers,
-      percentage: uniquePhonePercentage,
+      percentage: Number(uniquePhonePercentage).toFixed(2),
     },
     pipelineUsers: {
       count: usersWithMultiplePipelines.length,
-      percentage: pipelineUsersPercentage,
+      percentage: Number(pipelineUsersPercentage).toFixed(2),
     },
     agentUsers: {
       count: usersWithMultipleAgents.length,
-      percentage: agentUsersPercentage,
+      percentage: Number(agentUsersPercentage).toFixed(2),
     },
-    leadsUsers: { count: usersWithLeads, percentage: leadsUsersPercentage },
-    teamsUsers: { count: usersWithTeams, percentage: teamsUsersPercentage },
+    leadsUsers: {
+      count: usersWithLeads,
+      percentage: Number(leadsUsersPercentage).toFixed(2),
+    },
+    teamsUsers: {
+      count: usersWithTeams,
+      percentage: Number(teamsUsersPercentage).toFixed(2),
+    },
     avgCallsPerUser,
     calendarUsers: {
       count: usersWithCalendars,
-      percentage: calendarUsersPercentage,
+      percentage: Number(calendarUsersPercentage).toFixed(2),
     },
     callSuccessRate,
   };
