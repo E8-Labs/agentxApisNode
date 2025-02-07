@@ -23,7 +23,7 @@ const UserProfileFullResource = async (user, currentUser = null) => {
 };
 
 async function getUserData(user, currentUser = null) {
-  console.log("Type of user is ", typeof user);
+  // console.log("Type of user is ", typeof user);
   let admin = null;
   if (user.userRole == "Invitee") {
     let invite = await db.TeamModel.findOne({
