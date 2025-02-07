@@ -821,7 +821,7 @@ export async function ReChargeUserAccount(user) {
         foundPlan.type,
         true
       );
-
+      console.log("Charge ", charge);
       let historyCreated = await db.PaymentHistory.create({
         title: `${foundPlan.duration / 60} Min subscription renewed`,
         description: `${foundPlan.duration / 60} Min subscription renewed`,
