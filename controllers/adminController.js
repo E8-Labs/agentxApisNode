@@ -312,7 +312,7 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
       count: usersWithCalendars,
       percentage: Number(calendarUsersPercentage).toFixed(2),
     },
-    callSuccessRate,
+    callSuccessRate: Number(callSuccessRate).toFixed(2),
   };
 }
 
