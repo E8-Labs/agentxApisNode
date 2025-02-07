@@ -22,7 +22,7 @@ import LeadImportantCallResource from "../resources/LeadImportantCallResource.js
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
-
+import parsePhoneNumberFromString from "libphonenumber-js";
 const limit = 100;
 /**
  * Check for stage conflicts among agents.
@@ -69,6 +69,11 @@ export const checkStageConflicts = async (mainAgentIds) => {
     };
   }
 };
+
+function isValidInternationalPhoneNumber(number, countryCode = null) {
+  const phoneNumber = parsePhoneNumberFromString(number, countryCode);
+  return phoneNumber ? phoneNumber.isValid() : false;
+}
 
 //Updated For Team
 export const AddLeads = async (req, res) => {
@@ -144,7 +149,7 @@ export const AddLeads = async (req, res) => {
               nameParts.length > 1 ? nameParts.slice(1).join(" ") : "";
           }
         } else {
-          console.log("No full name");
+          // console.log("No full name");
         }
         if (
           typeof lead.firstName == "undefined" ||
@@ -152,18 +157,18 @@ export const AddLeads = async (req, res) => {
           typeof lead.phone == "undefined" ||
           lead.phone == null
         ) {
-          console.log("Lead not created ", lead);
+          // console.log("Lead not created ", lead);
         } else {
-          console.log("LeadPhone", lead.phone);
+          // console.log("LeadPhone", lead.phone);
           if (
             typeof lead.lastName == "undefined" ||
             lead.lastName == null ||
             lead.lastName == ""
           ) {
             //try to parse from first name
-            console.log(
-              "No last name. Checking if first name has the last name"
-            );
+            // console.log(
+            //   "No last name. Checking if first name has the last name"
+            // );
             let parts = lead.firstName.trim().split(" ");
             if (parts.length > 1) {
               lead.firstName = parts[0];
@@ -176,21 +181,25 @@ export const AddLeads = async (req, res) => {
           // lead.phone = lead.phone.replace(")", "");
           lead.phone = String(lead.phone).replace(/[ \-\(\)]/g, "");
           if (!lead.phone.startsWith("1") && !lead.phone.startsWith("+")) {
-            console.log("Phone doesn't start with 1");
+            // console.log("Phone doesn't start with 1");
             lead.phone = "+1" + lead.phone;
           }
           if (!lead.phone.startsWith("+") && lead.phone.startsWith("1")) {
-            console.log("Phone Not starts with +1");
+            // console.log("Phone Not starts with +1");
             lead.phone = "+" + lead.phone;
           }
           console.log(lead);
 
           if (
-            lead.phone.length == 11 ||
-            (lead.phone.length == 12 && lead.phone.startsWith("+"))
+            isValidInternationalPhoneNumber(lead.phone)
+            // lead.phone.length == 11 ||
+            // (lead.phone.length == 12 && lead.phone.startsWith("+"))
           ) {
             // only push the lead if the number is valid
             try {
+              if (lead.lastName == null) {
+                lead.lastName = "";
+              }
               let createdLead = await db.LeadModel.create({
                 ...lead,
                 extraColumns: JSON.stringify(extraColumns),
@@ -209,6 +218,8 @@ export const AddLeads = async (req, res) => {
             } catch (error) {
               console.log("Error adding one lead", error);
             }
+          } else {
+            console.log("Invalid phone ", lead.firstName);
           }
           // if (!lead.phone.startsWith("+") && lead.phone.startsWith("1")) {
           // }
