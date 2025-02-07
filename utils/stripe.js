@@ -437,7 +437,7 @@ async function TryAndChargePayment(
               // Already have history of one charge
               let lastChargedPlan = history[0];
               if (lastChargedPlan.type == PayAsYouGoPlanTypes.Plan30Min) {
-                console.log("Last plan type is Plan30 so sending not");
+                // console.log("Last plan type is Plan30 so sending not");
                 //send the noti
                 SendUpgradeSuggestionNotification(user);
               }

@@ -30,7 +30,7 @@ export async function CheckAndSend7DaysInactivityNotifications() {
       },
     });
     if (!plan) {
-      console.log("User don't have active plan ", u.id);
+      // console.log("User don't have active plan ", u.id);
       //   return;
     } else {
       let agents = await db.MainAgentModel.findAll({
@@ -52,7 +52,7 @@ export async function CheckAndSend7DaysInactivityNotifications() {
           },
         },
       });
-      console.log(`Calls made by ${u.id} are ${callsMadeInLast7Days.length}`);
+      // console.log(`Calls made by ${u.id} are ${callsMadeInLast7Days.length}`);
       if (callsMadeInLast7Days.length > 0) {
         continue;
       }
@@ -112,7 +112,7 @@ async function getDaysSinceLastCall(userId) {
     });
 
     if (!user) {
-      console.log(`No user found with userId: ${userId}`);
+      // console.log(`No user found with userId: ${userId}`);
       return 0;
     }
 
@@ -139,7 +139,7 @@ async function getDaysSinceLastCall(userId) {
     // Calculate the days since the last call or since account creation
     if (lastCall) {
       const daysSinceLastCall = lastCall.dataValues.daysSinceLastCall;
-      console.log(`Days since last call: ${daysSinceLastCall}`);
+      // console.log(`Days since last call: ${daysSinceLastCall}`);
       return daysSinceLastCall;
     } else {
       const accountCreationDate = user.createdAt;
@@ -147,9 +147,9 @@ async function getDaysSinceLastCall(userId) {
       const daysSinceAccountCreation = Math.floor(
         (now - new Date(accountCreationDate)) / (1000 * 60 * 60 * 24)
       );
-      console.log(
-        `No calls found. Days since account creation: ${daysSinceAccountCreation} for user ${userId}`
-      );
+      // console.log(
+      //   `No calls found. Days since account creation: ${daysSinceAccountCreation} for user ${userId}`
+      // );
       return daysSinceAccountCreation;
     }
   } catch (error) {

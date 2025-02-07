@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 export const calculateDifferenceInMinutes = (dateString) => {
   // Parse the stored date
-  console.log("Calculating diff with ", dateString);
+  // console.log("Calculating diff with ", dateString);
   const storedDateTime = new Date(dateString);
 
   // Get the current date/time

@@ -7,7 +7,7 @@ import { AddNotification } from "../controllers/NotificationController.js";
 
 export async function SendNotificationsForNoCalls5Days(user) {
   const HoursIn5Days = 120;
-  console.log("Sending No Calls Not to ", user.id);
+  // console.log("Sending No Calls Not to ", user.id);
   try {
     let ids = [];
     let agents = await db.AgentModel.findAll({
@@ -26,7 +26,7 @@ export async function SendNotificationsForNoCalls5Days(user) {
     // Check user's account creation date
     const userCreatedAt = new Date(user.createdAt);
 
-    console.log("Sending no calls to", user.id);
+    // console.log("Sending no calls to", user.id);
 
     let totalCalls = await db.LeadCallsSent.count({
       where: {
@@ -40,10 +40,10 @@ export async function SendNotificationsForNoCalls5Days(user) {
     });
 
     if (totalCalls == 0) {
-      console.log("Total calls were 0 576 line");
+      // console.log("Total calls were 0 576 line");
 
       if (userCreatedAt < last5Days) {
-        console.log("User account was created before 120 horus ", user.id);
+        // console.log("User account was created before 120 horus ", user.id);
         // if userCreatedAt was before 72Hours ago
 
         //check last NoCallNotification
@@ -110,7 +110,7 @@ export async function SendNotificationsForNoCalls5Days(user) {
 
 export async function SendFeedbackNotificationsAfter14Days(user) {
   const HoursIn5Days = 14 * 24; // hours in 14 days
-  console.log("Sending No Calls Not to ", user.id);
+  // console.log("Sending No Calls Not to ", user.id);
   try {
     const last5Days = new Date();
     last5Days.setHours(last5Days.getHours() - HoursIn5Days);
@@ -118,7 +118,7 @@ export async function SendFeedbackNotificationsAfter14Days(user) {
     // Check user's account creation date
     const userCreatedAt = new Date(user.createdAt);
 
-    console.log("Sending no calls to", user.id);
+    // console.log("Sending no calls to", user.id);
 
     let not = await db.NotificationModel.findOne({
       where: {

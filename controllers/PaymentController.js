@@ -906,7 +906,7 @@ export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
   let u = user;
 
   if (!user.isTrial) {
-    console.log("User is not on trial ", user.id);
+    // console.log("User is not on trial ", user.id);
     return;
   }
 
@@ -917,7 +917,7 @@ export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
   let timeDifference = now - createdAt;
 
   //If 7 days have passed
-  console.log("Checking If Trial have passed", user.id);
+  // console.log("Checking If Trial have passed", user.id);
   if (timeDifference > 7 * 24 * 60 * 60 * 1000) {
     console.log("Yes  Trial have passed", u.id);
     console.log("More than 7 days have passed and still on trial");
@@ -929,7 +929,7 @@ export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
 
     return;
   } else {
-    console.log("No  Trial have not passed", u.id);
+    // console.log("No  Trial have not passed", u.id);
   }
 }
 //Cron
