@@ -785,8 +785,8 @@ export const RedeemAbortCancellationReward = async (req, res) => {
 };
 
 export async function ReChargeUserAccount(user) {
-  console.log("Charge user here ", user.id);
-  console.log("Total Seconds less than ", user.totalSecondsAvailable);
+  // console.log("Charge user here ", user.id);
+  // console.log("Total Seconds less than ", user.totalSecondsAvailable);
 
   let lastPlan = await db.PlanHistory.findOne({
     where: {
@@ -804,15 +804,15 @@ export async function ReChargeUserAccount(user) {
 
   //Check the plan reach date
   let nextChargeDate = new Date(user.nextChargeDate);
-  console.log("Next charge date", user.nextChargeDate);
-  console.log("Current date", now);
+  // console.log("Next charge date", user.nextChargeDate);
+  // console.log("Current date", now);
 
   let isTrialActive = await IsTrialActive(user);
   if (nextChargeDate < now) {
     //charge date has reached
-    console.log("Subscription charge date has reached");
+    // console.log("Subscription charge date has reached");
     if (lastPlan && lastPlan.status == "active") {
-      console.log("Charging user");
+      // console.log("Charging user");
       let foundPlan = FindPlanWithtype(lastPlan.type);
       let charge = await chargeUser(
         user.id,
@@ -834,10 +834,10 @@ export async function ReChargeUserAccount(user) {
       let dateAfter30Days = new Date();
       dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
       user.nextChargeDate = dateAfter30Days;
-      console.log(
-        "SubscribeFunc: Receiving user seconds Before ",
-        user.totalSecondsAvailable
-      );
+      // console.log(
+      //   "SubscribeFunc: Receiving user seconds Before ",
+      //   user.totalSecondsAvailable
+      // );
       user.totalSecondsAvailable += foundPlan.duration;
       await user.save();
     }
@@ -846,19 +846,19 @@ export async function ReChargeUserAccount(user) {
     (user.totalSecondsAvailable <= constants.MinThresholdSeconds ||
       (user.isTrial && timeDifference > 7 * 24 * 60 * 60 * 1000))
   ) {
-    console.log(
-      "user have an active plan and has less than 120 sec: So charge him"
-    );
-    console.log("There is a last plan", user.id);
+    // console.log(
+    //   "user have an active plan and has less than 120 sec: So charge him"
+    // );
+    // console.log("There is a last plan", user.id);
     let foundPlan = null;
-    console.log(PayAsYouGoPlans);
+    // console.log(PayAsYouGoPlans);
     PayAsYouGoPlans.map((p) => {
       if (p.type == lastPlan.type) {
         foundPlan = p;
       }
     });
-    console.log("Found plan for ", user.id);
-    console.log(foundPlan);
+    // console.log("Found plan for ", user.id);
+    // console.log(foundPlan);
 
     let price = foundPlan.price * 100; //cents
     let charge = await chargeUser(
@@ -870,7 +870,7 @@ export async function ReChargeUserAccount(user) {
     user = await db.User.findByPk(user.id);
     // console.log("Charge ", charge);
     if (charge && charge.status) {
-      console.log("Charged for plan ", foundPlan);
+      // console.log("Charged for plan ", foundPlan);
       let historyCreated = await db.PaymentHistory.create({
         title: GetTitleForPlan(foundPlan), //`Payment for ${foundPlan.type}`,
         description: `Payment for ${foundPlan.type}`,
@@ -892,10 +892,10 @@ export async function ReChargeUserAccount(user) {
     }
     return null;
   } else {
-    console.log("Nothing to charge", user.id);
-    console.log(
-      "So Check try to remove his free minutes from trial if 7 days have passed"
-    );
+    // console.log("Nothing to charge", user.id);
+    // console.log(
+    //   "So Check try to remove his free minutes from trial if 7 days have passed"
+    // );
     await RemoveTrialMinutesIf7DaysPassedAndNotCharged(user);
 
     return null;
@@ -936,15 +936,19 @@ export async function RemoveTrialMinutesIf7DaysPassedAndNotCharged(user) {
 export async function RechargeFunction() {
   console.log("Cron Cancel plan or rechrage");
   // Correctly subtract 7 days from the current date
-  let users = await db.User.findAll();
-  console.log("Total users ", users.length);
+  let users = await db.User.findAll({
+    where: {
+      userRole: "AgentX",
+    },
+  });
+  // console.log("Total users ", users.length);
   // return;
   if (users && users.length > 0) {
     for (const u of users) {
       try {
-        console.log("------------------------------------------\n\n");
+        // console.log("------------------------------------------\n\n");
         await ReChargeUserAccount(u);
-        console.log("\n\n------------------------------------------\n");
+        // console.log("\n\n------------------------------------------\n");
       } catch (error) {
         console.log(error);
         console.log("error rechargign or cancelling trial");
