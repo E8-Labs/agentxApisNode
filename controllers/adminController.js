@@ -239,6 +239,32 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
       ? ((totalCallsMade - failedCalls) / totalCallsMade) * 100
       : 0;
 
+  // Fetch top voices while excluding null values
+  const voiceCounts = await db.AgentModel.findAll({
+    attributes: [
+      "voiceId",
+      [db.Sequelize.fn("COUNT", db.Sequelize.col("userId")), "count"],
+    ],
+    where: {
+      voiceId: { [db.Sequelize.Op.ne]: null }, // Exclude null voiceId
+    },
+    group: ["voiceId"],
+    order: [[db.Sequelize.literal("count"), "DESC"]],
+    limit: 3,
+  });
+
+  const totalUsersWithVoice = await db.AgentModel.count({
+    where: { voiceId: { [db.Sequelize.Op.ne]: null } }, // Count only users with a voice assigned
+  });
+
+  const topVoices = voiceCounts.map((voice) => ({
+    voiceId: voice.voiceId,
+    count: voice.dataValues.count,
+    percentage: ((voice.dataValues.count / totalUsersWithVoice) * 100).toFixed(
+      2
+    ),
+  }));
+
   return {
     totalUsers,
     trialUsers: { count: trialUsers, percentage: trialPercentage },
