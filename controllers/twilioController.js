@@ -329,12 +329,9 @@ export const ListAvailableNumbers = async (req, res) => {
 
 export async function TransferNumber(req, res) {
   try {
-    let subAccount = twilio(
-      "AC64f50ee10b70a252f7a764ffed61b064",
-      process.env.TWILIO_AUTH_TOKEN
-    );
+    let subAccount = twilio("", process.env.TWILIO_AUTH_TOKEN);
     let phoneNumber = await subAccount
-      .incomingPhoneNumbers("PN6a7d2f95d5e9a41ee58c3ea061a93e06")
+      .incomingPhoneNumbers("")
       .update({ accountSid: process.env.TWILIO_ACCOUNT_SID }); // 👈 Transfer back to the main account
     console.log(
       `Number transferred back to main account: ${phoneNumber.friendlyName}`
