@@ -1355,6 +1355,29 @@ export const UpdateAgent = async (req, res) => {
           mainAgentId: mainAgentId,
         },
       });
+      if (req.body.name) {
+        await db.MainAgentModel.update(
+          {
+            name: req.body.name,
+          },
+          {
+            where: {
+              id: mainAgentId,
+            },
+          }
+        );
+
+        await db.AgentModel.update(
+          {
+            name: req.body.name,
+          },
+          {
+            where: {
+              mainAgentId: mainAgentId,
+            },
+          }
+        );
+      }
 
       if (req.body.voiceId) {
         let updated = await db.AgentModel.update(
