@@ -307,7 +307,7 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
       count: usersWithTeams,
       percentage: Number(teamsUsersPercentage).toFixed(2),
     },
-    avgCallsPerUser,
+    avgCallsPerUser: Number(avgCallsPerUser).toFixed(2),
     calendarUsers: {
       count: usersWithCalendars,
       percentage: Number(calendarUsersPercentage).toFixed(2),
