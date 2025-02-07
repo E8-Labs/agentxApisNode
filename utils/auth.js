@@ -72,7 +72,7 @@ export async function IsTrialActive(user) {
   let now = new Date();
   let timeDifference = now - trialStartDate;
   let isTrial = user.isTrial && timeDifference < 7 * 24 * 60 * 60 * 1000;
-  console.log("Is user on trial", isTrial);
+  // console.log("Is user on trial", isTrial);
   return isTrial;
 }
 export const detectDevice = (req) => {
