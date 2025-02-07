@@ -8,6 +8,7 @@ const __dirname = path.dirname(__filename);
 const lockFilePath = path.join(__dirname, "/Files/lockfile.txt");
 
 export async function WriteToFile(string, string2 = null) {
+  // return
   if (string2) {
     string += " " + string2;
   }

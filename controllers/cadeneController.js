@@ -68,7 +68,7 @@ async function getPayingUserLeadIds(user = null) {
 export const CronRunCadenceCallsFirstBatch = async () => {
   //Find Cadences to run for leads in the initial State (New Lead)
   //Step-1 Find all leadCadences which are not completed. All leads which are pending should be pushed
-  WriteToFile("Running cron CronRunCadenceCallsFirstBatch");
+  // WriteToFile("Running cron CronRunCadenceCallsFirstBatch");
   //Verify batch size limit is not reached
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0); // Set to start of the day
@@ -112,17 +112,17 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 
   // console.log("LEad Cad", leadCadence)
 
-  WriteToFile(`Found ${leadCadence.length} leads to start batch calls`);
+  // WriteToFile(`Found ${leadCadence.length} leads to start batch calls`);
   // return;
   if (leadCadence.length == 0) {
-    WriteToFile(`FirstBatch: Found No new leads to start batch calls today`);
+    // WriteToFile(`FirstBatch: Found No new leads to start batch calls today`);
     return;
   }
 
   for (let i = 0; i < leadCadence.length; i++) {
     let leadCad = leadCadence[i];
     console.log(`LeadCad , ${leadCad.id} : Batch=${leadCad.batchId}`);
-    WriteToFile("Iteration", i);
+    // WriteToFile("Iteration", i);
     try {
       // let lead = await db.LeadModel.findOne(leadCad.leadId)
       let lead = await db.LeadModel.findByPk(leadCad.leadId);
@@ -146,13 +146,13 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           },
         });
 
-        WriteToFile(
-          user.id + `lead ${lead.id} Current ongoing calls `,
-          calls.length
-        );
+        // WriteToFile(
+        //   user.id + `lead ${lead.id} Current ongoing calls `,
+        //   calls.length
+        // );
         //avg call time 3 min
         if (user.totalSecondsAvailable < calls.length * AvgCallTimeSeconds) {
-          WriteToFile("Wait for current ongoing calls then place next.");
+          // WriteToFile("Wait for current ongoing calls then place next.");
           continue; //to the next call & don't place further calls for this user
         }
         // if(user.totalSecondsAvailable)
@@ -167,16 +167,16 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 
       if (dbDate.getTime() >= currentDate.getTime()) {
         // console.log("The database date is greater than or equal to the current date.");
-        WriteToFile(
-          `This cadence batch start time is in future,
-          ${dbDate.getTime()}`
-        );
-        WriteToFile(`Current Date , ${currentDate.getTime()}`);
+        // WriteToFile(
+        //   `This cadence batch start time is in future,
+        //   ${dbDate.getTime()}`
+        // );
+        // WriteToFile(`Current Date , ${currentDate.getTime()}`);
         continue;
       }
-      WriteToFile(`Calling Batch Status ", ${batch?.status}`);
+      // WriteToFile(`Calling Batch Status ", ${batch?.status}`);
       if (batch?.status != BatchStatus.Active) {
-        WriteToFile(`Cadence is paused for this batch", ${batch?.id}`);
+        // WriteToFile(`Cadence is paused for this batch", ${batch?.id}`);
         continue;
       }
       //Check calls sent for this batch
@@ -188,24 +188,24 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           batchId: leadCad.batchId,
         },
       });
-      WriteToFile(
-        `${leadCad.batchId} Batch ${batch.batchSize} Calls: ${count}`
-      );
+      // WriteToFile(
+      //   `${leadCad.batchId} Batch ${batch.batchSize} Calls: ${count}`
+      // );
       if (count >= batch?.batchSize) {
-        WriteToFile("Batch size limit reached so will push calls tomorrow");
+        // WriteToFile("Batch size limit reached so will push calls tomorrow");
         continue;
       } else {
       }
-      WriteToFile(`Here 1`);
+      // WriteToFile(`Here 1`);
       let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
 
-      WriteToFile(`Finding agent for ", ${leadCad.mainAgentId}`);
+      // WriteToFile(`Finding agent for ", ${leadCad.mainAgentId}`);
       let mainAgent = await db.MainAgentModel.findByPk(leadCad.mainAgentId);
       // console.log("Main Agent", mainAgent);
       let pipelineStageForLead = await db.PipelineStages.findByPk(lead.stage);
-      WriteToFile(
-        `Found Lead ${lead?.firstName} at stage ${pipelineStageForLead?.stageTitle} in Pipeline ${pipeline?.title} Assigned to ${mainAgent?.name}`
-      );
+      // WriteToFile(
+      //   `Found Lead ${lead?.firstName} at stage ${pipelineStageForLead?.stageTitle} in Pipeline ${pipeline?.title} Assigned to ${mainAgent?.name}`
+      // );
       // console.log("###############################################################################################################\n")
       //Since this would be the first stage lead, no calls have been sent to him as of now. We will not check
       //for last call time and wait for that amount of time
@@ -219,14 +219,14 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       });
 
       if (!cadence) {
-        WriteToFile(
-          `No Cadence Found for  agent ${mainAgent.id} at stage ${lead.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
-        );
+        // WriteToFile(
+        //   `No Cadence Found for  agent ${mainAgent.id} at stage ${lead.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
+        // );
         continue;
       }
-      WriteToFile(
-        `Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${leadCad.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
-      );
+      // WriteToFile(
+      //   `Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${leadCad.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
+      // );
       //Get Call Schedule for the lead Stage
       let callCadence = await db.CadenceCalls.findAll({
         where: {
@@ -234,7 +234,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         },
       });
 
-      WriteToFile(`Found schedule", ${callCadence.length}`);
+      // WriteToFile(`Found schedule", ${callCadence.length}`);
 
       //decide should we send call or not?
       //If initial call then check when the leadCadence was created and find the difference between lead cadence creation & Now.
@@ -255,9 +255,9 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           //Don't send anymore calls and set the status to Started. This happened because of an error
           continue;
         }
-        WriteToFile(`Calls sent to this lead ", ${calls.length}`);
+        // WriteToFile(`Calls sent to this lead ", ${calls.length}`);
         //Get the next call from callCadence to be sent
-        WriteToFile("Next call to be sent is ", calls.length + 1);
+        // WriteToFile("Next call to be sent is ", calls.length + 1);
         let lastCall = calls[calls.length - 1];
         let nextCadenceCall = callCadence[calls.length];
 
@@ -265,10 +265,10 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
           Number(nextCadenceCall.waitTimeHours) * 60 +
           Number(nextCadenceCall.waitTimeMinutes);
-        WriteToFile(`Total wait time for next call  ${waitTime} min`);
+        // WriteToFile(`Total wait time for next call  ${waitTime} min`);
 
         let diff = calculateDifferenceInMinutes(lastCall.createdAt); // in minutes
-        WriteToFile(`Diff is ${diff}`);
+        // WriteToFile(`Diff is ${diff}`);
         let agent = await db.AgentModel.findOne({
           where: {
             mainAgentId: leadCad.mainAgentId,
@@ -276,7 +276,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           },
         });
         if (diff * 60 >= waitTime * 60 - 10) {
-          WriteToFile("Next call should be placed as wait time is over");
+          // WriteToFile("Next call should be placed as wait time is over");
           try {
             //check the call tries for this leadCadence for this stage
             let tries = await db.LeadCallTriesModel.count({
@@ -287,9 +287,9 @@ export const CronRunCadenceCallsFirstBatch = async () => {
                 status: "error",
               },
             });
-            WriteToFile(
-              `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
-            );
+            // WriteToFile(
+            //   `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
+            // );
 
             if (tries < 3) {
               let called = await MakeACall(leadCad, simulate, calls, batch.id);
@@ -304,13 +304,13 @@ export const CronRunCadenceCallsFirstBatch = async () => {
             //if you want to simulate
             //let called = await MakeACall(leadCad, true, calls);
           } catch (error) {
-            WriteToFile(`Error Sending Call , ${error}`);
+            // WriteToFile(`Error Sending Call , ${error}`);
           }
         } else {
-          WriteToFile("Difference is small so next call can not be placed");
+          // WriteToFile("Difference is small so next call can not be placed");
         }
       } else {
-        WriteToFile("No call already sent");
+        // WriteToFile("No call already sent");
 
         //send call after checking whether the first call wait time is already passed
         //calculate time with initial leadCadence creation and now.
@@ -329,12 +329,12 @@ export const CronRunCadenceCallsFirstBatch = async () => {
               status: "error",
             },
           });
-          WriteToFile(
-            `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
-          );
+          // WriteToFile(
+          //   `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
+          // );
           if (tries < 3) {
             let called = await MakeACall(leadCad, simulate, calls, batch.id);
-            WriteToFile("First Call initiated");
+            // WriteToFile("First Call initiated");
             if (called.status) {
               //set the lead cadence status to Started so that next time it don't get pushed to the funnel
               // leadCad.callTriggerTime = new Date();
@@ -375,9 +375,9 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 };
 
 export const CronRunCadenceCallsSubsequentStages = async () => {
-  WriteToFile(
-    "CronRunCadenceCallsSubsequentStages: Running cron CronRunCadenceCallsSubsequentStages"
-  );
+  // WriteToFile(
+  //   "CronRunCadenceCallsSubsequentStages: Running cron CronRunCadenceCallsSubsequentStages"
+  // );
   //Find Cadences to run for leads in the initial State (New Lead)
   //Step-1 Find all leadCadences which are not completed. All leads which are Started should be pushed
   const leadIds = await getPayingUserLeadIds(); //only fetch those users, whose minutes are above 2 min threshold
@@ -415,9 +415,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
   let newLeads = [];
 
   for (const l of leadCadence) {
-    WriteToFile(
-      `CronRunCadenceCallsSubsequentStages:Lead Cad Line 270 , ${l.id}`
-    );
+    // WriteToFile(
+    //   `CronRunCadenceCallsSubsequentStages:Lead Cad Line 270 , ${l.id}`
+    // );
     let mainAgentId = l.mainAgentId;
     //check if this agent isa ctive in lead's current stage
     let lead = await db.LeadModel.findByPk(l.leadId);
@@ -441,14 +441,14 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         },
       });
 
-      WriteToFile(
-        user.id +
-          `lead ${lead.id} Current ongoing calls ,
-        ${calls.length}`
-      );
+      // WriteToFile(
+      //   user.id +
+      //     `lead ${lead.id} Current ongoing calls ,
+      //   ${calls.length}`
+      // );
       //avg call time 3 min
       if (user.totalSecondsAvailable < calls.length * AvgCallTimeSeconds) {
-        WriteToFile("Wait for current ongoing calls then place next.");
+        // WriteToFile("Wait for current ongoing calls then place next.");
         continue; //to the next call & don't place further calls for this user
       }
       // if(user.totalSecondsAvailable)
@@ -463,49 +463,49 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       },
     });
     if (pCad) {
-      WriteToFile(
-        `CronRunCadenceCallsSubsequentStages:Pipe Cad Line 283 ",
-        ${pCad.id}`
-      );
-      WriteToFile(
-        "CronRunCadenceCallsSubsequentStages:This leadCad has active cadence rn"
-      );
+      // WriteToFile(
+      //   `CronRunCadenceCallsSubsequentStages:Pipe Cad Line 283 ",
+      //   ${pCad.id}`
+      // );
+      // WriteToFile(
+      //   "CronRunCadenceCallsSubsequentStages:This leadCad has active cadence rn"
+      // );
       newLeads.push(l);
     }
   }
 
-  WriteToFile(
-    `CronRunCadenceCallsSubsequentStages: Before Filter Found ${leadCadence.length} leads to start subsequent calls`
-  );
+  // WriteToFile(
+  //   `CronRunCadenceCallsSubsequentStages: Before Filter Found ${leadCadence.length} leads to start subsequent calls`
+  // );
   leadCadence = newLeads;
-  WriteToFile(
-    `CronRunCadenceCallsSubsequentStages: After Filter Found ${leadCadence.length} leads to start subsequent calls`
-  );
+  // WriteToFile(
+  //   `CronRunCadenceCallsSubsequentStages: After Filter Found ${leadCadence.length} leads to start subsequent calls`
+  // );
   // return;
   if (leadCadence.length == 0) {
-    WriteToFile(
-      `CronRunCadenceCallsSubsequentStages: Found No new leads to start subsequent calls today`
-    );
+    // WriteToFile(
+    //   `CronRunCadenceCallsSubsequentStages: Found No new leads to start subsequent calls today`
+    // );
     return;
   } else {
     console.log("CronRunCadenceCallsSubsequentStages:Leads found ");
     leadCadence.map((item) => {
-      WriteToFile(
-        `CronRunCadenceCallsSubsequentStages:Lead ID ", ${item.leadId}`
-      );
-      WriteToFile(`CronRunCadenceCallsSubsequentStages:Cad ID ", ${item.id}`);
-      WriteToFile(
-        `CronRunCadenceCallsSubsequentStages:Batch ID ",
-        ${item.batchId}`
-      );
+      // WriteToFile(
+      //   `CronRunCadenceCallsSubsequentStages:Lead ID ", ${item.leadId}`
+      // );
+      // WriteToFile(`CronRunCadenceCallsSubsequentStages:Cad ID ", ${item.id}`);
+      // WriteToFile(
+      //   `CronRunCadenceCallsSubsequentStages:Batch ID ",
+      //   ${item.batchId}`
+      // );
     });
   }
 
   for (let i = 0; i < leadCadence.length; i++) {
     try {
-      console.log(
-        `CronRunCadenceCallsSubsequentStages:______________________ Iteration ${i} Start ______________________`
-      );
+      // console.log(
+      //   `CronRunCadenceCallsSubsequentStages:______________________ Iteration ${i} Start ______________________`
+      // );
       let leadCad = leadCadence[i];
       let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
       let lead = await db.LeadModel.findByPk(leadCad.leadId);
@@ -520,38 +520,38 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       //for last call time and wait for that amount of time
 
       let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
-      WriteToFile(
-        `Trying to find batch start time for leadCad", ${leadCad.id}`
-      );
+      // WriteToFile(
+      //   `Trying to find batch start time for leadCad", ${leadCad.id}`
+      // );
       const dbDate = new Date(batch.startTime); // Date from the database
       const currentDate = new Date(); // Current date and time
 
-      WriteToFile(
-        `CronRunCadenceCallsSubsequentStages:Batch Start Time ${batch.id} ,
-        ${dbDate.getTime()}`
-      );
-      WriteToFile(
-        `CronRunCadenceCallsSubsequentStages:Current Time ",
-        ${currentDate.getTime()}`
-      );
+      // WriteToFile(
+      //   `CronRunCadenceCallsSubsequentStages:Batch Start Time ${batch.id} ,
+      //   ${dbDate.getTime()}`
+      // );
+      // WriteToFile(
+      //   `CronRunCadenceCallsSubsequentStages:Current Time ",
+      //   ${currentDate.getTime()}`
+      // );
       if (dbDate.getTime() >= currentDate.getTime()) {
         // console.log("The database date is greater than or equal to the current date.");
-        WriteToFile(
-          `CronRunCadenceCallsSubsequentStages:This cadence ${batch.id} batch start time is in future`,
-          dbDate.getTime()
-        );
-        WriteToFile(
-          "CronRunCadenceCallsSubsequentStages:Current Date ",
-          currentDate.getTime()
-        );
+        // WriteToFile(
+        //   `CronRunCadenceCallsSubsequentStages:This cadence ${batch.id} batch start time is in future`,
+        //   dbDate.getTime()
+        // );
+        // WriteToFile(
+        //   "CronRunCadenceCallsSubsequentStages:Current Date ",
+        //   currentDate.getTime()
+        // );
         continue;
       }
 
       if (batch.status != BatchStatus.Active) {
-        WriteToFile(
-          "CronRunCadenceCallsSubsequentStages: Cadence is paused for this batch",
-          batch.id
-        );
+        // WriteToFile(
+        //   "CronRunCadenceCallsSubsequentStages: Cadence is paused for this batch",
+        //   batch.id
+        // );
         continue;
       }
 
@@ -563,14 +563,14 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         },
       });
       if (!cadence) {
-        WriteToFile(
-          `CronRunCadenceCallsSubsequentStages: Cadence have no active leads ${leadCad.mainAgentId} | ${lead.stage} | ${leadCad.pipelineId}`
-        );
+        // WriteToFile(
+        //   `CronRunCadenceCallsSubsequentStages: Cadence have no active leads ${leadCad.mainAgentId} | ${lead.stage} | ${leadCad.pipelineId}`
+        // );
         // return;
       } else {
-        WriteToFile(
-          `CronRunCadenceCallsSubsequentStages:Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${lead.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
-        );
+        // WriteToFile(
+        //   `CronRunCadenceCallsSubsequentStages:Found Cadence ${cadence.id} for  agent ${mainAgent.id} at stage ${lead.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
+        // );
 
         // continue;
         //Get Call Schedule for the lead Stage
@@ -580,10 +580,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           },
         });
 
-        WriteToFile(
-          "CronRunCadenceCallsSubsequentStages: Found schedule",
-          callCadence.length
-        );
+        // WriteToFile(
+        //   "CronRunCadenceCallsSubsequentStages: Found schedule",
+        //   callCadence.length
+        // );
 
         //decide should we send call or not?
         //If initial call then check when the leadCadence was created and find the difference between lead cadence creation & Now.
@@ -597,21 +597,21 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           },
           order: [["createdAt", "ASC"]],
         });
-        WriteToFile(
-          `CronRunCadenceCallsSubsequentStages:Calls for ${leadCad.id} at stage ${lead.stage}`,
-          calls.length
-        );
+        // WriteToFile(
+        //   `CronRunCadenceCallsSubsequentStages:Calls for ${leadCad.id} at stage ${lead.stage}`,
+        //   calls.length
+        // );
 
         if (calls && calls.length > 0) {
           let lastCall = calls[calls.length - 1];
-          WriteToFile(
-            "CronRunCadenceCallsSubsequentStages: Calls sent to this lead ",
-            calls.length
-          );
+          // WriteToFile(
+          //   "CronRunCadenceCallsSubsequentStages: Calls sent to this lead ",
+          //   calls.length
+          // );
           if (lastCall.status == null || lastCall.duration == null) {
-            WriteToFile(
-              "CronRunCadenceCallsSubsequentStages:Last call is not complete so not placing next call"
-            );
+            // WriteToFile(
+            //   "CronRunCadenceCallsSubsequentStages:Last call is not complete so not placing next call"
+            // );
             continue;
           }
           //
@@ -627,10 +627,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             //but didn't move the lead to any stage so should call again
             if (lead.stage != lastCall.stage) {
               //last call moved the lead to new stage
-              WriteToFile(
-                "CronRunCadenceCallsSubsequentStages:last call moved the lead to new stage",
-                lastCall.movedToStage
-              );
+              // WriteToFile(
+              //   "CronRunCadenceCallsSubsequentStages:last call moved the lead to new stage",
+              //   lastCall.movedToStage
+              // );
             }
             if (lastCall.movedToStage == null) {
             }
@@ -638,10 +638,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             else if (lastCall.movedToStage != null) {
             }
           } else if (!callsStatusesToRecall.includes(lastCall.status)) {
-            WriteToFile(
-              "CronRunCadenceCallsSubsequentStages:Last call completed with status",
-              lastCall.status
-            );
+            // WriteToFile(
+            //   "CronRunCadenceCallsSubsequentStages:Last call completed with status",
+            //   lastCall.status
+            // );
             // console.log("So recalling")
             continue;
           }
@@ -650,7 +650,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           //   "Last call completed with one of these statuses",
           //   callsStatusesToRecall
           // );
-          WriteToFile("CronRunCadenceCallsSubsequentStages:So recalling");
+          // WriteToFile("CronRunCadenceCallsSubsequentStages:So recalling");
           //Check the calls on this stage and see how many are sent on the current stage lead is at
           let callsOnThisStage = await db.LeadCallsSent.findAll({
             where: {
@@ -658,23 +658,23 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               stage: lead.stage,
             },
           });
-          WriteToFile(
-            `CronRunCadenceCallsSubsequentStages:Total Cals ",
-            ${calls.length}`
-          );
-          WriteToFile(
-            `CronRunCadenceCallsSubsequentStages:Calls on ${lead.stage} ${callsOnThisStage.length}`
-          );
+          // WriteToFile(
+          //   `CronRunCadenceCallsSubsequentStages:Total Cals ",
+          //   ${calls.length}`
+          // );
+          // WriteToFile(
+          //   `CronRunCadenceCallsSubsequentStages:Calls on ${lead.stage} ${callsOnThisStage.length}`
+          // );
           if (callsOnThisStage.length == callCadence.length) {
             //Don't send calls
             //All calls are sent to this lead already so we have to determine whether we push it to the next stage or do what?
             //We can either move the lead cadence to the next stage or leave it to the outcome of the call.
             //If we want the outcome to be determined based on call log first then wait for call log else
-            WriteToFile(
-              "CronRunCadenceCallsSubsequentStages: Don't send calls. Already sent calls for this lead cadence"
-            );
+            // WriteToFile(
+            //   "CronRunCadenceCallsSubsequentStages: Don't send calls. Already sent calls for this lead cadence"
+            // );
             let diff = calculateDifferenceInMinutes(lastCall.createdAt); // in minutes
-            WriteToFile(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
+            // WriteToFile(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
             if (
               diff * 60 >= 50 &&
               lastCall.status != "" &&
@@ -683,25 +683,25 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               //60 * 24
               // greater than total minutes in a day = 60 * 24
               //move to next stage for now
-              WriteToFile(
-                "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
-              );
-              WriteToFile(`Last Call ID ", ${lastCall.id}`);
+              // WriteToFile(
+              //   "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
+              // );
+              // WriteToFile(`Last Call ID ", ${lastCall.id}`);
               if (cadence.moveToStage != null) {
                 lead.stage = cadence.moveToStage;
                 let saved = await lead.save();
               }
-              WriteToFile(
-                "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
-              );
+              // WriteToFile(
+              //   "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
+              // );
             }
             // return;
           } else {
             //Get the next call from callCadence to be sent
-            WriteToFile(
-              "CronRunCadenceCallsSubsequentStages: Next call to be sent is ",
-              calls.length + 1
-            );
+            // WriteToFile(
+            //   "CronRunCadenceCallsSubsequentStages: Next call to be sent is ",
+            //   calls.length + 1
+            // );
 
             let nextCadenceCall = callCadence[callsOnThisStage.length];
 
@@ -709,17 +709,17 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
               Number(nextCadenceCall.waitTimeHours) * 60 +
               Number(nextCadenceCall.waitTimeMinutes);
-            WriteToFile(
-              `CronRunCadenceCallsSubsequentStages: Total wait time for next call  ${waitTime} min`
-            );
+            // WriteToFile(
+            //   `CronRunCadenceCallsSubsequentStages: Total wait time for next call  ${waitTime} min`
+            // );
 
             let diff = calculateDifferenceInMinutes(lastCall.createdAt); // in minutes
-            WriteToFile(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
+            // WriteToFile(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
             if (diff * 60 >= waitTime * 60 - 5) {
-              WriteToFile(
-                "CronRunCadenceCallsSubsequentStages: Next call should be placed for",
-                leadCad.id
-              );
+              // WriteToFile(
+              //   "CronRunCadenceCallsSubsequentStages: Next call should be placed for",
+              //   leadCad.id
+              // );
               let agent = await db.AgentModel.findOne({
                 where: {
                   mainAgentId: leadCad.mainAgentId,
@@ -735,9 +735,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
                     status: "error",
                   },
                 });
-                WriteToFile(
-                  `CronRunCadenceCallsSubsequentStages:Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
-                );
+                // WriteToFile(
+                //   `CronRunCadenceCallsSubsequentStages:Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
+                // );
 
                 if (tries < 3) {
                   let called = await MakeACall(
@@ -765,10 +765,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
                 //if you want to simulate
                 //let called = await MakeACall(leadCad, true, calls);
               } catch (error) {
-                WriteToFile(
-                  `CronRunCadenceCallsSubsequentStages:Error Sending Call ",
-                  ${error}`
-                );
+                // WriteToFile(
+                //   `CronRunCadenceCallsSubsequentStages:Error Sending Call ",
+                //   ${error}`
+                // );
               }
               // let sent = await db.LeadCallsSent.create({
               //   leadId: leadCad.leadId,
@@ -784,28 +784,28 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               if (calls.length + 1 == callCadence.length) {
                 // we will not move the lead to new stage after we setup webhook from synthflow.
                 //There we will add this logic. This is just for testing now.
-                WriteToFile(
-                  "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
-                );
+                // WriteToFile(
+                //   "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
+                // );
                 if (cadence.moveToStage != null) {
                   lead.stage = cadence.moveToStage;
                   let saved = await lead.save();
                 }
-                WriteToFile(
-                  "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
-                );
+                // WriteToFile(
+                //   "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
+                // );
               }
             } else {
-              WriteToFile(
-                "CronRunCadenceCallsSubsequentStages: Difference is small so next call can not be placed"
-              );
+              // WriteToFile(
+              //   "CronRunCadenceCallsSubsequentStages: Difference is small so next call can not be placed"
+              // );
             }
           }
         } else {
           //This will never be satisfied for this cron
-          WriteToFile(
-            "CronRunCadenceCallsSubsequentStages: Started: No call already sent"
-          );
+          // WriteToFile(
+          //   "CronRunCadenceCallsSubsequentStages: Started: No call already sent"
+          // );
 
           //send call after checking whether the first call wait time is already passed
           //calculate time with initial leadCadence creation and now.
@@ -824,16 +824,16 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
                 status: "error",
               },
             });
-            WriteToFile(
-              `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
-            );
+            // WriteToFile(
+            //   `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
+            // );
 
             if (tries < 3) {
               let called = await MakeACall(leadCad, simulate, calls, batch.id);
               if (called.status) {
-                WriteToFile(
-                  "CronRunCadenceCallsSubsequentStages: CallSent now"
-                );
+                // WriteToFile(
+                //   "CronRunCadenceCallsSubsequentStages: CallSent now"
+                // );
               }
             } else {
               //set cad errored
@@ -872,9 +872,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           // });
         }
       }
-      WriteToFile(
-        `CronRunCadenceCallsSubsequentStages:______________________ Iteration ${i} END ______________________`
-      );
+      // WriteToFile(
+      //   `CronRunCadenceCallsSubsequentStages:______________________ Iteration ${i} END ______________________`
+      // );
     } catch (error) {
       WriteToFile(`CronRunCadenceCallsSubsequentStages: Error cron `, error);
       // await addCallTry(leadCadence, lead, assistant, calls, batchId, "success");
