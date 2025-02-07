@@ -34,6 +34,7 @@ import {
   AssignPhoneNumber,
   ReleasePhoneNumber,
   DeleteNumber,
+  TransferNumber,
 } from "../controllers/twilioController.js";
 
 import { GetDashboardData } from "../controllers/DashboardController.js";
@@ -63,6 +64,12 @@ AgentRouter.post(
   verifyJwtTokenWithTeam,
   uploadFiles,
   BuildAgent
+);
+AgentRouter.post(
+  "/transferNumber",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  TransferNumber
 );
 AgentRouter.post(
   "/updateAgent",
