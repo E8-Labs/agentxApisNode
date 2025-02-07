@@ -857,7 +857,7 @@ async function handleInfoExtractorValues(
         where: { identifier: "follow_up", pipelineId: pipeline?.id || null },
       });
 
-      if (lead.stage < followUpStage.id) {
+      if (lead.stage < followUpStage?.id) {
         moveToStage = followUpStage?.id || null;
         leadCadence.nodecisionmaker = json.nodecisionmaker;
         await leadCadence.save();
