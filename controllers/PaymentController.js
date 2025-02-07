@@ -821,25 +821,27 @@ export async function ReChargeUserAccount(user) {
         foundPlan.type,
         true
       );
-
-      let historyCreated = await db.PaymentHistory.create({
-        title: `${foundPlan.duration / 60} Min subscription renewed`,
-        description: `${foundPlan.duration / 60} Min subscription renewed`,
-        type: foundPlan.type,
-        price: foundPlan.price,
-        userId: user.id,
-        environment: process.env.Environment,
-        transactionId: charge.paymentIntent.id,
-      });
-      let dateAfter30Days = new Date();
-      dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
-      user.nextChargeDate = dateAfter30Days;
-      // console.log(
-      //   "SubscribeFunc: Receiving user seconds Before ",
-      //   user.totalSecondsAvailable
-      // );
-      user.totalSecondsAvailable += foundPlan.duration;
-      await user.save();
+      console.log("Charge ", charge);
+      if (!charge.status) {
+        let historyCreated = await db.PaymentHistory.create({
+          title: `${foundPlan.duration / 60} Min subscription renewed`,
+          description: `${foundPlan.duration / 60} Min subscription renewed`,
+          type: foundPlan.type,
+          price: foundPlan.price,
+          userId: user.id,
+          environment: process.env.Environment,
+          transactionId: charge.paymentIntent.id,
+        });
+        let dateAfter30Days = new Date();
+        dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
+        user.nextChargeDate = dateAfter30Days;
+        // console.log(
+        //   "SubscribeFunc: Receiving user seconds Before ",
+        //   user.totalSecondsAvailable
+        // );
+        user.totalSecondsAvailable += foundPlan.duration;
+        await user.save();
+      }
     }
   } else if (
     lastPlan &&

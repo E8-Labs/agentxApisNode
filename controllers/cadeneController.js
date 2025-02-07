@@ -32,37 +32,28 @@ const AvgCallTimeSeconds = 3 * 60; //seconds
 const MaxLeadsToFetch = 5000;
 
 async function getPayingUserLeadIds(user = null) {
-  let usersWithMinutesRemaining = await db.User.findAll({
+  let usersQuery = {
     where: {
-      totalSecondsAvailable: {
-        [db.Sequelize.Op.gte]: 2 * 60, // gt or equal
-      },
+      totalSecondsAvailable: { [db.Sequelize.Op.gte]: 120 }, // 2 min in seconds
     },
-  });
-  if (user) {
-    usersWithMinutesRemaining = [user];
-  }
-  let userIds =
-    usersWithMinutesRemaining && usersWithMinutesRemaining.length > 0
-      ? usersWithMinutesRemaining.map((user) => user.id)
-      : [];
-  // console.log("user ids ", userIds);
-  let leads = await db.LeadModel.findAll({
-    where: {
-      userId: {
-        [db.Sequelize.Op.in]: userIds,
-      },
-    },
-  });
-  let leadIds = [];
-  if (leads && leads.length > 0) {
-    leadIds = leads.map((lead) => lead.id);
-  }
+    attributes: ["id"], // Fetch only IDs for efficiency
+    raw: true,
+  };
 
-  // for (let i = leadIds.length - 1; i > leadIds.length - 20; i--) {
-  //   console.log("Lead Id: ", leadIds[i]);
-  // }
-  return leadIds;
+  let usersWithMinutesRemaining = user
+    ? [{ id: user.id }]
+    : await db.User.findAll(usersQuery);
+  let userIds = usersWithMinutesRemaining.map((u) => u.id);
+
+  if (userIds.length === 0) return []; // Return early if no users found
+
+  let leads = await db.LeadModel.findAll({
+    where: { userId: { [db.Sequelize.Op.in]: userIds } },
+    attributes: ["id"], // Fetch only necessary fields
+    raw: true,
+  });
+
+  return leads.map((l) => l.id);
 }
 
 export const CronRunCadenceCallsFirstBatch = async () => {
