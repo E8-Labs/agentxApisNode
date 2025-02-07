@@ -131,14 +131,17 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         let user = await db.User.findByPk(lead.userId);
         //check the total number of ongoing calls atm
 
-        let leadIds = [];
-        if (userLeadIds[user.id]) {
-          leadIds = userLeadIds[user.id];
-        } else {
-          leadIds = await getPayingUserLeadIds(user);
-        }
+        // let leadIds = [];
+        // if (userLeadIds[user.id]) {
+        //   leadIds = userLeadIds[user.id];
+        // } else {
+        //   leadIds = await getPayingUserLeadIds(user);
+        //   userLeadIds[user.id] = leadIds;
+        // }
+        let leadIds =
+          userLeadIds[user.id] ||
+          (userLeadIds[user.id] = await getPayingUserLeadIds(user));
 
-        userLeadIds[user.id] = leadIds;
         const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
         // console.log("Finding calls in lead ids ", JSON.stringify(leadIds));
         let calls = await db.LeadCallsSent.findAll({
