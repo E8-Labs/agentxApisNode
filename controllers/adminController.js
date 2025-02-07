@@ -181,6 +181,64 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
 
   const sessionStats = await calculateAvgSessionDuration(db);
 
+  // Unique Phone Numbers
+  const uniquePhoneUsers = await db.AgentModel.count({
+    distinct: true,
+    col: "phoneNumber",
+  });
+  const uniquePhonePercentage = (uniquePhoneUsers / totalUsers) * 100;
+
+  // Users with More than 1 Pipeline
+  const usersWithMultiplePipelines = await db.Pipeline.count({
+    group: ["userId"],
+    having: db.Sequelize.literal("COUNT(userId) > 1"),
+  });
+  const pipelineUsersPercentage =
+    (usersWithMultiplePipelines.length / totalUsers) * 100;
+
+  // Users with More than 2 Agents
+  const usersWithMultipleAgents = await db.AgentModel.count({
+    group: ["userId"],
+    having: db.Sequelize.literal("COUNT(userId) > 2"),
+  });
+  const agentUsersPercentage =
+    (usersWithMultipleAgents.length / totalUsers) * 100;
+
+  // Users Who Have Leads
+  const usersWithLeads = await db.LeadModel.count({
+    distinct: true,
+    col: "userId",
+  });
+  const leadsUsersPercentage = (usersWithLeads / totalUsers) * 100;
+
+  // Users Who Have Invited Teams
+  const usersWithTeams = await db.TeamModel.count({
+    distinct: true,
+    col: "invitingUserId",
+  });
+  const teamsUsersPercentage = (usersWithTeams / totalUsers) * 100;
+
+  // Average Calls Per User
+  const totalCalls = await db.LeadCallsSent.count();
+  const avgCallsPerUser = totalCalls / totalUsers;
+
+  // Users Who Have Added Calendar
+  const usersWithCalendars = await db.CalendarIntegration.count({
+    distinct: true,
+    col: "userId",
+  });
+  const calendarUsersPercentage = (usersWithCalendars / totalUsers) * 100;
+
+  // Call Success Rate
+  const totalCallsMade = await db.LeadCallsSent.count();
+  const failedCalls = await db.LeadCallsSent.count({
+    where: { status: "failed" },
+  });
+  const callSuccessRate =
+    totalCallsMade > 0
+      ? ((totalCallsMade - failedCalls) / totalCallsMade) * 100
+      : 0;
+
   return {
     totalUsers,
     trialUsers: { count: trialUsers, percentage: trialPercentage },
@@ -190,7 +248,30 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
       MAU: { count: monthlyActiveUsers, percentage: mauPercentage },
     },
     weeklySignups,
-    avgSessionDuration: `${sessionStats.avgSessionDuration} min`,
+    avgSessionDuration: `${sessionStats.avgSessionDuration}`,
+
+    weeklySignups,
+    topVoices,
+    uniquePhoneUsers: {
+      count: uniquePhoneUsers,
+      percentage: uniquePhonePercentage,
+    },
+    pipelineUsers: {
+      count: usersWithMultiplePipelines.length,
+      percentage: pipelineUsersPercentage,
+    },
+    agentUsers: {
+      count: usersWithMultipleAgents.length,
+      percentage: agentUsersPercentage,
+    },
+    leadsUsers: { count: usersWithLeads, percentage: leadsUsersPercentage },
+    teamsUsers: { count: usersWithTeams, percentage: teamsUsersPercentage },
+    avgCallsPerUser,
+    calendarUsers: {
+      count: usersWithCalendars,
+      percentage: calendarUsersPercentage,
+    },
+    callSuccessRate,
   };
 }
 
