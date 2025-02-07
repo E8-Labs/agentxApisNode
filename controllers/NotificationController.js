@@ -284,7 +284,7 @@ export const AddNotification = async (
       totalCalls,
       minutes
     );
-    console.log("Not Title is ", title);
+    // console.log("Not Title is ", title);
     let not = await db.NotificationModel.create({
       userId: user.id,
       fromUserId: fromUser?.id,
@@ -320,12 +320,12 @@ export const AddNotification = async (
         meetingDate
       );
     } catch (error) {
-      console.log("Email error");
+      // console.log("Email error");
       console.log(error);
     }
     return not;
   } catch (error) {
-    console.log("Error adding not ", error);
+    // console.log("Error adding not ", error);
     return null;
   }
 };
@@ -655,7 +655,7 @@ export const NotificationCron = async () => {
     } catch (error) {}
     // return;
     let date = new Date().toISOString();
-    console.log("Current time server ", date);
+    // console.log("Current time server ", date);
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0); // Set to start of day
 
@@ -684,14 +684,14 @@ export const NotificationCron = async () => {
         userRole: UserRole.AgentX,
       },
     });
-    console.log("Users to send daily notificaitons", users.length);
+    // console.log("Users to send daily notificaitons", users.length);
 
     for (const u of users) {
       let timeZone = u.timeZone || "America/Los_Angeles";
-      console.log("User Time zone is ", timeZone);
+      // console.log("User Time zone is ", timeZone);
       if (timeZone) {
         let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
-        console.log("TIme in user timezone", timeInUserTimeZone);
+        // console.log("TIme in user timezone", timeInUserTimeZone);
         const userDateTime = DateTime.fromFormat(
           timeInUserTimeZone,
           "yyyy-MM-dd HH:mm:ss",
@@ -703,15 +703,15 @@ export const NotificationCron = async () => {
         SendFeedbackNotificationsAfter14Days(u);
         SendAppointmentNotifications(u);
         if (userDateTime > ninePM) {
-          console.log(
-            `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
-          );
+          // console.log(
+          //   `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
+          // );
           //send notification
           SendNotificationsForHotlead(u);
         } else {
-          console.log(
-            `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
-          );
+          // console.log(
+          //   `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
+          // );
         }
       }
     }
@@ -724,7 +724,7 @@ async function SendNotificationsForNoCalls(user) {
   if (user.userRole == UserRole.Invitee) {
     return;
   }
-  console.log("Sending No Calls Not to ", user.id);
+  // console.log("Sending No Calls Not to ", user.id);
   try {
     let ids = [];
     let agents = await db.AgentModel.findAll({
@@ -743,7 +743,7 @@ async function SendNotificationsForNoCalls(user) {
     // Check user's account creation date
     const userCreatedAt = new Date(user.createdAt);
 
-    console.log("Sending no calls to", user.id);
+    // console.log("Sending no calls to", user.id);
 
     let totalCalls = await db.LeadCallsSent.count({
       where: {
@@ -757,10 +757,10 @@ async function SendNotificationsForNoCalls(user) {
     });
 
     if (totalCalls == 0) {
-      console.log("Total calls were 0 576 line");
+      // console.log("Total calls were 0 576 line");
 
       if (userCreatedAt < last72Hours) {
-        console.log("User account was created before 72 horus ", user.id);
+        // console.log("User account was created before 72 horus ", user.id);
         // if userCreatedAt was before 72Hours ago
 
         //check last NoCallNotification
@@ -775,16 +775,16 @@ async function SendNotificationsForNoCalls(user) {
         });
         let canSendNewNot = false;
         if (not) {
-          console.log(
-            "No Calls three days Notification was already sent to ",
-            user.id
-          );
+          // console.log(
+          //   "No Calls three days Notification was already sent to ",
+          //   user.id
+          // );
         } else {
           canSendNewNot = true;
         }
-        console.log("Here ");
-        console.log(totalCalls);
-        console.log(canSendNewNot);
+        // console.log("Here ");
+        // console.log(totalCalls);
+        // console.log(canSendNewNot);
         if (totalCalls == 0 && canSendNewNot) {
           // Send "No Calls in 3 days" notification
           await AddNotification(
@@ -809,7 +809,7 @@ async function SendNotificationsForHotlead(user) {
   if (user.userRole == UserRole.Invitee) {
     return;
   }
-  console.log("Sending hotlead to ", user.id);
+  // console.log("Sending hotlead to ", user.id);
   try {
     let ids = [];
     let agents = await db.AgentModel.findAll({
@@ -847,7 +847,7 @@ async function SendNotificationsForHotlead(user) {
       },
     });
 
-    console.log("Sending hotlead to 562", user.id);
+    // console.log("Sending hotlead to 562", user.id);
 
     let totalCalls = await db.LeadCallsSent.count({
       where: {
@@ -859,7 +859,7 @@ async function SendNotificationsForHotlead(user) {
         },
       },
     });
-    console.log(`Calls made by ${user.name} | ${totalCalls}`);
+    // console.log(`Calls made by ${user.name} | ${totalCalls}`);
     if (totalCalls > 1) {
       await AddNotification(
         user,
@@ -874,7 +874,7 @@ async function SendNotificationsForHotlead(user) {
     }
 
     if (totalCalls == 0) {
-      console.log("Total calls were 0 576 line");
+      // console.log("Total calls were 0 576 line");
       totalCalls = await db.LeadCallsSent.count({
         where: {
           agentId: {
@@ -886,7 +886,7 @@ async function SendNotificationsForHotlead(user) {
         },
       });
       if (userCreatedAt < last72Hours) {
-        console.log("User account was created before 72 horus ", user.id);
+        // console.log("User account was created before 72 horus ", user.id);
         // if userCreatedAt was before 72Hours ago
 
         //check last NoCallNotification
@@ -903,24 +903,24 @@ async function SendNotificationsForHotlead(user) {
 
           const notSentAt = new Date(not.createdAt);
           if (notSentAt < last72HoursOfNotSent) {
-            console.log(
-              "No notificaiton was sent in the last 72 hours to  ",
-              user.id
-            );
+            // console.log(
+            //   "No notificaiton was sent in the last 72 hours to  ",
+            //   user.id
+            // );
             //if the last no calls notification was sent before 72 hours ago send again
             canSendNewNot = true;
           } else {
-            console.log(
-              "Notificaiton was already sent in the last 72 hours to  ",
-              user.id
-            );
+            // console.log(
+            //   "Notificaiton was already sent in the last 72 hours to  ",
+            //   user.id
+            // );
           }
         } else {
           canSendNewNot = true;
         }
-        console.log("Here ");
-        console.log(totalCalls);
-        console.log(canSendNewNot);
+        // console.log("Here ");
+        // console.log(totalCalls);
+        // console.log(canSendNewNot);
         if (totalCalls == 0 && canSendNewNot) {
           // Send "No Calls in 3 days" notification
           await AddNotification(
@@ -967,11 +967,11 @@ async function SendAutoDailyNotificationsFor7Days() {
       userRole: UserRole.AgentX,
     },
   });
-  console.log("Users to send 7 days notificaitons", users.length);
+  // console.log("Users to send 7 days notificaitons", users.length);
 
   for (const u of users) {
     let timeZone = u.timeZone || "America/Los_Angeles";
-    console.log("User Time zone is ", timeZone);
+    // console.log("User Time zone is ", timeZone);
 
     //Check Trial Ticking
     CheckAndSendTrialTickingNotificaitonSent(u);
@@ -980,7 +980,7 @@ async function SendAutoDailyNotificationsFor7Days() {
     CheckAndSendTrialReminderNotificaitonSent(u);
     CheckAndSendNeedHelpDontMissoutNotificaitonSent(u);
     CheckAndSendLastDayToMakeItCountNotificaitonSent(u);
-    console.log("Sending Last Chance notification to user", u.id);
+    // console.log("Sending Last Chance notification to user", u.id);
     CheckAndSendLastChanceToActNotificaitonSent(u);
     CheckAndSendTwoMinuteTrialLeftNotificaitonSent(u);
   }
@@ -990,7 +990,7 @@ export async function SendDesktopEmail(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
-      console.log("User id ", userId);
+      // console.log("User id ", userId);
       let user = await db.User.findOne({
         where: {
           id: userId,
