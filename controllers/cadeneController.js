@@ -46,7 +46,7 @@ async function getPayingUserLeadIds(user = null) {
     usersWithMinutesRemaining && usersWithMinutesRemaining.length > 0
       ? usersWithMinutesRemaining.map((user) => user.id)
       : [];
-  console.log("user ids ", userIds);
+  // console.log("user ids ", userIds);
   let leads = await db.LeadModel.findAll({
     where: {
       userId: {
@@ -112,16 +112,17 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 
   // console.log("LEad Cad", leadCadence)
 
-  // WriteToFile(`Found ${leadCadence.length} leads to start batch calls`);
+  WriteToFile(`Found ${leadCadence.length} leads to start batch calls`);
   // return;
   if (leadCadence.length == 0) {
     // WriteToFile(`FirstBatch: Found No new leads to start batch calls today`);
     return;
   }
+  let userLeadIds = [];
 
   for (let i = 0; i < leadCadence.length; i++) {
     let leadCad = leadCadence[i];
-    console.log(`LeadCad , ${leadCad.id} : Batch=${leadCad.batchId}`);
+    // console.log(`LeadCad , ${leadCad.id} : Batch=${leadCad.batchId}`);
     // WriteToFile("Iteration", i);
     try {
       // let lead = await db.LeadModel.findOne(leadCad.leadId)
@@ -129,7 +130,18 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       if (lead) {
         let user = await db.User.findByPk(lead.userId);
         //check the total number of ongoing calls atm
-        let leadIds = await getPayingUserLeadIds(user);
+
+        // let leadIds = [];
+        // if (userLeadIds[user.id]) {
+        //   leadIds = userLeadIds[user.id];
+        // } else {
+        //   leadIds = await getPayingUserLeadIds(user);
+        //   userLeadIds[user.id] = leadIds;
+        // }
+        let leadIds =
+          userLeadIds[user.id] ||
+          (userLeadIds[user.id] = await getPayingUserLeadIds(user));
+
         const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
         // console.log("Finding calls in lead ids ", JSON.stringify(leadIds));
         let calls = await db.LeadCallsSent.findAll({
