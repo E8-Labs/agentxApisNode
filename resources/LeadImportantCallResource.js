@@ -29,7 +29,7 @@ const LeadImportantCallResource = async (user, currentUser = null) => {
 };
 
 async function getUserData(lead, currentUser = null) {
-  console.log("Type of user is ", typeof user);
+  // console.log("Type of user is ", typeof user);
 
   let leadTags = await db.LeadTagsModel.findAll({
     where: {

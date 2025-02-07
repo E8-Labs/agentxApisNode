@@ -23,7 +23,7 @@ const UserProfileLiteResource = async (user, currentUser = null) => {
 };
 
 async function getUserData(user, currentUser = null) {
-  console.log("Type of user is ", typeof user);
+  // console.log("Type of user is ", typeof user);
 
   //If this is not admin user then find the admin as done above and fetch his plans
   let alreadyUsedGlobalNumber = await db.AgentModel.findAll({

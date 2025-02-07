@@ -91,7 +91,7 @@ const LeadLiteResource = async (user, currentUser = null) => {
 };
 
 async function getUserData(lead, currentUser = null) {
-  console.log("Type of user is ", lead);
+  // console.log("Type of user is ", lead);
 
   let leadTags = await db.LeadTagsModel.findAll({
     where: {
