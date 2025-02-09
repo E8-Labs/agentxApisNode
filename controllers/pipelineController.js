@@ -953,7 +953,7 @@ export const ResumePipelineCadenceForAnAgent = async (req, res) => {
 
 export async function GetCallsForABatch(req, res) {
   let batchId = req.query.batchId;
-  let offset = req.query.offset || 0;
+  let offset = Number(req.query.offset) || 0;
 
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
