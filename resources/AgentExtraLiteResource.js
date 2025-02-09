@@ -2,6 +2,7 @@ import db from "../models/index.js";
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 import KycResource from "./kycResource.js";
 import PipelineStages from "../models/pipeline/pipelineStages.js";
+import SubAgentLiteResource from "./SubAgentLiteResource.js";
 
 const Op = db.Sequelize.Op;
 
@@ -32,7 +33,7 @@ async function getUserData(mainAgent, currentUser = null) {
   let agentRes = [];
   for (const ag of agents) {
     let { id, name, agentRole, phoneNumber } = ag.get();
-    let agent = { id, name, agentRole, phoneNumber };
+    let agent = SubAgentLiteResource(ag);
     agentRes.push(agent);
   }
 

@@ -8,6 +8,7 @@ import {
 import LeadResource from "./LeadResource.js";
 import LeadCallResource from "./LeadCallResource.js";
 import LeadLiteResource from "./LeadLiteResource.js";
+import AgentExtraLiteResource from "./AgentExtraLiteResource.js";
 // import {
 //   getTotalYapScore,
 //   getTotalReviews,
@@ -115,7 +116,7 @@ async function getUserData(batch, currentUser = null) {
   const BatchResource = {
     ...batch.get(),
     leads: await LeadLiteResource(leads),
-    agents: await AgentLiteResource(agents),
+    agents: await AgentExtraLiteResource(agents),
     agentCalls: agentCalls,
     pastCalls: res,
   };
