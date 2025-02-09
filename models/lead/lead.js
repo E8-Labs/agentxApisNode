@@ -7,8 +7,8 @@ const LeadModel = (sequelize, Sequelize) => {
     },
     lastName: {
       type: Sequelize.STRING,
-      allowNull: false,
-      defaultValue: "",
+      allowNull: true,
+      // defaultValue: NULL,
     },
     address: {
       type: Sequelize.STRING,
