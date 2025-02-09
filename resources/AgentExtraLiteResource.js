@@ -33,7 +33,7 @@ async function getUserData(mainAgent, currentUser = null) {
   let agentRes = [];
   for (const ag of agents) {
     let { id, name, agentRole, phoneNumber } = ag.get();
-    let agent = SubAgentLiteResource(ag);
+    let agent = await SubAgentLiteResource(ag);
     agentRes.push(agent);
   }
 
