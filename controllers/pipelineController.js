@@ -41,10 +41,9 @@ import LeadCallResource from "../resources/LeadCallResource.js";
 
 const User = db.User;
 const Op = db.Sequelize.Op;
-
+const Limit = 30;
 //Updated for Team
 export const CreatePipeline = async (req, res) => {
-  const Limit = 20;
   let { title } = req.body; // mainAgentId is the mainAgent id
   console.log("Title is ", title);
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
