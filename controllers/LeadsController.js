@@ -23,7 +23,7 @@ import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import parsePhoneNumberFromString from "libphonenumber-js";
-const limit = 100;
+const limit = 30;
 /**
  * Check for stage conflicts among agents.
  * @param {Array<number>} mainAgentIds - Array of agent IDs to check.

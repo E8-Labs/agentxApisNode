@@ -282,7 +282,7 @@ const fetchFutureBookings = async (lead) => {
       }
     }
 
-    console.log("Future bookings ", futureBookings?.length || 0);
+    // console.log("Future bookings ", futureBookings?.length || 0);
     return futureBookings;
   } catch (error) {
     console.error("Error fetching future bookings:", error);
