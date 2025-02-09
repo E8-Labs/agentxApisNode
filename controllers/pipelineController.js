@@ -31,6 +31,8 @@ import { pipeline } from "stream";
 import PipelineStages from "../models/pipeline/pipelineStages.js";
 import { UserRole } from "../models/user/userModel.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
+import LeadLiteResource from "../resources/LeadLiteResource.js";
+import LeadCallResource from "../resources/LeadCallResource.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -948,6 +950,153 @@ export const ResumePipelineCadenceForAnAgent = async (req, res) => {
     }
   });
 };
+
+export async function GetCallsForABatch(req, res) {
+  let batchId = req.query.batchId;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      if (req.query.userId) {
+        userId = req.query.userId;
+      }
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let batch = await db.CadenceBatchModel.findByPk(batchId);
+      if (!batch) {
+        return res.send({
+          status: false,
+          message: "No such batch",
+          batchId: batchId,
+        });
+      }
+      let leadCad = await db.LeadCadence.findAll({
+        where: {
+          batchId: batch.id,
+        },
+      });
+      let agentIds = [];
+      leadCad.map((lc) => {
+        if (!agentIds.includes(lc.mainAgentId)) {
+          agentIds.push(lc.mainAgentId);
+        }
+      });
+      // let agents = await db.MainAgentModel.findAll({
+      //   where: {
+      //     id: {
+      //       [db.Sequelize.Op.in]: agentIds,
+      //     },
+      //   },
+      // });
+      let agentCalls = [];
+      for (const ag of agentIds) {
+        let calls = await GetScheduledFutureCalls(ag, batch.id);
+        agentCalls.push({ agentId: ag, calls: calls });
+      }
+
+      let pastCalls = await db.LeadCallsSent.findAll({
+        where: {
+          batchId: batch.id,
+          mainAgentId: {
+            [db.Sequelize.Op.in]: agentIds,
+          },
+        },
+      });
+
+      let pastCallsRes = await LeadCallResource(pastCalls);
+      return { pastCalls: pastCallsRes, agentCalls: futureCalls };
+    }
+  });
+}
+
+async function GetLeadsInABatch(batch) {
+  let leadCad = await db.LeadCadence.findAll({
+    where: {
+      batchId: batch.id,
+    },
+  });
+  let agentIds = [];
+  let leadIds = [];
+  leadCad.map((lc) => {
+    if (!agentIds.includes(lc.mainAgentId)) {
+      agentIds.push(lc.mainAgentId);
+    }
+    if (!leadIds.includes(lc.leadId)) {
+      leadIds.push(lc.leadId);
+    }
+  });
+
+  let leads = await db.LeadModel.findAll({
+    where: {
+      id: {
+        [db.Sequelize.Op.in]: leadIds,
+      },
+      // status: "active",
+    },
+  });
+  let i = 0;
+  for (const l of leads) {
+    //check candence
+    let cadence = await db.PipelineCadence.findAll({
+      where: {
+        stage: l.stage,
+        mainAgentId: {
+          [db.Sequelize.Op.in]: agentIds,
+        },
+      },
+      order: [["stage", "ASC"]],
+    });
+    if (cadence && cadence.length > 0) {
+      //status is in queue
+      leads[i].status = "In Queue";
+      // console.log(
+      //   `Lead Stage: ${l.stage}  Agents: ${JSON.stringify(agentIds)}`
+      // );
+      // console.log("Last Cad Stage:", cadence);
+    } else {
+      //status Called
+      leads[i].status = "Called";
+    }
+    i++;
+  }
+
+  let leadRes = await LeadLiteResource(leads);
+  return leadRes;
+}
+
+export async function GetLeadsForABatch(req, res) {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let batchId = req.query.batchId;
+      let userId = authData.user.id;
+      if (req.query.userId) {
+        userId = req.query.userId;
+      }
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let batch = await db.CadenceBatchModel.findByPk(batchId);
+      if (!batch) {
+        return res.send({
+          status: false,
+          message: "No such batch",
+          batchId: batchId,
+        });
+      }
+      let leads = await GetLeadsInABatch(batch);
+
+      return res.send({ status: true, message: "Leads obtained", data: leads });
+    }
+  });
+}
 
 //Scheduled calls | Updated For Team
 export const GetScheduledCalls = async (req, res) => {
