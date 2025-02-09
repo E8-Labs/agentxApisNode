@@ -112,7 +112,7 @@ async function getUserData(batch, currentUser = null) {
   //   },
   // });
 
-  let res = await LeadCallResource(pastCalls);
+  // let res = await LeadCallResource(pastCalls);
   const BatchResource = {
     ...batch.get(),
     // leadsCount: leads.length,
