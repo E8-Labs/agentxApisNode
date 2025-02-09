@@ -57,65 +57,65 @@ async function getUserData(batch, currentUser = null) {
       },
     },
   });
-  let leadIds = [];
-  leadCad.map((lc) => {
-    if (!leadIds.includes(lc.leadId)) {
-      leadIds.push(lc.leadId);
-    }
-  });
-  let leads = await db.LeadModel.findAll({
-    where: {
-      id: {
-        [db.Sequelize.Op.in]: leadIds,
-      },
-      // status: "active",
-    },
-  });
-  let i = 0;
-  for (const l of leads) {
-    //check candence
-    let cadence = await db.PipelineCadence.findAll({
-      where: {
-        stage: l.stage,
-        mainAgentId: {
-          [db.Sequelize.Op.in]: agentIds,
-        },
-      },
-      order: [["stage", "ASC"]],
-    });
-    if (cadence && cadence.length > 0) {
-      //status is in queue
-      leads[i].status = "In Queue";
-      console.log(
-        `Lead Stage: ${l.stage}  Agents: ${JSON.stringify(agentIds)}`
-      );
-      console.log("Last Cad Stage:", cadence);
-    } else {
-      //status Called
-      leads[i].status = "Called";
-    }
-    i++;
-  }
+  // let leadIds = [];
+  // leadCad.map((lc) => {
+  //   if (!leadIds.includes(lc.leadId)) {
+  //     leadIds.push(lc.leadId);
+  //   }
+  // });
+  // let leads = await db.LeadModel.findAll({
+  //   where: {
+  //     id: {
+  //       [db.Sequelize.Op.in]: leadIds,
+  //     },
+  //     // status: "active",
+  //   },
+  // });
+  // let i = 0;
+  // for (const l of leads) {
+  //   //check candence
+  //   let cadence = await db.PipelineCadence.findAll({
+  //     where: {
+  //       stage: l.stage,
+  //       mainAgentId: {
+  //         [db.Sequelize.Op.in]: agentIds,
+  //       },
+  //     },
+  //     order: [["stage", "ASC"]],
+  //   });
+  //   if (cadence && cadence.length > 0) {
+  //     //status is in queue
+  //     leads[i].status = "In Queue";
+  //     console.log(
+  //       `Lead Stage: ${l.stage}  Agents: ${JSON.stringify(agentIds)}`
+  //     );
+  //     console.log("Last Cad Stage:", cadence);
+  //   } else {
+  //     //status Called
+  //     leads[i].status = "Called";
+  //   }
+  //   i++;
+  // }
 
-  let agentCalls = [];
-  for (const ag of agentIds) {
-    let calls = await GetScheduledFutureCalls(ag, batch.id);
-    agentCalls.push({ agentId: ag, calls: calls });
-  }
+  // let agentCalls = [];
+  // for (const ag of agentIds) {
+  //   let calls = await GetScheduledFutureCalls(ag, batch.id);
+  //   agentCalls.push({ agentId: ag, calls: calls });
+  // }
 
-  let pastCalls = await db.LeadCallsSent.findAll({
-    where: {
-      batchId: batch.id,
-      mainAgentId: {
-        [db.Sequelize.Op.in]: agentIds,
-      },
-    },
-  });
+  // let pastCalls = await db.LeadCallsSent.findAll({
+  //   where: {
+  //     batchId: batch.id,
+  //     mainAgentId: {
+  //       [db.Sequelize.Op.in]: agentIds,
+  //     },
+  //   },
+  // });
 
   let res = await LeadCallResource(pastCalls);
   const BatchResource = {
     ...batch.get(),
-    leadsCount: leads.length,
+    // leadsCount: leads.length,
     agents: await AgentExtraLiteResource(agents),
     //Below three fields will be removed from here and will be fetched via an api call on request
     // leads: await LeadLiteResource(leads),
