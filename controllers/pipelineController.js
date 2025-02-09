@@ -1008,7 +1008,7 @@ export async function GetCallsForABatch(req, res) {
       });
 
       let pastCallsRes = await LeadCallResource(pastCalls);
-      return { pastCalls: pastCallsRes, agentCalls: futureCalls };
+      return { pastCalls: pastCallsRes, agentCalls: agentCalls };
     }
   });
 }
