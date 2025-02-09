@@ -115,8 +115,10 @@ async function getUserData(batch, currentUser = null) {
   let res = await LeadCallResource(pastCalls);
   const BatchResource = {
     ...batch.get(),
-    leads: await LeadLiteResource(leads),
+    leadsCount: leads.length,
     agents: await AgentExtraLiteResource(agents),
+    //Below three fields will be removed from here and will be fetched via an api call on request
+    leads: await LeadLiteResource(leads),
     agentCalls: agentCalls,
     pastCalls: res,
   };

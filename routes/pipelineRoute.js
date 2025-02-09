@@ -18,6 +18,8 @@ import {
   DeletePipeline,
   GetAgentCadence,
   GetPipelineDetail,
+  GetLeadsForABatch,
+  GetCallsForABatch,
 } from "../controllers/pipelineController.js";
 
 const uploadFiles = multer().fields([
@@ -118,6 +120,14 @@ PipelineRouter.get(
   verifyJwtTokenWithTeam,
   GetScheduledCalls
 );
+
+PipelineRouter.get(
+  "/getCallsInABatch",
+  verifyJwtTokenWithTeam,
+  GetCallsForABatch
+);
+
+PipelineRouter.get("/leadsInBatch", verifyJwtTokenWithTeam, GetLeadsForABatch);
 
 PipelineRouter.get("/getPipelines", verifyJwtTokenWithTeam, GetPipelines);
 
