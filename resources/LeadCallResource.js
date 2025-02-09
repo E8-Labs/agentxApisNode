@@ -1,4 +1,5 @@
 import db from "../models/index.js";
+import SubAgentLiteResource from "./SubAgentLiteResource.js";
 
 const Op = db.Sequelize.Op;
 
@@ -66,7 +67,7 @@ async function getUserData(call, currentUser = null) {
 
   let subAgentId = callData.agentId;
   let agent = await db.AgentModel.findByPk(subAgentId);
-  callData.agent = agent;
+  callData.agent = SubAgentLiteResource(agent);
 
   let callStage = null;
   if (callData.stage) {
