@@ -44,6 +44,7 @@ const Op = db.Sequelize.Op;
 
 //Updated for Team
 export const CreatePipeline = async (req, res) => {
+  const Limit = 20;
   let { title } = req.body; // mainAgentId is the mainAgent id
   console.log("Title is ", title);
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -953,6 +954,8 @@ export const ResumePipelineCadenceForAnAgent = async (req, res) => {
 
 export async function GetCallsForABatch(req, res) {
   let batchId = req.query.batchId;
+  let offset = req.query.offset || 0;
+
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -993,11 +996,11 @@ export async function GetCallsForABatch(req, res) {
       //   },
       // });
       let agentCalls = [];
-      for (const ag of agentIds) {
-        let calls = await GetScheduledFutureCalls(ag, batch.id);
-        agentCalls.push({ agentId: ag, calls: calls });
-      }
-
+      // for (const ag of agentIds) {
+      //   let calls = await GetScheduledFutureCalls(ag, batch.id);
+      //   agentCalls.push({ agentId: ag, calls: calls });
+      // }
+      console.log("Here after for loop future calls");
       let pastCalls = await db.LeadCallsSent.findAll({
         where: {
           batchId: batch.id,
@@ -1005,10 +1008,16 @@ export async function GetCallsForABatch(req, res) {
             [db.Sequelize.Op.in]: agentIds,
           },
         },
+        limit: Limit,
+        offset: offset,
       });
 
       let pastCallsRes = await LeadCallResource(pastCalls);
-      return { pastCalls: pastCallsRes, agentCalls: agentCalls };
+      return res.send({
+        status: true,
+        data: { pastCalls: pastCallsRes, agentCalls: agentCalls },
+        message: "Obtained",
+      });
     }
   });
 }
@@ -1401,9 +1410,9 @@ export const GetScheduledFutureCalls = async (agentId, batchId) => {
         });
 
         if (!pipelineCadence) {
-          console.warn(
-            `No PipelineCadence found for stage ${currentStage} and pipeline ${leadCadence.pipelineId}`
-          );
+          // console.warn(
+          //   `No PipelineCadence found for stage ${currentStage} and pipeline ${leadCadence.pipelineId}`
+          // );
           break;
         }
 
