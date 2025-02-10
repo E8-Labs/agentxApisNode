@@ -195,22 +195,22 @@ export const getPaymentMethods = async (userId, environment) => {
       };
     }
 
-    for (let i = 0; i < paymentMethods.length; i++) {
-      let pm = paymentMethods[i];
-      let exists = await db.PaymentMethod.findOne({
-        where: {
-          paymentMethodId: pm.id,
-        },
-      });
-      if (!exists) {
-        await db.PaymentMethod.create({
-          paymentMethodId: pm.id,
-          userId: userId,
-          status: "Active",
-          environment: environment,
-        });
-      }
-    }
+    // for (let i = 0; i < paymentMethods.length; i++) {
+    //   let pm = paymentMethods[i];
+    //   let exists = await db.PaymentMethod.findOne({
+    //     where: {
+    //       paymentMethodId: pm.id,
+    //     },
+    //   });
+    //   if (!exists) {
+    //     await db.PaymentMethod.create({
+    //       paymentMethodId: pm.id,
+    //       userId: userId,
+    //       status: "Active",
+    //       environment: environment,
+    //     });
+    //   }
+    // }
     // Retrieve the customer to determine the default payment method
     const customer = await stripe.customers.retrieve(stripeCustomerId);
     const defaultPaymentMethodId =

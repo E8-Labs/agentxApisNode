@@ -95,13 +95,15 @@ export const AddPaymentMethod = async (req, res) => {
 
       try {
         let added = await addPaymentMethod(user, source);
-
-        await db.PaymentMethod.create({
-          paymentMethodId: added.data.id,
-          userId: user.id,
-          status: "Active",
-          environment: process.env.Environment,
-        });
+        console.log("Added", added);
+        if (added.status) {
+          await db.PaymentMethod.create({
+            paymentMethodId: added.data.id,
+            userId: user.id,
+            status: "Active",
+            environment: process.env.Environment,
+          });
+        }
 
         if (inviteCode && user.inviteCodeUsed == null) {
           user.inviteCodeUsed = inviteCode;
