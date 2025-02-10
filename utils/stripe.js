@@ -64,7 +64,6 @@ export const generateStripeCustomerId = async (userId) => {
 /**
  * Get the Stripe customer ID for a user
  * @param {number} userId - The user's ID.
- * @param {string} environment - Either "Sandbox" or "Production".
  */
 export const getStripeCustomerId = async (userId) => {
   //let environment = process.env.Environment;
@@ -196,6 +195,22 @@ export const getPaymentMethods = async (userId, environment) => {
       };
     }
 
+    for (let i = 0; i < paymentMethods.length; i++) {
+      let pm = paymentMethods[i];
+      let exists = await db.PaymentMethod.findOne({
+        where: {
+          paymentMethodId: pm.id,
+        },
+      });
+      if (!exists) {
+        await db.PaymentMethod.create({
+          paymentMethodId: pm.id,
+          userId: userId,
+          status: "Active",
+          environment: environment,
+        });
+      }
+    }
     // Retrieve the customer to determine the default payment method
     const customer = await stripe.customers.retrieve(stripeCustomerId);
     const defaultPaymentMethodId =

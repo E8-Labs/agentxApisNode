@@ -55,7 +55,7 @@ import {
   IsTrialActive,
 } from "../utils/auth.js";
 import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
-import { UserTypes } from "../models/user/userModel.js";
+import { UserRole, UserTypes } from "../models/user/userModel.js";
 import {
   trackAddPaymentInfo,
   trackStartTrialEvent,
@@ -150,6 +150,43 @@ export const GetPaymentmethods = async (req, res) => {
         status: true,
         message: "Payment methods",
         data: added.data,
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "Unauthenticated user",
+        data: null,
+      });
+    }
+  });
+};
+export const GetPaymentmethodsAllUsers = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
+
+      let users = await db.User.findAll({
+        where: {
+          userRole: UserRole.AgentX,
+        },
+      });
+      let paymentMethods = {};
+      for (let i = 0; i < users.length; i++) {
+        let added = await getPaymentMethods(users[i].id);
+        paymentMethods[i] = added;
+      }
+
+      return res.send({
+        status: true,
+        message: "Payment methods",
+        data: paymentMethods,
       });
     } else {
       return res.send({

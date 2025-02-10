@@ -51,6 +51,7 @@ import { generateSocialProofEmail } from "../emails/InactiveUserEmails/SocialPro
 import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { UserRole } from "../models/user/userModel.js";
+import { CheckAndSendNoPaymentMethodAddedNotifications } from "./NoPaymentNotificationsController.js";
 
 async function GetNotificationTitle(
   user,
@@ -652,6 +653,7 @@ export const NotificationCron = async () => {
     try {
       SendAutoDailyNotificationsFor7Days();
       CheckAndSend7DaysInactivityNotifications();
+      CheckAndSendNoPaymentMethodAddedNotifications();
     } catch (error) {}
     // return;
     let date = new Date().toISOString();

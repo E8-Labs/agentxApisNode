@@ -13,6 +13,12 @@ export const NotificationTypes = {
   RedeemedAgentXCodeMine: "RedeemedAgentXCodeMine", // 30 min added for using your AgentX Code
   Redeemed60Min: "Redeemed60Min", // 1 hour after the subscription
 
+  //No Payment Added Notifications
+  NoPaymentAdded: "NoPaymentAdded", //Immediately after acount creation
+  NoPaymentFoMo: "NoPaymentFoMo", //Day 3: Your AI is Waiting to Work for You!
+  NoPaymentScarcity: "NoPaymentScarcity", //Day 5:
+  NoPaymentUrgentWarning: "NoPaymentUrgentWarning", // Day 7:
+  NoPaymentAiReset: "NoPaymentAiReset", // Day 10:
   //Trial Related
   Trial30MinTicking: "Trial30MinTicking",
   //Day1
