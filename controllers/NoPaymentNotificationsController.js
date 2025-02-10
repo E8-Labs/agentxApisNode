@@ -18,11 +18,12 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
     include: [
       {
         model: db.PaymentMethod,
-        required: false, // LEFT JOIN, so it includes users even if there's no match
+        required: false, // LEFT JOIN
       },
     ],
-    having: db.Sequelize.literal("COUNT(PaymentMethods.id) = 0"), // Filter users with no payment method
-    group: ["User.id"], // Ensure correct grouping to avoid duplicate results
+    having: db.Sequelize.literal("COUNT(PaymentMethods.id) = 0"),
+    group: ["User.id"], // Minimal grouping
+    subQuery: false, // Forces Sequelize to generate correct SQL
   });
 
   //send these users notifications
@@ -112,3 +113,5 @@ async function getDaysSinceRegisteration(userId) {
     return 0;
   }
 }
+
+CheckAndSendNoPaymentMethodAddedNotifications();
