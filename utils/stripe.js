@@ -279,7 +279,9 @@ export const getUserDefaultPaymentMethod = async (userId) => {
     });
 
     if (paymentMethods.data.length === 0) {
-      throw new Error("No payment methods found for the customer.");
+      throw new Error(
+        "No payment methods found for the customer." + stripeCustomerId
+      );
     }
 
     return {
