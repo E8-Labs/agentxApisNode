@@ -399,7 +399,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             data: null,
           });
         } else {
-          console.log("Not first time");
+          console.log("Not first time || First time but not plan 30");
 
           let lastPlan = null;
           if (history && history.length > 0) {
@@ -561,17 +561,10 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             }
           } else {
             // No last plan so first time user and it is selecting a plan other than 30 min
-            // if (isMobile) {
-            //   //Generate Desktop Email
-            //   if (user.userType != UserTypes.RealEstateAgent) {
-            //     let emailTemp = generateDesktopEmail();
-            //     let sent = await SendEmail(
-            //       user.email,
-            //       emailTemp.subject,
-            //       emailTemp.html
-            //     );
-            //   }
-            // }
+            payNow = true;
+            user.subscriptionStartDate = new Date();
+            user.nextChargeDate = dateAfter30Days;
+            await user.save();
           }
 
           //User directly purchased a plan that is not 30 minutes
@@ -868,7 +861,7 @@ export async function ReChargeUserAccount(user) {
         true
       );
       console.log("Charge ", charge);
-      if (!charge.status) {
+      if (charge.status) {
         let historyCreated = await db.PaymentHistory.create({
           title: `${foundPlan.duration / 60} Min subscription renewed`,
           description: `${foundPlan.duration / 60} Min subscription renewed`,
