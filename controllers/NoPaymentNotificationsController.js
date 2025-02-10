@@ -8,62 +8,33 @@ import { id } from "date-fns/locale";
 import { UserRole } from "../models/user/userModel.js";
 
 export async function CheckAndSendNoPaymentMethodAddedNotifications() {
-  let date7DaysAgo = new Date();
-  date7DaysAgo.setDate(date7DaysAgo.getDate() - 7); // Correctly subtract 7 days from the current date
+  let date10DaysAgo = new Date();
+  date10DaysAgo.setDate(date10DaysAgo.getDate() - 10); // Correctly subtract 7 days from the current date
 
   let users = await db.User.findAll({
     where: {
       userRole: UserRole.AgentX,
     },
+    include: [
+      {
+        model: db.PaymentMethod,
+        required: false, // LEFT JOIN, so it includes users even if there's no match
+      },
+    ],
+    having: db.Sequelize.literal("COUNT(PaymentMethods.id) = 0"), // Filter users with no payment method
+    group: ["User.id"], // Ensure correct grouping to avoid duplicate results
   });
 
   //send these users notifications
   console.log("InActiveNot: Found users to send ", users.length);
 
   for (const u of users) {
-    let timeZone = u.timeZone || "America/Los_Angeles";
-    // console.log("User Time zone is ", timeZone);
-    let plan = await db.PlanHistory.findOne({
-      where: {
-        userId: u.id,
-        status: "active",
-      },
-    });
-    if (!plan) {
-      // console.log("User don't have active plan ", u.id);
-      //   return;
-    } else {
-      let agents = await db.MainAgentModel.findAll({
-        where: {
-          userId: u.id,
-        },
-      });
-      let agentIds = [];
-      if (agents && agents.length > 0) {
-        agentIds = agents.map((agent) => agent.id);
-      }
-      let callsMadeInLast7Days = await db.LeadCallsSent.findAll({
-        where: {
-          mainAgentId: {
-            [db.Sequelize.Op.in]: agentIds,
-          },
-          createdAt: {
-            [db.Sequelize.Op.gt]: date7DaysAgo,
-          },
-        },
-      });
-      // console.log(`Calls made by ${u.id} are ${callsMadeInLast7Days.length}`);
-      if (callsMadeInLast7Days.length > 0) {
-        continue;
-      }
-      //Check Trial Ticking
-      SendInactiveNotificaiton(u, 8, NotificationTypes.SocialProof); // 1 days later after 7 days inactivity
-      SendInactiveNotificaiton(u, 10, NotificationTypes.CompetitiveEdge); // 3 days later after 7 days inactivity
-      SendInactiveNotificaiton(u, 12, NotificationTypes.FOMOAlert); // 5 days later after 7 days inactivity
-      SendInactiveNotificaiton(u, 14, NotificationTypes.TrainingReminder); // 7 days later after 7 days inactivity
-      SendInactiveNotificaiton(u, 21, NotificationTypes.Exclusivity); // 14 days later after 7 days inactivity
-      SendInactiveNotificaiton(u, 27, NotificationTypes.TerritoryUpdate); // 3 days later after 7 days inactivity
-    }
+    SendNoPaymentNotificaiton(u, 0, NotificationTypes.NoPaymentAdded); // Immediately
+    SendNoPaymentNotificaiton(u, 3, NotificationTypes.NoPaymentFoMo); // 3 days later after 7 days inactivity
+    SendNoPaymentNotificaiton(u, 5, NotificationTypes.NoPaymentScarcity); // 5 days later after 7 days inactivity
+    SendNoPaymentNotificaiton(u, 7, NotificationTypes.NoPaymentUrgentWarning); // 7 days later after 7 days inactivity
+    SendNoPaymentNotificaiton(u, 10, NotificationTypes.NoPaymentAiReset); // 10 days later after 7 days inactivity
+    // SendNoPaymentNotificaiton(u, 27, NotificationTypes.TerritoryUpdate); // 3 days later after 7 days inactivity
   }
 }
 
@@ -87,7 +58,22 @@ async function SendNoPaymentNotificaiton(
       },
     });
     if (!not) {
-      await AddNotification(user, null, type);
+      //   await AddNotification(user, null, type);
+      await AddNotification(
+        user,
+        null,
+        type,
+        null,
+        null,
+        null,
+        0,
+        0,
+        0,
+        null,
+        null,
+        null,
+        true //emailOnly
+      );
     }
   } else {
     // console.log(

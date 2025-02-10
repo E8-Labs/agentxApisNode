@@ -520,6 +520,19 @@ export const UpdateProfile = async (req, res) => {
       if (req.body.fcm_token) {
         user.fcm_token = req.body.fcm_token;
       }
+      if (req.body.lat) {
+        user.lat = req.body.lat;
+      }
+      if (req.body.lang) {
+        user.lang = req.body.lang;
+      }
+
+      if (req.body.city) {
+        user.city = req.body.city;
+      }
+      if (req.body.locality) {
+        user.locality = req.body.locality;
+      }
 
       try {
         let agentService = req.body.agentService;
