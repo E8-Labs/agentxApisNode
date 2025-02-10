@@ -1352,6 +1352,8 @@ export const GetCallLogs = async (req, res) => {
           leadFilters[Op.or] = [
             { firstName: { [Op.like]: `%${name}%` } },
             { lastName: { [Op.like]: `%${name}%` } },
+            { phone: { [Op.like]: `%${name}%` } },
+            { email: { [Op.like]: `%${name}%` } },
           ];
         }
 
