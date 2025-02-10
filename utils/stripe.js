@@ -64,7 +64,6 @@ export const generateStripeCustomerId = async (userId) => {
 /**
  * Get the Stripe customer ID for a user
  * @param {number} userId - The user's ID.
- * @param {string} environment - Either "Sandbox" or "Production".
  */
 export const getStripeCustomerId = async (userId) => {
   //let environment = process.env.Environment;
@@ -196,6 +195,22 @@ export const getPaymentMethods = async (userId, environment) => {
       };
     }
 
+    for (let i = 0; i < paymentMethods.length; i++) {
+      let pm = paymentMethods[i];
+      let exists = await db.PaymentMethod.findOne({
+        where: {
+          paymentMethodId: pm.id,
+        },
+      });
+      if (!exists) {
+        await db.PaymentMethod.create({
+          paymentMethodId: pm.id,
+          userId: userId,
+          status: "Active",
+          environment: environment,
+        });
+      }
+    }
     // Retrieve the customer to determine the default payment method
     const customer = await stripe.customers.retrieve(stripeCustomerId);
     const defaultPaymentMethodId =
@@ -733,6 +748,11 @@ const handleFailedPaymentMethod = async (userId, failedPaymentMethodId) => {
     if (paymentMethods.data.length === 1) {
       console.log("Only one payment method available. Removing it.");
       await stripe.paymentMethods.detach(failedPaymentMethodId);
+      await db.PaymentMethod.destroy({
+        where: {
+          paymentMethodId: failedPaymentMethodId,
+        },
+      });
       return {
         status: true,
         message: "Removed the only payment method for the user.",
@@ -742,7 +762,11 @@ const handleFailedPaymentMethod = async (userId, failedPaymentMethodId) => {
     // If multiple cards exist, remove the failed one and set the next as default
     console.log("Multiple payment methods available. Removing failed one.");
     await stripe.paymentMethods.detach(failedPaymentMethodId);
-
+    await db.PaymentMethod.destroy({
+      where: {
+        paymentMethodId: failedPaymentMethodId,
+      },
+    });
     const remainingMethods = paymentMethods.data.filter(
       (method) => method.id !== failedPaymentMethodId
     );

@@ -42,6 +42,7 @@ import {
   CancelPlan,
   AddCancelPlanReason,
   RedeemAbortCancellationReward,
+  GetPaymentmethodsAllUsers,
 } from "../controllers/PaymentController.js";
 
 import { GenerateApiKey, GetMyApiKeys } from "../controllers/apiController.js";
@@ -124,6 +125,11 @@ UserRouter.post(
   RedeemAbortCancellationReward
 );
 UserRouter.get("/getPaymentMethods", verifyJwtTokenWithTeam, GetPaymentmethods);
+UserRouter.get(
+  "/getPaymentMethodsAllUsers",
+  verifyJwtTokenWithTeam,
+  GetPaymentmethodsAllUsers
+);
 
 UserRouter.post(
   "/updateProfile",

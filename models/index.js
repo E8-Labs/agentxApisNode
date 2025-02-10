@@ -63,6 +63,7 @@ import TeamStageAssignModel from "./user/team/TeamStageAssignModel.js";
 import UserActivityModel from "./user/UserActivityModel.js";
 import CronLockTable from "./webhooks/cronLock.js";
 import { UserTwilioAccounts } from "./user/UserTwilioAccount.js";
+import PaymentMethod from "./user/payment/paymentMethod.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -116,6 +117,7 @@ db.User.hasMany(db.TeamModel, {
   foreignKey: "invitingUserId",
   as: "InvitingUser",
 });
+
 db.User.hasMany(db.TeamModel, {
   foreignKey: "invitedUserId",
   as: "InvitedUser",
@@ -137,6 +139,12 @@ db.KycExampleModel = KycExampleModel(sequelize, Sequelize);
 db.InfoExtractorModel = InfoExtractorModel(sequelize, Sequelize);
 
 db.WebhookModel = WebhookModel(sequelize, Sequelize);
+
+db.PaymentMethod = PaymentMethod(sequelize, Sequelize);
+db.User.hasMany(db.PaymentMethod, { foreignKey: "paymentMethods" });
+db.PaymentMethod.belongsTo(db.User, {
+  foreignKey: "userId",
+});
 
 db.PaymentHistory = PaymentHistory(sequelize, Sequelize);
 db.PaymentHistory.belongsTo(db.User, {
