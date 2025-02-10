@@ -14,6 +14,9 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
   let users = await db.User.findAll({
     where: {
       userRole: UserRole.AgentX,
+      createdAt: {
+        [db.Sequelize.Op.gt]: new Date("2025-02-10"), // Filter users registered after Feb 9
+      },
     },
     include: [
       {
@@ -21,15 +24,16 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
         required: false, // LEFT JOIN
       },
     ],
-    having: db.Sequelize.literal("COUNT(PaymentMethods.id) = 0"),
-    group: ["User.id"], // Minimal grouping
-    subQuery: false, // Forces Sequelize to generate correct SQL
+    group: ["User.id"], // Ensure correct grouping
+    having: db.Sequelize.literal("COUNT(PaymentMethods.id) = 0"), // Users with no payment methods
+    distinct: true, // Ensures unique users
   });
 
   //send these users notifications
   console.log("InActiveNot: Found users to send ", users.length);
 
   for (const u of users) {
+    console.log("user ", u.id);
     SendNoPaymentNotificaiton(u, 0, NotificationTypes.NoPaymentAdded); // Immediately
     SendNoPaymentNotificaiton(u, 3, NotificationTypes.NoPaymentFoMo); // 3 days later after 7 days inactivity
     SendNoPaymentNotificaiton(u, 5, NotificationTypes.NoPaymentScarcity); // 5 days later after 7 days inactivity
