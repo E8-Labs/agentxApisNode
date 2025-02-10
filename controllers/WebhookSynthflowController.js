@@ -43,6 +43,8 @@ import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import { GetTeamAdminFor } from "../utils/auth.js";
 import { constants } from "../constants/constants.js";
+import { generateFailedOrCallVoilationEmail } from "../emails/system/FailedOrCallVoilationEmail.js";
+import { SendEmail } from "../services/MailService.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -158,7 +160,7 @@ export const WebhookSynthflow = async (req, res) => {
 
       console.log("Lead is ", lead);
       if (lead) {
-        jsonIE = await extractIEAndStoreKycs(actions, lead, callId);
+        jsonIE = await extractIEAndStoreKycs(actions, lead, callId, modelId);
         await processInfoExtractors(
           jsonIE,
           leadCadence,
@@ -296,7 +298,7 @@ async function handleNewCall(
     console.log("errorr sending notification");
   }
   const jsonIE = lead
-    ? await extractIEAndStoreKycs(actions, lead, callId)
+    ? await extractIEAndStoreKycs(actions, lead, callId, modelId)
     : null;
 
   const leadCad = await findOrCreateLeadCadence(lead, assistant, jsonIE);
@@ -603,81 +605,131 @@ async function processInfoExtractors(
 async function extractIEAndStoreKycs(
   extractors,
   lead,
-  callId
+  callId,
+  modelId
   // assistant = null
 ) {
-  console.log("Extractors ", extractors);
-  const keys = Object.keys(extractors);
-  const ie = {};
+  try {
+    let user = await db.User.findByPk(lead.userId);
+    let subAgent = await db.AgentModel.findOne({
+      where: {
+        modelId: modelId,
+      },
+    });
+    let mainAgent = null;
+    let call = await db.LeadCallsSent.findOne({
+      where: {
+        synthflowCallId: callId,
+      },
+    });
+    if (call) {
+      mainAgent = await db.MainAgentModel.findByPk(call.mainAgentId);
+    }
+    if (!user) {
+      user = await db.User.findByPk(mainAgent.userId);
+    }
+    console.log("Extractors ", extractors);
+    const keys = Object.keys(extractors);
+    const ie = {};
 
-  for (const key of keys) {
-    const data = extractors[key];
-    const returnValue = data.return_value;
-    let question = key.replace("info_extractor_", "");
-    console.log("Question is ", question);
-    const answer = returnValue[question];
+    for (const key of keys) {
+      const data = extractors[key];
+      const returnValue = data.return_value;
+      let question = key.replace("info_extractor_", "");
+      console.log("Question is ", question);
+      const answer = returnValue[question];
 
-    ie[question] = answer;
-    console.log(`IE found ${question} : ${answer}`);
-    if (question.startsWith("book_appointment_with")) {
-      //it is a booking action
-      console.log("It is a booking action");
-      ie["meetingscheduled"] = true;
-      //logic to add meeting to the database and attach to lead
-      try {
-        MatchAndAssignLeadToMeeting(data, lead, assistant);
-      } catch (error) {
-        console.log("error finding meeting id");
+      ie[question] = answer;
+      console.log(`IE found ${question} : ${answer}`);
+      if (question.startsWith("book_appointment_with")) {
+        //it is a booking action
+        console.log("It is a booking action");
+        ie["meetingscheduled"] = true;
+        //logic to add meeting to the database and attach to lead
+        try {
+          MatchAndAssignLeadToMeeting(data, lead, assistant);
+        } catch (error) {
+          console.log("error finding meeting id");
+        }
       }
-    }
-    if (
-      question == "call_violation_detected" ||
-      question == "ai_non_responsive_detected"
-    ) {
-      //send email
-    }
-    if (lead) {
-      if (typeof answer === "string") {
-        if (question === "prospectemail") {
-          const emailFound = await db.LeadEmailModel.findOne({
-            where: { email: answer, leadId: lead.id },
-          });
+      if (
+        (question == "call_violation_detected" && answer == true) ||
+        (question == "ai_non_responsive_detected" && answer == true)
+      ) {
+        console.log("Found info Extractor");
+        //send email
+        let email = generateFailedOrCallVoilationEmail({
+          Sender_Name: user?.name,
+          FailureReason: question,
+          otherDetails: {
+            Sender_Id: user?.id,
+            Sender_Email: user?.email,
+            Sender_Phone: user?.phone,
+            call_id: callId,
+            agent: mainAgent?.name,
+            model_id: modelId,
+            agent_phone: subAgent?.phoneNumber,
+            lead_phone: lead.phone,
+            lead_name: lead.firstName || "",
+          },
+        });
+        let sent = await SendEmail(
+          constants.AdminNotifyEmail1,
+          email.subject,
+          email.html
+        );
+        let sent2 = await SendEmail(
+          constants.AdminNotifyEmail2,
+          email.subject,
+          email.html
+        );
+      }
+      if (lead) {
+        if (typeof answer === "string") {
+          if (question === "prospectemail") {
+            const emailFound = await db.LeadEmailModel.findOne({
+              where: { email: answer, leadId: lead.id },
+            });
 
-          if (!emailFound) {
-            console.log("New email added");
+            if (!emailFound) {
+              console.log("New email added");
 
-            await db.LeadEmailModel.create({
-              email: answer,
+              await db.LeadEmailModel.create({
+                email: answer,
+                leadId: lead.id,
+              });
+            }
+          } else if (question === "prospectname") {
+            if (lead.firstName == "" || lead.firstName == null) {
+              lead.firstName = answer == "Not Provided" ? "" : answer;
+              await lead.save();
+            }
+          } else if (!question.includes(process.env.StagePrefix)) {
+            let found = await db.InfoExtractorModel.findOne({
+              where: { identifier: question },
+            });
+            if (found) {
+              question = found.question;
+            }
+            await db.LeadKycsExtracted.create({
+              question,
+              answer,
               leadId: lead.id,
+              callId,
             });
           }
-        } else if (question === "prospectname") {
-          if (lead.firstName == "" || lead.firstName == null) {
-            lead.firstName = answer == "Not Provided" ? "" : answer;
-            await lead.save();
-          }
-        } else if (!question.includes(process.env.StagePrefix)) {
-          let found = await db.InfoExtractorModel.findOne({
-            where: { identifier: question },
-          });
-          if (found) {
-            question = found.question;
-          }
-          await db.LeadKycsExtracted.create({
-            question,
-            answer,
-            leadId: lead.id,
-            callId,
-          });
+        } else {
+          console.log("IE is not open question");
         }
-      } else {
-        console.log("IE is not open question");
       }
     }
-  }
 
-  console.log("IE obtained", ie);
-  return ie;
+    console.log("IE obtained", ie);
+    return ie;
+  } catch (error) {
+    console.log("Some error processing ExtractIEAndStore");
+    return {};
+  }
 }
 
 // async function MatchAndAssignLeadToMeeting()
@@ -1034,10 +1086,12 @@ export const SetOutcomeforpreviousCalls = async () => {
           let parsed = JSON.parse(callData);
           let actions = parsed.executed_actions;
           let lead = await db.LeadModel.findByPk(call.leadId);
+          let modelId = parsed.call.model_id;
           let jsonIE = await extractIEAndStoreKycs(
             actions,
             lead,
-            call.synthflowCallId
+            call.synthflowCallId,
+            modelId
           );
 
           let outcome = GetOutcomeFromCall(

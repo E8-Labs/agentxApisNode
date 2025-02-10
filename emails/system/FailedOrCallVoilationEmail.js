@@ -1,5 +1,7 @@
 export function generateFailedOrCallVoilationEmail(data) {
-  const { Sender_Name, FailureReason, ...otherDetails } = data;
+  console.log("Data Email", data);
+  const { Sender_Name, FailureReason } = data;
+  let otherDetails = data.otherDetails;
 
   const initials = Sender_Name
     ? Sender_Name.split(" ")
@@ -14,6 +16,8 @@ export function generateFailedOrCallVoilationEmail(data) {
         `<p><strong>${key.replace(/_/g, " ")}:</strong> ${value}</p>`
     )
     .join("\n");
+
+  console.log("Html is ", otherDetails);
 
   const HtmlTemplate = `
       <!DOCTYPE html>
@@ -93,7 +97,7 @@ export function generateFailedOrCallVoilationEmail(data) {
     `;
 
   return {
-    subject: "Subscription Failure",
+    subject: FailureReason,
     html: HtmlTemplate,
   };
 }
