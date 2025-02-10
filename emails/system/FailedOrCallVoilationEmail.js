@@ -74,7 +74,7 @@ export function generateFailedOrCallVoilationEmail(data) {
       </head>
       <body>
         <div class="container">
-          <div class="header">Subscription Failure Notification</div>
+          <div class="header">Call Failure Notification</div>
           <div class="body">
             <p>Hi Admin,</p>
             <p>There was a failed subscription attempt by <strong>${Sender_Name}</strong>:</p>

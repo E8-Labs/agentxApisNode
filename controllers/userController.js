@@ -39,6 +39,9 @@ import {
 } from "./synthflowController.js";
 import { DeleteCalendar } from "./calendarController.js";
 import { findOrCreateTwilioSubAccount } from "./twilioController.js";
+import { generateFailedOrCallVoilationEmail } from "../emails/system/FailedOrCallVoilationEmail.js";
+import { constants } from "../constants/constants.js";
+import { generateNewAccountEmail } from "../emails/system/NewAccountEmail.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -352,6 +355,19 @@ export const RegisterUser = async (req, res) => {
       JSON.stringify(collectionStrategies);
   }
   let user = await db.User.create(userDataRegisteration);
+
+  let emailNot = generateNewAccountEmail({
+    Sender_Name: user?.name,
+    Subject: "New User Registered",
+    otherDetails: {
+      ...userDataRegisteration,
+    },
+  });
+  let sent = await SendEmail(
+    constants.AdminNotifyEmail2,
+    emailNot.subject,
+    emailNot.html
+  );
 
   await trackLeadEvent(
     userDataRegisteration,
