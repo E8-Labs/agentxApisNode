@@ -14,6 +14,115 @@ export const InfoExtractorTypes = {
 
 export const InfoExtractors = [
   {
+    actionId: "1739209481743x957059919486506800",
+    identifier: "info_extractor_ai_non_responsive_detected",
+    question: "ai_non_responsive_detected",
+    actiontype: "yes_no",
+    description: `This IE identifies instances where the AgentX AI fails to respond during a call, either:
+At the beginning of the conversation (AI does not engage after the initial greeting).
+Midway through the conversation (AI stops responding unexpectedly, leading to a dropped or abandoned call).
+The goal is to flag and track these occurrences to improve system performance, prevent call failures, and ensure smooth AI-human interactions.
+
+Conditions for True (AI Non-Responsive Call Detected)
+A call is flagged as non-responsive (True) if any of the following conditions occur:
+1. AI Does Not Respond After the Initial Greeting
+The AI initiates the call but fails to follow up after the Human's first response.
+The AI remains silent for an extended period, leading to a drop or human disengagement.
+Examples:
+AI: "Hey, is this [First Name]?"
+Human: "Yes, who's this?"
+(AI fails to respond, long silence, then call disconnects.) → Flagged as Non-Responsive
+AI: "Hi, this is AgentX calling about new listings in your area. Are you currently looking to add more?"
+Human: "Maybe, tell me more."
+(AI fails to continue the conversation, leading to dead air.) → Flagged as Non-Responsive
+2. AI Stops Responding Mid-Conversation
+AI successfully engages in a conversation but stops responding midway.
+The AI leaves long periods of silence, causing the Human to hang up.
+The call abruptly drops without a proper conclusion.
+Examples:
+AI: "Are you handling prospecting yourself, or do you have a team?"
+Human: "I mostly do it myself, but I need help."
+(AI goes silent, no response, then call disconnects.) → Flagged as Non-Responsive
+AI: "We can set up a quick demo—" (AI cuts off mid-sentence, silence, call drops.) → Flagged as Non-Responsive
+3. Call Drops Without AI Ending the Conversation Properly
+The call is disconnected suddenly without AI confirming the end.
+AI does not say goodbye, confirm next steps, or acknowledge the Human's last response.
+Examples:
+AI: "Let me get that scheduled for you—" (AI drops, call ends.)
+Human: "Okay, so what’s the next step?" (AI never responds, silence, call drops.)
+
+Conditions for False (No AI Non-Response Issues Detected)
+Return False if:
+The AI responds appropriately to each Human input.
+The AI maintains conversation flow without unexpected silence.
+The call ends smoothly and naturally, with the AI properly concluding.
+The AI does not disconnect prematurely.
+`,
+    examples: [],
+  },
+  {
+    actionId: "1739209369014x240109929977898600",
+    identifier: "info_extractor_call_violation_detected",
+    question: "call_violation_detected",
+    actiontype: "yes_no",
+    description: `This IE determines whether a call violates AgentX's Terms & Conditions, Twilio policies, or legal and ethical standards based on the transcript provided. The goal is to detect potential illegal, inappropriate, or unethical conduct during AI-driven conversations.
+If the call contains any of the following violations, return True. Otherwise, return False.
+Conditions for True (Call Violation Detected)
+A call is flagged as a violation if any of the following conditions are met:
+1. Lack of Consent
+If the Human explicitly states they did not give consent or authorize the call.
+Examples:
+"I didn't authorize this call."
+"I never gave consent for this."
+"How did you get my number? I didn’t opt in."
+2. Misrepresentation 
+The AI saying it is a human.
+The AI misrepresents the nature of the call (e.g., pretending to be from an official agency).
+Examples:
+The AI claims to be from a government agency, bank, or law enforcement falsely.
+3. Harassment or Deceptive Practices
+The AI engages in aggressive sales tactics, pressure, or manipulation.
+Examples:
+"I already told you to stop calling."
+"This is the third time you've called me today."
+"You’re calling too many times, stop calling me."
+4. Fraud & Deception
+The AI impersonates government agencies, law enforcement, financial institutions, or healthcare providers.
+The AI makes false claims about products, services, investments, or legal matters.
+The AI requests sensitive personal information (e.g., SSN, banking details) under false pretenses.
+Examples:
+"We’re calling from the IRS about an urgent matter." (Fraudulent)
+"You’ve won a free property evaluation worth $10,000!" (False claim)
+"We need your bank details to secure your listing spot." (Deceptive)
+5. Harassment & Coercion
+The AI threatens, intimidates, or pressures the recipient to take action.
+6. Banned Industries & Unlicensed Promotion
+The AI attempts to promote or discuss prohibited industries without proper licensing.
+Examples:
+Illegal gambling, payday loans, or unlicensed debt collection.
+Pharmaceuticals, alcohol, cannabis, or adult services where restricted.
+Calls to emergency services, hospitals, or law enforcement for non-legitimate reasons.
+7. Inappropriate Calls (Ethically or Professionally Unacceptable)
+A call is flagged as inappropriate if it contains:
+Insensitive or Offensive Content
+Derogatory remarks, discriminatory language, or profanity.
+Joking about race, religion, gender, disability, or other sensitive topics.
+Examples:
+"You sound like someone who doesn’t understand tech." (Discriminatory)
+"Women aren’t great at real estate sales." (Offensive)
+Unethical Persuasion
+Lying or exaggerating about the benefits of the product/service.
+Creating false urgency or fear (e.g., "Your account will be shut down if you don’t act now.")
+Discussing Unrelated or Personal Topics
+Asking about personal life, relationships, or finances unless relevant.
+Bringing up political or religious views without invitation.
+Examples:
+"How much do you make as an agent?" (Personal topic)
+"Which political party do you support?" (Unrelated discussion)
+`,
+    examples: [],
+  },
+  {
     actionId: "1738770725055x423528638807525000",
     identifier: "info_extractor_conversation_detected",
     question: "conversation_detected",

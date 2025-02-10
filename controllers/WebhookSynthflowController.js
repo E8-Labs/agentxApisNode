@@ -329,6 +329,8 @@ async function handleNewCall(
     pipelineId: pipeline?.id || null,
     endCallReason: endCallReason,
     conversation_detected: jsonIE?.conversation_detected,
+    call_violation_detected: jsonIE?.call_violation_detected,
+    ai_non_responsive_detected: jsonIE?.ai_non_responsive_detected,
   });
 
   await handleInfoExtractorValues(
@@ -572,6 +574,8 @@ async function updateCallStatus(
     dbCall.Busycallback = jsonIE?.Busycallback;
     dbCall.call_review_worthy = jsonIE?.call_review_worthy;
     dbCall.nodecisionmaker = jsonIE?.nodecisionmaker;
+    dbCall.call_violation_detected = jsonIE?.call_violation_detected;
+    dbCall.ai_non_responsive_detected = jsonIE?.ai_non_responsive_detected;
     await dbCall.save();
   }
 }
@@ -626,7 +630,12 @@ async function extractIEAndStoreKycs(
         console.log("error finding meeting id");
       }
     }
-
+    if (
+      question == "call_violation_detected" ||
+      question == "ai_non_responsive_detected"
+    ) {
+      //send email
+    }
     if (lead) {
       if (typeof answer === "string") {
         if (question === "prospectemail") {
@@ -637,11 +646,14 @@ async function extractIEAndStoreKycs(
           if (!emailFound) {
             console.log("New email added");
 
-            await db.LeadEmailModel.create({ email: answer, leadId: lead.id });
+            await db.LeadEmailModel.create({
+              email: answer,
+              leadId: lead.id,
+            });
           }
         } else if (question === "prospectname") {
           if (lead.firstName == "" || lead.firstName == null) {
-            lead.firstName = answer;
+            lead.firstName = answer == "Not Provided" ? "" : answer;
             await lead.save();
           }
         } else if (!question.includes(process.env.StagePrefix)) {

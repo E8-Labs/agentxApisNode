@@ -201,6 +201,14 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       type: Sequelize.BOOLEAN,
       allowNull: true,
     },
+    call_violation_detected: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
+    ai_non_responsive_detected: {
+      type: Sequelize.BOOLEAN,
+      allowNull: true,
+    },
   });
   LeadCallsSent.associate = (models) => {
     LeadCallsSent.belongsTo(models.LeadModel, {
