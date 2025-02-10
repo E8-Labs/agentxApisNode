@@ -488,7 +488,7 @@ export const PurchasePhoneNumber = async (req, res) => {
           phoneSid: purchasedNumber.sid,
           phoneStatus: "active",
           userId,
-          subAccountSid: subAccountSid,
+          subAccountSid: "", //subAccountSid,
           nextBillingDate: new Date(
             new Date().setMonth(new Date().getMonth() + 1)
           ),
