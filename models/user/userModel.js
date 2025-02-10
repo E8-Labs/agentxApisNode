@@ -126,6 +126,22 @@ const User = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    city: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    locality: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    lat: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    lang: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
 
     isTrial: {
       type: Sequelize.BOOLEAN,

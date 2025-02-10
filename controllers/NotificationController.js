@@ -52,6 +52,11 @@ import { generateDesktopEmail } from "../emails/general/DesktopEmail.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { UserRole } from "../models/user/userModel.js";
 import { CheckAndSendNoPaymentMethodAddedNotifications } from "./NoPaymentNotificationsController.js";
+import { GenerateNoPaymentEmail } from "../emails/noPaymentNotifications/NoPaymentAddedEmail.js";
+import { GenerateNoPaymentFoMoEmail } from "../emails/noPaymentNotifications/NoPaymentFoMoEmail.js";
+import { GenerateNoPaymentScarcityEmail } from "../emails/noPaymentNotifications/NoPaymetScarcityEmail.js";
+import { GenerateNoPaymentUrgentWarningEmail } from "../emails/noPaymentNotifications/NoPaymentUrgentWarningEmail.js";
+import { GenerateNoPaymentAIResetEmail } from "../emails/noPaymentNotifications/NoPaymentAIResetEmail.js";
 
 async function GetNotificationTitle(
   user,
@@ -267,7 +272,8 @@ export const AddNotification = async (
   minutes = 0,
   recording = null,
   meetingDate = null,
-  synthflowCallId = null
+  synthflowCallId = null,
+  emailOnly = false
 ) => {
   // console.log("Data in add not ", { user, fromUser, type, lead, agent, code });
   if (user.userRole == UserRole.Invitee) {
@@ -356,7 +362,42 @@ async function SendEmailForNotification(
 
   let emailNot = null;
   let email = user.email || "";
-  if (type == NotificationTypes.InviteAccepted) {
+  if (type == NotificationTypes.NoPaymentAiReset) {
+    emailNot = GenerateNoPaymentAIResetEmail(
+      user.name,
+      constants.BillingPage,
+      ""
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.NoPaymentUrgentWarning) {
+    emailNot = GenerateNoPaymentUrgentWarningEmail(
+      user.name,
+      constants.BillingPage,
+      ""
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.NoPaymentScarcity) {
+    emailNot = GenerateNoPaymentScarcityEmail(
+      user.name,
+      constants.BillingPage,
+      "💰Agents Are Closing $700K+ Deals—Your AI is Waiting!"
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.NoPaymentFoMo) {
+    emailNot = GenerateNoPaymentFoMoEmail(
+      user.name,
+      constants.BillingPage,
+      "Click here to activate now"
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.NoPaymentAdded) {
+    emailNot = GenerateNoPaymentEmail(
+      user.name,
+      constants.BillingPage,
+      "Click here to complete your account"
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.InviteAccepted) {
     emailNot = GetInviteAcceptedEmailReplacedVariables(
       user.name,
       fromUser.name
@@ -565,9 +606,15 @@ export const GetNotifications = async (req, res) => {
 
       let nots = await db.NotificationModel.findAll({
         where: {
-          // userId: {
-          //   [db.Sequelize.Op.in]: teamIds,
-          // },
+          type: {
+            [db.Sequelize.Op.notIn]: [
+              NotificationTypes.NoPaymentAdded,
+              NotificationTypes.NoPaymentAiReset,
+              NotificationTypes.NoPaymentFoMo,
+              NotificationTypes.NoPaymentScarcity,
+              NotificationTypes.NoPaymentUrgentWarning,
+            ],
+          },
           userId: admin.id,
         },
         offset: offset,
