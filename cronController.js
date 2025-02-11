@@ -163,7 +163,7 @@ CronCallOutcome.start();
 // CronReleaseNumber.start();
 
 const NotificationSendingCron = nodeCron.schedule(
-  "*/3 * * * *", //"*/59 * * * * *",
+  "*/1 * * * *", //"*/59 * * * * *",
   NotificationCron
 );
 NotificationSendingCron.start();
