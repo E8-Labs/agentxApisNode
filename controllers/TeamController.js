@@ -100,6 +100,9 @@ export function GetTeamMembers(req, res) {
           message: "No such user",
         });
       }
+      if (req.query.userId) {
+        user = await db.User.findByPk(req.query.userId);
+      }
 
       let teamAdmin = await GetTeamAdminFor(user);
 
