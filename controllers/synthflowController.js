@@ -869,7 +869,8 @@ async function sendFailedCallEmail(
   assistant,
   batchId,
   failedReason,
-  callId
+  callId,
+  mainAgent
 ) {
   let user = await db.User.findByPk(lead?.userId || 1);
   if (!user) {
@@ -1005,7 +1006,14 @@ async function initiateCall(
           bookingCall: bookingCall,
           meeting: meeting?.id,
         });
-        sendFailedCallEmail(lead, assistant, batchId, answer, callId);
+        sendFailedCallEmail(
+          lead,
+          assistant,
+          batchId,
+          answer,
+          callId,
+          mainAgentModel
+        );
       } catch (error) {
         console.log("Error sending failed email", error);
       }
