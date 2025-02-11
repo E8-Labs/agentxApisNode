@@ -15,7 +15,7 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
     where: {
       userRole: "AgentX",
       createdAt: {
-        [Op.gt]: new Date("2025-02-10 00:00:00"),
+        [db.Sequelize.Op.gt]: new Date("2025-02-10 00:00:00"),
       },
     },
     include: [
