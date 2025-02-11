@@ -354,8 +354,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           });
         } else if (
           firstTime &&
-          foundPlan.type == PayAsYouGoPlanTypes.Plan30Min &&
-          !payNow
+          foundPlan.type == PayAsYouGoPlanTypes.Plan30Min
         ) {
           // give 30 min free for 7 days and set the subscription date to
 
