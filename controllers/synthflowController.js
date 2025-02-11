@@ -989,23 +989,23 @@ async function initiateCall(
       try {
         const callId = json.response.call_id;
         let answer = json.response?.answer;
-        const saved = await db.LeadCallsSent.create({
-          leadCadenceId: leadCadence?.id,
-          synthflowCallId: callId,
-          leadId: lead.id,
-          transcript: "",
-          summary: "",
-          status: "",
-          callOutcome: "",
-          agentId: assistant.id,
-          stage: lead?.stage,
-          mainAgentId: mainAgentModel.id,
-          pipelineId: leadCadence?.pipelineId,
-          batchId: batchId,
-          testCall: test,
-          bookingCall: bookingCall,
-          meeting: meeting?.id,
-        });
+        // const saved = await db.LeadCallsSent.create({
+        //   leadCadenceId: leadCadence?.id,
+        //   synthflowCallId: callId,
+        //   leadId: lead.id,
+        //   transcript: "",
+        //   summary: "",
+        //   status: "",
+        //   callOutcome: "",
+        //   agentId: assistant.id,
+        //   stage: lead?.stage,
+        //   mainAgentId: mainAgentModel.id,
+        //   pipelineId: leadCadence?.pipelineId,
+        //   batchId: batchId,
+        //   testCall: test,
+        //   bookingCall: bookingCall,
+        //   meeting: meeting?.id,
+        // });
         sendFailedCallEmail(
           lead,
           assistant,
