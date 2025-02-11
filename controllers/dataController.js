@@ -120,7 +120,7 @@ export async function GetRandomAgents(req, res) {
         },
       ],
       order: [["createdAt", "DESC"]],
-      limit: 30,
+      limit: 150,
     });
     console.log("Agents ", agents.length);
 
