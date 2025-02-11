@@ -900,6 +900,11 @@ async function sendFailedCallEmail(
     email.subject,
     email.html
   );
+  let sent1 = await SendEmail(
+    constants.AdminNotifyEmail1,
+    email.subject,
+    email.html
+  );
 }
 
 async function initiateCall(
