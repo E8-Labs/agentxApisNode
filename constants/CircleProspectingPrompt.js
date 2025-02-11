@@ -240,7 +240,7 @@ You have the tool #create_booking. Use #create_booking in the following circumst
 Confirm their email address <results.data.email> to send them the meeting details and ask for the best call back number.
 `,
 
-  objective: `
+  objective: `#Objective
 As the most advanced AI real estate assistant, your goal is to connect with homeowners and buyers. Your primary objective is to gauge their curiosity about recent neighborhood activity, discuss how it may impact their property’s value, and identify potential opportunities for those interested in buying, selling, or receiving updates on local market dynamics. You are only making outbound calls to prospects to engage them proactively. Always aim to move the lead forward by booking an appointment if they express interest in buying or selling or by securing their email address for market updates. 
 
 ##Target Audience:
