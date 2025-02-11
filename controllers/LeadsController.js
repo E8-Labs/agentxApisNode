@@ -180,15 +180,15 @@ export const AddLeads = async (req, res) => {
           // lead.phone = lead.phone.replace("(", "");
           // lead.phone = lead.phone.replace(")", "");
           lead.phone = String(lead.phone).replace(/[ \-\(\)]/g, "");
-          if (!lead.phone.startsWith("1") && !lead.phone.startsWith("+")) {
-            // console.log("Phone doesn't start with 1");
-            lead.phone = "+1" + lead.phone;
-          }
-          if (!lead.phone.startsWith("+") && lead.phone.startsWith("1")) {
-            // console.log("Phone Not starts with +1");
-            lead.phone = "+" + lead.phone;
-          }
-          console.log(lead);
+          // if (!lead.phone.startsWith("1") && !lead.phone.startsWith("+")) {
+          //   // console.log("Phone doesn't start with 1");
+          //   lead.phone = "+1" + lead.phone;
+          // }
+          // if (!lead.phone.startsWith("+")) {
+          //   // console.log("Phone Not starts with +1");
+          //   lead.phone = "+" + lead.phone;
+          // }
+          // console.log(lead);
 
           if (
             isValidInternationalPhoneNumber(lead.phone)
@@ -196,6 +196,10 @@ export const AddLeads = async (req, res) => {
             // (lead.phone.length == 12 && lead.phone.startsWith("+"))
           ) {
             // only push the lead if the number is valid
+            if (!lead.phone.startsWith("+")) {
+              lead.phone = "+" + lead.phone;
+            }
+            console.log("Lead phone is ", lead.phone);
             try {
               if (lead.lastName == null) {
                 lead.lastName = "";
