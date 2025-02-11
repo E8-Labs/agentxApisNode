@@ -11,7 +11,7 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
   let date10DaysAgo = new Date();
   date10DaysAgo.setDate(date10DaysAgo.getDate() - 10); // Correctly subtract 7 days from the current date
 
-  const users = await User.findAll({
+  const users = await db.User.findAll({
     where: {
       userRole: "AgentX",
       createdAt: {
@@ -20,7 +20,7 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
     },
     include: [
       {
-        model: PaymentMethods,
+        model: db.PaymentMethod,
         required: false, // LEFT JOIN
         attributes: ["id"],
         where: {
@@ -31,7 +31,7 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
   });
 
   //send these users notifications
-  console.log("InActiveNot: Found users to send ", users.length);
+  console.log("NoPayment: Found users to send ", users.length);
 
   for (const u of users) {
     console.log("user ", u.id);
