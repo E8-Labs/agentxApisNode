@@ -27,7 +27,7 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
         [db.Sequelize.Op.gt]: new Date("2025-02-10 00:00:00"),
       },
       id: {
-        [db.Sequelize.Op.in]: userIds,
+        [db.Sequelize.Op.notIn]: userIds,
       },
     },
     // include: [
