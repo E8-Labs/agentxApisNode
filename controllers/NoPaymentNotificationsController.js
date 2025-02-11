@@ -15,18 +15,25 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
     where: {
       userRole: UserRole.AgentX,
       createdAt: {
-        [db.Sequelize.Op.gt]: new Date("2025-02-10"), // Filter users registered after Feb 9
+        [db.Sequelize.Op.gt]: new Date("2025-02-10"),
       },
     },
     include: [
       {
         model: db.PaymentMethod,
-        required: false, // LEFT JOIN
+        required: false,
       },
     ],
-    group: ["User.id"], // Ensure correct grouping
-    having: db.Sequelize.literal("COUNT(PaymentMethods.id) = 0"), // Users with no payment methods
-    distinct: true, // Ensures unique users
+    attributes: {
+      include: [
+        [
+          db.Sequelize.fn("COUNT", db.Sequelize.col("PaymentMethods.id")),
+          "paymentMethodCount",
+        ],
+      ],
+    },
+    group: ["User.id"],
+    having: db.Sequelize.literal("paymentMethodCount = 0"),
   });
 
   //send these users notifications
