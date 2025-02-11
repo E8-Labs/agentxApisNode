@@ -48,6 +48,8 @@ import { NotificationTypes } from "../models/user/NotificationModel.js";
 import { AddNotification } from "./NotificationController.js";
 import { WriteToFile } from "../services/FileService.js";
 import { UserTypes } from "../models/user/userModel.js";
+import { generateFailedOrCallVoilationEmail } from "../emails/system/FailedOrCallVoilationEmail.js";
+import { SendEmail } from "../services/MailService.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -862,6 +864,43 @@ function sanitizeJSONString(jsonString) {
   }
 }
 
+async function sendFailedCallEmail(
+  lead,
+  assistant,
+  batchId,
+  failedReason,
+  callId
+) {
+  let user = await db.User.findByPk(lead?.userId || 1);
+  if (!user) {
+    // let batch = await db.CadenceBatchModel.findByPk(batchId)
+    //try to find from assistant of batch
+    user = await db.User.findByPk(assistant?.userId || 1);
+  }
+  let email = generateFailedOrCallVoilationEmail({
+    Sender_Name: user?.name,
+    FailureReason: "Call Failed",
+    otherDetails: {
+      Sender_Id: user?.id,
+      Sender_Email: user?.email,
+      Sender_Phone: user?.phone,
+      call_id: callId,
+      agent: mainAgent?.name,
+      model_id: assistant.modelId,
+      agent_phone: assistant?.phoneNumber,
+      lead_phone: lead?.phone,
+      lead_name: lead?.firstName || "",
+      Call_Fail_Reason: failedReason,
+      Batch: batchId,
+    },
+  });
+  let sent2 = await SendEmail(
+    constants.AdminNotifyEmail2,
+    email.subject,
+    email.html
+  );
+}
+
 async function initiateCall(
   data,
   leadCadence,
@@ -946,7 +985,15 @@ async function initiateCall(
         };
       }
     } else {
+      try {
+        const callId = json.response.call_id;
+        let answer = json.response?.answer;
+        sendFailedCallEmail(lead, assistant, batchId, answer, callId);
+      } catch (error) {
+        console.log("Error sending failed email", error);
+      }
       console.log("Adding call try error ");
+
       await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
       console.log("Call Failed with line 834", json);
       if (json.status == "error") {
