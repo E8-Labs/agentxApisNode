@@ -5,6 +5,7 @@ import { verifyJwtTokenWithTeam } from "../middleware/jwtmiddleware.js";
 import {
   LoadRegistrationData,
   GenerateDefaultSellerBuyerKycIE,
+  GetRandomAgents,
 } from "../controllers/dataController.js";
 
 const uploadFiles = multer().fields([
@@ -20,6 +21,7 @@ const uploadMedia = multer().fields([
 let DataRouter = express.Router();
 
 DataRouter.get("/loadDefaualtData", LoadRegistrationData);
+DataRouter.get("/agentsList", GetRandomAgents);
 DataRouter.post("/createDefaultIEs", GenerateDefaultSellerBuyerKycIE);
 
 export default DataRouter;
