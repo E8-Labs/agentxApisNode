@@ -279,72 +279,81 @@ async function handleNewCall(
 
   //Send Notification for inbound Call
   try {
-    let user = await db.User.findByPk(assistant.userId);
-    await AddNotification(
-      user,
-      null,
-      NotificationTypes.LeadCalledBack,
-      lead,
-      null,
-      null,
-      0,
-      0,
-      0,
-      null,
-      null,
-      callId
-    );
+    if (assistant.agentType == "inbound") {
+      console.log(`Assistant ${assistant.modelId} is inbound`, callId);
+      console.log("Adding lead call back");
+      let user = await db.User.findByPk(assistant.userId);
+      await AddNotification(
+        user,
+        null,
+        NotificationTypes.LeadCalledBack,
+        lead,
+        null,
+        null,
+        0,
+        0,
+        0,
+        null,
+        null,
+        callId
+      );
+    }
   } catch (error) {
-    console.log("errorr sending notification");
+    console.log("errorr sending notification", error);
   }
-  const jsonIE = lead
-    ? await extractIEAndStoreKycs(actions, lead, callId, modelId)
-    : null;
+  try {
+    const jsonIE = lead
+      ? await extractIEAndStoreKycs(actions, lead, callId, modelId)
+      : null;
 
-  const leadCad = await findOrCreateLeadCadence(lead, assistant, jsonIE);
-  const pipeline = await db.Pipeline.findByPk(leadCad?.pipelineId);
+    const leadCad = await findOrCreateLeadCadence(lead, assistant, jsonIE);
+    const pipeline = await db.Pipeline.findByPk(leadCad?.pipelineId);
 
-  const dbCall = await db.LeadCallsSent.create({
-    mainAgentId: assistant.mainAgentId,
-    userId: assistant.userId,
-    agentId: assistant.id,
-    data: dataString,
-    synthflowCallId: callId,
-    duration,
-    recordingUrl,
-    transcript,
-    hotlead: jsonIE?.hotlead,
-    notinterested: jsonIE?.notinterested,
-    dnd: jsonIE?.dnd,
-    wrongnumber: jsonIE?.wrongnumber,
-    meetingscheduled: jsonIE?.meetingscheduled,
-    callmeback: jsonIE?.callmeback,
-    humancalldrop: jsonIE?.humancalldrop,
-    voicemail: jsonIE?.voicemail,
-    Busycallback: jsonIE?.Busycallback,
-    nodecisionmaker: jsonIE?.nodecisionmaker,
-    call_review_worthy: jsonIE?.call_review_worthy,
-    leadId: lead?.id || null,
-    leadCadenceId: leadCad?.id || null,
-    status: data.call.status,
-    batchId: null,
-    pipelineId: pipeline?.id || null,
-    endCallReason: endCallReason,
-    conversation_detected: jsonIE?.conversation_detected,
-    call_violation_detected: jsonIE?.call_violation_detected,
-    ai_non_responsive_detected: jsonIE?.ai_non_responsive_detected,
-  });
+    const dbCall = await db.LeadCallsSent.create({
+      mainAgentId: assistant.mainAgentId,
+      userId: assistant.userId,
+      agentId: assistant.id,
+      data: dataString,
+      synthflowCallId: callId,
+      duration,
+      recordingUrl,
+      transcript,
+      hotlead: jsonIE?.hotlead,
+      notinterested: jsonIE?.notinterested,
+      dnd: jsonIE?.dnd,
+      wrongnumber: jsonIE?.wrongnumber,
+      meetingscheduled: jsonIE?.meetingscheduled,
+      callmeback: jsonIE?.callmeback,
+      humancalldrop: jsonIE?.humancalldrop,
+      voicemail: jsonIE?.voicemail,
+      Busycallback: jsonIE?.Busycallback,
+      nodecisionmaker: jsonIE?.nodecisionmaker,
+      call_review_worthy: jsonIE?.call_review_worthy,
+      leadId: lead?.id || null,
+      leadCadenceId: leadCad?.id || null,
+      status: data.call.status,
+      batchId: null,
+      pipelineId: pipeline?.id || null,
+      endCallReason: endCallReason,
+      conversation_detected: jsonIE?.conversation_detected,
+      call_violation_detected: jsonIE?.call_violation_detected,
+      ai_non_responsive_detected: jsonIE?.ai_non_responsive_detected,
+    });
 
-  await handleInfoExtractorValues(
-    jsonIE,
-    leadCad,
-    lead,
-    pipeline,
-    dbCall,
-    endCallReason
-  );
+    await handleInfoExtractorValues(
+      jsonIE,
+      leadCad,
+      lead,
+      pipeline,
+      dbCall,
+      endCallReason
+    );
 
-  return dbCall;
+    return dbCall;
+  } catch (error) {
+    console.log("Error saving call", error);
+    return null;
+  }
 }
 
 async function findOrCreateSheet(assistant, sheetName) {

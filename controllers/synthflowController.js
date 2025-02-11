@@ -869,7 +869,8 @@ async function sendFailedCallEmail(
   assistant,
   batchId,
   failedReason,
-  callId
+  callId,
+  mainAgent
 ) {
   let user = await db.User.findByPk(lead?.userId || 1);
   if (!user) {
@@ -896,6 +897,11 @@ async function sendFailedCallEmail(
   });
   let sent2 = await SendEmail(
     constants.AdminNotifyEmail2,
+    email.subject,
+    email.html
+  );
+  let sent1 = await SendEmail(
+    constants.AdminNotifyEmail1,
     email.subject,
     email.html
   );
@@ -988,24 +994,31 @@ async function initiateCall(
       try {
         const callId = json.response.call_id;
         let answer = json.response?.answer;
-        const saved = await db.LeadCallsSent.create({
-          leadCadenceId: leadCadence?.id,
-          synthflowCallId: callId,
-          leadId: lead.id,
-          transcript: "",
-          summary: "",
-          status: "",
-          callOutcome: "",
-          agentId: assistant.id,
-          stage: lead?.stage,
-          mainAgentId: mainAgentModel.id,
-          pipelineId: leadCadence?.pipelineId,
-          batchId: batchId,
-          testCall: test,
-          bookingCall: bookingCall,
-          meeting: meeting?.id,
-        });
-        sendFailedCallEmail(lead, assistant, batchId, answer, callId);
+        // const saved = await db.LeadCallsSent.create({
+        //   leadCadenceId: leadCadence?.id,
+        //   synthflowCallId: callId,
+        //   leadId: lead.id,
+        //   transcript: "",
+        //   summary: "",
+        //   status: "",
+        //   callOutcome: "",
+        //   agentId: assistant.id,
+        //   stage: lead?.stage,
+        //   mainAgentId: mainAgentModel.id,
+        //   pipelineId: leadCadence?.pipelineId,
+        //   batchId: batchId,
+        //   testCall: test,
+        //   bookingCall: bookingCall,
+        //   meeting: meeting?.id,
+        // });
+        sendFailedCallEmail(
+          lead,
+          assistant,
+          batchId,
+          answer,
+          callId,
+          mainAgentModel
+        );
       } catch (error) {
         console.log("Error sending failed email", error);
       }

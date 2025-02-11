@@ -11,33 +11,27 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
   let date10DaysAgo = new Date();
   date10DaysAgo.setDate(date10DaysAgo.getDate() - 10); // Correctly subtract 7 days from the current date
 
-  let users = await db.User.findAll({
+  const users = await db.User.findAll({
     where: {
-      userRole: UserRole.AgentX,
+      userRole: "AgentX",
       createdAt: {
-        [db.Sequelize.Op.gt]: new Date("2025-02-10"),
+        [db.Sequelize.Op.gt]: new Date("2025-02-10 00:00:00"),
       },
     },
     include: [
       {
         model: db.PaymentMethod,
-        required: false,
+        required: false, // LEFT JOIN
+        attributes: ["id"],
+        where: {
+          id: null, // No payment method linked
+        },
       },
     ],
-    attributes: {
-      include: [
-        [
-          db.Sequelize.fn("COUNT", db.Sequelize.col("PaymentMethods.id")),
-          "paymentMethodCount",
-        ],
-      ],
-    },
-    group: ["User.id"],
-    having: db.Sequelize.literal("paymentMethodCount = 0"),
   });
 
   //send these users notifications
-  console.log("InActiveNot: Found users to send ", users.length);
+  console.log("NoPayment: Found users to send ", users.length);
 
   for (const u of users) {
     console.log("user ", u.id);
