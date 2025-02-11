@@ -925,10 +925,10 @@ export const GetLeads = async (req, res) => {
         }
         if (search) {
           leadFilters[Op.or] = [
-            { firstName: { [Op.like]: `%${name}%` } },
-            { lastName: { [Op.like]: `%${name}%` } },
-            { phone: { [Op.like]: `%${name}%` } },
-            { email: { [Op.like]: `%${name}%` } },
+            { firstName: { [Op.like]: `%${search}%` } },
+            { lastName: { [Op.like]: `%${search}%` } },
+            { phone: { [Op.like]: `%${search}%` } },
+            { email: { [Op.like]: `%${search}%` } },
           ];
         }
 
