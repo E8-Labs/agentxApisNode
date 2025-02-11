@@ -280,6 +280,8 @@ async function handleNewCall(
   //Send Notification for inbound Call
   try {
     if (assistant.agentType == "inbound") {
+      console.log(`Assistant ${assistant.modelId} is inbound`, callId);
+      console.log("Adding lead call back");
       let user = await db.User.findByPk(assistant.userId);
       await AddNotification(
         user,
