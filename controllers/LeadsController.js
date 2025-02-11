@@ -859,7 +859,8 @@ export const GetLeads = async (req, res) => {
 
     if (authData) {
       try {
-        const { sheetId, stageIds, fromDate, toDate, noStage } = req.query; // Fetching query parameters
+        const { sheetId, stageIds, fromDate, toDate, noStage, search } =
+          req.query; // Fetching query parameters
         let userId = authData.user.id;
         if (req.query.userId) {
           userId = req.query.userId;
@@ -921,6 +922,14 @@ export const GetLeads = async (req, res) => {
               { [db.Sequelize.Op.is]: null }, // Matches null values
             ],
           };
+        }
+        if (search) {
+          leadFilters[Op.or] = [
+            { firstName: { [Op.like]: `%${name}%` } },
+            { lastName: { [Op.like]: `%${name}%` } },
+            { phone: { [Op.like]: `%${name}%` } },
+            { email: { [Op.like]: `%${name}%` } },
+          ];
         }
 
         // Fetch leads first based on general filters
