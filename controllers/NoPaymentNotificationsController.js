@@ -21,6 +21,7 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
     include: [
       {
         model: db.PaymentMethod,
+        as: "paymentMethods",
         required: false, // LEFT JOIN
         attributes: ["id"],
         where: {
@@ -119,4 +120,4 @@ async function getDaysSinceRegisteration(userId) {
   }
 }
 
-CheckAndSendNoPaymentMethodAddedNotifications();
+// CheckAndSendNoPaymentMethodAddedNotifications();

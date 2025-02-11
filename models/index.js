@@ -134,6 +134,9 @@ db.AgentRole = AgentRole(sequelize, Sequelize);
 db.MainAgentModel = MainAgentModel(sequelize, Sequelize);
 db.AgentPromptModel = AgentPromptModel(sequelize, Sequelize);
 db.AgentModel = AgentModel(sequelize, Sequelize);
+db.User.hasMany(db.AgentModel, { foreignKey: "userId", as: "agents" });
+db.AgentModel.belongsTo(db.User, { foreignKey: "userId", as: "user" });
+
 db.KycModel = KycModel(sequelize, Sequelize);
 db.KycExampleModel = KycExampleModel(sequelize, Sequelize);
 db.InfoExtractorModel = InfoExtractorModel(sequelize, Sequelize);
@@ -141,7 +144,10 @@ db.InfoExtractorModel = InfoExtractorModel(sequelize, Sequelize);
 db.WebhookModel = WebhookModel(sequelize, Sequelize);
 
 db.PaymentMethod = PaymentMethod(sequelize, Sequelize);
-db.User.hasMany(db.PaymentMethod, { foreignKey: "paymentMethods" });
+db.User.hasMany(db.PaymentMethod, {
+  foreignKey: "userId",
+  as: "paymentMethods",
+});
 db.PaymentMethod.belongsTo(db.User, {
   foreignKey: "userId",
 });

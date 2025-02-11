@@ -11,6 +11,7 @@ import moment from "moment-timezone";
 import axios from "axios";
 import chalk from "chalk";
 import nodemailer from "nodemailer";
+import { AreaCodes } from "../utils/USAreaCodes.js";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 
 import { OpenQuestionInfoExtractors } from "../config/defaultInfoExtractors.js";
@@ -98,3 +99,54 @@ export const GenerateDefaultSellerBuyerKycIE = async (req, res) => {
     data: null,
   });
 };
+
+const getAreaCode = (phoneNumber) => {
+  const digits = phoneNumber.replace(/\D/g, ""); // Remove non-numeric chars
+  const cleanNumber = digits.startsWith("1") ? digits.substring(1) : digits; // Remove leading "1"
+  return cleanNumber.substring(0, 3); // Get first 3 digits as area code
+};
+export async function GetRandomAgents(req, res) {
+  try {
+    // Fetch latest 30 agents with a phone number
+    const agents = await db.AgentModel.findAll({
+      where: {
+        phoneNumber: { [db.Sequelize.Op.ne]: "" }, // Exclude empty phone numbers
+      },
+      include: [
+        {
+          model: db.User,
+          as: "user",
+          attributes: ["name"], // Get user's full name
+        },
+      ],
+      order: [["createdAt", "DESC"]],
+      limit: 30,
+    });
+    console.log("Agents ", agents.length);
+
+    // Process data
+    let formattedAgents = [];
+
+    for (const agent of agents) {
+      const agentName = agent.user?.name || "Unknown Agent";
+
+      // Extract area code (first 3 digits of phone number)
+      const phoneNumber = agent.phoneNumber.replace(/\D/g, ""); // Remove non-numeric chars
+      const areaCode = getAreaCode(phoneNumber); //phoneNumber.substring(0, 3);
+
+      // Match area code with AreaCodes list
+      if (AreaCodes[areaCode]) {
+        formattedAgents.push({
+          Agent_Full_Name: agentName,
+          City: AreaCodes[areaCode].city,
+          State: AreaCodes[areaCode].state,
+        });
+      }
+    }
+
+    res.json({ status: true, data: formattedAgents, message: "Agents" });
+  } catch (error) {
+    console.error("Error fetching agents:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+}
