@@ -357,6 +357,47 @@ export async function GetAdminStats(req, res) {
     }
   });
 }
+
+export async function GetAdminAnalytics(req, res) {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    let offset = Number(req.query.offset || 0) || 0;
+    // let limit = Number(req.query.limit || limit) || limit; // Default limit
+
+    if (authData) {
+      let userId = authData.user.id;
+
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      let stats = await fetchUserStats();
+      return res.send({ status: true, message: "Admin stats", data: stats });
+    }
+  });
+}
+
 export async function GetUsers(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (error) {
