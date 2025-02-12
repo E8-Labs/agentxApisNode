@@ -6,6 +6,7 @@ import UserProfileLiteResource from "../resources/userProfileLiteResource.js";
 const limit = 50;
 import { Op } from "sequelize";
 import { UserTypes } from "../models/user/userModel.js";
+import AffilitateResource from "../resources/AffiliateResource.js";
 
 export async function calculateAvgSessionDuration(db) {
   const sessionTimeout = 10 * 60 * 1000; // 10 minutes in milliseconds
@@ -462,8 +463,9 @@ export async function GetAffiliates(req, res) {
       }
 
       let affiliates = await db.CampaigneeModel.findAll();
+      let affRes = await AffilitateResource(affiliates);
 
-      return res.send({ status: true, data: affiliates });
+      return res.send({ status: true, data: affRes });
     }
   });
 }

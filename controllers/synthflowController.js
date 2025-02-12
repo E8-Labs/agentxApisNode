@@ -1603,6 +1603,60 @@ export const UpdateAgent = async (req, res) => {
   });
 };
 
+export const UpdateSubAgent = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
+      let agentId = req.body.agentId;
+      let agent = await db.AgentModel.findByPk(agentId);
+      if (!agent) {
+        return res.send({
+          status: false,
+          message: "No such agent " + agentId,
+          data: null,
+        });
+      }
+
+      console.log("User ", userId);
+      console.log("Update ", req.body);
+
+      if (req.body.name) {
+        await db.AgentModel.update(
+          {
+            name: req.body.name,
+          },
+          {
+            where: {
+              id: agentId,
+            },
+          }
+        );
+      }
+      let mainAgent = await db.MainAgentModel.findByPk(agent.mainAgentId);
+
+      let agentRes = await AgentResource(mainAgent);
+      return res.send({
+        status: true,
+        message: `Agent ${agent.name} updated`,
+        data: agentRes,
+      });
+    } else {
+      return res.send({
+        status: false,
+        message: "Unauthenticated user",
+        data: null,
+      });
+    }
+  });
+};
+
 export const GenerateFirstAINotification = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
