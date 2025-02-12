@@ -970,6 +970,7 @@ export async function GetCallsForABatch(req, res) {
       let leadIds = null;
       if (req.query.search) {
         let search = req.query.search;
+        console.log("Search is ", search);
         let leads = await db.LeadModel.findAll({
           where: {
             userId: user.id,
