@@ -30,9 +30,6 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
         id: {
           [db.Sequelize.Op.notIn]: userIds,
         },
-        id: {
-          [db.Sequelize.Op.gte]: 179,
-        },
       },
       // id: 174,
     },
