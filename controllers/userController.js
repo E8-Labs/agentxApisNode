@@ -992,7 +992,7 @@ export const GetProfileMine = async (req, res) => {
       });
       console.log("User ", authData.user);
       if (!user) {
-        return res.send({
+        return res.status(404).send({
           status: false,
           message: "No such user",
           data: null,

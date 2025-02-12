@@ -7,6 +7,7 @@ const limit = 50;
 import { Op } from "sequelize";
 import { UserTypes } from "../models/user/userModel.js";
 import AffilitateResource from "../resources/AffiliateResource.js";
+import UserProfileAdminResource from "../resources/UserProfileAdminResource.js";
 
 export async function calculateAvgSessionDuration(db) {
   const sessionTimeout = 10 * 60 * 1000; // 10 minutes in milliseconds
@@ -415,7 +416,7 @@ export async function GetUsers(req, res) {
         offset: offset,
       });
 
-      let resource = await UserProfileLiteResource(users);
+      let resource = await UserProfileAdminResource(users);
 
       return res.send({
         status: true,
