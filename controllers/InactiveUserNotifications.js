@@ -11,9 +11,21 @@ export async function CheckAndSend7DaysInactivityNotifications() {
   let date7DaysAgo = new Date();
   date7DaysAgo.setDate(date7DaysAgo.getDate() - 7); // Correctly subtract 7 days from the current date
 
+  let payments = await db.PaymentMethod.findAll();
+  let userIds = [];
+  if (payments && payments.length > 0) {
+    payments.map((item) => {
+      if (!userIds.includes(item.userId)) {
+        userIds.push(item.userId);
+      }
+    });
+  }
   let users = await db.User.findAll({
     where: {
       userRole: UserRole.AgentX,
+      id: {
+        [db.Sequelize.Op.in]: userIds,
+      },
     },
   });
 
