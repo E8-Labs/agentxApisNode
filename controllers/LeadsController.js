@@ -1253,7 +1253,7 @@ export const GetUniqueColumns = async (req, res) => {
           }
         }
       }
-
+      keys = [...new Set(keys)];
       return res.send({
         status: true,
         data: keys,
