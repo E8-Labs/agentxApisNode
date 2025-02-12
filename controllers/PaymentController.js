@@ -921,13 +921,25 @@ export async function ReChargeUserAccount(user) {
         transactionId: charge.paymentIntent.id,
       });
       user.totalSecondsAvailable += foundPlan.duration;
-      user.isTrial = false;
+      if (user.isTrial) {
+        let dateAfter30Days = new Date();
+        dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
+        user.nextChargeDate = dateAfter30Days;
+        user.isTrial = false;
+      }
+
       await user.save();
       UpdateOrCreateUserInGhl(user);
       return charge;
     } else {
       //Failed payment method
-      user.isTrial = false;
+      if (user.isTrial) {
+        let dateAfter30Days = new Date();
+        dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
+        user.nextChargeDate = dateAfter30Days;
+        user.isTrial = false;
+        // user.totalSecondsAvailable = 0;
+      }
       await user.save();
     }
     return null;
