@@ -90,6 +90,12 @@ async function getUserData(user, currentUser = null) {
     },
   });
 
+  let teams = await db.TeamModel.count({
+    where: {
+      invitingUserId: user.id,
+    },
+  });
+
   const UserFullResource = {
     name: user.name,
     email: user.email,
@@ -110,9 +116,10 @@ async function getUserData(user, currentUser = null) {
     availableMinutes: user.totalSecondsAvailable / 60,
     totalSecondsAvailable: user.totalSecondsAvailable,
     isTrial: user.isTrial,
+    teams: teams,
     // campaignee: campaignee,
-    closerName: campaignee?.name,
-    closerUrl: campaignee?.uniqueUrl,
+    closerName: campaignee?.name || "-",
+    closerUrl: campaignee?.uniqueUrl || "-",
     // admin: admin,
   };
 
