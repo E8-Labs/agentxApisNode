@@ -888,9 +888,10 @@ export async function ReChargeUserAccount(user) {
     (user.totalSecondsAvailable <= constants.MinThresholdSeconds ||
       (user.isTrial && timeDifference > 7 * 24 * 60 * 60 * 1000))
   ) {
-    // console.log(
-    //   "user have an active plan and has less than 120 sec: So charge him"
-    // );
+    console.log(
+      "user have an active plan and has less than 120 sec: So charge him",
+      user.isTrial
+    );
     // console.log("There is a last plan", user.id);
     let foundPlan = null;
     // console.log(PayAsYouGoPlans);
@@ -909,7 +910,7 @@ export async function ReChargeUserAccount(user) {
       "Charging for plan " + foundPlan.type,
       foundPlan.type
     );
-    user = await db.User.findByPk(user.id);
+    // user = await db.User.findByPk(user.id);
     // console.log("Charge ", charge);
     if (charge && charge.status) {
       // console.log("Charged for plan ", foundPlan);
@@ -938,7 +939,7 @@ export async function ReChargeUserAccount(user) {
     } else {
       //Failed payment method
       console.log("User ", user.id);
-      console.log("Charged for trial over", user.isTrial);
+      console.log("Charged for trial over failed", user.isTrial);
       if (user.isTrial) {
         let dateAfter30Days = new Date();
         dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
