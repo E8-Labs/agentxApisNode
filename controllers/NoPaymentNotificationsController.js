@@ -20,6 +20,7 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
       }
     });
   }
+  console.log("UserIds who have payment added", userIds);
   const users = await db.User.findAll({
     where: {
       userRole: "AgentX",
@@ -50,7 +51,10 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
   });
 
   //send these users notifications
-  console.log("NoPayment: Found users to send ", users.length);
+  console.log(
+    process.env.Environment + "=>NoPayment: Found users to send ",
+    users.length
+  );
 
   for (const u of users) {
     console.log("user ", u.id);
