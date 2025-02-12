@@ -1,4 +1,7 @@
-export function generateFailedOrCallVoilationEmail(data) {
+export function generateFailedOrCallVoilationEmail(
+  data,
+  title = "Call Failure Notification"
+) {
   console.log("Data Email", data);
   const { Sender_Name, FailureReason } = data;
   let otherDetails = data.otherDetails;
@@ -18,6 +21,13 @@ export function generateFailedOrCallVoilationEmail(data) {
     .join("\n");
 
   console.log("Html is ", otherDetails);
+
+  let subtitle = `There was a violation call by ${Sender_Name}`;
+  if (title == "Non Responsive Agent Notification") {
+    subtitle = `Non responseive ai in a call by ${Sender_Name}`;
+  } else if (title == "Non Responsive Agent Notification") {
+    subtitle = `There was a violation call by ${Sender_Name}`;
+  }
 
   const HtmlTemplate = `
       <!DOCTYPE html>
@@ -74,12 +84,12 @@ export function generateFailedOrCallVoilationEmail(data) {
       </head>
       <body>
         <div class="container">
-          <div class="header">Call Failure Notification</div>
+          <div class="header">${title}</div>
           <div class="body">
             <p>Hi Admin,</p>
-            <p>There was a failed call attempt by <strong>${Sender_Name}</strong>:</p>
+            <p>${subtitle}</strong>:</p>
             <div class="feedback-box">
-              <p><strong>Failure Reason:</strong> ${FailureReason}</p>
+              <p><strong>Reason:</strong> ${FailureReason}</p>
               
             </div>
             <p><strong>Other Details:</strong></p>
