@@ -1253,10 +1253,11 @@ export const GetUniqueColumns = async (req, res) => {
           }
         }
       }
-      keys = [...new Set(keys)];
+      const uniqueArray = [...new Set(keys)];
+      console.log("Unique keys ", uniqueArray);
       return res.send({
         status: true,
-        data: keys,
+        data: uniqueArray,
         message: "Key columns list",
       });
     } else {
