@@ -74,15 +74,18 @@ async function getUserData(user, currentUser = null) {
   let totalLeads = 0;
   if (leads && leads.length > 0) {
     totalLeads = leads.length;
-    leads.map((lead) => lead.id);
+    leadIds = leads.map((lead) => lead.id);
   }
-  minUsed = await db.LeadCallsSent.sum("duration", {
-    where: {
-      leadId: {
-        [db.Sequelize.Op.in]: leadIds,
+  console.log("Lead Ids ");
+  if (leadIds && leadIds.length > 0) {
+    minUsed = await db.LeadCallsSent.sum("duration", {
+      where: {
+        leadId: {
+          [db.Sequelize.Op.in]: leadIds,
+        },
       },
-    },
-  });
+    });
+  }
 
   let agents = await db.AgentModel.count({
     where: {

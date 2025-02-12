@@ -24,30 +24,19 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
   const users = await db.User.findAll({
     where: {
       userRole: "AgentX",
-      // createdAt: {
-      //   [db.Sequelize.Op.gt]: new Date("2025-02-10 00:00:00"),
-      // },
-      [db.Sequelize.Op.and]: {
-        id: {
-          [db.Sequelize.Op.notIn]: userIds,
+      [db.Sequelize.Op.and]: [
+        {
+          id: {
+            [db.Sequelize.Op.notIn]: userIds, // Ensure we exclude userIds
+          },
         },
-        id: {
-          [db.Sequelize.Op.gt]: 174,
+        {
+          id: {
+            [db.Sequelize.Op.gt]: 174, // Ensure id is greater than 174
+          },
         },
-      },
-      // id: 174,
+      ],
     },
-    // include: [
-    //   {
-    //     model: db.PaymentMethod,
-    //     as: "paymentMethods",
-    //     required: false, // LEFT JOIN
-    //     attributes: ["id"],
-    //     where: {
-    //       id: null, // No payment method linked
-    //     },
-    //   },
-    // ],
   });
 
   //send these users notifications
