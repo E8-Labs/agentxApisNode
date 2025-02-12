@@ -847,6 +847,8 @@ export async function ReChargeUserAccount(user) {
 
   let isTrialActive = await IsTrialActive(user);
   if (nextChargeDate < now) {
+    console.log("User ", user.id);
+    console.log("Next Charged is less", user.nextChargeDate);
     //charge date has reached
     // console.log("Subscription charge date has reached");
     if (lastPlan && lastPlan.status == "active") {
@@ -921,6 +923,8 @@ export async function ReChargeUserAccount(user) {
         transactionId: charge.paymentIntent.id,
       });
       user.totalSecondsAvailable += foundPlan.duration;
+      console.log("User ", user.id);
+      console.log("Charged for trial over", user.isTrial);
       if (user.isTrial) {
         let dateAfter30Days = new Date();
         dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
@@ -933,6 +937,8 @@ export async function ReChargeUserAccount(user) {
       return charge;
     } else {
       //Failed payment method
+      console.log("User ", user.id);
+      console.log("Charged for trial over", user.isTrial);
       if (user.isTrial) {
         let dateAfter30Days = new Date();
         dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
