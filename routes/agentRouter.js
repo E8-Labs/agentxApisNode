@@ -20,6 +20,7 @@ import {
   UploadAgentImage,
   TestAI,
   GenerateFirstAINotification,
+  UpdateSubAgent,
 } from "../controllers/synthflowController.js";
 
 import {
@@ -76,6 +77,12 @@ AgentRouter.post(
   verifyJwtTokenWithTeam,
   uploadFiles,
   UpdateAgent
+);
+AgentRouter.post(
+  "/updateSubAgent",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  UpdateSubAgent
 );
 AgentRouter.post(
   "/updateAgentProfileImage",

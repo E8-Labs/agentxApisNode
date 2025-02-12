@@ -667,21 +667,29 @@ async function extractIEAndStoreKycs(
       ) {
         console.log("Found info Extractor");
         //send email
-        let email = generateFailedOrCallVoilationEmail({
-          Sender_Name: user?.name,
-          FailureReason: question,
-          otherDetails: {
-            Sender_Id: user?.id,
-            Sender_Email: user?.email,
-            Sender_Phone: user?.phone,
-            call_id: callId,
-            agent: mainAgent?.name,
-            model_id: modelId,
-            agent_phone: subAgent?.phoneNumber,
-            lead_phone: lead.phone,
-            lead_name: lead.firstName || "",
+        let title =
+          question == "call_violation_detected"
+            ? "Voilation Notification"
+            : "Non Responsive Agent Notification";
+
+        let email = generateFailedOrCallVoilationEmail(
+          {
+            Sender_Name: user?.name,
+            FailureReason: question,
+            otherDetails: {
+              Sender_Id: user?.id,
+              Sender_Email: user?.email,
+              Sender_Phone: user?.phone,
+              call_id: callId,
+              agent: subAgent?.name,
+              model_id: modelId,
+              agent_phone: subAgent?.phoneNumber,
+              lead_phone: lead.phone,
+              lead_name: lead.firstName || "",
+            },
           },
-        });
+          title
+        );
         let sent = await SendEmail(
           constants.AdminNotifyEmail1,
           email.subject,

@@ -184,11 +184,11 @@ export const AddLeads = async (req, res) => {
             // console.log("Phone doesn't start with 1");
             lead.phone = "+1" + lead.phone;
           }
-          if (!lead.phone.startsWith("+") && lead.phone.startsWith("1")) {
+          if (!lead.phone.startsWith("+")) {
             // console.log("Phone Not starts with +1");
             lead.phone = "+" + lead.phone;
           }
-          console.log(lead);
+          // console.log(lead);
 
           if (
             isValidInternationalPhoneNumber(lead.phone)
@@ -196,6 +196,8 @@ export const AddLeads = async (req, res) => {
             // (lead.phone.length == 12 && lead.phone.startsWith("+"))
           ) {
             // only push the lead if the number is valid
+
+            console.log("Lead phone is ", lead.phone);
             try {
               if (lead.lastName == null) {
                 lead.lastName = "";
@@ -857,7 +859,8 @@ export const GetLeads = async (req, res) => {
 
     if (authData) {
       try {
-        const { sheetId, stageIds, fromDate, toDate, noStage } = req.query; // Fetching query parameters
+        const { sheetId, stageIds, fromDate, toDate, noStage, search } =
+          req.query; // Fetching query parameters
         let userId = authData.user.id;
         if (req.query.userId) {
           userId = req.query.userId;
@@ -919,6 +922,14 @@ export const GetLeads = async (req, res) => {
               { [db.Sequelize.Op.is]: null }, // Matches null values
             ],
           };
+        }
+        if (search) {
+          leadFilters[Op.or] = [
+            { firstName: { [Op.like]: `%${search}%` } },
+            { lastName: { [Op.like]: `%${search}%` } },
+            { phone: { [Op.like]: `%${search}%` } },
+            { email: { [Op.like]: `%${search}%` } },
+          ];
         }
 
         // Fetch leads first based on general filters
@@ -1182,8 +1193,8 @@ export async function GetColumnsInSheet(sheetId) {
     const leadKeys = Object.keys(json);
 
     leadKeys.forEach((key) => {
-      if (!keys.includes(key)) {
-        keys.push(key);
+      if (!keys.includes(key.trim())) {
+        keys.push(key.trim());
       }
     });
   });
@@ -1232,6 +1243,7 @@ export const GetUniqueColumns = async (req, res) => {
             userId: {
               [db.Sequelize.Op.in]: teamIds,
             },
+            status: "active",
           },
         });
         if (sheets && sheets.length > 0) {
@@ -1241,10 +1253,11 @@ export const GetUniqueColumns = async (req, res) => {
           }
         }
       }
-
+      const uniqueArray = [...new Set(keys)];
+      console.log("Unique keys ", uniqueArray);
       return res.send({
         status: true,
-        data: keys,
+        data: uniqueArray,
         message: "Key columns list",
       });
     } else {

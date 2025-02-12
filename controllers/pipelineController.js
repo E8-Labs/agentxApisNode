@@ -954,7 +954,7 @@ export const ResumePipelineCadenceForAnAgent = async (req, res) => {
 export async function GetCallsForABatch(req, res) {
   let batchId = req.query.batchId;
   let offset = Number(req.query.offset) || 0;
-
+  console.log("Here get call logs");
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -967,6 +967,35 @@ export async function GetCallsForABatch(req, res) {
           id: userId,
         },
       });
+      let leadIds = null;
+
+      if (req.query.search) {
+        let search = req.query.search;
+        console.log("Search is ", search);
+        let leads = await db.LeadModel.findAll({
+          where: {
+            userId: user.id,
+            [db.Sequelize.Op.or]: {
+              firstName: {
+                [db.Sequelize.Op.like]: `%${search}%`,
+              },
+              lastName: {
+                [db.Sequelize.Op.like]: `%${search}%`,
+              },
+              phone: {
+                [db.Sequelize.Op.like]: `%${search}%`,
+              },
+              email: {
+                [db.Sequelize.Op.like]: `%${search}%`,
+              },
+            },
+          },
+        });
+        if (leads && leads.length > 0) {
+          leadIds = leads.map((lead) => lead.id);
+        }
+      } else {
+      }
 
       let batch = await db.CadenceBatchModel.findByPk(batchId);
       if (!batch) {
@@ -976,11 +1005,31 @@ export async function GetCallsForABatch(req, res) {
           batchId: batchId,
         });
       }
-      let leadCad = await db.LeadCadence.findAll({
-        where: {
-          batchId: batch.id,
-        },
-      });
+      // let leadIdFilter = {};
+      // if (leadIds) {
+      //   leadIdFilter = {
+      //     [db.Sequelize.Op.in]: leadIds,
+      //   };
+      // }
+      // console.log("Lead Id filter ", leadIdFilter);
+      let leadCad = null;
+      if (leadIds) {
+        console.log("LeadIds filtering", leadIds);
+        leadCad = await db.LeadCadence.findAll({
+          where: {
+            batchId: batch.id,
+            leadId: {
+              [db.Sequelize.Op.in]: leadIds,
+            },
+          },
+        });
+      } else {
+        leadCad = await db.LeadCadence.findAll({
+          where: {
+            batchId: batch.id,
+          },
+        });
+      }
       let agentIds = [];
       leadCad.map((lc) => {
         if (!agentIds.includes(lc.mainAgentId)) {
@@ -1010,6 +1059,21 @@ export async function GetCallsForABatch(req, res) {
         limit: Limit,
         offset: offset,
       });
+      if (leadIds) {
+        pastCalls = await db.LeadCallsSent.findAll({
+          where: {
+            batchId: batch.id,
+            mainAgentId: {
+              [db.Sequelize.Op.in]: agentIds,
+            },
+            leadId: {
+              [db.Sequelize.Op.in]: leadIds,
+            },
+          },
+          limit: Limit,
+          offset: offset,
+        });
+      }
 
       let pastCallsRes = await LeadCallResource(pastCalls);
       return res.send({

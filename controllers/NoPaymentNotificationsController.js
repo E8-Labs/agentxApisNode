@@ -22,13 +22,19 @@ export async function CheckAndSendNoPaymentMethodAddedNotifications() {
   }
   const users = await db.User.findAll({
     where: {
-      // userRole: "AgentX",
-      createdAt: {
-        [db.Sequelize.Op.gt]: new Date("2025-02-10 00:00:00"),
+      userRole: "AgentX",
+      // createdAt: {
+      //   [db.Sequelize.Op.gt]: new Date("2025-02-10 00:00:00"),
+      // },
+      [db.Sequelize.Op.and]: {
+        id: {
+          [db.Sequelize.Op.notIn]: userIds,
+        },
+        id: {
+          [db.Sequelize.Op.gte]: 179,
+        },
       },
-      userId: {
-        [db.Sequelize.Op.in]: userId,
-      },
+      // id: 174,
     },
     // include: [
     //   {
@@ -66,7 +72,7 @@ async function SendNoPaymentNotificaiton(
   //check last call date
   // console.log("Sending for user ", user.id);
   let days = await getDaysSinceRegisteration(user.id);
-  console.log("User days passed ", days);
+  console.log(` User${user.id} days passed `, days);
   //   let type = NotificationTypes.SocialProof;
   // Check if 1 hours (in milliseconds) or more have passed
   if (days == forDays) {

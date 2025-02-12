@@ -168,7 +168,7 @@ export const SendUpgradeSuggestionNotification = async (user) => {
 };
 
 export async function SendAppointmentNotifications(user) {
-  console.log("Checking schedule not for ", user.id);
+  // console.log("Checking schedule not for ", user.id);
   let agentIds = [];
   let agents = await db.MainAgentModel.findAll({
     where: {

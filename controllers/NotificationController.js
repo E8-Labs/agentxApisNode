@@ -721,20 +721,41 @@ export const NotificationCron = async () => {
     });
 
     let userIds = [];
+    // let userIdsNotAlreadySent = [];
     if (notSent && notSent.length > 0) {
       userIds = notSent.map((not) => not.userId);
     }
+    let payments = await db.PaymentMethod.findAll();
+    let userIdsWithPaymentAdded = [];
+    if (payments && payments.length > 0) {
+      payments.map((item) => {
+        if (!userIdsWithPaymentAdded.includes(item.userId)) {
+          userIdsWithPaymentAdded.push(item.userId);
+        }
+      });
+    }
+
+    // for(const id of userIdsWithPaymentAdded){
+    //   if(userIdsNotAlreadySent.includes(id)){ // if a user whose payment is added has id in the not already sent
+    //     userIds.push(id)
+    //   }
+    // }
 
     let users = await db.User.findAll({
       where: {
-        id: {
-          [db.Sequelize.Op.notIn]: userIds,
+        [db.Sequelize.Op.and]: {
+          id: {
+            [db.Sequelize.Op.notIn]: userIds,
+          },
+          id: {
+            [db.Sequelize.Op.in]: userIdsWithPaymentAdded,
+          },
         },
         userRole: UserRole.AgentX,
       },
     });
-    // console.log("Users to send daily notificaitons", users.length);
-
+    console.log("Users to send daily notificaitons", users.length);
+    // return;
     for (const u of users) {
       let timeZone = u.timeZone || "America/Los_Angeles";
       // console.log("User Time zone is ", timeZone);
@@ -1008,12 +1029,24 @@ async function SendNotificationsForHotlead(user) {
 async function SendAutoDailyNotificationsFor7Days() {
   let date7DaysAgo = new Date();
   date7DaysAgo.setDate(date7DaysAgo.getDate() - 8); // Correctly subtract 7 days from the current date
+  let payments = await db.PaymentMethod.findAll();
+  let userIds = [];
+  if (payments && payments.length > 0) {
+    payments.map((item) => {
+      if (!userIds.includes(item.userId)) {
+        userIds.push(item.userId);
+      }
+    });
+  }
   let users = await db.User.findAll({
     where: {
       createdAt: {
         [db.Sequelize.Op.gt]: date7DaysAgo,
       },
       userRole: UserRole.AgentX,
+      id: {
+        [db.Sequelize.Op.in]: userIds,
+      },
     },
   });
   // console.log("Users to send 7 days notificaitons", users.length);
@@ -1081,3 +1114,4 @@ export async function SendTestEmail(req, res) {
     message: "Email sent",
   });
 }
+// NotificationCron();

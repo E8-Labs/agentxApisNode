@@ -39,7 +39,6 @@ import {
 } from "./synthflowController.js";
 import { DeleteCalendar } from "./calendarController.js";
 import { findOrCreateTwilioSubAccount } from "./twilioController.js";
-import { generateFailedOrCallVoilationEmail } from "../emails/system/FailedOrCallVoilationEmail.js";
 import { constants } from "../constants/constants.js";
 import { generateNewAccountEmail } from "../emails/system/NewAccountEmail.js";
 
@@ -993,7 +992,7 @@ export const GetProfileMine = async (req, res) => {
       });
       console.log("User ", authData.user);
       if (!user) {
-        return res.send({
+        return res.status(404).send({
           status: false,
           message: "No such user",
           data: null,
