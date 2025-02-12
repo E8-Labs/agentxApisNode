@@ -1193,8 +1193,8 @@ export async function GetColumnsInSheet(sheetId) {
     const leadKeys = Object.keys(json);
 
     leadKeys.forEach((key) => {
-      if (!keys.includes(key)) {
-        keys.push(key);
+      if (!keys.includes(key.trim())) {
+        keys.push(key.trim());
       }
     });
   });
