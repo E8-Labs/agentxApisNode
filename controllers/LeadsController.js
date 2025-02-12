@@ -1243,6 +1243,7 @@ export const GetUniqueColumns = async (req, res) => {
             userId: {
               [db.Sequelize.Op.in]: teamIds,
             },
+            status: "active",
           },
         });
         if (sheets && sheets.length > 0) {
