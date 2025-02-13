@@ -179,24 +179,27 @@ export const GetDashboardData = async (req, res) => {
       if (av) {
         formattedAvDuration = formatDuration(av);
       }
+
+      let data = {
+        stats: {
+          totalDuration: formatDuration(stats.totalDuration),
+          av: av,
+          avDuration: avDuration,
+          formattedAvDuration: formattedAvDuration,
+          totalCalls: stats.totalCalls,
+          totalCallsGt10: stats.totalCallsGt10,
+          notInterested: stats.notInterested,
+          meetingScheduled: stats.meetingScheduled,
+          voicemail: stats.voicemail,
+          hotLeads: stats.hotLeads,
+        },
+        statsComparison,
+        // callsInCurrentPeriod,
+      };
+      console.log(`Data dashboard is ${userId}`, data);
       return res.send({
         status: true,
-        data: {
-          stats: {
-            totalDuration: formatDuration(stats.totalDuration),
-            av: av,
-            avDuration: avDuration,
-            formattedAvDuration: formattedAvDuration,
-            totalCalls: stats.totalCalls,
-            totalCallsGt10: stats.totalCallsGt10,
-            notInterested: stats.notInterested,
-            meetingScheduled: stats.meetingScheduled,
-            voicemail: stats.voicemail,
-            hotLeads: stats.hotLeads,
-          },
-          statsComparison,
-          // callsInCurrentPeriod,
-        },
+        data: data,
       });
     }
   });
