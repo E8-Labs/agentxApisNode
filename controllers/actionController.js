@@ -181,40 +181,43 @@ function GetActionApiData(user, assistant, type = "kb") {
       description:
         "Use the Check Availability action to verify the user's calendar for open time slots when booking a meeting, appointment, or event. Ensure you accurately query their schedule to find suitable availability and provide relevant options. ",
       speech_while_using_the_tool: "",
-      variables_during_the_call: [
-        // {
-        //   name: `date`,
-        //   description:
-        //     "Whenever a user asks for availability for meeting or one to one session, trigger this function.",
-        //   example: "User queries for your availability.",
-        //   type: "string",
-        // },
-      ],
-      query_parameters: [
-        // {
-        //   key: "date",
-        //   value: "11-08-2024",
-        // },
-      ],
+      variables_during_the_call: [],
+      query_parameters: [],
       prompt: `You can use <results.data.data>   to check for the calendar availability for the user`,
     };
   }
+  if (type == "voicemail") {
+    let BaseUrl =
+      process.env.Environment === "Production"
+        ? "https://www.blindcircle.com/agentx"
+        : "https://www.blindcircle.com/agentxtest";
+    return {
+      http_mode: "GET", // Set to tomorrow's date
+      url:
+        BaseUrl +
+        "/api/agent/getVoiceMail?mainAgentId=" +
+        assistant.mainAgentId +
+        `&agentId=${assistant.id}`,
+      run_action_before_call_start: false,
+      name: `Get Voicemail For ${user.name}`,
+      description: "Use the action to get the instructions for voicemail. ",
+      speech_while_using_the_tool: "",
+      variables_during_the_call: [],
+      query_parameters: [],
+      prompt: `You can use <results.data.data>   to check for the voicemail command for the user`,
+    };
+  }
 }
-export async function CreateAndAttachAction(user, type = "kb") {
-  let assistant = await db.Assistant.findOne({
-    where: {
-      userId: user.id,
-    },
-  });
+export async function CreateAndAttachAction(user, type = "kb", assistant) {
   let action = await CreateCustomAction(user, assistant, type);
   if (action && action.status == "success") {
     let actionId = action.response.action_id;
     // created.actionId = actionId;
-    let createdAction = await db.CustomAction.create({
-      userId: user.id,
-      type: type,
-      actionId: actionId,
-    });
+    // let createdAction = await db.CustomAction.create({
+    //   userId: user.id,
+    //   type: type,
+    //   actionId: actionId,
+    // });
     // let saved = await created.save();
 
     let attached = await AttachActionToModel(actionId, assistant.modelId);
@@ -229,7 +232,7 @@ export async function CreateAndAttachAction(user, type = "kb") {
       return false;
     }
   } else {
-    console.log("Could not create action");
+    console.log("Could not create action", action);
     return false;
   }
 }
