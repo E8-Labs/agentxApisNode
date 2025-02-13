@@ -263,7 +263,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       // });
       let count = await getCallCount(batch);
       console.log("Calls sent for this batch ", count);
-      continue;
+      // continue;
       // WriteToFile(
       //   `${leadCad.batchId} Batch ${batch.batchSize} Calls: ${count}`
       // );
