@@ -2566,6 +2566,7 @@ export const DeleteKyc = async (req, res) => {
 export const GetVoicemailMessage = async (req, res) => {
   // JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
   //   if (authData) {
+  console.log("Reached the voicemail");
   let agentId = req.query.agentId;
   let agent = await db.AgentModel.findByPk(agentId);
   if (agent) {
