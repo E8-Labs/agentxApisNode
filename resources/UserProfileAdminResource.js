@@ -100,6 +100,7 @@ async function getUserData(user, currentUser = null) {
   });
 
   const UserFullResource = {
+    id: user.id,
     name: user.name,
     email: user.email,
     phone: user.phone,
