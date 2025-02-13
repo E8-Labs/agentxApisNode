@@ -1,4 +1,7 @@
 import db from "../models/index.js";
+// const { Sequelize, Op } = require("sequelize");
+const Op = db.Sequelize.Op;
+import { DateTime } from "luxon";
 // import S3 from "aws-sdk/clients/s3.js";
 
 // Twilio setup
@@ -54,6 +57,73 @@ async function getPayingUserLeadIds(user = null) {
   });
 
   return leads.map((l) => l.id);
+}
+
+async function getCallCount(batch) {
+  try {
+    if (!batch.startTime) {
+      throw new Error(`Batch ${batch.id}: startTime is missing or undefined.`);
+    }
+
+    let startTimeStr = batch.startTime.toString(); // Ensure it's a string
+    console.log(`Batch ${batch.id}, raw startTime =`, startTimeStr);
+
+    let triggerTimeUTC;
+
+    // Check if `startTime` is already an ISO string or a standard format
+    if (startTimeStr.includes("T")) {
+      // Parse ISO string
+      triggerTimeUTC = new Date(startTimeStr);
+    } else {
+      // Convert from "YYYY-MM-DD HH:mm:ss" format
+      triggerTimeUTC = new Date(startTimeStr.replace(" ", "T") + "Z"); // Ensure UTC format
+    }
+
+    if (isNaN(triggerTimeUTC.getTime())) {
+      throw new Error(
+        `Batch ${batch.id}: Invalid startTime format: ${startTimeStr}`
+      );
+    }
+
+    const nowUTC = new Date();
+    let lastTriggerTime = new Date(nowUTC);
+
+    if (
+      nowUTC.getUTCHours() < triggerTimeUTC.getUTCHours() ||
+      (nowUTC.getUTCHours() === triggerTimeUTC.getUTCHours() &&
+        nowUTC.getUTCMinutes() < triggerTimeUTC.getUTCMinutes())
+    ) {
+      // If current time is before today's trigger time, use yesterday's trigger time
+      lastTriggerTime.setUTCDate(nowUTC.getUTCDate() - 1);
+    }
+
+    // Set last trigger time to match stored trigger time (but on the correct date)
+    lastTriggerTime.setUTCHours(triggerTimeUTC.getUTCHours());
+    lastTriggerTime.setUTCMinutes(triggerTimeUTC.getUTCMinutes());
+    lastTriggerTime.setUTCSeconds(triggerTimeUTC.getUTCSeconds());
+
+    console.log(
+      `Fetching calls between ${lastTriggerTime.toISOString()} and ${nowUTC.toISOString()}`
+    );
+
+    let count = await db.LeadCadence.count({
+      where: {
+        callTriggerTime: {
+          [Op.between]: [lastTriggerTime.toISOString(), nowUTC.toISOString()],
+        },
+        batchId: batch.id,
+      },
+    });
+
+    console.log(`Batch ${batch.id}: Found ${count} calls`);
+    return count;
+  } catch (error) {
+    console.error(
+      `Error in getCallCount for Batch ${batch.id}:`,
+      error.message
+    );
+    return 0;
+  }
 }
 
 export const CronRunCadenceCallsFirstBatch = async () => {
@@ -183,14 +253,17 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         continue;
       }
       //Check calls sent for this batch
-      let count = await db.LeadCadence.count({
-        where: {
-          callTriggerTime: {
-            [db.Sequelize.Op.between]: [startOfToday, endOfToday], // Filter for today's date
-          },
-          batchId: leadCad.batchId,
-        },
-      });
+      // let count = await db.LeadCadence.count({
+      //   where: {
+      //     callTriggerTime: {
+      //       [db.Sequelize.Op.between]: [startOfToday, endOfToday], // Filter for today's date
+      //     },
+      //     batchId: leadCad.batchId,
+      //   },
+      // });
+      let count = await getCallCount(batch);
+      console.log("Calls sent for this batch ", count);
+      continue;
       // WriteToFile(
       //   `${leadCad.batchId} Batch ${batch.batchSize} Calls: ${count}`
       // );
@@ -1100,3 +1173,5 @@ async function CheckAndTryToPlaceCall(
 }
 
 // CadenceBookedCalls();
+
+CronRunCadenceCallsFirstBatch();

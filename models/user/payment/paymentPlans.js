@@ -66,20 +66,28 @@ export const ChargeTypes = {
 };
 
 let TestPlans = [
-  { type: PayAsYouGoPlanTypes.Plan30Min, price: 45, duration: 30 * 60 },
+  {
+    type: PayAsYouGoPlanTypes.Plan30Min,
+    price: 45,
+    oldPrice: 45,
+    duration: 30 * 60,
+  },
   {
     type: PayAsYouGoPlanTypes.Plan120Min,
     price: 99,
+    oldPrice: 99,
     duration: 120 * 60,
   },
   {
     type: PayAsYouGoPlanTypes.Plan360Min,
     price: 270,
+    oldPrice: 270,
     duration: 360 * 60,
   },
   {
     type: PayAsYouGoPlanTypes.Plan720Min,
-    price: 480,
+    price: 600,
+    oldPrice: 480,
     duration: 720 * 60,
   },
 ];
