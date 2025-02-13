@@ -4,7 +4,7 @@ import { Op } from "sequelize";
 import axios from "axios";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import UserProfileLiteResource from "../resources/userProfileLiteResource.js";
-const limit = 50;
+const limit = 30;
 import { UserTypes } from "../models/user/userModel.js";
 import AffilitateResource from "../resources/AffiliateResource.js";
 import UserProfileAdminResource from "../resources/UserProfileAdminResource.js";
