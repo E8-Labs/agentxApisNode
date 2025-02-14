@@ -833,6 +833,7 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       batchSize,
       startTimeDifFromNow,
       selectedAll,
+      sheetId,
     } = req.body;
     console.log("Data in assign leads", {
       pipelineId,
