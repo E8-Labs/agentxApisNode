@@ -81,7 +81,7 @@ async function getCallCount(batch) {
     }
 
     let startTimeStr = batch.startTime.toString(); // Ensure it's a string
-    console.log(`Batch ${batch.id}, raw startTime =`, startTimeStr);
+    // console.log(`Batch ${batch.id}, raw startTime =`, startTimeStr);
 
     let triggerTimeUTC;
 
@@ -117,9 +117,9 @@ async function getCallCount(batch) {
     lastTriggerTime.setUTCMinutes(triggerTimeUTC.getUTCMinutes());
     lastTriggerTime.setUTCSeconds(triggerTimeUTC.getUTCSeconds());
 
-    console.log(
-      `Fetching leads to which calls sent between ${lastTriggerTime.toISOString()} and ${nowUTC.toISOString()}`
-    );
+    // console.log(
+    //   `Fetching leads to which calls sent between ${lastTriggerTime.toISOString()} and ${nowUTC.toISOString()}`
+    // );
 
     let count = await db.LeadCadence.count({
       where: {
@@ -130,7 +130,7 @@ async function getCallCount(batch) {
       },
     });
 
-    console.log(`Batch ${batch.id}: Found ${count} leads`);
+    // console.log(`Batch ${batch.id}: Found ${count} leads`);
     return count;
   } catch (error) {
     console.error(
@@ -186,15 +186,28 @@ export const CronRunCadenceCallsFirstBatch = async () => {
     // limit: MaxLeadsToFetch,
   });
 
+  let batchIds = [];
+  leadCadence.map((lc) => {
+    if (!batchIds.includes(lc.batchId)) {
+      batchIds.push(lc.batchId);
+    }
+  });
+
+  console.log(batchIds);
+
   // console.log("LEad Cad", leadCadence)
 
-  console.log(`Found ${leadCadence.length} leads to start batch calls`);
+  console.log(
+    `Found ${leadCadence.length}  leads to start ${batchIds.length} batches calls`
+  );
   // return;
   if (leadCadence.length == 0) {
     // WriteToFile(`FirstBatch: Found No new leads to start batch calls today`);
     return;
   }
   let userLeadIds = [];
+
+  let callsSentForBatch = [];
 
   for (let i = 0; i < leadCadence.length; i++) {
     let leadCad = leadCadence[i];
@@ -276,8 +289,13 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       //     batchId: leadCad.batchId,
       //   },
       // });
+      // let count = callsSentForBatch[batch.id] || -1;
+      // if (count == -1) {
+      //   count = await getCallCount(batch);
+      //   callsS
+      // }
       let count = await getCallCount(batch);
-      console.log("Calls sent for this batch ", count);
+      // console.log(`${i} => Calls sent for this batch `, count);
       // continue;
       // WriteToFile(
       //   `${leadCad.batchId} Batch ${batch.batchSize} Calls: ${count}`
