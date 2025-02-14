@@ -914,6 +914,14 @@ export const GetLeads = async (req, res) => {
       try {
         const { sheetId, stageIds, fromDate, toDate, noStage, search } =
           req.query; // Fetching query parameters
+
+        if (!sheetId || typeof sheetId == "undefined") {
+          return res.send({
+            status: false,
+            data: null,
+            message: "Sheet id is required",
+          });
+        }
         let userId = authData.user.id;
         if (req.query.userId) {
           userId = req.query.userId;
