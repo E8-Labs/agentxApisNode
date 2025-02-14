@@ -915,6 +915,7 @@ export const GetLeads = async (req, res) => {
         const { sheetId, stageIds, fromDate, toDate, noStage, search } =
           req.query; // Fetching query parameters
 
+        console.log("Sheet id is ", sheetId);
         if (!sheetId || typeof sheetId == "undefined") {
           return res.send({
             status: false,
