@@ -849,7 +849,7 @@ export const UpdateLeadStage = async (req, res) => {
 
 //Updated For Team
 export function getFilteredQuery(req, userId) {
-  const { sheetId, stageIds, fromDate, toDate, noStage, search } = req.query; // Fetching query parameters
+  const { sheetId, stageIds, fromDate, toDate, noStage, search } = req.body; // Fetching query parameters
 
   const leadFilters = { sheetId, status: "active" };
   if (fromDate && toDate) {
