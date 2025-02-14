@@ -43,6 +43,19 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 app.use((req, res, next) => {
   console.log(`${req.method} request for '${req.url}'`);
+  try {
+    if (req.url.includes("webhook_synthflow")) {
+      let body = req.body;
+      db.UserActivityModel.create({
+        activityData: JSON.stringify(body),
+        method: req.method,
+        action: req.url,
+        authMethod: "none",
+        userId: 167,
+      });
+    }
+  } catch (error) {}
+
   next();
 });
 
