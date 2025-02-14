@@ -665,7 +665,7 @@ async function extractIEAndStoreKycs(
         (question == "call_violation_detected" && answer == true) ||
         (question == "ai_non_responsive_detected" && answer == true)
       ) {
-        console.log("Found info Extractor");
+        console.log("Found info Extractor non responsive");
         //send email
         let title =
           question == "call_violation_detected"
