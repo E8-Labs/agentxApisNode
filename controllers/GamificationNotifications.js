@@ -61,25 +61,6 @@ export async function SendNotificationsForNoCalls5Days(user) {
           console.log(
             "Not was already sent for gamification 5 days inactivity so don't send new"
           );
-          // const last5DaysOfNotSent = new Date();
-          // last5DaysOfNotSent.setHours(
-          //   last5DaysOfNotSent.getHours() - HoursIn5Days
-          // );
-          // const notSentAt = new Date(not.createdAt);
-          // if (notSentAt < last5DaysOfNotSent) {
-          //   console.log(
-          //     "No notificaiton was sent in the last 120 hours to  ",
-          //     user.id
-          //   );
-          //   //if the last no calls notification was sent before 72 hours ago send again
-          //   canSendNewNot = true;
-          // } else {
-          //   console.log(
-          //     "Notificaiton was already sent in the last 120 hours to  ",
-          //     user.id
-          //   );
-          // }
-          // canSendNewNot = false; // if already sent then never send again
         } else {
           canSendNewNot = true;
         }

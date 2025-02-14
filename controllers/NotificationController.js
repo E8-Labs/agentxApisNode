@@ -773,10 +773,6 @@ export const NotificationCron = async () => {
         SendFeedbackNotificationsAfter14Days(u);
         SendAppointmentNotifications(u);
         if (userDateTime > ninePM) {
-          // console.log(
-          //   `It's after 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
-          // );
-          //send notification
           SendNotificationsForHotlead(u);
         } else {
           // console.log(
@@ -827,10 +823,10 @@ async function SendNotificationsForNoCalls(user) {
     });
 
     if (totalCalls == 0) {
-      // console.log("Total calls were 0 576 line");
+      console.log("Total calls were 0 826 line");
 
       if (userCreatedAt < last72Hours) {
-        // console.log("User account was created before 72 horus ", user.id);
+        console.log("User account was created before 72 horus ", user.id);
         // if userCreatedAt was before 72Hours ago
 
         //check last NoCallNotification
@@ -845,16 +841,16 @@ async function SendNotificationsForNoCalls(user) {
         });
         let canSendNewNot = false;
         if (not) {
-          // console.log(
-          //   "No Calls three days Notification was already sent to ",
-          //   user.id
-          // );
+          console.log(
+            "No Calls three days Notification was already sent to ",
+            user.id
+          );
         } else {
           canSendNewNot = true;
         }
         // console.log("Here ");
         // console.log(totalCalls);
-        // console.log(canSendNewNot);
+        console.log(canSendNewNot);
         if (totalCalls == 0 && canSendNewNot) {
           // Send "No Calls in 3 days" notification
           await AddNotification(
