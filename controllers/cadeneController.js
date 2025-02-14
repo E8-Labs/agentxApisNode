@@ -48,6 +48,21 @@ async function getPayingUserLeadIds(user = null) {
     : await db.User.findAll(usersQuery);
   let userIds = usersWithMinutesRemaining.map((u) => u.id);
 
+  // let activeBatches = await db.CadenceBatchModel.findAll({
+  //   where: {
+  //     status: CadenceStatus.Active,
+  //     startTime: {
+  //       [Op.gt]: new Date(), // Fetch where startTime is greater than now
+  //     },
+  //   },
+  // });
+
+  // let ids = []
+  // if(activeBatches && activeBatches.length > 0){
+  //   ids = activeBatches.map((item)=> item.id)
+  // }
+  // let leadCad = await db.LeadCadence.findAll()
+  // let leadsInActiveBatches =
   if (userIds.length === 0) return []; // Return early if no users found
 
   let leads = await db.LeadModel.findAll({
@@ -168,12 +183,12 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         },
       },
     ],
-    limit: MaxLeadsToFetch,
+    // limit: MaxLeadsToFetch,
   });
 
   // console.log("LEad Cad", leadCadence)
 
-  WriteToFile(`Found ${leadCadence.length} leads to start batch calls`);
+  console.log(`Found ${leadCadence.length} leads to start batch calls`);
   // return;
   if (leadCadence.length == 0) {
     // WriteToFile(`FirstBatch: Found No new leads to start batch calls today`);
