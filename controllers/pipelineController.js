@@ -858,6 +858,7 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       if (selectedAll) {
         console.log("User have selected all");
         let filters = getFilteredQuery(req, userId);
+        console.log("Applied Filters are ", filters);
         if (filters) {
           console.log("User have filters selected for the lead and");
         }

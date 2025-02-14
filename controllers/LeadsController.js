@@ -895,6 +895,9 @@ export function getFilteredQuery(req, userId) {
       { email: { [Op.like]: `%${search}%` } },
     ];
   }
+  if (sheetId) {
+    leadFilters["sheetId"] = sheetId;
+  }
 
   return leadFilters;
 }
