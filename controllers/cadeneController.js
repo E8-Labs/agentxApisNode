@@ -103,7 +103,7 @@ async function getCallCount(batch) {
     lastTriggerTime.setUTCSeconds(triggerTimeUTC.getUTCSeconds());
 
     console.log(
-      `Fetching calls between ${lastTriggerTime.toISOString()} and ${nowUTC.toISOString()}`
+      `Fetching leads to which calls sent between ${lastTriggerTime.toISOString()} and ${nowUTC.toISOString()}`
     );
 
     let count = await db.LeadCadence.count({
@@ -115,7 +115,7 @@ async function getCallCount(batch) {
       },
     });
 
-    console.log(`Batch ${batch.id}: Found ${count} calls`);
+    console.log(`Batch ${batch.id}: Found ${count} leads`);
     return count;
   } catch (error) {
     console.error(

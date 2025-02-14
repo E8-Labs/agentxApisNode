@@ -240,7 +240,7 @@ async function GetNotificationTitle(
   if (type == NotificationTypes.CallsMadeByAgent) {
     //calculate hotleads today.
 
-    title = `You have called ${totalCalls} leads today `;
+    title = `You have made ${totalCalls} calls today `;
   }
   if (type == NotificationTypes.MeetingBooked) {
     title = `${lead?.firstName || "New Lead"} booked a meeting 🗓️`;

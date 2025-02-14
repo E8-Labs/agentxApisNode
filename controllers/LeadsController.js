@@ -848,6 +848,56 @@ export const UpdateLeadStage = async (req, res) => {
 };
 
 //Updated For Team
+function getFilteredQuery(req, userId) {
+  const { sheetId, stageIds, fromDate, toDate, noStage, search } = req.query; // Fetching query parameters
+
+  const leadFilters = { sheetId, status: "active" };
+  if (fromDate && toDate) {
+    const adjustedFromDate = new Date(fromDate);
+    adjustedFromDate.setHours(0, 0, 0, 0);
+
+    // Set endDate to the end of the day (23:59:59.999)
+    const adjustedToDate = new Date(toDate);
+    adjustedToDate.setHours(23, 59, 59, 999);
+    let dates = [adjustedFromDate, adjustedToDate];
+    console.log("Dates ", dates);
+    leadFilters.createdAt = {
+      [db.Sequelize.Op.between]: dates,
+    };
+  }
+  if (stageIds && stageIds != "") {
+    console.log("No stage ", noStage);
+    if (noStage == "true" || noStage == 1 || noStage == true) {
+      leadFilters.stage = {
+        [db.Sequelize.Op.or]: [
+          { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) }, // Matches stage IDs
+          { [db.Sequelize.Op.is]: null }, // Matches null values
+        ],
+      };
+    } else {
+      leadFilters.stage = {
+        [db.Sequelize.Op.in]: stageIds.split(",").map(Number),
+      };
+    }
+  } else if (noStage == "true" || noStage == 1 || noStage == true) {
+    leadFilters.stage = {
+      [db.Sequelize.Op.or]: [
+        // { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) }, // Matches stage IDs
+        { [db.Sequelize.Op.is]: null }, // Matches null values
+      ],
+    };
+  }
+  if (search) {
+    leadFilters[Op.or] = [
+      { firstName: { [Op.like]: `%${search}%` } },
+      { lastName: { [Op.like]: `%${search}%` } },
+      { phone: { [Op.like]: `%${search}%` } },
+      { email: { [Op.like]: `%${search}%` } },
+    ];
+  }
+
+  return leadFilters;
+}
 export const GetLeads = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (error) {
@@ -887,50 +937,7 @@ export const GetLeads = async (req, res) => {
         });
 
         // Build filters for leads
-        const leadFilters = { sheetId, status: "active" };
-        if (fromDate && toDate) {
-          const adjustedFromDate = new Date(fromDate);
-          adjustedFromDate.setHours(0, 0, 0, 0);
-
-          // Set endDate to the end of the day (23:59:59.999)
-          const adjustedToDate = new Date(toDate);
-          adjustedToDate.setHours(23, 59, 59, 999);
-          let dates = [adjustedFromDate, adjustedToDate];
-          console.log("Dates ", dates);
-          leadFilters.createdAt = {
-            [db.Sequelize.Op.between]: dates,
-          };
-        }
-        if (stageIds && stageIds != "") {
-          console.log("No stage ", noStage);
-          if (noStage == "true" || noStage == 1 || noStage == true) {
-            leadFilters.stage = {
-              [db.Sequelize.Op.or]: [
-                { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) }, // Matches stage IDs
-                { [db.Sequelize.Op.is]: null }, // Matches null values
-              ],
-            };
-          } else {
-            leadFilters.stage = {
-              [db.Sequelize.Op.in]: stageIds.split(",").map(Number),
-            };
-          }
-        } else if (noStage == "true" || noStage == 1 || noStage == true) {
-          leadFilters.stage = {
-            [db.Sequelize.Op.or]: [
-              // { [db.Sequelize.Op.in]: stageIds.split(",").map(Number) }, // Matches stage IDs
-              { [db.Sequelize.Op.is]: null }, // Matches null values
-            ],
-          };
-        }
-        if (search) {
-          leadFilters[Op.or] = [
-            { firstName: { [Op.like]: `%${search}%` } },
-            { lastName: { [Op.like]: `%${search}%` } },
-            { phone: { [Op.like]: `%${search}%` } },
-            { email: { [Op.like]: `%${search}%` } },
-          ];
-        }
+        const leadFilters = getFilteredQuery(req, userId); //{ sheetId, status: "active" };
 
         // Fetch leads first based on general filters
         const leads = await db.LeadModel.findAll({
@@ -941,11 +948,16 @@ export const GetLeads = async (req, res) => {
           raw: true, // Return plain objects
         });
 
+        let totalLeadCount = await db.LeadModel.count({
+          where: leadFilters,
+        });
+
         if (!leads.length) {
           return res.send({
             status: true,
             data: [],
             message: "No leads found for the given filters",
+            leadCount: 0,
           });
         }
 
@@ -1059,6 +1071,7 @@ export const GetLeads = async (req, res) => {
           columns: AllColumns,
           keys: keys,
           message: "Leads list with applied filters",
+          leadCount: totalLeadCount,
         });
       } catch (err) {
         console.error(err);
