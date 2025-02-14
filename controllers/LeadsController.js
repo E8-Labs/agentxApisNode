@@ -848,8 +848,12 @@ export const UpdateLeadStage = async (req, res) => {
 };
 
 //Updated For Team
-export function getFilteredQuery(req, userId) {
-  const { sheetId, stageIds, fromDate, toDate, noStage, search } = req.body; // Fetching query parameters
+export function getFilteredQuery(req, userId, type = "post") {
+  let data = req.body;
+  if (type == "get") {
+    data = req.query;
+  }
+  let { sheetId, stageIds, fromDate, toDate, noStage, search } = data; // Fetching query parameters
 
   const leadFilters = { sheetId, status: "active" };
   if (fromDate && toDate) {
@@ -949,7 +953,7 @@ export const GetLeads = async (req, res) => {
         });
 
         // Build filters for leads
-        const leadFilters = getFilteredQuery(req, userId); //{ sheetId, status: "active" };
+        const leadFilters = getFilteredQuery(req, userId, "get"); //{ sheetId, status: "active" };
 
         // Fetch leads first based on general filters
         const leads = await db.LeadModel.findAll({
