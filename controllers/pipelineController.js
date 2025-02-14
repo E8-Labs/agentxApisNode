@@ -625,6 +625,13 @@ export const CreatePipelineCadence = async (req, res) => {
       //     pipelineId: pipelineId,
       //   });
 
+      // delete already present cadence
+      await db.PipelineCadence.destroy({
+        where: {
+          mainAgentId: mainAgentId,
+        },
+      });
+
       for (let i = 0; i < cadence.length; i++) {
         let cad = cadence[i];
         let calls = cad.calls;
