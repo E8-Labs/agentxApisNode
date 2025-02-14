@@ -1,13 +1,14 @@
 import JWT from "jsonwebtoken";
 import db from "../models/index.js";
+import { Op } from "sequelize";
 import axios from "axios";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import UserProfileLiteResource from "../resources/userProfileLiteResource.js";
-const limit = 50;
-import { Op } from "sequelize";
+const limit = 30;
 import { UserTypes } from "../models/user/userModel.js";
 import AffilitateResource from "../resources/AffiliateResource.js";
 import UserProfileAdminResource from "../resources/UserProfileAdminResource.js";
+import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
 
 export async function calculateAvgSessionDuration(db) {
   const sessionTimeout = 10 * 60 * 1000; // 10 minutes in milliseconds
@@ -358,6 +359,307 @@ export async function GetAdminStats(req, res) {
   });
 }
 
+export async function calculateSubscriptionStats(duration, month) {
+  const startDate = new Date("2025-01-01");
+  const endDate = new Date();
+
+  console.log("Duration is ", duration);
+  let interval;
+  switch (duration) {
+    case "weekly":
+      interval = "weekly";
+      break;
+    case "monthly":
+      interval = "monthly";
+      break;
+    case "yearly":
+      interval = "yearly";
+      break;
+    default:
+      interval = "monthly";
+  }
+  console.log("Interval is ", interval);
+
+  // New Subscriptions Over Time by Plan Type
+  let planSubscriptionStats = {
+    // Plan30: {},
+    // Plan120: {},
+    // Plan360: {},
+    // Plan720: {},
+  };
+  let allPlans = ["Plan30", "Plan120", "Plan360", "Plan720"];
+  for (let plan of allPlans) {
+    let planStats = {};
+    let date = new Date(startDate);
+    while (date <= endDate) {
+      let nextDate = new Date(date);
+      let label;
+      if (interval === "monthly") {
+        label = date.toLocaleString("en-US", { month: "short" }); // Jan, Feb, Mar...
+        nextDate.setMonth(date.getMonth() + 1, 1);
+      } else if (interval === "yearly") {
+        label = date.getFullYear().toString(); // Year number
+        nextDate.setFullYear(date.getFullYear() + 1, 0, 1);
+      } else if (interval === "weekly") {
+        const weekNumber =
+          Math.ceil((date - startDate) / (7 * 24 * 60 * 60 * 1000)) + 1;
+        label = `Week ${weekNumber} ${date.getFullYear()}`;
+        nextDate.setDate(date.getDate() + 7);
+      }
+      console.log("Label is ", label);
+
+      const count = await db.PlanHistory.count({
+        where: {
+          createdAt: { [Op.gte]: date, [Op.lt]: nextDate },
+          type: plan,
+        },
+      });
+      if (planStats[label]) {
+        planStats[label] += count;
+      } else {
+        planStats[label] = count;
+      }
+      date = new Date(nextDate);
+    }
+    planSubscriptionStats[plan] = planStats;
+  }
+
+  // Subscription Upgrade Rate
+  let upgradeBreakdown = await calculateUpgradeBreakdown(startDate);
+
+  // Plan Cancellations
+  let planCancellations = {};
+  for (let plan of allPlans) {
+    let cancelledCount = await db.PlanHistory.count({
+      where: {
+        type: plan,
+        status: "cancelled",
+      },
+    });
+    planCancellations[plan] = cancelledCount;
+  }
+
+  // Fetch All Plans & Trials in a Month
+  let monthlyPlanCounts = {};
+  if (month) {
+    const monthMap = {
+      jan: "01",
+      feb: "02",
+      mar: "03",
+      apr: "04",
+      may: "05",
+      jun: "06",
+      jul: "07",
+      aug: "08",
+      sep: "09",
+      oct: "10",
+      nov: "11",
+      dec: "12",
+    };
+    let monthNumber = monthMap[month.toLowerCase()] || month;
+    let monthStart = new Date(`2025-${monthNumber}-01`);
+    let monthEnd = new Date(monthStart);
+    monthEnd.setMonth(monthEnd.getMonth() + 1);
+    monthEnd.setDate(0);
+
+    for (let plan of allPlans) {
+      let count = await db.PlanHistory.count({
+        where: {
+          createdAt: { [Op.gte]: monthStart, [Op.lt]: monthEnd },
+          type: plan,
+        },
+      });
+      monthlyPlanCounts[plan] = count;
+    }
+  }
+
+  // Reactivation Rate
+  let reactivationRate = {};
+  let reactivatedUsers = await db.PlanHistory.findAll({
+    attributes: ["userId"],
+    where: {
+      status: "reactivated",
+    },
+    raw: true,
+  });
+  reactivationRate.count = reactivatedUsers.length;
+
+  // Referral Code Rate
+  let referralCodeRate = await db.User.count({
+    where: {
+      inviteCodeUsed: { [Op.ne]: null },
+    },
+  });
+
+  return {
+    planSubscriptionStats,
+    subscription: upgradeBreakdown,
+    // planCancellations,
+    // monthlyPlanCounts,
+    reactivationRate,
+    referralCodeRate,
+  };
+}
+
+async function calculateUpgradeBreakdown(startDate) {
+  function GetKeyForUpgrade(fromPlan, toPlan, isTrial) {
+    let StartPlan = fromPlan.type;
+    if (isTrial) {
+      StartPlan = "Trial";
+    }
+
+    if (toPlan.type == PayAsYouGoPlanTypes.Plan120Min) {
+      return StartPlan + " to Plan120";
+    }
+    if (toPlan.type == PayAsYouGoPlanTypes.Plan30Min) {
+      return StartPlan + " to Plan30";
+    }
+    if (toPlan.type == PayAsYouGoPlanTypes.Plan120Min) {
+      return StartPlan + " to Plan360";
+    }
+    if (toPlan.type == PayAsYouGoPlanTypes.Plan120Min) {
+      return StartPlan + " to Plan720";
+    }
+  }
+  let upgradeBreakdown = {
+    "Trial to Plan30": 0,
+    "Trial to Plan120": 0,
+    "Trial to Plan360": 0,
+    "Trial to Plan720": 0,
+  };
+  let Plans = {
+    Plan120: 0,
+    Plan30: 0,
+    Plan360: 0,
+    Plan720: 0,
+  };
+  let cancellations = {
+    trial: 0,
+    Plan30: 0,
+    Plan120: 0,
+    Plan360: 0,
+    Plan720: 0,
+  };
+
+  let userPlansTrials = await db.PlanHistory.findAll({
+    attributes: ["id", "userId", "type", "createdAt", "status"],
+    include: [{ model: db.User, attributes: ["isTrial"] }],
+    where: {
+      createdAt: { [Op.gte]: new Date(startDate) },
+      // type: PayAsYouGoPlanTypes.Plan30Min,
+    },
+    order: [["createdAt", "ASC"]], // Order by oldest first
+    group: ["userId"], // Fetch only the first entry for each user
+    raw: true,
+  });
+
+  console.log(userPlansTrials);
+  console.log(`${userPlansTrials.length} started `);
+
+  for (const p of userPlansTrials) {
+    console.log("\n\n");
+    console.log(
+      `Checking if user ${p.userId} upgraded from ${p.type} Id = ${p.id} status = ${p.status}`
+    );
+    let latestPlan = await db.PlanHistory.findOne({
+      where: {
+        userId: p.userId,
+        // status: "active"
+        id: {
+          [db.Sequelize.Op.gt]: p.id,
+        },
+      },
+      order: [["createdAt", "DESC"]],
+    });
+
+    console.log(`Found Latest Plan ${latestPlan?.type} ${latestPlan?.status}`);
+    if (latestPlan) {
+      if (latestPlan.status == "active") {
+        Plans[latestPlan.type] = (Plans[latestPlan.type] || 0) + 1;
+      }
+      if (latestPlan.status == "cancelled") {
+        cancellations[p.type] = (cancellations[p.type] || 0) + 1;
+        console.log("It's a cancelled plan", latestPlan.userId);
+      } else {
+        //user probably upgraded
+        let startDate = new Date(p.createdAt);
+        let secondPlanDate = new Date(latestPlan.createdAt);
+        let timeDifference = secondPlanDate - startDate;
+        let differenceInDays = timeDifference / (1000 * 60 * 60 * 24);
+        console.log(`Difference in days: ${differenceInDays}`);
+        if (differenceInDays > 7) {
+          //Then it will not be upgrade from Trial. It will be upgrade from Plan30
+          let key = GetKeyForUpgrade(p, latestPlan, false);
+          upgradeBreakdown[key] = (upgradeBreakdown[key] || 0) + 1;
+        } else {
+          let key = GetKeyForUpgrade(p, latestPlan, true);
+          upgradeBreakdown[key] = (upgradeBreakdown[key] || 0) + 1;
+        }
+      }
+    } else {
+      //user doesn't have any other plan so let's check if he is active and 7 days have passed or not
+      if (p.status == "cancelled") {
+        cancellations[p.type] = (cancellations[p.type] || 0) + 1;
+        console.log("It's a cancelled plan", p.userId);
+      } else {
+        if (p.status == "active") {
+          Plans[p.type] = (Plans[p.type] || 0) + 1;
+        }
+        let key = GetKeyForUpgrade(p, p, true);
+        upgradeBreakdown[key] = (upgradeBreakdown[key] || 0) + 1;
+      }
+    }
+  }
+
+  console.log("Upgrades ", upgradeBreakdown);
+  return { upgradeBreakdown, cancellations, Plans };
+}
+
+async function calculateCLV(averageRevenuePerUser, customerLifetimeMonths) {
+  return averageRevenuePerUser * customerLifetimeMonths;
+}
+
+// Function to calculate Monthly Recurring Revenue (MRR)
+async function calculateMRR(plan = null) {
+  if (plan) {
+    let totalMRR = await db.PaymentHistory.sum("price", {
+      where: { type: plan },
+    });
+    return totalMRR;
+  } else {
+    let totalMRR = await db.PaymentHistory.sum("price", {
+      where: {
+        // status: "active",
+        // type: {
+        //   [db.Sequelize.Op.ne]: "PhonePurchase",
+        // },
+      },
+    });
+    return totalMRR;
+  }
+}
+
+// Function to calculate Annual Recurring Revenue (ARR)
+async function calculateARR() {
+  let totalMRR = await calculateMRR();
+  return totalMRR * 12;
+}
+
+// Function to calculate Net Revenue Retention (NRR)
+async function calculateNRR() {
+  let revenueStart = await db.PlanHistory.sum("price", {
+    where: { createdAt: { [Op.lte]: new Date(startDate) } },
+  });
+  let revenueEnd = await db.PlanHistory.sum("price", {
+    where: { status: "active" },
+  });
+  let lostRevenue = await db.PlanHistory.sum("price", {
+    where: { status: "cancelled" },
+  });
+
+  return ((revenueEnd - lostRevenue) / revenueStart) * 100;
+}
+
 export async function GetAdminAnalytics(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (error) {
@@ -392,8 +694,12 @@ export async function GetAdminAnalytics(req, res) {
         });
       }
 
-      let stats = await fetchUserStats();
-      return res.send({ status: true, message: "Admin stats", data: stats });
+      let stats = await calculateSubscriptionStats("monthly", 0, 1);
+      return res.send({
+        status: true,
+        message: "Admin analytics",
+        data: stats,
+      });
     }
   });
 }

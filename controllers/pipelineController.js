@@ -33,6 +33,7 @@ import { UserRole } from "../models/user/userModel.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import LeadLiteResource from "../resources/LeadLiteResource.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
+import { getFilteredQuery } from "./LeadsController.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -624,6 +625,13 @@ export const CreatePipelineCadence = async (req, res) => {
       //     pipelineId: pipelineId,
       //   });
 
+      // delete already present cadence
+      await db.PipelineCadence.destroy({
+        where: {
+          mainAgentId: mainAgentId,
+        },
+      });
+
       for (let i = 0; i < cadence.length; i++) {
         let cad = cadence[i];
         let calls = cad.calls;
@@ -805,14 +813,14 @@ export async function AssignLeads(
   }
 }
 
-const getLeadIdsBySheetId = async (sheetId) => {
+const getLeadIdsBySheetIdAndFilter = async (leadFilters) => {
   try {
-    const leads = await LeadModel.findAll({
-      attributes: ["id"], // Fetch only the 'id' field
-      where: {
-        sheetId: sheetId, // Filter by sheetId
-      },
-      raw: true, // Returns plain JSON instead of Sequelize instances
+    //  const leadFilters = getFilteredQuery(req, userId); //{ sheetId, status: "active" };
+
+    // Fetch leads first based on general filters
+    const leads = await db.LeadModel.findAll({
+      where: leadFilters,
+      limit: 20000,
     });
 
     return leads.map((lead) => lead.id); // Extracting only the IDs
@@ -831,6 +839,7 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       leadIds,
       batchSize,
       startTimeDifFromNow,
+      selectedAll,
       sheetId,
     } = req.body;
     console.log("Data in assign leads", {
@@ -853,9 +862,21 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       user = admin;
 
       //if select all
-      if (sheetId) {
-        leadIds = await getLeadIdsBySheetId(sheetId);
+      if (selectedAll) {
+        console.log("User have selected all");
+        let filters = getFilteredQuery(req, userId);
+        console.log("Applied Filters are ", filters);
+        if (filters) {
+          console.log("User have filters selected for the lead and");
+        }
+        let leadIdsFiltered = await getLeadIdsBySheetIdAndFilter(filters);
+        const difference = leadIdsFiltered.filter(
+          (item) => !leadIds.includes(item)
+        );
+        leadIds = difference;
       }
+
+      console.log("Leads selected ", leadIds.length);
       //Get New Lead Stage of the Pipeline
       let pipeline = await AssignLeads(
         user,

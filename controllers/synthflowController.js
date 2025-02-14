@@ -9,6 +9,7 @@ import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import KycResource from "../resources/kycResource.js";
 import {
   AttachInfoExtractor,
+  CreateAndAttachAction,
   CreateAndAttachInfoExtractor,
   CreateInfoExtractor,
   GetInfoExtractorApiData,
@@ -1309,7 +1310,8 @@ export const BuildAgent = async (req, res) => {
             data,
             "inbound",
             mainAgent,
-            user.timeZone
+            user.timeZone,
+            user
           );
           data.agentType = "outbound";
           if (createdOutboundPrompt) {
@@ -1327,7 +1329,8 @@ export const BuildAgent = async (req, res) => {
             data,
             "outbound",
             mainAgent,
-            user.timeZone
+            user.timeZone,
+            user
           );
         } else {
           let data = {
@@ -1380,7 +1383,8 @@ export const BuildAgent = async (req, res) => {
             data,
             agentType,
             mainAgent,
-            user.timeZone
+            user.timeZone,
+            user
           );
         }
 
@@ -2559,11 +2563,40 @@ export const DeleteKyc = async (req, res) => {
   });
 };
 
+export const GetVoicemailMessage = async (req, res) => {
+  // JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+  //   if (authData) {
+  console.log("Reached the voicemail");
+  let agentId = req.query.agentId;
+  let agent = await db.AgentModel.findByPk(agentId);
+  if (agent) {
+    return res.send({
+      status: true,
+      message: "Voicemail instructions",
+      data: `This is the voicemail instruction. Disconnect the call immediately after reading the below voicemail message since you have reached the voicemail. Voicemail Message: Hi , this is ${
+        agent.name
+      }. I wanted to connect with you about something important. When you get a moment, give me a quick call${
+        agent.callbackNumber ? " at " + agent.callbackNumber + "." : "."
+      }. I’ll be available. Looking forward to speaking with you!`,
+    });
+  } else {
+    return res.send({
+      status: true,
+      message: "Voicemail instructions",
+      data: `This is the voicemail instruction. Disconnect the call immediately after reading the below voicemail message since you have reached the voicemail. Voicemail Message: Hi!. I wanted to connect with you about something important. When you get a moment, give me a quick call
+      }. I’ll be available. Looking forward to speaking with you!`,
+    });
+  }
+  //   }
+  // });
+};
+
 export async function CreateAssistantSynthflow(
   agentData,
   type = "outbound",
   mainAgent,
-  timezone = constants.DefaultTimezone
+  timezone = constants.DefaultTimezone,
+  user = null
 ) {
   console.log("Timezone passed ", timezone);
   console.log("Greeting sending to synthflow", agentData.greeting_message);
@@ -2614,6 +2647,12 @@ export async function CreateAssistantSynthflow(
           let IEIds = extractors.map((item) => {
             return item.actionId;
           });
+
+          let action = await CreateAndAttachAction(
+            user,
+            "voicemail",
+            assistant
+          );
 
           let created = await AttachInfoExtractor(
             mainAgent.id,

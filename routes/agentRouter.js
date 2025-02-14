@@ -3,7 +3,6 @@ import multer from "multer";
 
 import { verifyJwtTokenWithTeam } from "../middleware/jwtmiddleware.js";
 import {
-  CreateAssistantSynthflow,
   BuildAgent,
   UpdateAgent,
   DeleteAgent,
@@ -21,6 +20,7 @@ import {
   TestAI,
   GenerateFirstAINotification,
   UpdateSubAgent,
+  GetVoicemailMessage,
 } from "../controllers/synthflowController.js";
 
 import {
@@ -183,6 +183,8 @@ AgentRouter.get(
   uploadFiles,
   GetObjectionsAndGuardrails
 );
+
+AgentRouter.get("/getVoiceMail", GetVoicemailMessage);
 
 AgentRouter.post("/webhook_synthflow", WebhookSynthflow);
 
