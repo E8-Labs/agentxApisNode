@@ -166,10 +166,29 @@ export const CronRunCadenceCallsFirstBatch = async () => {
   //   limit: 200,
   // });
 
-  let leadCadence = await db.LeadCadence.findAll({
+  // let leadCadence = await db.LeadCadence.findAll({
+  //   where: {
+  //     status: CadenceStatus.Pending,
+  //     callTriggerTime: { [db.Sequelize.Op.is]: null }, // Check if callTriggerTime is null
+  //     leadId: {
+  //       [db.Sequelize.Op.in]: leadIds,
+  //     },
+  //   },
+  //   include: [
+  //     {
+  //       model: db.CadenceBatchModel,
+  //       required: true, // Ensures only leads with a valid batch are fetched
+  //       where: {
+  //         status: { [db.Sequelize.Op.ne]: BatchStatus.Paused }, // Exclude batches that are paused
+  //       },
+  //     },
+  //   ],
+  //   // limit: MaxLeadsToFetch,
+  // });
+  const leadCadence = await db.LeadCadence.findAll({
     where: {
       status: CadenceStatus.Pending,
-      callTriggerTime: { [db.Sequelize.Op.is]: null }, // Check if callTriggerTime is null
+      callTriggerTime: { [db.Sequelize.Op.is]: null }, // Only leads with null callTriggerTime
       leadId: {
         [db.Sequelize.Op.in]: leadIds,
       },
@@ -179,12 +198,15 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         model: db.CadenceBatchModel,
         required: true, // Ensures only leads with a valid batch are fetched
         where: {
-          status: { [db.Sequelize.Op.ne]: BatchStatus.Paused }, // Exclude batches that are paused
+          status: { [db.Sequelize.Op.ne]: BatchStatus.Paused }, // Exclude paused batches
         },
       },
     ],
-    // limit: MaxLeadsToFetch,
+    order: [[db.CadenceBatchModel, "totalLeads", "ASC"]], // Order by batchSize in the included model
+    // limit: batchSize, // Fetch only `batchSize` number of records
   });
+
+  // console.log(`Fetched ${leadCadence.length} leads`);
 
   let batchIds = [];
   leadCadence.map((lc) => {
