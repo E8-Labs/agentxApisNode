@@ -871,18 +871,18 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
 
       console.log("Leads selected ", leadIds.length);
       //Get New Lead Stage of the Pipeline
-      // let pipeline = await AssignLeads(
-      //   user,
-      //   pipelineId,
-      //   leadIds,
-      //   mainAgentIds,
-      //   startTimeDifFromNow,
-      //   batchSize
-      // );
+      let pipeline = await AssignLeads(
+        user,
+        pipelineId,
+        leadIds,
+        mainAgentIds,
+        startTimeDifFromNow,
+        batchSize
+      );
 
       return res.send({
         status: true,
-        data: null, //await PipelineResource(pipeline),
+        data: await PipelineResource(pipeline),
         message: "New Leads Assigned to pipeline",
       });
     }
