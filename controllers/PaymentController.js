@@ -291,18 +291,8 @@ export const SubscribePayasyougoPlan = async (req, res) => {
         firstTime = false;
       }
       let dateAfter30Days = new Date();
-      dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
-      // if (isMobile) {
-      //   //Generate Desktop Email
-      //   if (user.userType != UserTypes.RealEstateAgent) {
-      //     let emailTemp = generateDesktopEmail();
-      //     let sent = await SendEmail(
-      //       user.email,
-      //       emailTemp.subject,
-      //       emailTemp.html
-      //     );
-      //   }
-      // }
+      dateAfter30Days.setMonth(dateAfter30Days.getMonth() + 1);
+
       if (firstTime) {
         //send the email
         if (isMobile) {
@@ -334,7 +324,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
         if (updateFuturePlan) {
           console.log("Updating future plan");
           await db.PlanHistory.update(
-            { status: "cancelled" },
+            { status: "upgraded" },
             {
               where: {
                 userId: user.id,
@@ -446,7 +436,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                 ) {
                   //Dont charge user immediately
                   await db.PlanHistory.update(
-                    { status: "cancelled" },
+                    { status: "upgraded" },
                     { where: { userId: user.id } }
                   ); //set all previous plans as cancelled
                   let planHistory = await db.PlanHistory.create({
@@ -479,7 +469,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
 
             console.log("Update Plan", payNow);
             await db.PlanHistory.update(
-              { status: "cancelled" },
+              { status: "upgraded" },
               { where: { userId: user.id } }
             ); //set all previous plans as cancelled
             let planHistory = await db.PlanHistory.create({
@@ -587,7 +577,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                 //user updated his plan
                 await db.PlanHistory.update(
                   {
-                    status: "cancelled",
+                    status: "upgraded",
                   },
                   {
                     where: {
@@ -873,7 +863,7 @@ export async function ReChargeUserAccount(user) {
           transactionId: charge.paymentIntent.id,
         });
         let dateAfter30Days = new Date();
-        dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
+        dateAfter30Days.setMonth(dateAfter30Days.getMonth() + 1);
         user.nextChargeDate = dateAfter30Days;
         // console.log(
         //   "SubscribeFunc: Receiving user seconds Before ",
@@ -928,7 +918,7 @@ export async function ReChargeUserAccount(user) {
       console.log("Charged for trial over", user.isTrial);
       if (user.isTrial) {
         let dateAfter30Days = new Date();
-        dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
+        dateAfter30Days.setMonth(dateAfter30Days.getMonth() + 1);
         user.nextChargeDate = dateAfter30Days;
         user.isTrial = false;
       }
@@ -942,7 +932,7 @@ export async function ReChargeUserAccount(user) {
       console.log("Charged for trial over failed", user.isTrial);
       if (user.isTrial) {
         let dateAfter30Days = new Date();
-        dateAfter30Days.setDate(dateAfter30Days.getDate() + 30);
+        dateAfter30Days.setMonth(dateAfter30Days.getMonth() + 1);
         user.nextChargeDate = dateAfter30Days;
         user.isTrial = false;
         // user.totalSecondsAvailable = 0;

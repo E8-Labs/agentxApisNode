@@ -23,7 +23,7 @@ const PlanHistory = (sequelize, Sequelize) => {
     },
     status: {
       type: Sequelize.ENUM,
-      values: ["active", "cancelled"],
+      values: ["active", "cancelled", "upgraded"],
       defaultValue: "active",
     },
     environment: {
