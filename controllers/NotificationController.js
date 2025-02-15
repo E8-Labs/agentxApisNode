@@ -276,7 +276,7 @@ export const AddNotification = async (
   emailOnly = false
 ) => {
   console.log("Data in add not ", { user, fromUser, type, lead, agent, code });
-  return;
+  // return;
   if (user.userRole == UserRole.Invitee) {
     return;
   }
@@ -744,17 +744,14 @@ export const NotificationCron = async () => {
 
     let users = await db.User.findAll({
       where: {
-        [db.Sequelize.Op.and]: {
-          id: {
-            [db.Sequelize.Op.notIn]: userIds,
-          },
-          id: {
-            [db.Sequelize.Op.in]: userIdsWithPaymentAdded,
-          },
-        },
+        [db.Sequelize.Op.and]: [
+          { id: { [db.Sequelize.Op.notIn]: userIds } }, // Exclude these IDs
+          { id: { [db.Sequelize.Op.in]: userIdsWithPaymentAdded } }, // Include these IDs
+        ],
         userRole: UserRole.AgentX,
       },
     });
+
     console.log("Users to send daily notificaitons", users.length);
     // return;
     for (const u of users) {
@@ -773,13 +770,13 @@ export const NotificationCron = async () => {
         SendNotificationsForNoCalls5Days(u);
         SendFeedbackNotificationsAfter14Days(u);
         SendAppointmentNotifications(u);
-        // if (userDateTime > ninePM) {
-        SendNotificationsForHotlead(u);
-        // } else {
-        // console.log(
-        //   `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
-        // );
-        // }
+        if (userDateTime > ninePM) {
+          SendNotificationsForHotlead(u);
+        } else {
+          // console.log(
+          //   `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
+          // );
+        }
       }
     }
   } catch (error) {
@@ -927,7 +924,7 @@ async function SendNotificationsForHotlead(user) {
       },
     });
     console.log(`Calls made by ${user.name} | ${totalCalls}`);
-    if (totalCalls > 1) {
+    if (totalCalls >= 1) {
       let not = await db.NotificationModel.findOne({
         where: {
           type: NotificationTypes.CallsMadeByAgent,
@@ -943,7 +940,7 @@ async function SendNotificationsForHotlead(user) {
         );
         return;
       }
-      console.log("Sending notification as not already sent");
+      console.log("Sending notification as not already sent", user.id);
       await AddNotification(
         user,
         null,
@@ -957,70 +954,6 @@ async function SendNotificationsForHotlead(user) {
     } else {
       console.log("Total calls are less than 1");
     }
-
-    // if (totalCalls == 0) {
-    //   // console.log("Total calls were 0 576 line");
-    //   totalCalls = await db.LeadCallsSent.count({
-    //     where: {
-    //       agentId: {
-    //         [db.Sequelize.Op.in]: ids,
-    //       },
-    //       createdAt: {
-    //         [db.Sequelize.Op.gte]: last72Hours,
-    //       },
-    //     },
-    //   });
-    //   // if (userCreatedAt < last72Hours) {
-    //   //   // console.log("User account was created before 72 horus ", user.id);
-    //   //   // if userCreatedAt was before 72Hours ago
-
-    //   //   //check last NoCallNotification
-    //   //   let not = await db.NotificationModel.findOne({
-    //   //     where: {
-    //   //       userId: user.id,
-    //   //       type: NotificationTypes.NoCallsIn3Days,
-    //   //     },
-    //   //   });
-    //   //   let canSendNewNot = false;
-    //   //   if (not) {
-    //   //     const last72HoursOfNotSent = new Date();
-    //   //     last72HoursOfNotSent.setHours(last72HoursOfNotSent.getHours() - 72);
-
-    //   //     const notSentAt = new Date(not.createdAt);
-    //   //     if (notSentAt < last72HoursOfNotSent) {
-    //   //       // console.log(
-    //   //       //   "No notificaiton was sent in the last 72 hours to  ",
-    //   //       //   user.id
-    //   //       // );
-    //   //       //if the last no calls notification was sent before 72 hours ago send again
-    //   //       canSendNewNot = true;
-    //   //     } else {
-    //   //       // console.log(
-    //   //       //   "Notificaiton was already sent in the last 72 hours to  ",
-    //   //       //   user.id
-    //   //       // );
-    //   //     }
-    //   //   } else {
-    //   //     canSendNewNot = true;
-    //   //   }
-    //   //   // console.log("Here ");
-    //   //   // console.log(totalCalls);
-    //   //   // console.log(canSendNewNot);
-    //   //   if (totalCalls == 0 && canSendNewNot) {
-    //   //     // Send "No Calls in 3 days" notification
-    //   //     await AddNotification(
-    //   //       user,
-    //   //       null,
-    //   //       NotificationTypes.NoCallsIn3Days,
-    //   //       null,
-    //   //       null,
-    //   //       null,
-    //   //       0,
-    //   //       0
-    //   //     );
-    //   //   }
-    //   // }
-    // }
 
     if (hotleads > 1) {
       let not = await db.NotificationModel.findOne({
@@ -1144,4 +1077,4 @@ export async function SendTestEmail(req, res) {
     message: "Email sent",
   });
 }
-// NotificationCron();
+NotificationCron();
