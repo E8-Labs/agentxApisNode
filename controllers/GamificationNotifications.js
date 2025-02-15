@@ -91,7 +91,7 @@ export async function SendNotificationsForNoCalls5Days(user) {
 
 export async function SendFeedbackNotificationsAfter14Days(user) {
   const HoursIn5Days = 14 * 24; // hours in 14 days
-  // console.log("Sending No Calls Not to ", user.id);
+  console.log("Sending feedback to ", user.id);
   try {
     const last5Days = new Date();
     last5Days.setHours(last5Days.getHours() - HoursIn5Days);

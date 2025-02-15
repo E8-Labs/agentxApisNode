@@ -745,7 +745,7 @@ export const NotificationCron = async () => {
     let users = await db.User.findAll({
       where: {
         [db.Sequelize.Op.and]: [
-          { id: { [db.Sequelize.Op.notIn]: userIds } }, // Exclude these IDs
+          // { id: { [db.Sequelize.Op.notIn]: userIds } }, // Exclude these IDs
           { id: { [db.Sequelize.Op.in]: userIdsWithPaymentAdded } }, // Include these IDs
         ],
         userRole: UserRole.AgentX,
@@ -760,6 +760,10 @@ export const NotificationCron = async () => {
     for (const u of users) {
       let timeZone = u.timeZone || "America/Los_Angeles";
       console.log(`User ${u.id} Time zone is `, timeZone);
+      SendNotificationsForNoCalls(u);
+      SendNotificationsForNoCalls5Days(u);
+      SendFeedbackNotificationsAfter14Days(u);
+      SendAppointmentNotifications(u);
       if (timeZone) {
         let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
         console.log("TIme in user timezone", timeInUserTimeZone);
@@ -769,10 +773,7 @@ export const NotificationCron = async () => {
           { zone: timeZone }
         );
         const ninePM = userDateTime.set({ hour: 21, minute: 0, second: 0 });
-        SendNotificationsForNoCalls(u);
-        SendNotificationsForNoCalls5Days(u);
-        SendFeedbackNotificationsAfter14Days(u);
-        SendAppointmentNotifications(u);
+
         if (userDateTime > ninePM) {
           SendNotificationsForHotlead(u);
         } else {
@@ -788,6 +789,7 @@ export const NotificationCron = async () => {
 };
 
 async function SendNotificationsForNoCalls(user) {
+  console.log(`Check if send nocall not to ${user.id}`);
   if (user.userRole == UserRole.Invitee) {
     return;
   }
@@ -822,6 +824,7 @@ async function SendNotificationsForNoCalls(user) {
         },
       },
     });
+    console.log(`Total calls for ${user.id} = ${totalCalls}`);
 
     if (totalCalls == 0) {
       console.log("Total calls were 0 826 line");
@@ -866,6 +869,8 @@ async function SendNotificationsForNoCalls(user) {
           );
         }
       }
+    } else {
+      console.log(`More than zero calls for ${user.id}`);
     }
   } catch (error) {
     console.log("Error adding not ", error);
