@@ -774,12 +774,12 @@ export const NotificationCron = async () => {
         SendFeedbackNotificationsAfter14Days(u);
         SendAppointmentNotifications(u);
         // if (userDateTime > ninePM) {
-          SendNotificationsForHotlead(u);
+        SendNotificationsForHotlead(u);
         // } else {
-          // console.log(
-          //   `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
-          // );
-        }
+        // console.log(
+        //   `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
+        // );
+        // }
       }
     }
   } catch (error) {
@@ -943,7 +943,7 @@ async function SendNotificationsForHotlead(user) {
         );
         return;
       }
-      console.log("Sending notification as not already sent")
+      console.log("Sending notification as not already sent");
       await AddNotification(
         user,
         null,
