@@ -331,16 +331,18 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               },
             }
           );
-          await db.PlanHistory.create({
+          let historyCreated = await db.PlanHistory.create({
             userId: user.id,
             type: foundPlan.type,
             environment: process.env.Environment,
             price: foundPlan.price,
           });
+          console.log("Sending back response");
 
           return res.send({
             status: true,
             message: "Plan has changed successfully",
+            data: historyCreated,
           });
         } else if (
           firstTime &&
