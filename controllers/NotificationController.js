@@ -926,7 +926,7 @@ async function SendNotificationsForHotlead(user) {
         },
       },
     });
-    // console.log(`Calls made by ${user.name} | ${totalCalls}`);
+    console.log(`Calls made by ${user.name} | ${totalCalls}`);
     if (totalCalls > 1) {
       let not = await db.NotificationModel.findOne({
         where: {
@@ -954,6 +954,8 @@ async function SendNotificationsForHotlead(user) {
         0,
         totalCalls
       );
+    } else {
+      console.log("Total calls are less than 1");
     }
 
     // if (totalCalls == 0) {
@@ -1047,7 +1049,7 @@ async function SendNotificationsForHotlead(user) {
         0
       );
     } else {
-      // console.log("Hotleads are less than 1");
+      console.log("Hotleads are less than 1");
     }
   } catch (error) {
     console.log("Error adding not ", error);
