@@ -1206,7 +1206,7 @@ export async function GetLeadsForABatch(req, res) {
           batchId: batchId,
         });
       }
-      let leads = await GetLeadsInABatch(batch, offset);
+      let leads = await GetLeadsInABatch(batch, offset, req.query.search);
 
       return res.send({ status: true, message: "Leads obtained", data: leads });
     }
