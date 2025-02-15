@@ -1107,6 +1107,7 @@ export async function GetCallsForABatch(req, res) {
 }
 
 async function GetLeadsInABatch(batch, offset = 0, search = null) {
+  console.log("Finding leads in a batch ", search);
   let leadCad = await db.LeadCadence.findAll({
     where: {
       batchId: batch.id,
@@ -1186,6 +1187,7 @@ export async function GetLeadsForABatch(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let batchId = req.query.batchId;
+      let search = req.query.search;
       let offset = Number(req.query.offset) || 0;
       let userId = authData.user.id;
       if (req.query.userId) {
@@ -1206,7 +1208,7 @@ export async function GetLeadsForABatch(req, res) {
           batchId: batchId,
         });
       }
-      let leads = await GetLeadsInABatch(batch, offset, req.query.search);
+      let leads = await GetLeadsInABatch(batch, offset, search);
 
       return res.send({ status: true, message: "Leads obtained", data: leads });
     }
