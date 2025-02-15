@@ -1106,7 +1106,7 @@ export async function GetCallsForABatch(req, res) {
   });
 }
 
-async function GetLeadsInABatch(batch, offset = 0) {
+async function GetLeadsInABatch(batch, offset = 0, search = null) {
   let leadCad = await db.LeadCadence.findAll({
     where: {
       batchId: batch.id,
@@ -1122,12 +1122,31 @@ async function GetLeadsInABatch(batch, offset = 0) {
       leadIds.push(lc.leadId);
     }
   });
+  let searchQuery = search
+    ? {
+        [db.Sequelize.Op.or]: {
+          firstName: {
+            [db.Sequelize.Op.like]: `%${search}%`,
+          },
+          lastName: {
+            [db.Sequelize.Op.like]: `%${search}%`,
+          },
+          phone: {
+            [db.Sequelize.Op.like]: `%${search}%`,
+          },
+          email: {
+            [db.Sequelize.Op.like]: `%${search}%`,
+          },
+        },
+      }
+    : {};
 
   let leads = await db.LeadModel.findAll({
     where: {
       id: {
         [db.Sequelize.Op.in]: leadIds,
       },
+      searchQuery,
       // status: "active",
     },
     limit: Limit,
