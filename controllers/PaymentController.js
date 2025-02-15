@@ -328,6 +328,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             {
               where: {
                 userId: user.id,
+                status: "active",
               },
             }
           );
@@ -439,8 +440,8 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   //Dont charge user immediately
                   await db.PlanHistory.update(
                     { status: "upgraded" },
-                    { where: { userId: user.id } }
-                  ); //set all previous plans as cancelled
+                    { where: { userId: user.id, status: "active" } }
+                  ); //set all previous planas cancelled
                   let planHistory = await db.PlanHistory.create({
                     userId: user.id,
                     type: foundPlan.type,
@@ -472,7 +473,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             console.log("Update Plan", payNow);
             await db.PlanHistory.update(
               { status: "upgraded" },
-              { where: { userId: user.id } }
+              { where: { userId: user.id, status: "active" } }
             ); //set all previous plans as cancelled
             let planHistory = await db.PlanHistory.create({
               userId: user.id,
@@ -584,6 +585,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   {
                     where: {
                       userId: user.id,
+                      status: "active",
                     },
                   }
                 );
