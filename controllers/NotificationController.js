@@ -752,6 +752,9 @@ export const NotificationCron = async () => {
       },
     });
 
+    // console.log("Not in", [userIds]);
+    // console.log("Inclu", userIdsWithPaymentAdded);
+
     console.log("Users to send daily notificaitons", users.length);
     // return;
     for (const u of users) {
