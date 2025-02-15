@@ -160,13 +160,21 @@ export const WebhookSynthflow = async (req, res) => {
 
       console.log("Lead is ", lead);
       if (lead) {
-        jsonIE = await extractIEAndStoreKycs(actions, lead, callId, modelId);
+        jsonIE = await extractIEAndStoreKycs(
+          actions,
+          lead,
+          callId,
+          modelId,
+          true,
+          recordingUrl
+        );
         await processInfoExtractors(
           jsonIE,
           leadCadence,
           lead,
           dbCall,
-          endCallReason
+          endCallReason,
+          dbCall
         );
       }
     }
@@ -303,7 +311,14 @@ async function handleNewCall(
   }
   try {
     const jsonIE = lead
-      ? await extractIEAndStoreKycs(actions, lead, callId, modelId)
+      ? await extractIEAndStoreKycs(
+          actions,
+          lead,
+          callId,
+          modelId,
+          true,
+          recordingUrl
+        )
       : null;
 
     const leadCad = await findOrCreateLeadCadence(lead, assistant, jsonIE);
@@ -616,7 +631,8 @@ async function extractIEAndStoreKycs(
   lead,
   callId,
   modelId,
-  shouldSendEmail = true
+  shouldSendEmail = true,
+  recordingUrl
   // assistant = null
 ) {
   try {
@@ -688,6 +704,7 @@ async function extractIEAndStoreKycs(
                 agent_phone: subAgent?.phoneNumber,
                 lead_phone: lead.phone,
                 lead_name: lead.firstName || "",
+                call_recording: recordingUrl,
               },
             },
             title
@@ -1104,7 +1121,8 @@ export const SetOutcomeforpreviousCalls = async () => {
             lead,
             call.synthflowCallId,
             modelId,
-            false // should send email = false
+            false, // should send email = false
+            ""
           );
 
           let outcome = GetOutcomeFromCall(

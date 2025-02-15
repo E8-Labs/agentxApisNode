@@ -927,6 +927,21 @@ async function SendNotificationsForHotlead(user) {
     });
     // console.log(`Calls made by ${user.name} | ${totalCalls}`);
     if (totalCalls > 1) {
+      let not = await db.NotificationModel.findOne({
+        where: {
+          type: NotificationTypes.CallsMadeByAgent,
+          userId: user.id,
+          createdAt: {
+            [db.Sequelize.Op.gte]: last24Hours,
+          },
+        },
+      });
+      if (not) {
+        console.log(
+          `${NotificationTypes.CallsMadeByAgent} Notification already sent to user ${user.id}`
+        );
+        return;
+      }
       await AddNotification(
         user,
         null,
@@ -939,71 +954,86 @@ async function SendNotificationsForHotlead(user) {
       );
     }
 
-    if (totalCalls == 0) {
-      // console.log("Total calls were 0 576 line");
-      totalCalls = await db.LeadCallsSent.count({
+    // if (totalCalls == 0) {
+    //   // console.log("Total calls were 0 576 line");
+    //   totalCalls = await db.LeadCallsSent.count({
+    //     where: {
+    //       agentId: {
+    //         [db.Sequelize.Op.in]: ids,
+    //       },
+    //       createdAt: {
+    //         [db.Sequelize.Op.gte]: last72Hours,
+    //       },
+    //     },
+    //   });
+    //   // if (userCreatedAt < last72Hours) {
+    //   //   // console.log("User account was created before 72 horus ", user.id);
+    //   //   // if userCreatedAt was before 72Hours ago
+
+    //   //   //check last NoCallNotification
+    //   //   let not = await db.NotificationModel.findOne({
+    //   //     where: {
+    //   //       userId: user.id,
+    //   //       type: NotificationTypes.NoCallsIn3Days,
+    //   //     },
+    //   //   });
+    //   //   let canSendNewNot = false;
+    //   //   if (not) {
+    //   //     const last72HoursOfNotSent = new Date();
+    //   //     last72HoursOfNotSent.setHours(last72HoursOfNotSent.getHours() - 72);
+
+    //   //     const notSentAt = new Date(not.createdAt);
+    //   //     if (notSentAt < last72HoursOfNotSent) {
+    //   //       // console.log(
+    //   //       //   "No notificaiton was sent in the last 72 hours to  ",
+    //   //       //   user.id
+    //   //       // );
+    //   //       //if the last no calls notification was sent before 72 hours ago send again
+    //   //       canSendNewNot = true;
+    //   //     } else {
+    //   //       // console.log(
+    //   //       //   "Notificaiton was already sent in the last 72 hours to  ",
+    //   //       //   user.id
+    //   //       // );
+    //   //     }
+    //   //   } else {
+    //   //     canSendNewNot = true;
+    //   //   }
+    //   //   // console.log("Here ");
+    //   //   // console.log(totalCalls);
+    //   //   // console.log(canSendNewNot);
+    //   //   if (totalCalls == 0 && canSendNewNot) {
+    //   //     // Send "No Calls in 3 days" notification
+    //   //     await AddNotification(
+    //   //       user,
+    //   //       null,
+    //   //       NotificationTypes.NoCallsIn3Days,
+    //   //       null,
+    //   //       null,
+    //   //       null,
+    //   //       0,
+    //   //       0
+    //   //     );
+    //   //   }
+    //   // }
+    // }
+
+    if (hotleads > 1) {
+      let not = await db.NotificationModel.findOne({
         where: {
-          agentId: {
-            [db.Sequelize.Op.in]: ids,
-          },
+          type: NotificationTypes.TotalHotlead,
+          userId: user.id,
           createdAt: {
-            [db.Sequelize.Op.gte]: last72Hours,
+            [db.Sequelize.Op.gte]: last24Hours,
           },
         },
       });
-      // if (userCreatedAt < last72Hours) {
-      //   // console.log("User account was created before 72 horus ", user.id);
-      //   // if userCreatedAt was before 72Hours ago
-
-      //   //check last NoCallNotification
-      //   let not = await db.NotificationModel.findOne({
-      //     where: {
-      //       userId: user.id,
-      //       type: NotificationTypes.NoCallsIn3Days,
-      //     },
-      //   });
-      //   let canSendNewNot = false;
-      //   if (not) {
-      //     const last72HoursOfNotSent = new Date();
-      //     last72HoursOfNotSent.setHours(last72HoursOfNotSent.getHours() - 72);
-
-      //     const notSentAt = new Date(not.createdAt);
-      //     if (notSentAt < last72HoursOfNotSent) {
-      //       // console.log(
-      //       //   "No notificaiton was sent in the last 72 hours to  ",
-      //       //   user.id
-      //       // );
-      //       //if the last no calls notification was sent before 72 hours ago send again
-      //       canSendNewNot = true;
-      //     } else {
-      //       // console.log(
-      //       //   "Notificaiton was already sent in the last 72 hours to  ",
-      //       //   user.id
-      //       // );
-      //     }
-      //   } else {
-      //     canSendNewNot = true;
-      //   }
-      //   // console.log("Here ");
-      //   // console.log(totalCalls);
-      //   // console.log(canSendNewNot);
-      //   if (totalCalls == 0 && canSendNewNot) {
-      //     // Send "No Calls in 3 days" notification
-      //     await AddNotification(
-      //       user,
-      //       null,
-      //       NotificationTypes.NoCallsIn3Days,
-      //       null,
-      //       null,
-      //       null,
-      //       0,
-      //       0
-      //     );
-      //   }
-      // }
-    }
-
-    if (hotleads > 1) {
+      if (not) {
+        console.log(
+          `${NotificationTypes.TotalHotlead} Notification already sent to user ${user.id}`
+        );
+        return;
+      }
       await AddNotification(
         user,
         null,
