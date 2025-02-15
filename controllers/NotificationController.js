@@ -758,10 +758,10 @@ export const NotificationCron = async () => {
     // return;
     for (const u of users) {
       let timeZone = u.timeZone || "America/Los_Angeles";
-      // console.log("User Time zone is ", timeZone);
+      console.log(`User ${u.id} Time zone is `, timeZone);
       if (timeZone) {
         let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
-        // console.log("TIme in user timezone", timeInUserTimeZone);
+        console.log("TIme in user timezone", timeInUserTimeZone);
         const userDateTime = DateTime.fromFormat(
           timeInUserTimeZone,
           "yyyy-MM-dd HH:mm:ss",
