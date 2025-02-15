@@ -773,9 +773,9 @@ export const NotificationCron = async () => {
         SendNotificationsForNoCalls5Days(u);
         SendFeedbackNotificationsAfter14Days(u);
         SendAppointmentNotifications(u);
-        if (userDateTime > ninePM) {
+        // if (userDateTime > ninePM) {
           SendNotificationsForHotlead(u);
-        } else {
+        // } else {
           // console.log(
           //   `It's not yet 9 PM in ${timeZone}. Current time: ${timeInUserTimeZone}`
           // );
@@ -939,10 +939,11 @@ async function SendNotificationsForHotlead(user) {
       });
       if (not) {
         console.log(
-          `${NotificationTypes.CallsMadeByAgent} Notification already sent to user ${user.id}`
+          `${NotificationTypes.CallsMadeByAgent} ${not.id} Notification already sent to user ${user.id}`
         );
         return;
       }
+      console.log("Sending notification as not already sent")
       await AddNotification(
         user,
         null,
