@@ -160,13 +160,21 @@ export const WebhookSynthflow = async (req, res) => {
 
       console.log("Lead is ", lead);
       if (lead) {
-        jsonIE = await extractIEAndStoreKycs(actions, lead, callId, modelId);
+        jsonIE = await extractIEAndStoreKycs(
+          actions,
+          lead,
+          callId,
+          modelId,
+          true,
+          recordingUrl
+        );
         await processInfoExtractors(
           jsonIE,
           leadCadence,
           lead,
           dbCall,
-          endCallReason
+          endCallReason,
+          dbCall
         );
       }
     }
@@ -196,11 +204,11 @@ export const WebhookSynthflow = async (req, res) => {
       jsonIE
     );
 
-    try {
-      SetOutcomeforpreviousCalls();
-    } catch (error) {
-      console.log("error updating outcome", error);
-    }
+    // try {
+    //   SetOutcomeforpreviousCalls();
+    // } catch (error) {
+    //   console.log("error updating outcome", error);
+    // }
     return res.send({ status: true, message: "Webhook received" });
   } catch (error) {
     console.error("Error in WebhookSynthflow:", error);
@@ -303,7 +311,14 @@ async function handleNewCall(
   }
   try {
     const jsonIE = lead
-      ? await extractIEAndStoreKycs(actions, lead, callId, modelId)
+      ? await extractIEAndStoreKycs(
+          actions,
+          lead,
+          callId,
+          modelId,
+          true,
+          recordingUrl
+        )
       : null;
 
     const leadCad = await findOrCreateLeadCadence(lead, assistant, jsonIE);
@@ -615,7 +630,9 @@ async function extractIEAndStoreKycs(
   extractors,
   lead,
   callId,
-  modelId
+  modelId,
+  shouldSendEmail = true,
+  recordingUrl
   // assistant = null
 ) {
   try {
@@ -661,46 +678,50 @@ async function extractIEAndStoreKycs(
           console.log("error finding meeting id");
         }
       }
-      if (
-        (question == "call_violation_detected" && answer == true) ||
-        (question == "ai_non_responsive_detected" && answer == true)
-      ) {
-        console.log("Found info Extractor non responsive");
-        //send email
-        let title =
-          question == "call_violation_detected"
-            ? "Voilation Notification"
-            : "Non Responsive Agent Notification";
+      if (shouldSendEmail) {
+        if (
+          (question == "call_violation_detected" && answer == true) ||
+          (question == "ai_non_responsive_detected" && answer == true)
+        ) {
+          console.log("Found info Extractor non responsive");
+          //send email
+          let title =
+            question == "call_violation_detected"
+              ? "Voilation Notification"
+              : "Non Responsive Agent Notification";
 
-        let email = generateFailedOrCallVoilationEmail(
-          {
-            Sender_Name: user?.name,
-            FailureReason: question,
-            otherDetails: {
-              Sender_Id: user?.id,
-              Sender_Email: user?.email,
-              Sender_Phone: user?.phone,
-              call_id: callId,
-              agent: subAgent?.name,
-              model_id: modelId,
-              agent_phone: subAgent?.phoneNumber,
-              lead_phone: lead.phone,
-              lead_name: lead.firstName || "",
+          let email = generateFailedOrCallVoilationEmail(
+            {
+              Sender_Name: user?.name,
+              FailureReason: question,
+              otherDetails: {
+                Sender_Id: user?.id,
+                Sender_Email: user?.email,
+                Sender_Phone: user?.phone,
+                call_id: callId,
+                agent: subAgent?.name,
+                model_id: modelId,
+                agent_phone: subAgent?.phoneNumber,
+                lead_phone: lead.phone,
+                lead_name: lead.firstName || "",
+                call_recording: recordingUrl,
+              },
             },
-          },
-          title
-        );
-        let sent = await SendEmail(
-          constants.AdminNotifyEmail1,
-          email.subject,
-          email.html
-        );
-        let sent2 = await SendEmail(
-          constants.AdminNotifyEmail2,
-          email.subject,
-          email.html
-        );
+            title
+          );
+          let sent = await SendEmail(
+            constants.AdminNotifyEmail1,
+            email.subject,
+            email.html
+          );
+          let sent2 = await SendEmail(
+            constants.AdminNotifyEmail2,
+            email.subject,
+            email.html
+          );
+        }
       }
+
       if (lead) {
         if (typeof answer === "string") {
           if (question === "prospectemail") {
@@ -878,19 +899,7 @@ async function handleInfoExtractorValues(
 
           //set stage tags to lead
           await AddTagsFromCustoStageToLead(lead, stage);
-          // let stageTags = await db.StageTagModel.findAll({
-          //   where: {
-          //     pipelineStageId: stage.id,
-          //   },
-          // });
-          // if (stageTags && stageTags.length > 0) {
-          //   for (const t of stageTags) {
-          //     db.LeadTagsModel.create({
-          //       leadId: lead.id,
-          //       tag: t.tag,
-          //     });
-          //   }
-          // }
+
           movedToCustom = true;
           console.log(`Successfully moved to ${stageIdentifier}`, json[csIE]);
         }
@@ -922,12 +931,15 @@ async function handleInfoExtractorValues(
       });
 
       moveToStage = notInterestedStage?.id || null;
-      Object.assign(leadCadence, {
-        dnd: json.dnd,
-        notinterested: json.notinterested,
-        wrongnumber: json.wrongnumber,
-      });
-      await leadCadence.save();
+      // Object.assign(leadCadence, {
+      //   dnd: json.dnd,
+      //   notinterested: json.notinterested,
+      //   wrongnumber: json.wrongnumber,
+      // });
+      // leadCadence?.dnd = json.dnd;
+      // leadCadence?.notinterested = json.notinterested;
+      // leadCadence?.wrongnumber = json.wrongnumber;
+      await leadCadence?.save();
     } else if (
       // json.callmeback ||
       json.humancalldrop ||
@@ -1108,7 +1120,9 @@ export const SetOutcomeforpreviousCalls = async () => {
             actions,
             lead,
             call.synthflowCallId,
-            modelId
+            modelId,
+            false, // should send email = false
+            ""
           );
 
           let outcome = GetOutcomeFromCall(
@@ -1127,4 +1141,3 @@ export const SetOutcomeforpreviousCalls = async () => {
   }
   // return res.send({ status: true, message: "All call status updated" });
 };
-// SetOutcomeforpreviousCalls();
