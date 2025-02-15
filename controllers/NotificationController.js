@@ -876,7 +876,7 @@ async function SendNotificationsForHotlead(user) {
   if (user.userRole == UserRole.Invitee) {
     return;
   }
-  // console.log("Sending hotlead to ", user.id);
+  console.log("Sending hotlead to ", user.id);
   try {
     let ids = [];
     let agents = await db.AgentModel.findAll({
