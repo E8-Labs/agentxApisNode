@@ -275,7 +275,8 @@ export const AddNotification = async (
   synthflowCallId = null,
   emailOnly = false
 ) => {
-  // console.log("Data in add not ", { user, fromUser, type, lead, agent, code });
+  console.log("Data in add not ", { user, fromUser, type, lead, agent, code });
+  return;
   if (user.userRole == UserRole.Invitee) {
     return;
   }
