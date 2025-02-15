@@ -1125,20 +1125,12 @@ async function GetLeadsInABatch(batch, offset = 0, search = null) {
   });
   let searchQuery = search
     ? {
-        [db.Sequelize.Op.or]: {
-          firstName: {
-            [db.Sequelize.Op.like]: `%${search}%`,
-          },
-          lastName: {
-            [db.Sequelize.Op.like]: `%${search}%`,
-          },
-          phone: {
-            [db.Sequelize.Op.like]: `%${search}%`,
-          },
-          email: {
-            [db.Sequelize.Op.like]: `%${search}%`,
-          },
-        },
+        [db.Sequelize.Op.or]: [
+          { firstName: { [db.Sequelize.Op.like]: `%${search}%` } },
+          { lastName: { [db.Sequelize.Op.like]: `%${search}%` } },
+          { phone: { [db.Sequelize.Op.like]: `%${search}%` } },
+          { email: { [db.Sequelize.Op.like]: `%${search}%` } },
+        ],
       }
     : {};
 
@@ -1147,12 +1139,13 @@ async function GetLeadsInABatch(batch, offset = 0, search = null) {
       id: {
         [db.Sequelize.Op.in]: leadIds,
       },
-      searchQuery,
+      ...searchQuery, // Spread searchQuery here instead of nesting it incorrectly
       // status: "active",
     },
     limit: Limit,
     offset: offset,
   });
+
   let i = 0;
   for (const l of leads) {
     //check candence
