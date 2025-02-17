@@ -538,7 +538,12 @@ async function TryAndChargePayment(
         user.id,
         paymentMethodId
       );
-      SendSubscriptionFailedEmail(user, plan, error.message, error);
+      SendSubscriptionFailedEmail(
+        user,
+        plan,
+        paymentIntent.status,
+        paymentIntent
+      );
       console.log(
         "Payment method handling result:",
         paymentMethodHandlingResult
@@ -554,12 +559,13 @@ async function TryAndChargePayment(
     }
   } catch (error) {
     // Catch and log Stripe errors
-    // console.log("Stripe error notification is ", error);
+    console.log("557: Stripe error notification is ", error);
+    SendSubscriptionFailedEmail(user, plan, error.message, error);
     if (error.type === "StripeCardError") {
       // Card errors
-      console.error("Card error:", error.message);
+      console.error("560: Card error:", error.message);
       await handleFailedPaymentMethod(user.id, paymentMethodId);
-      SendSubscriptionFailedEmail(user, plan, error.message, error);
+
       // try {
       //   // let user = await db.User.findByPk(userId);
       //   await AddNotification(

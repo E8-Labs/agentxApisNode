@@ -328,19 +328,22 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             {
               where: {
                 userId: user.id,
+                status: "active",
               },
             }
           );
-          await db.PlanHistory.create({
+          let historyCreated = await db.PlanHistory.create({
             userId: user.id,
             type: foundPlan.type,
             environment: process.env.Environment,
             price: foundPlan.price,
           });
+          console.log("Sending back response");
 
           return res.send({
             status: true,
             message: "Plan has changed successfully",
+            data: historyCreated,
           });
         } else if (
           firstTime &&
@@ -437,8 +440,8 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   //Dont charge user immediately
                   await db.PlanHistory.update(
                     { status: "upgraded" },
-                    { where: { userId: user.id } }
-                  ); //set all previous plans as cancelled
+                    { where: { userId: user.id, status: "active" } }
+                  ); //set all previous planas cancelled
                   let planHistory = await db.PlanHistory.create({
                     userId: user.id,
                     type: foundPlan.type,
@@ -470,7 +473,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             console.log("Update Plan", payNow);
             await db.PlanHistory.update(
               { status: "upgraded" },
-              { where: { userId: user.id } }
+              { where: { userId: user.id, status: "active" } }
             ); //set all previous plans as cancelled
             let planHistory = await db.PlanHistory.create({
               userId: user.id,
@@ -582,6 +585,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
                   {
                     where: {
                       userId: user.id,
+                      status: "active",
                     },
                   }
                 );

@@ -714,51 +714,211 @@ export async function GetUsers(req, res) {
     }
 
     let offset = Number(req.query.offset || 0) || 0;
-    // let limit = Number(req.query.limit || limit) || limit; // Default limit
+    let limit = Number(req.query.limit || 30) || 30; // Default limit
+    let sort = req.query.sort || "createdAt";
+    let sortOrder = req.query.sortOrder || "ASC";
 
     if (authData) {
       let userId = authData.user.id;
 
-      // Fetch user and check role
       let user = await db.User.findOne({
-        where: {
-          id: userId,
-        },
+        where: { id: userId },
       });
-      if (!user) {
+      if (!user || user.userType !== "admin") {
         return res.status(401).send({
           status: false,
           message: "Unauthorized access.",
         });
       }
-      if (user.userType !== "admin") {
-        return res.status(401).send({
-          status: false,
-          message: "Unauthorized access. Only admin can access this",
-        });
-      }
 
-      // Search parameter
       let searchQuery = req.query.search ? req.query.search.trim() : "";
-
       let whereCondition = {
         userRole: "AgentX",
-        userType: {
-          [db.Sequelize.Op.notIn]: [UserTypes.Admin],
-        },
+        userType: { [db.Sequelize.Op.notIn]: [UserTypes.Admin] },
       };
 
       if (searchQuery) {
-        whereCondition[Op.or] = [
-          { email: { [Op.like]: `%${searchQuery}%` } }, // Case-insensitive LIKE
-          { phone: { [Op.like]: `%${searchQuery}%` } },
-          { name: { [Op.like]: `%${searchQuery}%` } },
+        whereCondition[db.Sequelize.Op.or] = [
+          { email: { [db.Sequelize.Op.like]: `%${searchQuery}%` } },
+          { phone: { [db.Sequelize.Op.like]: `%${searchQuery}%` } },
+          { name: { [db.Sequelize.Op.like]: `%${searchQuery}%` } },
         ];
+      }
+
+      // Date Range Filter
+      if (req.query.fromCreatedDate) {
+        if (req.query.toCreatedDate) {
+          whereCondition.createdAt = {
+            [db.Sequelize.Op.between]: [
+              req.query.fromCreatedDate,
+              req.query.toCreatedDate,
+            ],
+          };
+        } else {
+          whereCondition.createdAt = {
+            [db.Sequelize.Op.gte]: [req.query.fromCreatedDate],
+          };
+        }
+      } else if (req.query.toCreatedDate) {
+        whereCondition.createdAt = {
+          [db.Sequelize.Op.lte]: [req.query.toCreatedDate],
+        };
+      }
+
+      // Plan Filter
+      if (req.query.plan) {
+        const plans = req.query.plan.split(",").map((p) => p.trim());
+
+        let planCondition = [];
+
+        if (plans.includes("Trial")) {
+          planCondition.push(`User.isTrial = true`);
+        }
+
+        // Include users who have an active plan in `PlanHistories`
+        const nonTrialPlans = plans.filter((p) => p !== "Trial");
+
+        if (nonTrialPlans.length > 0) {
+          planCondition.push(
+            `User.id IN (SELECT userId FROM PlanHistories WHERE type IN (${nonTrialPlans
+              .map((p) => `'${p}'`)
+              .join(",")}) AND status = 'active')`
+          );
+        }
+
+        // Apply the condition if at least one condition exists
+        if (planCondition.length > 0) {
+          whereCondition[db.Sequelize.Op.or] = db.Sequelize.literal(
+            `(${planCondition.join(" OR ")})`
+          );
+        }
+      }
+
+      // Teams Filter
+      if (req.query.minTeams || req.query.maxTeams) {
+        let minTeams = req.query.minTeams ? Number(req.query.minTeams) : 0;
+        let maxTeams = req.query.maxTeams
+          ? Number(req.query.maxTeams)
+          : Number.MAX_SAFE_INTEGER;
+        whereCondition.id = {
+          [db.Sequelize.Op.in]: db.Sequelize.literal(`(
+            SELECT invitingUserId FROM TeamModels GROUP BY invitingUserId HAVING COUNT(*) BETWEEN ${minTeams} AND ${maxTeams}
+          )`),
+        };
+      }
+
+      // Total Spent Filter
+      if (req.query.minSpent || req.query.maxSpent) {
+        let minSpent = req.query.minSpent ? Number(req.query.minSpent) : 0;
+        let maxSpent = req.query.maxSpent
+          ? Number(req.query.maxSpent)
+          : Number.MAX_SAFE_INTEGER;
+        whereCondition.id = {
+          [db.Sequelize.Op.in]: db.Sequelize.literal(`(
+            SELECT userId FROM PaymentHistories GROUP BY userId HAVING SUM(price) BETWEEN ${minSpent} AND ${maxSpent}
+          )`),
+        };
+      }
+
+      // Mins Balance Filter
+      if (req.query.minBalance || req.query.maxBalance) {
+        whereCondition.totalSecondsAvailable = {
+          [db.Sequelize.Op.between]: [
+            req.query.minBalance * 60,
+            req.query.maxBalance * 60,
+          ],
+        };
+      }
+
+      // Renewal Date Range
+      if (req.query.fromChargeDate && req.query.toChargeDate) {
+        whereCondition.nextChargeDate = {
+          [db.Sequelize.Op.between]: [
+            req.query.fromChargeDate,
+            req.query.toChargeDate,
+          ],
+        };
+      }
+
+      // Agent Count Filter
+      if (req.query.minAgents || req.query.maxAgents) {
+        let minAgents = req.query.minAgents ? Number(req.query.minAgents) : 0;
+        let maxAgents = req.query.maxAgents
+          ? Number(req.query.maxAgents)
+          : Number.MAX_SAFE_INTEGER;
+        whereCondition.id = {
+          [db.Sequelize.Op.in]: db.Sequelize.literal(`(
+            SELECT userId FROM AgentModels GROUP BY userId HAVING COUNT(*) BETWEEN ${minAgents} AND ${maxAgents}
+          )`),
+        };
+      }
+
+      // Minutes Used Filter
+      if (req.query.minMinsUsed || req.query.maxMinsUsed) {
+        let minMinsUsed = req.query.minMinsUsed
+          ? Number(req.query.minMinsUsed) * 60
+          : 0;
+        let maxMinsUsed = req.query.maxMinsUsed
+          ? Number(req.query.maxMinsUsed) * 60
+          : Number.MAX_SAFE_INTEGER;
+
+        whereCondition.id = {
+          [db.Sequelize.Op.in]: db.Sequelize.literal(`(
+            SELECT DISTINCT userId FROM AgentModels 
+            WHERE id IN (
+              SELECT agentId FROM LeadCallsSents 
+              GROUP BY agentId HAVING SUM(duration) BETWEEN ${minMinsUsed} AND ${maxMinsUsed}
+            )
+          )`),
+        };
+      }
+
+      // Referred Filter
+      if (req.query.referred) {
+        whereCondition.inviteCodeUsed =
+          req.query.referred === "yes" ? { [db.Sequelize.Op.ne]: null } : null;
+      }
+
+      // Closer Filter
+      if (req.query.closer) {
+        // Convert comma-separated values into an array
+        const closerIds = req.query.closer
+          .split(",")
+          .map((id) => Number(id.trim()));
+
+        whereCondition.campaigneeId = {
+          [db.Sequelize.Op.in]: closerIds,
+        };
+      }
+
+      // **Sorting Mechanism**
+      let orderClause;
+      switch (sort) {
+        case "Leads":
+          orderClause = db.Sequelize.literal(
+            `(SELECT COUNT(*) FROM LeadModels WHERE LeadModels.userId = User.id) ${sortOrder}`
+          );
+          break;
+        case "MinutesUsed":
+          orderClause = db.Sequelize.literal(
+            `(SELECT SUM(duration) FROM LeadCallsSents WHERE agentId IN (SELECT id FROM AgentModels WHERE userId = User.id)) ${sortOrder}`
+          );
+          break;
+        case "TotalSpent":
+          orderClause = db.Sequelize.literal(
+            `(SELECT SUM(price) FROM PaymentHistories WHERE userId = User.id) ${sortOrder}`
+          );
+          break;
+        case "MinutesBalance":
+          orderClause = ["totalSecondsAvailable", sortOrder];
+          break;
+        default:
+          orderClause = ["createdAt", sortOrder];
       }
 
       let users = await db.User.findAll({
         where: whereCondition,
-        order: [["createdAt", "DESC"]],
+        order: [orderClause],
         limit: limit,
         offset: offset,
       });

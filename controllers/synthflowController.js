@@ -1670,17 +1670,29 @@ export const GenerateFirstAINotification = async (req, res) => {
           id: userId,
         },
       });
-      let not = await db.NotificationModel.findOne({
+      let agents = await db.MainAgentModel.count({
         where: {
           userId: user.id,
-          type: NotificationTypes.TestAINotification,
         },
       });
-      if (not) {
-        //already sent notification
-      } else {
-        await AddNotification(user, null, NotificationTypes.TestAINotification);
+      if (agents > 0) {
+        let not = await db.NotificationModel.findOne({
+          where: {
+            userId: user.id,
+            type: NotificationTypes.TestAINotification,
+          },
+        });
+        if (not) {
+          //already sent notification
+        } else {
+          await AddNotification(
+            user,
+            null,
+            NotificationTypes.TestAINotification
+          );
+        }
       }
+
       return res.send({ status: true, message: "Sent" });
     } else {
       return res.send({
