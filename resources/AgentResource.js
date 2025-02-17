@@ -211,6 +211,14 @@ async function getUserData(mainAgent, currentUser = null) {
 
   let qs = await KycResource(kycs);
 
+  let currentOngoingCadence = 0;
+
+  currentOngoingCadence = await db.LeadCadence.count({
+    where: {
+      mainAgentId: mainAgent.id,
+    },
+  });
+
   const AgentResource = {
     ...mainAgent.get(),
     agents: agentRes,
@@ -224,6 +232,7 @@ async function getUserData(mainAgent, currentUser = null) {
     guardrails,
     objections,
     kyc: qs,
+    currentOngoingCadence: currentOngoingCadence,
     // calendar: calendar,
     alreadyAssignedGlobal:
       alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
