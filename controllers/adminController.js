@@ -715,6 +715,8 @@ export async function GetUsers(req, res) {
 
     let offset = Number(req.query.offset || 0) || 0;
     let limit = Number(req.query.limit || 30) || 30; // Default limit
+    let sort = req.query.sort || "createdAt";
+    let sortOrder = req.query.sortOrder || "ASC";
 
     if (authData) {
       let userId = authData.user.id;
@@ -889,9 +891,34 @@ export async function GetUsers(req, res) {
         };
       }
 
+      // **Sorting Mechanism**
+      let orderClause;
+      switch (sort) {
+        case "Leads":
+          orderClause = db.Sequelize.literal(
+            `(SELECT COUNT(*) FROM LeadModels WHERE LeadModels.userId = User.id) ${sortOrder}`
+          );
+          break;
+        case "MinutesUsed":
+          orderClause = db.Sequelize.literal(
+            `(SELECT SUM(duration) FROM LeadCallsSents WHERE agentId IN (SELECT id FROM AgentModels WHERE userId = User.id)) ${sortOrder}`
+          );
+          break;
+        case "TotalSpent":
+          orderClause = db.Sequelize.literal(
+            `(SELECT SUM(price) FROM PaymentHistories WHERE userId = User.id) ${sortOrder}`
+          );
+          break;
+        case "MinutesBalance":
+          orderClause = ["totalSecondsAvailable", sortOrder];
+          break;
+        default:
+          orderClause = ["createdAt", sortOrder];
+      }
+
       let users = await db.User.findAll({
         where: whereCondition,
-        order: [["createdAt", "DESC"]],
+        order: [orderClause],
         limit: limit,
         offset: offset,
       });
