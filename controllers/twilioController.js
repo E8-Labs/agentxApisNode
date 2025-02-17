@@ -579,9 +579,27 @@ export const AssignPhoneNumber = async (req, res) => {
         }
 
         //check phone number already bought. If yes then just assign and go back.
+        // let phoneNumberDB = await db.UserPhoneNumbers.findOne({
+        //   where: {
+        //     phone: phoneNumber,
+        //     userId: user.id,
+        //   },
+        // });
+
+        let formattedPhoneNumber = phoneNumber.startsWith("+")
+          ? phoneNumber.substring(1) // Remove '+'
+          : phoneNumber;
+
         let phoneNumberDB = await db.UserPhoneNumbers.findOne({
           where: {
-            phone: phoneNumber,
+            [Op.or]: [
+              { phone: formattedPhoneNumber }, // Match without '+'
+              { phone: phoneNumber }, // Match with '+'
+              db.sequelize.where(
+                db.sequelize.fn("REPLACE", db.sequelize.col("phone"), "+", ""),
+                formattedPhoneNumber
+              ), // Removes '+' from stored phone number and matches
+            ],
             userId: user.id,
           },
         });
