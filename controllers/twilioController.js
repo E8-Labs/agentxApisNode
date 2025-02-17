@@ -592,7 +592,7 @@ export const AssignPhoneNumber = async (req, res) => {
 
         let phoneNumberDB = await db.UserPhoneNumbers.findOne({
           where: {
-            [Op.or]: [
+            [db.Sequelize.Op.or]: [
               { phone: formattedPhoneNumber }, // Match without '+'
               { phone: phoneNumber }, // Match with '+'
               db.sequelize.where(
