@@ -124,6 +124,7 @@ async function getUserData(user, currentUser = null) {
     // campaignee: campaignee,
     closerName: campaignee?.name || "-",
     closerUrl: campaignee?.uniqueUrl || "-",
+    closerId: campaignee?.id,
     // admin: admin,
   };
 
