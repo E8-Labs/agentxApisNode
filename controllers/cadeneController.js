@@ -116,6 +116,7 @@ function getTodayStartTimeForBatch(batch) {
 }
 
 async function getCallCount(batch) {
+  let nowUTC = new Date();
   try {
     if (!batch.startTime) {
       throw new Error(`Batch ${batch.id}: startTime is missing or undefined.`);
