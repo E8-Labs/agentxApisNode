@@ -15,6 +15,7 @@ import {
   SendPaymentFailedNotification,
   SendSubscriptionFailedEmail,
 } from "../services/MailService.js";
+import { WriteToFile } from "../services/FileService.js";
 
 // Initialize Stripe for both environments
 const stripeTest = new Stripe(process.env.STRIPE_TEST_SECRET_KEY);
@@ -538,6 +539,7 @@ async function TryAndChargePayment(
         user.id,
         paymentMethodId
       );
+      //we may take this to the outer function
       SendSubscriptionFailedEmail(
         user,
         plan,
@@ -564,6 +566,7 @@ async function TryAndChargePayment(
     if (error.type === "StripeCardError") {
       // Card errors
       console.error("560: Card error:", error.message);
+      // SendPaymentFailedNotification(user);
       await handleFailedPaymentMethod(user.id, paymentMethodId);
 
       // try {
@@ -718,13 +721,20 @@ export const chargeUser = async (
         }
       }
     }
-    console.log("Here all tries done ", result);
+    WriteToFile("Here all tries done ", JSON.stringify(result));
+    let added = await db.PaymentMethodFails.create({
+      userId: user.id,
+      data: JSON.stringify(result),
+    });
     if (
       result &&
       result.status == false &&
       typeof result.cardFailed != "undefined" &&
       result.cardFailed == true
     ) {
+      added.emailSent = true;
+      added.save();
+      console.log("Here in card failed/ Send email for failed payment");
       //send Card declined email
       SendPaymentFailedNotification(user);
     }

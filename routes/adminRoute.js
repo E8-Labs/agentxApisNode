@@ -9,6 +9,7 @@ import {
   DeleteAnAffiliate,
   GetAdminStats,
   GetAdminAnalytics,
+  GetUsersForAffiliates,
 } from "../controllers/adminController.js";
 
 const uploadFiles = multer().fields([
@@ -24,6 +25,12 @@ const uploadMedia = multer().fields([
 let AdminRouter = express.Router();
 
 AdminRouter.get("/users", verifyJwtTokenWithTeam, uploadFiles, GetUsers);
+AdminRouter.get(
+  "/usersForAffiliate",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetUsersForAffiliates
+);
 AdminRouter.post(
   "/addAffiliate",
   verifyJwtTokenWithTeam,

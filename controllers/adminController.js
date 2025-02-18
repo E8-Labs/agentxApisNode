@@ -936,6 +936,66 @@ export async function GetUsers(req, res) {
   });
 }
 
+export async function GetUsersForAffiliates(req, res) {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    let offset = Number(req.query.offset || 0) || 0;
+    let limit = Number(req.query.limit || 30) || 30; // Default limit
+
+    if (authData) {
+      let userId = authData.user.id;
+      let campaigneeId = req.query.campaigneeId;
+      let search = req.query.search || null;
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+      let searchFilter = search
+        ? {
+            [db.Sequelize.Op.or]: [
+              { email: { [db.Sequelize.Op.like]: `%${search}%` } },
+              { phone: { [db.Sequelize.Op.like]: `%${search}%` } },
+              { name: { [db.Sequelize.Op.like]: `%${search}%` } },
+            ],
+          }
+        : {}; // Correct way to handle optional filtering
+
+      let users = await db.User.findAll({
+        where: {
+          campaigneeId: campaigneeId,
+          ...searchFilter, // ✅ Merging search filter correctly
+        },
+        offset: offset,
+        limit: limit,
+      });
+
+      let usersRes = await UserProfileAdminResource(users);
+
+      return res.send({ status: true, data: usersRes });
+    }
+  });
+}
+
 export async function GetAffiliates(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (error) {

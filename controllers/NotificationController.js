@@ -6,7 +6,11 @@ import NotificationResource from "../resources/NotificationResource.js";
 import { convertUTCToTimezone } from "../utils/dateutil.js";
 import { sendPushNotification } from "../services/firebase.js";
 import { GetAgentXCodeUsageEmailReplacedVariables } from "../emails/AgentXCodeUsageEmail.js";
-import { SendEmail } from "../services/MailService.js";
+import {
+  SendEmail,
+  SendPaymentFailedNotification,
+  SendSubscriptionFailedEmail,
+} from "../services/MailService.js";
 import { GetInviteAcceptedEmailReplacedVariables } from "../emails/InviteAcceptedEmail.js";
 import { GenerateHotLeadEmail } from "../emails/HotLeadEmail.js";
 import { GenerateMeetingBookedEmail } from "../emails/MeetingBookedEmail.js";
@@ -57,6 +61,9 @@ import { GenerateNoPaymentFoMoEmail } from "../emails/noPaymentNotifications/NoP
 import { GenerateNoPaymentScarcityEmail } from "../emails/noPaymentNotifications/NoPaymetScarcityEmail.js";
 import { GenerateNoPaymentUrgentWarningEmail } from "../emails/noPaymentNotifications/NoPaymentUrgentWarningEmail.js";
 import { GenerateNoPaymentAIResetEmail } from "../emails/noPaymentNotifications/NoPaymentAIResetEmail.js";
+import { generateSubscriptionReminderEmail } from "../emails/Subscription/SubscriptionReminder24Hr.js";
+import { generateSHtmlTemplateAutoMinuteTopupEmail } from "../emails/Subscription/AutoMinuteTopupEmail.js";
+import { hasUserMadeCalls } from "../utils/agentUtility.js";
 
 async function GetNotificationTitle(
   user,
@@ -363,7 +370,21 @@ async function SendEmailForNotification(
 
   let emailNot = null;
   let email = user.email || "";
-  if (type == NotificationTypes.NoPaymentAiReset) {
+  if (type == NotificationTypes.AutoMinuteTopupNotificaiton) {
+    emailNot = generateSHtmlTemplateAutoMinuteTopupEmail(
+      user.name,
+      constants.BillingPage,
+      ""
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.SubscriptionRenewalIn24Hour) {
+    emailNot = generateSubscriptionReminderEmail(
+      user.name,
+      constants.BillingPage,
+      ""
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.NoPaymentAiReset) {
     emailNot = GenerateNoPaymentAIResetEmail(
       user.name,
       constants.BillingPage,
@@ -614,6 +635,8 @@ export const GetNotifications = async (req, res) => {
               NotificationTypes.NoPaymentFoMo,
               NotificationTypes.NoPaymentScarcity,
               NotificationTypes.NoPaymentUrgentWarning,
+              NotificationTypes.SubscriptionRenewalIn24Hour,
+              NotificationTypes.AutoMinuteTopupNotificaiton,
             ],
           },
           userId: admin.id,
@@ -764,6 +787,9 @@ export const NotificationCron = async () => {
       SendNotificationsForNoCalls5Days(u);
       SendFeedbackNotificationsAfter14Days(u);
       SendAppointmentNotifications(u);
+      SendNotificationForSubscriptionRenewalIn24Hr(u);
+      SendNotificationForLowMinutes(u);
+      // continue;
       if (timeZone) {
         let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
         console.log("TIme in user timezone", timeInUserTimeZone);
@@ -787,6 +813,179 @@ export const NotificationCron = async () => {
     console.log("Error in Not Cron ", error);
   }
 };
+
+async function SendNotificationForSubscriptionRenewalIn24Hr(user) {
+  let nextChargeDate = user.nextChargeDate;
+  console.log("Sending Sub reminder to", user.id);
+
+  if (!nextChargeDate) {
+    console.log("No next charge date", user.id);
+    return;
+  }
+
+  console.log("Next charge date (UTC)", nextChargeDate);
+
+  let activePlan = await db.PlanHistory.findOne({
+    where: {
+      userId: user.id,
+      status: "active",
+    },
+  });
+
+  if (!activePlan) {
+    console.log("No active plan", user.id);
+    return;
+  }
+
+  // Convert nextChargeDate to UTC
+  let nextChargeDateUTC = new Date(nextChargeDate);
+
+  // Subtract exactly 24 hours in UTC
+  let twentyFourHoursBeforeUTC = new Date(
+    nextChargeDateUTC.getTime() - 24 * 60 * 60 * 1000
+  );
+
+  let nowUTC = new Date();
+
+  // Calculate the time difference in milliseconds
+  let diffInMs = Math.abs(twentyFourHoursBeforeUTC - nowUTC);
+
+  // Convert to hours
+  let diffInHours = diffInMs / (1000 * 60 * 60);
+
+  if (diffInHours > 24) {
+    console.log("Difference is greater than 24 hours");
+    return;
+  } else {
+    console.log("Difference is within 24 hours", diffInHours);
+  }
+
+  // Get the first day of the current month
+  let firstDayOfMonth = new Date(
+    nowUTC.getUTCFullYear(),
+    nowUTC.getUTCMonth(),
+    1
+  );
+  let lastDayOfMonth = new Date(
+    nowUTC.getUTCFullYear(),
+    nowUTC.getUTCMonth() + 1,
+    0,
+    23,
+    59,
+    59
+  );
+
+  console.log(
+    `Checking if notification exists between ${firstDayOfMonth.toISOString()} & ${lastDayOfMonth.toISOString()}`
+  );
+
+  let not = await db.NotificationModel.findOne({
+    where: {
+      userId: user.id,
+      type: NotificationTypes.SubscriptionRenewalIn24Hour,
+      createdAt: {
+        [db.Sequelize.Op.between]: [firstDayOfMonth, lastDayOfMonth], // Check if sent in the current month
+      },
+    },
+  });
+
+  console.log("Found note:", not ? "Yes" : "No");
+
+  if (!not) {
+    let notification = await AddNotification(
+      user,
+      null,
+      NotificationTypes.SubscriptionRenewalIn24Hour
+    );
+    console.log(
+      "Notification just sent out for ",
+      NotificationTypes.SubscriptionRenewalIn24Hour
+    );
+  } else {
+    console.log("Notification already sent this month", user.id);
+  }
+}
+
+async function SendNotificationForLowMinutes(user) {
+  let availableSeconds = user.totalSecondsAvailable;
+  console.log("Checking low minutes notification for", user.id);
+
+  if (availableSeconds === undefined || availableSeconds === null) {
+    console.log("No available seconds data for", user.id);
+    return;
+  }
+
+  // Convert 5 minutes to seconds
+  const MIN_LIMIT = 300;
+
+  if (availableSeconds >= MIN_LIMIT) {
+    console.log("User has sufficient minutes:", availableSeconds, "seconds");
+    return;
+  }
+
+  console.log(
+    "User has less than 5 minutes left:",
+    availableSeconds,
+    "seconds"
+  );
+
+  // **Try to find last renewal from PaymentHistory**
+  let lastRenewal = await db.PaymentHistory.findOne({
+    where: {
+      userId: user.id,
+      type: {
+        [db.Sequelize.Op.in]: ["Plan30", "Plan120", "Plan360", "Plan720"],
+      },
+    },
+    order: [["createdAt", "DESC"]],
+  });
+
+  let lastRenewalDate = lastRenewal ? lastRenewal.createdAt : null;
+
+  if (lastRenewalDate) {
+    console.log("Last renewal date from PaymentHistory:", lastRenewalDate);
+  } else {
+    console.log(
+      "No payment history found. Assuming default 30 minutes were given."
+    );
+    let madeCalls = await hasUserMadeCalls(user.id);
+    if (!madeCalls) {
+      console.log(`User ${user.id} haven't made any calls`);
+      return;
+    }
+  }
+
+  // **Find last notification (after last renewal or anytime if no renewal exists)**
+  let lastNotification = await db.NotificationModel.findOne({
+    where: {
+      userId: user.id,
+      type: NotificationTypes.AutoMinuteTopupNotificaiton,
+      ...(lastRenewalDate
+        ? { createdAt: { [db.Sequelize.Op.gte]: lastRenewalDate } } // If renewal exists, check notifications after that
+        : {}), // If no renewal exists, allow sending without this condition
+    },
+    order: [["createdAt", "DESC"]],
+  });
+
+  if (lastNotification) {
+    console.log(
+      "Low minutes notification already sent after last renewal (or first default 30 min) for",
+      user.id
+    );
+    return;
+  }
+
+  console.log("Sending low minutes warning to", user.id);
+
+  // **Send Notification**
+  await AddNotification(
+    user,
+    null,
+    NotificationTypes.AutoMinuteTopupNotificaiton
+  );
+
+  console.log("Low minutes warning sent for", user.id);
+}
 
 async function SendNotificationsForNoCalls(user) {
   console.log(`Check if send nocall not to ${user.id}`);
@@ -1085,4 +1284,7 @@ export async function SendTestEmail(req, res) {
     message: "Email sent",
   });
 }
-NotificationCron();
+// NotificationCron();
+
+// let user = await db.User.findByPk(155);
+// SendPaymentFailedNotification(user);

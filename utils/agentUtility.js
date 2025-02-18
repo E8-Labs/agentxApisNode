@@ -1,5 +1,19 @@
 import db from "../models/index.js";
 
+export async function hasUserMadeCalls(userId) {
+  const callsExist = await db.LeadCallsSent.findOne({
+    where: {
+      agentId: {
+        [db.Sequelize.Op.in]: db.Sequelize.literal(`
+          (SELECT id FROM AgentModels  WHERE userId = ${userId})
+        `),
+      },
+    },
+  });
+
+  return callsExist ? true : false;
+}
+
 export async function GetAgentPipeline(mainAgentId) {
   let pipeline = null;
 

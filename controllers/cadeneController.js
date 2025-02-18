@@ -341,10 +341,10 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           console.log(
             "Run time window has passed already so can not run the batch today"
           );
+          continue;
         } else {
           console.log("Can run the batch today");
         }
-        continue;
       }
       if (batch?.status != BatchStatus.Active) {
         // WriteToFile(`Cadence is paused for this batch", ${batch?.id}`);
