@@ -304,10 +304,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         continue;
       }
       // WriteToFile(`Calling Batch Status ", ${batch?.status}`);
-      if (batch?.status != BatchStatus.Active) {
-        // WriteToFile(`Cadence is paused for this batch", ${batch?.id}`);
-        continue;
-      }
+
       //Check calls sent for this batch
       // let count = await db.LeadCadence.count({
       //   where: {
@@ -346,6 +343,10 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         } else {
           console.log("Can run the batch today");
         }
+        continue;
+      }
+      if (batch?.status != BatchStatus.Active) {
+        // WriteToFile(`Cadence is paused for this batch", ${batch?.id}`);
         continue;
       }
       // WriteToFile(`Here 1`);
