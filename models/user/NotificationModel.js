@@ -56,6 +56,8 @@ export const NotificationTypes = {
   TrainingReminder: "TrainingReminder", //7 days later
   Exclusivity: "Exclusivity", //14 days later, has email
   TerritoryUpdate: "TerritoryUpdate", //20 days later, has email
+
+  SubscriptionRenewalIn24Hour: "SubscriptionRenewalIn24Hour",
 };
 const NotificationModel = (sequelize, Sequelize) => {
   const NotificationModel = sequelize.define("NotificationModel", {

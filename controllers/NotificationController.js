@@ -57,6 +57,7 @@ import { GenerateNoPaymentFoMoEmail } from "../emails/noPaymentNotifications/NoP
 import { GenerateNoPaymentScarcityEmail } from "../emails/noPaymentNotifications/NoPaymetScarcityEmail.js";
 import { GenerateNoPaymentUrgentWarningEmail } from "../emails/noPaymentNotifications/NoPaymentUrgentWarningEmail.js";
 import { GenerateNoPaymentAIResetEmail } from "../emails/noPaymentNotifications/NoPaymentAIResetEmail.js";
+import { generateSubscriptionReminderEmail } from "../emails/Subscription/SubscriptionReminder24Hr.js";
 
 async function GetNotificationTitle(
   user,
@@ -363,7 +364,14 @@ async function SendEmailForNotification(
 
   let emailNot = null;
   let email = user.email || "";
-  if (type == NotificationTypes.NoPaymentAiReset) {
+  if (type == NotificationTypes.SubscriptionRenewalIn24Hour) {
+    emailNot = generateSubscriptionReminderEmail(
+      user.name,
+      constants.BillingPage,
+      ""
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.NoPaymentAiReset) {
     emailNot = GenerateNoPaymentAIResetEmail(
       user.name,
       constants.BillingPage,
@@ -764,6 +772,7 @@ export const NotificationCron = async () => {
       SendNotificationsForNoCalls5Days(u);
       SendFeedbackNotificationsAfter14Days(u);
       SendAppointmentNotifications(u);
+      await SendNotificationForSubscriptionRenewalIn24Hr(u);
       if (timeZone) {
         let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
         console.log("TIme in user timezone", timeInUserTimeZone);
@@ -787,6 +796,86 @@ export const NotificationCron = async () => {
     console.log("Error in Not Cron ", error);
   }
 };
+
+async function SendNotificationForSubscriptionRenewalIn24Hr(user) {
+  let nextChargeDate = user.nextChargeDate;
+  console.log("Sending Sub reminder to", user.id);
+
+  if (!nextChargeDate) {
+    console.log("No next charge date", user.id);
+    return;
+  }
+
+  console.log("Next charge date (UTC)", nextChargeDate);
+
+  let activePlan = await db.PlanHistory.findOne({
+    where: {
+      userId: user.id,
+      status: "active",
+    },
+  });
+
+  if (!activePlan) {
+    console.log("No active plan", user.id);
+    return;
+  }
+
+  // Convert nextChargeDate to UTC
+  let nextChargeDateUTC = new Date(nextChargeDate);
+
+  // Subtract exactly 24 hours in UTC
+  let twentyFourHoursBeforeUTC = new Date(
+    nextChargeDateUTC.getTime() - 24 * 60 * 60 * 1000
+  );
+
+  let nowUTC = new Date();
+
+  // Calculate the time difference in milliseconds
+  let diffInMs = Math.abs(twentyFourHoursBeforeUTC - nowUTC);
+
+  // Convert to hours
+  let diffInHours = diffInMs / (1000 * 60 * 60);
+
+  if (diffInHours > 24) {
+    console.log("Difference is greater than 24 hours");
+    return;
+  } else {
+    console.log("Difference is within 24 hours", diffInHours);
+  }
+
+  console.log(
+    `Finding notification between ${twentyFourHoursBeforeUTC.toISOString()} & ${nextChargeDateUTC.toISOString()}`
+  );
+
+  let not = await db.NotificationModel.findOne({
+    where: {
+      userId: user.id,
+      type: NotificationTypes.SubscriptionRenewalIn24Hour,
+      createdAt: {
+        [db.Sequelize.Op.between]: [
+          twentyFourHoursBeforeUTC,
+          nextChargeDateUTC,
+        ],
+      },
+    },
+  });
+
+  console.log("Found note:", not ? "Yes" : "No");
+
+  if (!not) {
+    let notification = await AddNotification(
+      user,
+      null,
+      NotificationTypes.SubscriptionRenewalIn24Hour
+    );
+    console.log(
+      "Notification just sent out for ",
+      NotificationTypes.SubscriptionRenewalIn24Hour
+    );
+  } else {
+    console.log("Notification already sent", user.id);
+  }
+}
 
 async function SendNotificationsForNoCalls(user) {
   console.log(`Check if send nocall not to ${user.id}`);
@@ -1085,4 +1174,4 @@ export async function SendTestEmail(req, res) {
     message: "Email sent",
   });
 }
-NotificationCron();
+// NotificationCron();
