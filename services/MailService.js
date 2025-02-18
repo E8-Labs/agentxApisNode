@@ -171,10 +171,12 @@ export async function SendSubscriptionFailedEmail(
       user.name,
       user.email,
       user.phone,
-      plan.type,
+      plan?.type,
       failureReason,
       JSON.stringify({ charge: charge })
     );
+
+    // SendPaymentFailedNotification(user);
 
     let sent = await SendEmail(
       constants.AdminNotifyEmail1,

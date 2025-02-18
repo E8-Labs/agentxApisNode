@@ -64,6 +64,7 @@ import UserActivityModel from "./user/UserActivityModel.js";
 import CronLockTable from "./webhooks/cronLock.js";
 import { UserTwilioAccounts } from "./user/UserTwilioAccount.js";
 import PaymentMethod from "./user/payment/paymentMethod.js";
+import PaymentMethodFails from "./user/payment/PaymentFails.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -117,6 +118,10 @@ db.User.hasMany(db.TeamModel, {
   foreignKey: "invitingUserId",
   as: "InvitingUser",
 });
+
+db.PaymentMethodFails = PaymentMethodFails(sequelize, Sequelize);
+db.PaymentMethodFails.belongsTo(db.User, { foreignKey: "userId" });
+db.User.hasMany(db.PaymentMethodFails, { foreignKey: "userId" });
 
 db.User.hasMany(db.TeamModel, {
   foreignKey: "invitedUserId",

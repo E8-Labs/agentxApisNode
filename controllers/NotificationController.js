@@ -6,7 +6,11 @@ import NotificationResource from "../resources/NotificationResource.js";
 import { convertUTCToTimezone } from "../utils/dateutil.js";
 import { sendPushNotification } from "../services/firebase.js";
 import { GetAgentXCodeUsageEmailReplacedVariables } from "../emails/AgentXCodeUsageEmail.js";
-import { SendEmail } from "../services/MailService.js";
+import {
+  SendEmail,
+  SendPaymentFailedNotification,
+  SendSubscriptionFailedEmail,
+} from "../services/MailService.js";
 import { GetInviteAcceptedEmailReplacedVariables } from "../emails/InviteAcceptedEmail.js";
 import { GenerateHotLeadEmail } from "../emails/HotLeadEmail.js";
 import { GenerateMeetingBookedEmail } from "../emails/MeetingBookedEmail.js";
@@ -1280,4 +1284,7 @@ export async function SendTestEmail(req, res) {
     message: "Email sent",
   });
 }
-NotificationCron();
+// NotificationCron();
+
+// let user = await db.User.findByPk(155);
+// SendPaymentFailedNotification(user);
