@@ -74,48 +74,54 @@ async function getPayingUserLeadIds(user = null) {
   return leads.map((l) => l.id);
 }
 
+function getTodayStartTimeForBatch(batch) {
+  let startTimeStr = batch.startTime.toString(); // Ensure it's a string
+  // console.log(`Batch ${batch.id}, raw startTime =`, startTimeStr);
+
+  let triggerTimeUTC;
+
+  // Check if `startTime` is already an ISO string or a standard format
+  if (startTimeStr.includes("T")) {
+    // Parse ISO string
+    triggerTimeUTC = new Date(startTimeStr);
+  } else {
+    // Convert from "YYYY-MM-DD HH:mm:ss" format
+    triggerTimeUTC = new Date(startTimeStr.replace(" ", "T") + "Z"); // Ensure UTC format
+  }
+
+  if (isNaN(triggerTimeUTC.getTime())) {
+    throw new Error(
+      `Batch ${batch.id}: Invalid startTime format: ${startTimeStr}`
+    );
+  }
+
+  const nowUTC = new Date();
+  let lastTriggerTime = new Date(nowUTC);
+
+  if (
+    nowUTC.getUTCHours() < triggerTimeUTC.getUTCHours() ||
+    (nowUTC.getUTCHours() === triggerTimeUTC.getUTCHours() &&
+      nowUTC.getUTCMinutes() < triggerTimeUTC.getUTCMinutes())
+  ) {
+    // If current time is before today's trigger time, use yesterday's trigger time
+    lastTriggerTime.setUTCDate(nowUTC.getUTCDate() - 1);
+  }
+
+  // Set last trigger time to match stored trigger time (but on the correct date)
+  lastTriggerTime.setUTCHours(triggerTimeUTC.getUTCHours());
+  lastTriggerTime.setUTCMinutes(triggerTimeUTC.getUTCMinutes());
+  lastTriggerTime.setUTCSeconds(triggerTimeUTC.getUTCSeconds());
+
+  return lastTriggerTime;
+}
+
 async function getCallCount(batch) {
   try {
     if (!batch.startTime) {
       throw new Error(`Batch ${batch.id}: startTime is missing or undefined.`);
     }
 
-    let startTimeStr = batch.startTime.toString(); // Ensure it's a string
-    // console.log(`Batch ${batch.id}, raw startTime =`, startTimeStr);
-
-    let triggerTimeUTC;
-
-    // Check if `startTime` is already an ISO string or a standard format
-    if (startTimeStr.includes("T")) {
-      // Parse ISO string
-      triggerTimeUTC = new Date(startTimeStr);
-    } else {
-      // Convert from "YYYY-MM-DD HH:mm:ss" format
-      triggerTimeUTC = new Date(startTimeStr.replace(" ", "T") + "Z"); // Ensure UTC format
-    }
-
-    if (isNaN(triggerTimeUTC.getTime())) {
-      throw new Error(
-        `Batch ${batch.id}: Invalid startTime format: ${startTimeStr}`
-      );
-    }
-
-    const nowUTC = new Date();
-    let lastTriggerTime = new Date(nowUTC);
-
-    if (
-      nowUTC.getUTCHours() < triggerTimeUTC.getUTCHours() ||
-      (nowUTC.getUTCHours() === triggerTimeUTC.getUTCHours() &&
-        nowUTC.getUTCMinutes() < triggerTimeUTC.getUTCMinutes())
-    ) {
-      // If current time is before today's trigger time, use yesterday's trigger time
-      lastTriggerTime.setUTCDate(nowUTC.getUTCDate() - 1);
-    }
-
-    // Set last trigger time to match stored trigger time (but on the correct date)
-    lastTriggerTime.setUTCHours(triggerTimeUTC.getUTCHours());
-    lastTriggerTime.setUTCMinutes(triggerTimeUTC.getUTCMinutes());
-    lastTriggerTime.setUTCSeconds(triggerTimeUTC.getUTCSeconds());
+    let lastTriggerTime = getTodayStartTimeForBatch(batch);
 
     // console.log(
     //   `Fetching leads to which calls sent between ${lastTriggerTime.toISOString()} and ${nowUTC.toISOString()}`
@@ -298,10 +304,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         continue;
       }
       // WriteToFile(`Calling Batch Status ", ${batch?.status}`);
-      if (batch?.status != BatchStatus.Active) {
-        // WriteToFile(`Cadence is paused for this batch", ${batch?.id}`);
-        continue;
-      }
+
       //Check calls sent for this batch
       // let count = await db.LeadCadence.count({
       //   where: {
@@ -326,6 +329,25 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         // WriteToFile("Batch size limit reached so will push calls tomorrow");
         continue;
       } else {
+        //check if no calls were sent and the current time is 8 hours ahead of the batch start time for today
+        //If yes then don't send any calls
+        let todayStartTimeForBatch = getTodayStartTimeForBatch(batch);
+        let now = new Date();
+        let differenceMs = now - todayStartTimeForBatch; // Difference in milliseconds
+        let differenceHours = differenceMs / (1000 * 60 * 60); // Convert to hours
+        console.log("Difference in hours:", differenceHours);
+        if (differenceHours > 8) {
+          console.log(
+            "Run time window has passed already so can not run the batch today"
+          );
+        } else {
+          console.log("Can run the batch today");
+        }
+        continue;
+      }
+      if (batch?.status != BatchStatus.Active) {
+        // WriteToFile(`Cadence is paused for this batch", ${batch?.id}`);
+        continue;
       }
       // WriteToFile(`Here 1`);
       let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
