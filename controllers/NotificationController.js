@@ -843,8 +843,23 @@ async function SendNotificationForSubscriptionRenewalIn24Hr(user) {
     console.log("Difference is within 24 hours", diffInHours);
   }
 
+  // Get the first day of the current month
+  let firstDayOfMonth = new Date(
+    nowUTC.getUTCFullYear(),
+    nowUTC.getUTCMonth(),
+    1
+  );
+  let lastDayOfMonth = new Date(
+    nowUTC.getUTCFullYear(),
+    nowUTC.getUTCMonth() + 1,
+    0,
+    23,
+    59,
+    59
+  );
+
   console.log(
-    `Finding notification between ${twentyFourHoursBeforeUTC.toISOString()} & ${nextChargeDateUTC.toISOString()}`
+    `Checking if notification exists between ${firstDayOfMonth.toISOString()} & ${lastDayOfMonth.toISOString()}`
   );
 
   let not = await db.NotificationModel.findOne({
@@ -852,10 +867,7 @@ async function SendNotificationForSubscriptionRenewalIn24Hr(user) {
       userId: user.id,
       type: NotificationTypes.SubscriptionRenewalIn24Hour,
       createdAt: {
-        [db.Sequelize.Op.between]: [
-          twentyFourHoursBeforeUTC,
-          nextChargeDateUTC,
-        ],
+        [db.Sequelize.Op.between]: [firstDayOfMonth, lastDayOfMonth], // Check if sent in the current month
       },
     },
   });
@@ -873,7 +885,7 @@ async function SendNotificationForSubscriptionRenewalIn24Hr(user) {
       NotificationTypes.SubscriptionRenewalIn24Hour
     );
   } else {
-    console.log("Notification already sent", user.id);
+    console.log("Notification already sent this month", user.id);
   }
 }
 
@@ -1174,4 +1186,4 @@ export async function SendTestEmail(req, res) {
     message: "Email sent",
   });
 }
-// NotificationCron();
+NotificationCron();
