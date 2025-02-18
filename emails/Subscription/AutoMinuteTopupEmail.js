@@ -1,4 +1,4 @@
-const HtmlTemplateSubscriptionReminder = `
+const HtmlTemplateAutoMinuteTopup = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -75,21 +75,20 @@ const HtmlTemplateSubscriptionReminder = `
 </head>
 <body>
   <div class="container">
-    <div class="header">Your AgentX Subscription Will Renew Soon</div>
+    <div class="header">Almost Out of AI Talk Time – More Minutes on the Way!</div>
     <div class="body">
       <p>Hi {First_Name},</p>
-      <p>Just a quick heads-up—your AgentX subscription is set to renew soon. To ensure uninterrupted access to your AI-powered sales assistant, no action is needed if your payment details are up to date.
-With this renewal, you’ll receive additional AI talk time, and any unused minutes will roll over—ensuring you maximize every conversation.
+      <p>Just a quick update—your AI talk time is down to 5 minutes. No worries! Your minutes will automatically top up so your AgentX AI can continue making calls and engaging with leads without interruption.
 </p>
-      <p>Here’s what you get with your renewal:<br/>
-✅ Seamless AI-driven prospecting & follow-ups<br/>
-✅ More booked meetings & qualified leads<br/>
-✅ Continuous feature updates & improvements<br/>
-✅ Rollover minutes to keep your AI working at full capacity
+      <p><strong>🔹 What this means for you:</strong><br/>
+✅ No downtime—your AI keeps working seamlessly
+✅ More conversations, more opportunities
+✅ Unused minutes will roll over for future use
+
 </p>
 
-<p>If you have any questions or need to update your billing details, <a  href="{CTA_Link}" class="ctasimple">you can manage your subscription here.</a></p>
-      <p>We appreciate your trust in AgentX and look forward to helping you scale your business even further!</p>
+<p>If you’d like to adjust your plan or check your usage, you can manage your settings.</p>
+      <p>Your AI assistant is always working for you—let’s keep those calls going!</p>
       <p>Best,<br>AgentX Team</p>
     </div>
     <div class="footer">
@@ -100,12 +99,12 @@ With this renewal, you’ll receive additional AI talk time, and any unused minu
 </html>
 `;
 
-export function generateSubscriptionReminderEmail(
+export function generateSHtmlTemplateAutoMinuteTopupEmail(
   First_Name,
   CTA_Link,
   CTA_Text
 ) {
-  let emailTemplate = HtmlTemplateSubscriptionReminder;
+  let emailTemplate = HtmlTemplateAutoMinuteTopup;
   let parts = First_Name.split(" ");
   let firstName = First_Name;
   if (parts.length > 0) {
@@ -125,6 +124,6 @@ export function generateSubscriptionReminderEmail(
 
   return {
     html: emailTemplate,
-    subject: "Your AgentX Subscription Will Renew Soon",
+    subject: "Almost Out of AI Talk Time – More Minutes on the Way!",
   };
 }

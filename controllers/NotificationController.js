@@ -58,6 +58,8 @@ import { GenerateNoPaymentScarcityEmail } from "../emails/noPaymentNotifications
 import { GenerateNoPaymentUrgentWarningEmail } from "../emails/noPaymentNotifications/NoPaymentUrgentWarningEmail.js";
 import { GenerateNoPaymentAIResetEmail } from "../emails/noPaymentNotifications/NoPaymentAIResetEmail.js";
 import { generateSubscriptionReminderEmail } from "../emails/Subscription/SubscriptionReminder24Hr.js";
+import { generateSHtmlTemplateAutoMinuteTopupEmail } from "../emails/Subscription/AutoMinuteTopupEmail.js";
+import { hasUserMadeCalls } from "../utils/agentUtility.js";
 
 async function GetNotificationTitle(
   user,
@@ -364,7 +366,14 @@ async function SendEmailForNotification(
 
   let emailNot = null;
   let email = user.email || "";
-  if (type == NotificationTypes.SubscriptionRenewalIn24Hour) {
+  if (type == NotificationTypes.AutoMinuteTopupNotificaiton) {
+    emailNot = generateSHtmlTemplateAutoMinuteTopupEmail(
+      user.name,
+      constants.BillingPage,
+      ""
+    );
+    email = user.email;
+  } else if (type == NotificationTypes.SubscriptionRenewalIn24Hour) {
     emailNot = generateSubscriptionReminderEmail(
       user.name,
       constants.BillingPage,
@@ -622,6 +631,8 @@ export const GetNotifications = async (req, res) => {
               NotificationTypes.NoPaymentFoMo,
               NotificationTypes.NoPaymentScarcity,
               NotificationTypes.NoPaymentUrgentWarning,
+              NotificationTypes.SubscriptionRenewalIn24Hour,
+              NotificationTypes.AutoMinuteTopupNotificaiton,
             ],
           },
           userId: admin.id,
@@ -772,7 +783,9 @@ export const NotificationCron = async () => {
       SendNotificationsForNoCalls5Days(u);
       SendFeedbackNotificationsAfter14Days(u);
       SendAppointmentNotifications(u);
-      await SendNotificationForSubscriptionRenewalIn24Hr(u);
+      SendNotificationForSubscriptionRenewalIn24Hr(u);
+      SendNotificationForLowMinutes(u);
+      // continue;
       if (timeZone) {
         let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
         console.log("TIme in user timezone", timeInUserTimeZone);
@@ -887,6 +900,87 @@ async function SendNotificationForSubscriptionRenewalIn24Hr(user) {
   } else {
     console.log("Notification already sent this month", user.id);
   }
+}
+
+async function SendNotificationForLowMinutes(user) {
+  let availableSeconds = user.totalSecondsAvailable;
+  console.log("Checking low minutes notification for", user.id);
+
+  if (availableSeconds === undefined || availableSeconds === null) {
+    console.log("No available seconds data for", user.id);
+    return;
+  }
+
+  // Convert 5 minutes to seconds
+  const MIN_LIMIT = 300;
+
+  if (availableSeconds >= MIN_LIMIT) {
+    console.log("User has sufficient minutes:", availableSeconds, "seconds");
+    return;
+  }
+
+  console.log(
+    "User has less than 5 minutes left:",
+    availableSeconds,
+    "seconds"
+  );
+
+  // **Try to find last renewal from PaymentHistory**
+  let lastRenewal = await db.PaymentHistory.findOne({
+    where: {
+      userId: user.id,
+      type: {
+        [db.Sequelize.Op.in]: ["Plan30", "Plan120", "Plan360", "Plan720"],
+      },
+    },
+    order: [["createdAt", "DESC"]],
+  });
+
+  let lastRenewalDate = lastRenewal ? lastRenewal.createdAt : null;
+
+  if (lastRenewalDate) {
+    console.log("Last renewal date from PaymentHistory:", lastRenewalDate);
+  } else {
+    console.log(
+      "No payment history found. Assuming default 30 minutes were given."
+    );
+    let madeCalls = await hasUserMadeCalls(user.id);
+    if (!madeCalls) {
+      console.log(`User ${user.id} haven't made any calls`);
+      return;
+    }
+  }
+
+  // **Find last notification (after last renewal or anytime if no renewal exists)**
+  let lastNotification = await db.NotificationModel.findOne({
+    where: {
+      userId: user.id,
+      type: NotificationTypes.AutoMinuteTopupNotificaiton,
+      ...(lastRenewalDate
+        ? { createdAt: { [db.Sequelize.Op.gte]: lastRenewalDate } } // If renewal exists, check notifications after that
+        : {}), // If no renewal exists, allow sending without this condition
+    },
+    order: [["createdAt", "DESC"]],
+  });
+
+  if (lastNotification) {
+    console.log(
+      "Low minutes notification already sent after last renewal (or first default 30 min) for",
+      user.id
+    );
+    return;
+  }
+
+  console.log("Sending low minutes warning to", user.id);
+
+  // **Send Notification**
+  await AddNotification(
+    user,
+    null,
+    NotificationTypes.AutoMinuteTopupNotificaiton
+  );
+
+  console.log("Low minutes warning sent for", user.id);
 }
 
 async function SendNotificationsForNoCalls(user) {

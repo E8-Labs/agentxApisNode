@@ -58,6 +58,7 @@ export const NotificationTypes = {
   TerritoryUpdate: "TerritoryUpdate", //20 days later, has email
 
   SubscriptionRenewalIn24Hour: "SubscriptionRenewalIn24Hour",
+  AutoMinuteTopupNotificaiton: "AutoMinuteTopupNotificaiton",
 };
 const NotificationModel = (sequelize, Sequelize) => {
   const NotificationModel = sequelize.define("NotificationModel", {
