@@ -268,7 +268,16 @@ async function handleNewCall(
   let lead = await FindLead(leadPhone, assistant.userId);
   if (assistant.agentType == "inbound" && !lead) {
     //don't create sheet if lead already exists
-    sheet = await findOrCreateSheet(assistant, constants.InboudLeadSheetName);
+    //check if an inbound sheet was created
+    sheet = await db.LeadSheetModel.findOne({
+      where: {
+        userId: assistant.userId,
+        type: "inbound",
+      },
+    });
+    if (!sheet) {
+      sheet = await findOrCreateSheet(assistant, constants.InboudLeadSheetName);
+    }
   }
   if (!lead) {
     lead = await findOrCreateLead(
