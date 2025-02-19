@@ -1006,34 +1006,75 @@ export async function GetAffiliates(req, res) {
     }
 
     let offset = Number(req.query.offset || 0) || 0;
-    // let limit = Number(req.query.limit || limit) || limit; // Default limit
+    let limit = Number(req.query.limit || 30) || 30; // Default limit
+    let sort = req.query.sort || "Revenue"; // Default sorting by Revenue
+    let sortOrder =
+      req.query.sortOrder?.toUpperCase() === "DESC" ? "DESC" : "ASC";
 
     if (authData) {
       let userId = authData.user.id;
 
-      // Fetch user and check role
-      let user = await db.User.findOne({
-        where: {
-          id: userId,
-        },
-      });
-      if (!user) {
+      let user = await db.User.findOne({ where: { id: userId } });
+      if (!user || user.userType !== "admin") {
         return res.status(401).send({
           status: false,
           message: "Unauthorized access.",
         });
       }
-      if (user.userType !== "admin") {
-        return res.status(401).send({
-          status: false,
-          message: "Unauthorized access. Only admin can access this",
-        });
-      }
 
-      let affiliates = await db.CampaigneeModel.findAll();
+      // Filters
+      let minRevenue = Number(req.query.minRevenue || 0);
+      let maxRevenue = Number(req.query.maxRevenue || Number.MAX_SAFE_INTEGER);
+      let minUsers = Number(req.query.minUsers || 0);
+      let maxUsers = Number(req.query.maxUsers || Number.MAX_SAFE_INTEGER);
+
+      let whereCondition = {}; // No base condition, as we are filtering based on calculated data
+
+      // **SQL Filtering for Revenue and Users Signed Up**
+      let affiliates = await db.CampaigneeModel.findAll({
+        where: whereCondition,
+        attributes: [
+          "id",
+          "name",
+          "email",
+          "phone",
+          "uniqueUrl",
+          [
+            db.Sequelize.literal(`(
+              SELECT COUNT(*) FROM Users WHERE campaigneeId = CampaigneeModel.id
+            )`),
+            "UsersSignedUp",
+          ],
+          [
+            db.Sequelize.literal(`(
+              SELECT COALESCE(SUM(price), 0) FROM PaymentHistories 
+              WHERE userId IN (SELECT id FROM Users WHERE campaigneeId = CampaigneeModel.id)
+            )`),
+            "Revenue",
+          ],
+        ],
+        having: db.Sequelize.and(
+          db.Sequelize.literal(
+            `Revenue BETWEEN ${minRevenue} AND ${maxRevenue}`
+          ),
+          db.Sequelize.literal(
+            `UsersSignedUp BETWEEN ${minUsers} AND ${maxUsers}`
+          )
+        ),
+        order: [[db.Sequelize.literal(sort), sortOrder]],
+        limit: limit,
+        offset: offset,
+      });
+
       let affRes = await AffilitateResource(affiliates);
 
-      return res.send({ status: true, data: affRes });
+      return res.send({
+        status: true,
+        message: "Affiliates list",
+        data: affRes,
+        offset: offset,
+        limit: limit,
+      });
     }
   });
 }
