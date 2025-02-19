@@ -13,6 +13,7 @@ import { UpdateOrCreateUserInGhl } from "./GHLController.js";
 import { generateFailedTwilioTransactionEmail } from "../emails/system/FailedTwilioPhonePurchaseEmail.js";
 import { SendEmail } from "../services/MailService.js";
 import { constants } from "../constants/constants.js";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -98,13 +99,17 @@ export const ListUsersAvailablePhoneNumbers = async (req, res) => {
       });
       console.log("User", user);
       if (user) {
+        let admin = await GetTeamAdminFor(user);
+        let teamIds = await GetTeamIds(user);
         try {
           const phoneNumbers = await db.UserPhoneNumbers.findAll({
             attributes: [
               [db.Sequelize.fn("DISTINCT", db.Sequelize.col("phone")), "phone"],
             ],
             where: {
-              userId: userId, // Filter by userId
+              userId: {
+                [db.Sequelize.Op.in]: teamIds,
+              }, // Filter by userId
               phoneStatus: "active", // only active phone numbers
               phone: {
                 [db.Sequelize.Op.notLike]: `${process.env.GlobalPhoneNumber}%`,
