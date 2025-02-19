@@ -107,7 +107,7 @@ export function generateTeamMemberInviteEmail(
   if (parts2.length > 0) {
     Inviter_Name = parts[0];
   }
-  const variables = { firstName, Inviter_Name, CTA_Link };
+  const variables = { First_Name: firstName, Inviter_Name, CTA_Link };
 
   for (const [key, value] of Object.entries(variables)) {
     const placeholder = new RegExp(`{${key}}`, "g");
