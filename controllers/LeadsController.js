@@ -1403,7 +1403,8 @@ export const GetCallLogs = async (req, res) => {
           const stagesArray = stageIds
             .split(",")
             .map((id) => parseInt(id.trim(), 10));
-          leadFilters.stage = { [Op.in]: stagesArray };
+          // leadFilters.stage = { [Op.in]: stagesArray };
+          callLogFilters.stage = { [Op.in]: stagesArray };
         }
 
         if (duration) {
