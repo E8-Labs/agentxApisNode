@@ -11,6 +11,12 @@ const LeadSheetModel = (sequelize, Sequelize) => {
       defaultValue: "active",
     },
 
+    type: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: "general", //inbound
+    },
+
     userId: {
       type: Sequelize.INTEGER,
       allowNull: true,
