@@ -121,10 +121,26 @@ export const ListUsersAvailablePhoneNumbers = async (req, res) => {
 
           let phoneNumbersObtained = phoneNumbers.map((row) => row.phone); // Extract only the phone numbers
 
+          const twilioNumbers = await twilioClient.incomingPhoneNumbers.list();
+          const twilioNumberSet = new Set(
+            twilioNumbers.map((num) => num.phoneNumber)
+          ); // Convert to Set for quick lookup
+
+          // Filter phone numbers that exist in Twilio
+          const filteredPhoneNumbers = phoneNumbersObtained.filter((phone) =>
+            twilioNumberSet.has(phone)
+          );
+
+          // Process the filtered numbers
           let phoneRes = await AvailablePhoneResource(
-            phoneNumbersObtained,
+            filteredPhoneNumbers,
             user
           );
+
+          // let phoneRes = await AvailablePhoneResource(
+          //   phoneNumbersObtained,
+          //   user
+          // );
           return res.status(200).send({
             status: true,
             message: "Phone Numbers" + user.id,
