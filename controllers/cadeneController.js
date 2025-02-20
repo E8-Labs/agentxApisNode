@@ -15,7 +15,10 @@ import dotenv from "dotenv";
 dotenv.config();
 import { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
 
-import { calculateDifferenceInMinutes } from "../utils/dateutil.js";
+import {
+  calculateDifferenceInMinutes,
+  convertUTCToTimezone,
+} from "../utils/dateutil.js";
 import { addCallTry, MakeACall } from "../controllers/synthflowController.js";
 import { BatchStatus } from "../models/pipeline/CadenceBatchModel.js";
 import { constants } from "../constants/constants.js";
@@ -270,8 +273,8 @@ export const CronRunCadenceCallsFirstBatch = async () => {
     try {
       // let lead = await db.LeadModel.findOne(leadCad.leadId)
       let lead = await db.LeadModel.findByPk(leadCad.leadId);
+      let user = await db.User.findByPk(lead.userId);
       if (lead) {
-        let user = await db.User.findByPk(lead.userId);
         //check the total number of ongoing calls atm
 
         // let leadIds = [];
