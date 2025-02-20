@@ -152,27 +152,27 @@ async function getCallCount(batch) {
 }
 
 //checks if 9 pm is passed or not/ If passed then false else true
+
 function canRunCallsDuringDay(u) {
   let timeZone = u.timeZone || "America/Los_Angeles";
   console.log(`User ${u.id} Time zone is `, timeZone);
-  if (timeZone) {
-    let date = new Date();
-    let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
-    console.log("TIme in user timezone", timeInUserTimeZone);
-    const userDateTime = DateTime.fromFormat(
-      timeInUserTimeZone,
-      "yyyy-MM-dd HH:mm:ss",
-      { zone: timeZone }
-    );
-    const ninePM = userDateTime.set({ hour: 21, minute: 0, second: 0 });
 
-    if (userDateTime > ninePM) {
-      console.log("Can not run calls ", u.id);
-      return false;
-    } else {
-      console.log("Can run calls ", u.id);
-      return true;
-    }
+  let utcDate = DateTime.utc(); // Get current UTC time
+  let userDateTime = utcDate.setZone(timeZone); // Convert to user's time zone
+
+  console.log("Time in user timezone:", userDateTime.toISO()); // Debugging
+
+  // Define the start and end time for the allowed period (9 AM - 9 PM)
+  const startTime = userDateTime.set({ hour: 9, minute: 0, second: 0 });
+  const endTime = userDateTime.set({ hour: 21, minute: 0, second: 0 });
+
+  // Check if the current time falls within the allowed range
+  if (userDateTime >= startTime && userDateTime <= endTime) {
+    console.log("Can run calls ", u.id);
+    return true;
+  } else {
+    console.log("Can not run calls ", u.id);
+    return false;
   }
 }
 
@@ -321,6 +321,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         continue; // don't send cadence if not batched leadsCad calls because they were not added through assigning leads
       }
       const canRun = canRunCallsDuringDay(user);
+      continue;
       if (!canRun) {
         continue;
       }
