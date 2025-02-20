@@ -65,6 +65,7 @@ import CronLockTable from "./webhooks/cronLock.js";
 import { UserTwilioAccounts } from "./user/UserTwilioAccount.js";
 import PaymentMethod from "./user/payment/paymentMethod.js";
 import PaymentMethodFails from "./user/payment/PaymentFails.js";
+import KnowledgeBase from "./user/knowlegebase/Knowledgebase.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -100,6 +101,14 @@ db.AgentService = AgentService(sequelize, Sequelize);
 
 db.User = User(sequelize, Sequelize);
 db.UserTwilioAccounts = UserTwilioAccounts(sequelize, Sequelize);
+
+db.KnowledgeBase = KnowledgeBase(sequelize, Sequelize);
+db.KnowledgeBase.belongsTo(db.User, {
+  foreignKey: "userId",
+});
+db.User.hasMany(db.KnowledgeBase, {
+  foreignKey: "userId",
+});
 
 db.UserFocusModel = UserFocusModel(sequelize, Sequelize);
 db.UserServicesModel = UserServicesModel(sequelize, Sequelize);

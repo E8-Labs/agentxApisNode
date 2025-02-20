@@ -442,6 +442,7 @@ export const PurchasePhoneNumber = async (req, res) => {
         // );
         purchasedNumber = await twilioClient.incomingPhoneNumbers.create({
           phoneNumber,
+          friendlyName: user.name,
         });
 
         // purchasedNumber = await twilioClient.api

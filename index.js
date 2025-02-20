@@ -13,6 +13,8 @@ import PipelineRouter from "./routes/pipelineRoute.js";
 import LeadRouter from "./routes/leadRoute.js";
 import CalendarRouter from "./routes/calendarRoute.js";
 
+import kbRouter from "./routes/kbRoute.js";
+
 import teamRouter from "./routes/TeamRoute.js";
 import AdminRouter from "./routes/adminRoute.js";
 
@@ -119,6 +121,8 @@ app.use("/api/pipeline", PipelineRouter);
 app.use("/api/leads", LeadRouter);
 app.use("/api/calendar", CalendarRouter);
 app.use("/api/team", teamRouter);
+app.use("/api/kb", kbRouter);
+
 app.use("/api/admin", AdminRouter);
 // app.use("/api/admin", AdminRouter);
 
