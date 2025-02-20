@@ -150,9 +150,9 @@ async function getCallCount(batch) {
 
 //checks if 9 pm is passed or not/ If passed then false else true
 function canRunCallsDuringDay(u) {
+  let timeZone = u.timeZone || "America/Los_Angeles";
+  console.log(`User ${u.id} Time zone is `, timeZone);
   if (timeZone) {
-    let timeZone = u.timeZone || "America/Los_Angeles";
-    console.log(`User ${u.id} Time zone is `, timeZone);
     let date = new Date();
     let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
     console.log("TIme in user timezone", timeInUserTimeZone);
