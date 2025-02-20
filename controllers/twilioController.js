@@ -577,6 +577,8 @@ export const AssignPhoneNumber = async (req, res) => {
           id: userId,
         },
       });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
       if (user) {
         if (!phoneNumber) {
           return res.status(400).send({
