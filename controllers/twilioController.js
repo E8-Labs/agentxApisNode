@@ -408,9 +408,12 @@ export const PurchasePhoneNumber = async (req, res) => {
     try {
       const userId = authData.user.id;
       let user = await db.User.findByPk(userId);
+
       if (!user) {
         return res.send({ status: false, message: "User doesn't exist" });
       }
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
       const environment = process.env.ENVIRONMENT || "Sandbox";
       console.log("Live env so acutall purchasing number", environment);
 
@@ -892,12 +895,15 @@ export const DeleteNumber = async (req, res) => {
     if (authData) {
       let userId = authData.user.id;
       let user = await db.User.findByPk(userId);
+
       if (!user) {
         return res.send({
           status: false,
           message: "No such user",
         });
       }
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
       try {
         let phoneNumber = await db.UserPhoneNumbers.findOne({
           where: {
