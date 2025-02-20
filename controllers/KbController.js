@@ -14,6 +14,7 @@ export async function AddKnowledgebase(req, res) {
       return res.send({ status: false, message: "Unauthenticated User" });
     }
 
+    console.log(req.files);
     let userId = authData.user.id;
     let user = await db.User.findByPk(userId);
     let admin = await GetTeamAdminFor(user);
@@ -26,6 +27,7 @@ export async function AddKnowledgebase(req, res) {
     let pdf = null;
 
     if (req.files && req.files.media) {
+      console.log("Found file uploaded", req.files);
       // Type is Document
       let file = req.files.media[0];
 
@@ -42,7 +44,11 @@ export async function AddKnowledgebase(req, res) {
       // Save the uploaded file
       const docPath = path.join(docsDir, mediaFilename);
       fs.writeFileSync(docPath, mediaBuffer);
-      pdf = `https://www.blindcircle.com/agentx/uploads/documents/${mediaFilename}`;
+      pdf = `${
+        process.env.Environment == "Development"
+          ? "https://www.blindcircle.com/agentxtest"
+          : "https://www.blindcircle.com/agentx"
+      }/uploads/documents/${mediaFilename}`;
 
       // Extract text from the uploaded file based on its type
       if (mediaType.includes("pdf")) {
