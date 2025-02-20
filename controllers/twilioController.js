@@ -100,6 +100,7 @@ export const ListUsersAvailablePhoneNumbers = async (req, res) => {
       console.log("User", user);
       if (user) {
         let admin = await GetTeamAdminFor(user);
+        user = admin;
         let teamIds = await GetTeamIds(user);
         try {
           const phoneNumbers = await db.UserPhoneNumbers.findAll({
