@@ -609,6 +609,7 @@ export const AssignPhoneNumber = async (req, res) => {
             userId: user.id,
           },
         });
+        console.log("Phone number found ", phoneNumberDB);
         let alreadyPurchased = false;
         if (phoneNumberDB && phoneNumberDB.phone) {
           alreadyPurchased = true;
@@ -616,6 +617,7 @@ export const AssignPhoneNumber = async (req, res) => {
 
         //if just agent id then it assigned to that particular inbound or outbound model
         if (agentId) {
+          console.log("No Agent Id ");
           let agent = await db.AgentModel.findByPk(agentId);
           if (!agent) {
             return res.send({
@@ -656,16 +658,19 @@ export const AssignPhoneNumber = async (req, res) => {
           },
         });
 
+        console.log("Has main agents", mainAgents);
         if (
           alreadyPurchased ||
           process.env.GlobalPhoneNumber.includes(phoneNumber)
         ) {
+          console.log("Already purchased 666");
           let assistants = await db.AgentModel.findAll({
             where: {
               mainAgentId: mainAgentId,
             },
           });
           if (assistants && assistants.length > 0) {
+            console.log("Assistants are gt 0 ");
             let action = null;
             if (
               liveTransferNumber &&
@@ -749,12 +754,15 @@ export const AssignPhoneNumber = async (req, res) => {
               let updatedAgent = await assistant.save();
               console.log("Callback and LiveTransfer Numbers saved");
             }
+          } else {
+            console.log("No Assistant ");
           }
           return res.send({
             status: true,
             message: "Phone number assiged to agent",
           });
         } else {
+          console.log("No Phione number ");
           return res.send({
             status: false,
             message: `Phone number ${phoneNumber} has to be purchased`,
