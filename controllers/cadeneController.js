@@ -373,11 +373,12 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         console.log("Difference in hours:", differenceHours);
         if (differenceHours > 8) {
           console.log(
-            "Run time window has passed already so can not run the batch today"
+            "Run time window has passed already so can not run the batch today",
+            batch.id
           );
           continue;
         } else {
-          console.log("Can run the batch today");
+          console.log("Can run the batch today", batch.id);
         }
       }
       if (batch?.status != BatchStatus.Active) {
