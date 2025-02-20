@@ -321,6 +321,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         continue; // don't send cadence if not batched leadsCad calls because they were not added through assigning leads
       }
       const canRun = canRunCallsDuringDay(user);
+      continue;
       if (!canRun) {
         continue;
       }
