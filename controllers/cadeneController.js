@@ -148,6 +148,31 @@ async function getCallCount(batch) {
   }
 }
 
+//checks if 9 pm is passed or not/ If passed then false else true
+function canRunCallsDuringDay(u) {
+  if (timeZone) {
+    let timeZone = u.timeZone || "America/Los_Angeles";
+    console.log(`User ${u.id} Time zone is `, timeZone);
+    let date = new Date();
+    let timeInUserTimeZone = convertUTCToTimezone(date, timeZone);
+    console.log("TIme in user timezone", timeInUserTimeZone);
+    const userDateTime = DateTime.fromFormat(
+      timeInUserTimeZone,
+      "yyyy-MM-dd HH:mm:ss",
+      { zone: timeZone }
+    );
+    const ninePM = userDateTime.set({ hour: 21, minute: 0, second: 0 });
+
+    if (userDateTime > ninePM) {
+      console.log("Can not run calls ", u.id);
+      return false;
+    } else {
+      console.log("Can run calls ", u.id);
+      return true;
+    }
+  }
+}
+
 export const CronRunCadenceCallsFirstBatch = async () => {
   //Find Cadences to run for leads in the initial State (New Lead)
   //Step-1 Find all leadCadences which are not completed. All leads which are pending should be pushed
@@ -291,6 +316,10 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
       if (!batch) {
         continue; // don't send cadence if not batched leadsCad calls because they were not added through assigning leads
+      }
+      const canRun = canRunCallsDuringDay(user);
+      if (!canRun) {
+        continue;
       }
       const dbDate = new Date(batch?.startTime); // Date from the database
       const currentDate = new Date(); // Current date and time
@@ -674,6 +703,12 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
       //for last call time and wait for that amount of time
 
       let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
+      let user = await db.User.findByPk(batch.userId);
+      const canRun = canRunCallsDuringDay(user);
+      if (!canRun) {
+        continue;
+      }
+      continue;
       // WriteToFile(
       //   `Trying to find batch start time for leadCad", ${leadCad.id}`
       // );
