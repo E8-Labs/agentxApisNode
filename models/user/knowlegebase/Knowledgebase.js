@@ -32,6 +32,11 @@ const KnowledgeBase = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       defaultValue: "",
     },
+    documentName: {
+      //if document then the url of the document
+      type: Sequelize.STRING,
+      defaultValue: "",
+    },
     description: {
       type: Sequelize.TEXT("medium"),
       allowNull: true,

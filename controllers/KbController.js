@@ -18,6 +18,7 @@ export async function AddKnowledgebase(req, res) {
     let user = await db.User.findByPk(userId);
     let admin = await GetTeamAdminFor(user);
     user = admin;
+    let documentName = req.body.documentName;
     let type = req.body.type;
     let description = req.body.description;
     let originalContent = req.body.originalContent; // Default content from request body
@@ -85,6 +86,7 @@ export async function AddKnowledgebase(req, res) {
         type: type,
         originalContent: originalContent, // Use the extracted or default text content
         documentUrl: pdf,
+        documentName: documentName,
         description: description,
         userId: userId,
         title: title,
