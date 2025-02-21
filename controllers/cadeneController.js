@@ -207,9 +207,9 @@ function canRunCallsDuringDay(u) {
 
   console.log("Time in user timezone:", userDateTime.toISO()); // Debugging
 
-  // Define the start and end time for the allowed period (5 AM - 7 PM)
+  // Define the start and end time for the allowed period (5 AM - 9 PM)
   const startTime = userDateTime.set({ hour: 5, minute: 0, second: 0 }); // 5 am right now
-  const endTime = userDateTime.set({ hour: 19, minute: 0, second: 0 });
+  const endTime = userDateTime.set({ hour: 21, minute: 0, second: 0 });
 
   // Check if the current time falls within the allowed range
   if (userDateTime >= startTime && userDateTime <= endTime) {
