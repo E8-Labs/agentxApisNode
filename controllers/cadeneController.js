@@ -51,25 +51,69 @@ async function getPayingUserLeadIds(user = null) {
     : await db.User.findAll(usersQuery);
   let userIds = usersWithMinutesRemaining.map((u) => u.id);
 
-  // let activeBatches = await db.CadenceBatchModel.findAll({
-  //   where: {
-  //     status: CadenceStatus.Active,
-  //     startTime: {
-  //       [Op.gt]: new Date(), // Fetch where startTime is greater than now
-  //     },
-  //   },
-  // });
+  // let now = new Date(); // Current timestamp
+  // let todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Midnight today
 
-  // let ids = []
-  // if(activeBatches && activeBatches.length > 0){
-  //   ids = activeBatches.map((item)=> item.id)
-  // }
-  // let leadCad = await db.LeadCadence.findAll()
-  // let leadsInActiveBatches =
+  let now = new Date(); // Current UTC time
+  let todayStart = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+  ); // Midnight UTC
+
+  console.log("Now:", now);
+  console.log("Start of Today:", todayStart);
+
+  let activeBatches = await db.CadenceBatchModel.findAll({
+    where: {
+      [Op.or]: [
+        { status: BatchStatus.Active },
+        // { status: BatchStatus.Started },
+      ],
+      startTime: { [Op.lt]: now }, // Ensure `startTime` is in the past
+      [Op.and]: [
+        db.Sequelize.where(
+          db.Sequelize.fn("DATE", db.Sequelize.col("startTime")),
+          "<=",
+          db.Sequelize.fn("CURDATE") // Ensure batch started today or earlier
+        ),
+        db.Sequelize.where(
+          db.Sequelize.fn("TIME", db.Sequelize.col("startTime")),
+          "<=",
+          db.Sequelize.fn("CURTIME") // Ensure today’s execution time is reached
+        ),
+      ],
+    },
+  });
+
+  console.log(`Found ${activeBatches.length} batches today`, activeBatches);
+
+  let ids = [];
+  if (activeBatches && activeBatches.length > 0) {
+    ids = activeBatches.map((item) => item.id);
+  }
+  let leadCad = await db.LeadCadence.findAll({
+    where: {
+      batchId: {
+        [db.Sequelize.Op.in]: ids,
+      },
+    },
+  });
+
+  let leadsInActiveBatches = [];
+  if (leadCad && leadCad.length > 0) {
+    leadCad.map((item) => {
+      leadsInActiveBatches.push(item.leadId);
+    });
+  }
   if (userIds.length === 0) return []; // Return early if no users found
 
   let leads = await db.LeadModel.findAll({
-    where: { userId: { [db.Sequelize.Op.in]: userIds } },
+    where: {
+      userId: { [db.Sequelize.Op.in]: userIds },
+      id:
+        leadsInActiveBatches.length > 0
+          ? { [db.Sequelize.Op.in]: leadsInActiveBatches }
+          : -1, // Invalid ID to prevent fetching anything
+    },
     attributes: ["id"], // Fetch only necessary fields
     raw: true,
   });
@@ -154,7 +198,7 @@ async function getCallCount(batch) {
 //checks if 9 pm is passed or not/ If passed then false else true
 
 function canRunCallsDuringDay(u) {
-  return true;
+  // return true;
   let timeZone = u.timeZone || "America/Los_Angeles";
   console.log(`User ${u.id} Time zone is `, timeZone);
 
@@ -163,8 +207,8 @@ function canRunCallsDuringDay(u) {
 
   console.log("Time in user timezone:", userDateTime.toISO()); // Debugging
 
-  // Define the start and end time for the allowed period (9 AM - 9 PM)
-  const startTime = userDateTime.set({ hour: 9, minute: 0, second: 0 });
+  // Define the start and end time for the allowed period (4 AM - 9 PM)
+  const startTime = userDateTime.set({ hour: 4, minute: 0, second: 0 }); // 4 am right now
   const endTime = userDateTime.set({ hour: 21, minute: 0, second: 0 });
 
   // Check if the current time falls within the allowed range
@@ -569,25 +613,14 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
   // );
   //Find Cadences to run for leads in the initial State (New Lead)
   //Step-1 Find all leadCadences which are not completed. All leads which are Started should be pushed
-  const leadIds = await getPayingUserLeadIds(); //only fetch those users, whose minutes are above 2 min threshold
-  // let leadCadence = await db.LeadCadence.findAll({
-  //   where: {
-  //     status: CadenceStatus.Started,
-  //     batchId: {
-  //       [db.Sequelize.Op.ne]: null,
-  //     },
-  //     leadId: {
-  //       [db.Sequelize.Op.in]: leadIds,
-  //     },
-  //   },
-  //   limit: 50, // Limit the batch size to 2
-  // });
+  const leadIdsOfPayingUsers = await getPayingUserLeadIds(); //only fetch those users, whose minutes are above 2 min threshold
+
   let leadCadence = await db.LeadCadence.findAll({
     where: {
       status: CadenceStatus.Started,
       batchId: { [db.Sequelize.Op.ne]: null }, // Check if batchId is null
       leadId: {
-        [db.Sequelize.Op.in]: leadIds,
+        [db.Sequelize.Op.in]: leadIdsOfPayingUsers,
       },
     },
     include: [
@@ -603,6 +636,11 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
   });
   let newLeads = [];
 
+  //get a payuser's lead ids for batches that are currently active and in the call window
+  let userLeadIdsInActiveCadence = [];
+
+  console.log("Total cadence leads ", leadCadence.length);
+  // return;
   for (const l of leadCadence) {
     // WriteToFile(
     //   `CronRunCadenceCallsSubsequentStages:Lead Cad Line 270 , ${l.id}`
@@ -613,7 +651,16 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
     if (lead) {
       let user = await db.User.findByPk(lead.userId);
       //check the total number of ongoing calls atm
-      let leadIds = await getPayingUserLeadIds(user);
+      let leadIds = [];
+      if (userLeadIdsInActiveCadence[user.id]) {
+        console.log("Already have cached leadIds for this user");
+        leadIds = userLeadIdsInActiveCadence[user.id];
+      } else {
+        console.log("Not cached LeadIds");
+        leadIds = await getPayingUserLeadIds(user);
+        userLeadIdsInActiveCadence[user.id] = leadIds;
+      }
+      // continue;
       const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000);
       // console.log("Finding calls in lead ids ", JSON.stringify(leadIds));
       let calls = await db.LeadCallsSent.findAll({
@@ -621,6 +668,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           leadId: {
             [db.Sequelize.Op.in]: leadIds,
           },
+          // mainAgentId:
           duration: {
             [db.Sequelize.Op.eq]: null,
           },
@@ -1294,3 +1342,4 @@ async function CheckAndTryToPlaceCall(
 // CadenceBookedCalls();
 
 // CronRunCadenceCallsFirstBatch();
+CronRunCadenceCallsSubsequentStages();
