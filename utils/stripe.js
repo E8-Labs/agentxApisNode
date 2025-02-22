@@ -5,6 +5,7 @@ import { constants } from "../constants/constants.js";
 import { AddNotification } from "../controllers/NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import {
+  ChargeTypes,
   FindPlanWithPrice,
   PayAsYouGoPlans,
   PayAsYouGoPlanTypes,
@@ -492,15 +493,18 @@ async function TryAndChargePayment(
             );
           }
         }
-      } else {
-        //Phone purchase
+      } else if (
+        type == ChargeTypes.PhonePurchase ||
+        type == ChargeTypes.SupportPlan
+      ) {
+        //Phone purchase or Support Plan
         try {
           trackPurchaseEvent(
             {
               ...paymentIntent,
               type: type,
-              price: 2,
-              value: 2,
+              price: amount,
+              value: amount,
             },
             user.get(),
             req,
