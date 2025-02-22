@@ -170,6 +170,10 @@ const User = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    supportPlan: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return User;

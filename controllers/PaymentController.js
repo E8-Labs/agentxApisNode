@@ -38,9 +38,11 @@ import {
   SetDefaultCard,
 } from "../utils/stripe.js";
 import {
+  ChargeTypes,
   FindPlanWithMinutes,
   FindPlanWithPrice,
   FindPlanWithtype,
+  findSupportPlan,
   PayAsYouGoPlans,
   PayAsYouGoPlanTypes,
 } from "../models/user/payment/paymentPlans.js";
@@ -238,6 +240,70 @@ export const SetDefaultPaymentmethod = async (req, res) => {
     }
   });
 };
+
+export async function PurchaseSupportPlan(req, res) {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
+
+      let supportPlanType = req.body.supportPlan;
+      let foundSupportPlan = findSupportPlan(supportPlanType);
+      if (!foundSupportPlan) {
+        return res.send({
+          status: false,
+          message: "Support plan not found",
+
+          data: null,
+        });
+      }
+      // chargeUser();
+      let charge = await chargeUser(
+        user.id,
+        foundSupportPlan.price,
+        `Purchase of support plan ${foundSupportPlan.type}`,
+        ChargeTypes.SupportPlan,
+        false,
+        req
+      );
+      if (charge && charge.status) {
+        let historyCreated = await db.PaymentHistory.create({
+          title: `Support plan ${foundSupportPlan.type}`,
+          description: `Payment for ${foundSupportPlan.type} Support Plan`,
+          type: ChargeTypes.SupportPlan,
+          price: foundSupportPlan.price,
+          userId: user.id,
+          environment: process.env.Environment,
+          transactionId: charge.paymentIntent.id,
+        });
+
+        console.log("Purchase of support plan ", foundSupportPlan.type);
+        user.supportPlan = foundSupportPlan.type;
+        await user.save();
+        return res.send({
+          status: true,
+          message: "Support plan purchased",
+          data: await UserProfileFullResource(user),
+        });
+      } else {
+        return res.send({
+          status: false,
+          message: "Support plan not purchase ",
+          charge: charge,
+          error: charge.message,
+          data: await UserProfileFullResource(user),
+        });
+      }
+    }
+  });
+}
 
 export const SubscribePayasyougoPlan = async (req, res) => {
   const isMobile = detectDevice(req);

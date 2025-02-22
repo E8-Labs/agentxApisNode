@@ -11,7 +11,14 @@ const PaymentHistory = (sequelize, Sequelize) => {
     },
     type: {
       type: Sequelize.ENUM,
-      values: ["PhonePurchase", "Plan30", "Plan120", "Plan360", "Plan720"],
+      values: [
+        "PhonePurchase",
+        "Plan30",
+        "Plan120",
+        "Plan360",
+        "Plan720",
+        ChargeTypes.SupportPlan,
+      ],
       defaultValue: "PhonePurchase",
     },
     price: {
@@ -59,10 +66,12 @@ export const PayAsYouGoPlanTypes = {
   Plan360Min: "Plan360",
   Plan720Min: "Plan720",
 };
+
 export const ChargeTypes = {
   Subscription: "Subscription",
   MinutesRenewed: "MinutesRenewed",
   PhonePurchase: "PhonePurchase",
+  SupportPlan: "SupportPlan",
 };
 
 let TestPlans = [
@@ -170,3 +179,24 @@ export function FindPlanWithtype(type) {
   return p;
 }
 // module.exports = { PayAsYouGoPlans };
+
+export const SupportPlanTypes = {
+  Starter: "Starter",
+  Professional: "Professional",
+  Enterprise: "Enterprise",
+};
+export const SupportPlans = [
+  { type: SupportPlanTypes.Starter, price: 997 },
+  { type: SupportPlanTypes.Professional, price: 2997 },
+  { type: SupportPlanTypes.Enterprise, price: 4997 },
+];
+
+export function findSupportPlan(type) {
+  let p = null;
+  for (const plan of SupportPlans) {
+    if (type == plan.type) {
+      p = plan;
+    }
+  }
+  return p;
+}
