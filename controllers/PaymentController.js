@@ -267,7 +267,7 @@ export async function PurchaseSupportPlan(req, res) {
       // chargeUser();
       let charge = await chargeUser(
         user.id,
-        foundSupportPlan.price,
+        foundSupportPlan.price * 100,
         `Purchase of support plan ${foundSupportPlan.type}`,
         ChargeTypes.SupportPlan,
         false,
