@@ -1630,8 +1630,10 @@ export const UpdateSubAgent = async (req, res) => {
 
       console.log("User ", userId);
       console.log("Update ", req.body);
+      let dataToUpdate = {};
 
       if (req.body.name) {
+        dataToUpdate["name"] = req.body.name;
         await db.AgentModel.update(
           {
             name: req.body.name,
@@ -1643,6 +1645,10 @@ export const UpdateSubAgent = async (req, res) => {
           }
         );
       }
+      let updatedSynthflow = await UpdateAssistantSynthflow(
+        agent,
+        dataToUpdate
+      );
       let mainAgent = await db.MainAgentModel.findByPk(agent.mainAgentId);
 
       let agentRes = await AgentResource(mainAgent);
