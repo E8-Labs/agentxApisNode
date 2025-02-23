@@ -351,18 +351,73 @@ export const ListAvailableNumbers = async (req, res) => {
 
 export async function TransferNumber(req, res) {
   try {
-    let subAccount = twilio("", process.env.TWILIO_AUTH_TOKEN);
-    let phoneNumber = await subAccount
-      .incomingPhoneNumbers("")
-      .update({ accountSid: process.env.TWILIO_ACCOUNT_SID }); // 👈 Transfer back to the main account
+    const { subSid, phone } = req.body;
+
+    // Transfer the number from main account to the sub-account
+    const phoneNumber = await twilioClient
+      .incomingPhoneNumbers(phone)
+      .update({ accountSid: subSid });
+
     console.log(
-      `Number transferred back to main account: ${phoneNumber.friendlyName}`
+      `Number transferred to sub-account: ${phoneNumber.friendlyName}`
     );
-    return res.send({ status: true, message: "Phone number transfered" });
+    return res.send({
+      status: true,
+      message: "Phone number transferred to sub-account",
+    });
   } catch (error) {
-    console.log("error ", error);
-    return res.send({ status: false, message: "Phone number not transfered" });
+    console.error("Error transferring phone number:", error);
+    return res.send({ status: false, message: "Phone number not transferred" });
   }
+}
+
+export async function ReattachNumbersToAgents(req, res) {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+        token: req.token,
+        data: authData,
+      });
+    }
+
+    try {
+      const userId = authData.user.id;
+      let user = await db.User.findByPk(userId);
+
+      if (!user) {
+        return res.send({ status: false, message: "User doesn't exist" });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      let agents = await db.AgentModel.findAll();
+      if (agents && agents.length > 0) {
+        for (const a of agents) {
+          let phoneNumber = a.phoneNumber;
+          let updated = await UpdateAssistantSynthflow(a, {
+            phone_number: phoneNumber,
+          });
+        }
+      }
+
+      return res.send({
+        message: "Phone numbers reassigned",
+        status: true,
+      });
+    } catch (error) {
+      console.log("Error attaching number", error);
+      return res.send({
+        message: "Phone numbers not reassigned",
+        status: false,
+      });
+    }
+  });
 }
 
 const movePhoneNumberToMainAccount = async (

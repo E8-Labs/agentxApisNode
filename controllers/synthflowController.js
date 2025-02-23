@@ -794,8 +794,8 @@ export const TestAI = async (req, res) => {
           true // test is set to true
         );
 
-        console.log("Call Script: ", basePrompt.callScript);
-        console.log("Call Greeting: ", basePrompt.greeting);
+        // console.log("Call Script: ", basePrompt.callScript);
+        // console.log("Call Greeting: ", basePrompt.greeting);
         // let greeting = prompt.greeting;
         // greeting = greeting?.replace(/{First Name}/g, lead.firstName);
         // greeting = greeting?.replace(/{agent_name}/g, agent.name);
@@ -825,7 +825,7 @@ export const TestAI = async (req, res) => {
 
         return res.send(response);
       } catch (error) {
-        console.log("some error");
+        console.log("some error", error);
         return res.send({
           status: false,
           message: "Some error",
@@ -921,6 +921,10 @@ async function initiateCall(
   meeting = null
 ) {
   console.log("IS call test ", test);
+  // console.log("Data ", data);
+  // if (!data.phone.startsWith("+1") && !data.phone.startsWith("1")) {
+  //   return { status: false, data: null, message: "Not a US/CAN number" }; // Number is NOT from the US or Canada
+  // }
 
   try {
     WriteToFile(JSON.stringify(data));
