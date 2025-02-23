@@ -123,17 +123,17 @@ export const verifyJwtTokenWithTeam = async (req, response, next) => {
     });
     if (user.userRole == UserRole.Invitee) {
       req.admin = user;
-      console.log("User is invited");
+      // console.log("User is invited");
       let invite = await db.TeamModel.findOne({
         where: {
           invitedUserId: user.id,
         },
       });
-      console.log("Found invite ", invite);
+      // console.log("Found invite ", invite);
       if (invite) {
         let admin = await db.User.findByPk(invite.invitingUserId);
         req.admin = admin;
-        console.log("Found admin", admin);
+        // console.log("Found admin", admin);
       }
     } else {
       req.admin = user;
