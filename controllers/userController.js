@@ -1253,7 +1253,7 @@ export const VerifyEmailCode = async (req, res) => {
 export const sendSMS = async (to, body) => {
   const client = twilio(
     process.env.TWILIO_ACCOUNT_SID_ADMIN,
-    process.env.TWILIO_AUTH_TOKEN
+    process.env.TWILIO_AUTH_TOKEN_ADMIN
   );
 
   try {
