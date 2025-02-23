@@ -306,6 +306,10 @@ export const ListAvailableNumbers = async (req, res) => {
             ...(contains && { contains }),
           };
 
+          let adminTwilioClient = twilio(
+            process.env.TWILIO_ACCOUNT_SID_ADMIN,
+            process.env.TWILIO_AUTH_TOKEN
+          );
           // Search for available numbers for the current country
           const phoneNumbers = await twilioClient
             .availablePhoneNumbers(countryCode)
