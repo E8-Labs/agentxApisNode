@@ -34,6 +34,7 @@ import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import LeadLiteResource from "../resources/LeadLiteResource.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import { getFilteredQuery } from "./LeadsController.js";
+import PipelineLiteResource from "../resources/PipelineLiteResource.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -515,6 +516,10 @@ export const GetPipelines = async (req, res) => {
       if (req.query.userId) {
         userId = req.query.userId;
       }
+      let liteResource = false;
+      if (req.query.liteResource) {
+        liteResource = req.query.liteResource || false;
+      }
       let user = await db.User.findOne({
         where: {
           id: userId,
@@ -530,9 +535,13 @@ export const GetPipelines = async (req, res) => {
         },
       });
 
+      let resource = liteResource
+        ? await PipelineLiteResource(pipelines)
+        : await PipelineResource(pipelines);
+
       return res.send({
         status: true,
-        data: await PipelineResource(pipelines),
+        data: resource,
         message: "Pipeline obtained",
       });
     }
