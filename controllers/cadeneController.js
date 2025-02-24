@@ -225,7 +225,7 @@ function canRunCallsDuringDay(u, batch) {
 
   // Define allowed call window (5 AM - 9 PM) in user's timezone
   const startTime = userDateTime.set({ hour: 5, minute: 0, second: 0 });
-  const endTime = userDateTime.set({ hour: 21, minute: 0, second: 0 });
+  const endTime = userDateTime.set({ hour: 22, minute: 0, second: 0 });
 
   console.log(`Allowed call window: ${startTime.toISO()} - ${endTime.toISO()}`);
 
