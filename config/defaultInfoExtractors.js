@@ -1048,4 +1048,76 @@ If the Human does not provide a specific reason tied to their timeline, output N
       "Not Provided",
     ],
   },
+
+  //customer kyc
+
+  {
+    actionId: "",
+    identifier: "lifechanges",
+    question:
+      "Are there any significant life changes prompting this decision, such as job relocation or changes in the family?", //exists on page 2
+    actiontype: "open_question",
+    description: `Based on the transcript provided, identify if the Human has mentioned any significant life changes prompting their decision, such as job relocation, changes in the family, or other major events. Extract the specific life change as stated by the Human, summarizing it accurately if necessary. If no clear reason is provided, output Not Provided.
+
+Key Conditions:
+
+If a Significant Life Change is Clearly Stated: Extract the stated change as given by the Human, summarizing if needed for clarity.
+If No Clear Life Change is Stated: Output Not Provided.
+Examples:
+
+Human: "I recently got divorced, so I'm looking to move somewhere new."
+Human: "We just had a baby, and we need more space."`,
+    examples: [
+      "I'm moving due to a recent divorce.",
+      "We need a larger home because we had a baby.",
+      "I need to relocate after retiring.",
+      "Not Provided",
+    ],
+  },
+  {
+    actionId: "",
+    identifier: "decision_drivers",
+    question: "Why is this a priority for you at this moment?", //exists on page 2
+    actiontype: "open_question",
+    description: `Based on the transcript provided, identify the motivation behind why this decision is a priority for the Human at this moment. Extract the reason as stated by the Human, summarizing it accurately if necessary. If no clear reason is provided, output Not Provided.
+
+Key Conditions:
+
+If a Motivation is Clearly Stated: Extract the reason for prioritizing this decision, summarizing if needed for clarity.
+If No Clear Motivation is Stated: Output Not Provided.
+Examples:
+
+Human: "The market is really good right now, and I want to take advantage of it."
+Human: "We need to move before the school year starts so our kids can settle in."`,
+    examples: [
+      "I want to sell while the market is strong.",
+      "We need to move before the new school year.",
+      "Financial concerns are making this a priority.",
+      "Not Provided",
+    ],
+  },
+
+  {
+    actionId: "",
+    identifier: "timeline_preference",
+    question:
+      "Are you aiming to address this immediately, or are you exploring options?", //exists on page 2
+    actiontype: "open_question",
+    description: `Based on the transcript provided, determine the level of urgency the Human has expressed in making this decision. Identify whether they are looking to act immediately or just exploring their options. If no clear urgency level is provided, output Not Provided.
+
+Key Conditions:
+
+If Urgency is Clearly Stated: Extract whether the Human wants to act immediately or is still exploring.
+If No Clear Urgency is Stated: Output Not Provided.
+Examples:
+
+Human: "We need to move as soon as possible because our new job starts in a month."
+Human: "We're just looking around for now, not in a hurry."`,
+    examples: [
+      "I'm looking to move immediately.",
+      "I'm exploring options, not in a rush.",
+      "I want to sell within the next few months.",
+      "Not Provided",
+    ],
+  },
 ];

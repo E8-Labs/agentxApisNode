@@ -420,7 +420,8 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         let differenceMs = now - todayStartTimeForBatch; // Difference in milliseconds
         let differenceHours = differenceMs / (1000 * 60 * 60); // Convert to hours
         console.log("Difference in hours:", differenceHours);
-        if (differenceHours > 8) {
+        if (differenceHours > 16) {
+          //5am to 9:00 pm is 16 hours
           console.log(
             "Run time window has passed already so can not run the batch today",
             batch.id
