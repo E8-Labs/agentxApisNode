@@ -77,21 +77,32 @@ export const GenerateDefaultSellerBuyerKycIE = async (req, res) => {
   for (const kyc of OpenQuestionInfoExtractors) {
     let question = kyc.question;
     let identifier = kyc.identifier;
-    let k = kyc;
-    k.question = k.identifier;
-    let action = await CreateInfoExtractor(kyc);
-    if (action && action.status == "success") {
-      let actionId = action.response.action_id;
-      let createdDb = await db.InfoExtractorModel.create({
-        data: JSON.stringify(kyc),
-        actionId: actionId,
-        actionType: "defaultIE",
-        question: question,
+    let kycExists = await db.InfoExtractorModel.findOne({
+      where: {
         identifier: identifier,
-        mainAgentId: null,
-      });
+      },
+    });
+    if (kycExists) {
+      continue;
+    } else {
+      console.log("IE has to be created", kyc.identifier);
+      // continue;
+      let k = kyc;
+      k.question = k.identifier;
+      let action = await CreateInfoExtractor(kyc);
+      if (action && action.status == "success") {
+        let actionId = action.response.action_id;
+        let createdDb = await db.InfoExtractorModel.create({
+          data: JSON.stringify(kyc),
+          actionId: actionId,
+          actionType: "defaultIE",
+          question: question,
+          identifier: identifier,
+          mainAgentId: null,
+        });
+      }
+      console.log("Created ", action);
     }
-    console.log("Created ", action);
   }
   return res.send({
     status: true,
