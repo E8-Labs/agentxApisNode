@@ -23,38 +23,40 @@ export const findOrCreateTwilioSubAccount = async (user) => {
   let userId = user.id;
   let userName = user.name;
 
-  try {
-    // 1. Check if the user already has a Twilio sub-account
-    let userTwilioAccount = await db.UserTwilioAccounts.findOne({
-      where: { userId },
-    });
+  return null;
 
-    if (userTwilioAccount) {
-      console.log(
-        `Found existing Twilio sub-account for user: ${userId} => ${userTwilioAccount.subAccountSid}`
-      );
-      return userTwilioAccount.subAccountSid;
-    }
+  // try {
+  //   // 1. Check if the user already has a Twilio sub-account
+  //   let userTwilioAccount = await db.UserTwilioAccounts.findOne({
+  //     where: { userId },
+  //   });
 
-    // 2. If no sub-account exists, create a new one
-    console.log("Creating a new Twilio sub-account for user:", userId);
-    let subAccount = await twilioClient.api.accounts.create({
-      friendlyName: `AgentX - ${user.id} - ${userName}`,
-    });
+  //   if (userTwilioAccount) {
+  //     console.log(
+  //       `Found existing Twilio sub-account for user: ${userId} => ${userTwilioAccount.subAccountSid}`
+  //     );
+  //     return userTwilioAccount.subAccountSid;
+  //   }
 
-    // 3. Store the new sub-account SID in the database
-    userTwilioAccount = await db.UserTwilioAccounts.create({
-      userId,
-      subAccountSid: subAccount.sid,
-    });
+  //   // 2. If no sub-account exists, create a new one
+  //   console.log("Creating a new Twilio sub-account for user:", userId);
+  //   let subAccount = await twilioClient.api.accounts.create({
+  //     friendlyName: `AgentX - ${user.id} - ${userName}`,
+  //   });
 
-    console.log("Sub-account created:", subAccount.sid);
-    return subAccount.sid;
-  } catch (error) {
-    console.error("Error finding or creating Twilio sub-account:", error);
-    return null;
-    // throw error;
-  }
+  //   // 3. Store the new sub-account SID in the database
+  //   userTwilioAccount = await db.UserTwilioAccounts.create({
+  //     userId,
+  //     subAccountSid: subAccount.sid,
+  //   });
+
+  //   console.log("Sub-account created:", subAccount.sid);
+  //   return subAccount.sid;
+  // } catch (error) {
+  //   console.error("Error finding or creating Twilio sub-account:", error);
+  //   return null;
+  //   // throw error;
+  // }
 };
 
 async function GetTwilioClient(user) {

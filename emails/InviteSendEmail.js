@@ -105,7 +105,7 @@ export function generateTeamMemberInviteEmail(
 
   let parts2 = Inviter_Name.split(" ");
   if (parts2.length > 0) {
-    Inviter_Name = parts[0];
+    Inviter_Name = parts2[0];
   }
   const variables = { First_Name: firstName, Inviter_Name, CTA_Link };
 

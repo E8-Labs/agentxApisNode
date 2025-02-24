@@ -35,16 +35,17 @@ const HtmlTemplateAutoMinuteTopup = `
       margin: 10px 0;
     }
     .ctasimple {
-        display: block;
-      margin: 20px auto;
-      padding: 12px 24px;
-      width: 50%;
-      text-align: center;
-      
-      color:rgb(144, 173, 232);
-      text-decoration: none;
-      font-size: 16px;
-    }
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #007BFF; /* Ensuring it's blue */
+    text-decoration: none; /* Optional: Removes underline */
+    font-weight: bold; /* Optional: Keeps it bold */
+}
+
+.ctasimple:hover {
+    text-decoration: underline; /* Adds underline on hover */
+}
     .cta {
       display: block;
       margin: 20px auto;
@@ -87,7 +88,7 @@ const HtmlTemplateAutoMinuteTopup = `
 
 </p>
 
-<p>If you’d like to adjust your plan or check your usage, you can manage your settings.</p>
+<p>If you’d like to adjust your plan or check your usage, <a href="{CTA_Link}" class="ctasimple"you can manage your settings.</a></p>
       <p>Your AI assistant is always working for you—let’s keep those calls going!</p>
       <p>Best,<br>AgentX Team</p>
     </div>

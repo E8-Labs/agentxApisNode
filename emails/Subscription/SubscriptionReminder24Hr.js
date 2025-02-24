@@ -35,16 +35,18 @@ const HtmlTemplateSubscriptionReminder = `
       margin: 10px 0;
     }
     .ctasimple {
-        display: block;
-      margin: 20px auto;
-      padding: 12px 24px;
-      width: 50%;
-      text-align: center;
-      
-      color:rgb(144, 173, 232);
-      text-decoration: none;
-      font-size: 16px;
-    }
+    display: inline !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #007BFF; /* Ensuring it's blue */
+    text-decoration: none; /* Optional: Removes underline */
+    font-weight: bold; /* Optional: Keeps it bold */
+}
+
+.ctasimple:hover {
+    text-decoration: underline; /* Adds underline on hover */
+}
+
     .cta {
       display: block;
       margin: 20px auto;
@@ -88,7 +90,7 @@ With this renewal, you’ll receive additional AI talk time, and any unused minu
 ✅ Rollover minutes to keep your AI working at full capacity
 </p>
 
-<p>If you have any questions or need to update your billing details, <a  href="{CTA_Link}" class="ctasimple">you can manage your subscription here.</a></p>
+<p>If you have any questions or need to update your billing details, <a href="{CTA_Link}" class="ctasimple">you can manage your subscription here.</a></p>
       <p>We appreciate your trust in AgentX and look forward to helping you scale your business even further!</p>
       <p>Best,<br>AgentX Team</p>
     </div>
