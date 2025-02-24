@@ -927,7 +927,7 @@ async function initiateCall(
   // }
 
   try {
-    WriteToFile(JSON.stringify(data));
+    // WriteToFile(JSON.stringify(data));
     let synthKey = process.env.SynthFlowApiKey;
 
     let config = {

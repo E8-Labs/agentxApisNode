@@ -140,6 +140,9 @@ export const AddLeads = async (req, res) => {
       for (let i = 0; i < leads.length; i++) {
         let lead = leads[i];
         let extraColumns = lead.extraColumns;
+        if (extraColumns == "" || extraColumns == null) {
+          extraColumns = {};
+        }
         lead.extraColumns = null;
         if (typeof lead.fullName !== "undefined" && lead.fullName !== null) {
           if (!lead.firstName && !lead.lastName) {
