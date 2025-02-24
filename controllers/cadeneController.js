@@ -199,33 +199,49 @@ async function getCallCount(batch) {
 
 function canRunCallsDuringDay(u, batch) {
   let todayStartTimeForBatch = getTodayStartTimeForBatch(batch);
-  // return true;
   let timeZone = u.timeZone || "America/Los_Angeles";
-  console.log(`User ${u.id} Time zone is `, timeZone);
 
-  let utcDate = DateTime.utc(); // Get current UTC time
-  let userDateTime = utcDate.setZone(timeZone); // Convert to user's time zone
+  console.log(`User ${u.id} Time zone is`, timeZone);
 
-  console.log("Time in user timezone:", userDateTime.toISO()); // Debugging
+  // Get current UTC time and convert to the user's timezone
+  let userDateTime = DateTime.utc().setZone(timeZone);
+  console.log("Current Time in User's Timezone:", userDateTime.toISO());
 
+  // Convert batch start time to user's timezone & set the date to today
   let batchStartInUserTimeZone = DateTime.fromJSDate(todayStartTimeForBatch, {
     zone: "utc",
-  }).setZone(timeZone); //todayStartTimeForBatch.setZone(timeZone);
+  })
+    .setZone(timeZone)
+    .set({
+      year: userDateTime.year,
+      month: userDateTime.month,
+      day: userDateTime.day, // Set batch start date to today in the user's timezone
+    });
+
   console.log(
-    "Batch start time in user timezone is ",
+    "Batch start time in user timezone:",
     batchStartInUserTimeZone.toISO()
   );
 
-  // Define the start and end time for the allowed period (5 AM - 9 PM)
-  const startTime = todayStartTimeForBatch; //userDateTime.set({ hour: 5, minute: 0, second: 0 }); // 5 am right now
+  // Define allowed call window (5 AM - 9 PM) in user's timezone
+  const startTime = userDateTime.set({ hour: 5, minute: 0, second: 0 });
   const endTime = userDateTime.set({ hour: 21, minute: 0, second: 0 });
 
-  // Check if the current time falls within the allowed range
-  if (userDateTime >= startTime && userDateTime <= endTime) {
-    console.log("Can run calls  ", u.id);
+  console.log(`Allowed call window: ${startTime.toISO()} - ${endTime.toISO()}`);
+
+  // Check if the current time is:
+  // - After batch start time
+  // - After 5:00 AM
+  // - Before 9:00 PM
+  if (
+    userDateTime >= batchStartInUserTimeZone &&
+    userDateTime >= startTime &&
+    userDateTime <= endTime
+  ) {
+    console.log("✅ Can run calls for user", u.id);
     return true;
   } else {
-    console.log("Can not run calls ", u.id);
+    console.log("❌ Cannot run calls for user", u.id);
     return false;
   }
 }
