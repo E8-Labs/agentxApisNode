@@ -197,7 +197,8 @@ async function getCallCount(batch) {
 
 //checks if 9 pm is passed or not/ If passed then false else true
 
-function canRunCallsDuringDay(u) {
+function canRunCallsDuringDay(u, batch) {
+  let todayStartTimeForBatch = getTodayStartTimeForBatch(batch);
   // return true;
   let timeZone = u.timeZone || "America/Los_Angeles";
   console.log(`User ${u.id} Time zone is `, timeZone);
@@ -207,13 +208,21 @@ function canRunCallsDuringDay(u) {
 
   console.log("Time in user timezone:", userDateTime.toISO()); // Debugging
 
+  let batchStartInUserTimeZone = DateTime.fromJSDate(todayStartTimeForBatch, {
+    zone: "utc",
+  }).setZone(timeZone); //todayStartTimeForBatch.setZone(timeZone);
+  console.log(
+    "Batch start time in user timezone is ",
+    batchStartInUserTimeZone.toISO()
+  );
+
   // Define the start and end time for the allowed period (5 AM - 9 PM)
-  const startTime = userDateTime.set({ hour: 5, minute: 0, second: 0 }); // 5 am right now
+  const startTime = todayStartTimeForBatch; //userDateTime.set({ hour: 5, minute: 0, second: 0 }); // 5 am right now
   const endTime = userDateTime.set({ hour: 21, minute: 0, second: 0 });
 
   // Check if the current time falls within the allowed range
   if (userDateTime >= startTime && userDateTime <= endTime) {
-    console.log("Can run calls ", u.id);
+    console.log("Can run calls  ", u.id);
     return true;
   } else {
     console.log("Can not run calls ", u.id);
@@ -370,7 +379,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       if (!batch) {
         continue; // don't send cadence if not batched leadsCad calls because they were not added through assigning leads
       }
-      const canRun = canRunCallsDuringDay(user);
+      const canRun = canRunCallsDuringDay(user, batch);
       // continue;
       if (!canRun) {
         continue;
@@ -379,7 +388,9 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       const currentDate = new Date(); // Current date and time
 
       if (dbDate.getTime() >= currentDate.getTime()) {
-        // console.log("The database date is greater than or equal to the current date.");
+        console.log(
+          "The database date is greater than or equal to the current date."
+        );
         // WriteToFile(
         //   `This cadence batch start time is in future,
         //   ${dbDate.getTime()}`
@@ -404,35 +415,35 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       //   callsS
       // }
       let count = await getCallCount(batch);
-      // console.log(`${i} => Calls sent for this batch `, count);
+      console.log(`${i} => Calls sent for this batch `, count);
       // continue;
       // WriteToFile(
       //   `${leadCad.batchId} Batch ${batch.batchSize} Calls: ${count}`
       // );
       if (count >= batch?.batchSize) {
-        // WriteToFile("Batch size limit reached so will push calls tomorrow");
+        WriteToFile("Batch size limit reached so will push calls tomorrow");
         continue;
       } else {
         //check if no calls were sent and the current time is 8 hours ahead of the batch start time for today
         //If yes then don't send any calls
-        let todayStartTimeForBatch = getTodayStartTimeForBatch(batch);
-        let now = new Date();
-        let differenceMs = now - todayStartTimeForBatch; // Difference in milliseconds
-        let differenceHours = differenceMs / (1000 * 60 * 60); // Convert to hours
-        console.log("Difference in hours:", differenceHours);
-        if (differenceHours > 16) {
-          //5am to 9:00 pm is 16 hours
-          console.log(
-            "Run time window has passed already so can not run the batch today",
-            batch.id
-          );
-          continue;
-        } else {
-          console.log("Can run the batch today", batch.id);
-        }
+        // let todayStartTimeForBatch = getTodayStartTimeForBatch(batch);
+        // let now = new Date();
+        // let differenceMs = now - todayStartTimeForBatch; // Difference in milliseconds
+        // let differenceHours = differenceMs / (1000 * 60 * 60); // Convert to hours
+        // console.log("Difference in hours:", differenceHours);
+        // if (differenceHours > 8) {
+        //   //5am to 9:00 pm is 16 hours
+        //   console.log(
+        //     "Run time window has passed already so can not run the batch today",
+        //     batch.id
+        //   );
+        //   continue;
+        // } else {
+        //   console.log("Can run the batch today", batch.id);
+        // }
       }
       if (batch?.status != BatchStatus.Active) {
-        // WriteToFile(`Cadence is paused for this batch", ${batch?.id}`);
+        WriteToFile(`Cadence is paused for this batch", ${batch?.id}`);
         continue;
       }
       // WriteToFile(`Here 1`);
@@ -458,9 +469,9 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       });
 
       if (!cadence) {
-        // WriteToFile(
-        //   `No Cadence Found for  agent ${mainAgent.id} at stage ${lead.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
-        // );
+        WriteToFile(
+          `No Cadence Found for  agent ${mainAgent.id} at stage ${lead.stage} in Pipeline ${pipeline.id} Assigned to ${mainAgent.name}`
+        );
         continue;
       }
       // WriteToFile(
@@ -764,7 +775,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
 
       let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
       let user = await db.User.findByPk(batch.userId);
-      const canRun = canRunCallsDuringDay(user);
+      const canRun = canRunCallsDuringDay(user, batch);
       if (!canRun) {
         continue;
       }
