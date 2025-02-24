@@ -1052,30 +1052,31 @@ If the Human does not provide a specific reason tied to their timeline, output N
   //customer kyc
 
   {
-    actionId: "",
-    identifier: "lifechanges",
+    actionId: "1740405667723x354225616171464300",
+    identifier: "current_barriers",
     question:
-      "Are there any significant life changes prompting this decision, such as job relocation or changes in the family?", //exists on page 2
+      "What obstacles are keeping you from reaching your objectives right now?", //exists on page 2
     actiontype: "open_question",
-    description: `Based on the transcript provided, identify if the Human has mentioned any significant life changes prompting their decision, such as job relocation, changes in the family, or other major events. Extract the specific life change as stated by the Human, summarizing it accurately if necessary. If no clear reason is provided, output Not Provided.
+    description: `Based on the transcript provided, identify any obstacles or challenges the Human has mentioned that are preventing them from reaching their objectives at this moment. Extract the specific obstacles as stated by the Human, summarizing them accurately if necessary. If no clear obstacles are provided, output Not Provided.
 
 Key Conditions:
 
-If a Significant Life Change is Clearly Stated: Extract the stated change as given by the Human, summarizing if needed for clarity.
-If No Clear Life Change is Stated: Output Not Provided.
+If Obstacles are Clearly Stated: Extract the stated barriers as given by the Human, summarizing if needed for clarity.
+If No Clear Obstacles are Stated: Output Not Provided.
 Examples:
 
-Human: "I recently got divorced, so I'm looking to move somewhere new."
-Human: "We just had a baby, and we need more space."`,
+Human: "We want to sell, but we’re waiting to build up more equity."
+Human: "We’re struggling to find a new home in our budget."
+Human: "We’re not sure if now is the right time financially."`,
     examples: [
-      "I'm moving due to a recent divorce.",
-      "We need a larger home because we had a baby.",
-      "I need to relocate after retiring.",
+      "We’re waiting to build more equity before selling.",
+      "We can’t find a new home in our budget.",
+      "Financial uncertainty is delaying our plans.",
       "Not Provided",
     ],
   },
   {
-    actionId: "",
+    actionId: "1740405669360x172130964167392480",
     identifier: "decision_drivers",
     question: "Why is this a priority for you at this moment?", //exists on page 2
     actiontype: "open_question",
@@ -1096,9 +1097,8 @@ Human: "We need to move before the school year starts so our kids can settle in.
       "Not Provided",
     ],
   },
-
   {
-    actionId: "",
+    actionId: "1740405671342x213789954067111760",
     identifier: "timeline_preference",
     question:
       "Are you aiming to address this immediately, or are you exploring options?", //exists on page 2
