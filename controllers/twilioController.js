@@ -23,6 +23,8 @@ export const findOrCreateTwilioSubAccount = async (user) => {
   let userId = user.id;
   let userName = user.name;
 
+  return null;
+
   // try {
   //   // 1. Check if the user already has a Twilio sub-account
   //   let userTwilioAccount = await db.UserTwilioAccounts.findOne({
