@@ -84,7 +84,7 @@ async function getPayingUserLeadIds(user = null) {
     },
   });
 
-  console.log(`Found ${activeBatches.length} batches today`, activeBatches);
+  // console.log(`Found ${activeBatches.length} batches today`, activeBatches);
 
   let ids = [];
   if (activeBatches && activeBatches.length > 0) {
@@ -234,7 +234,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 
   const leadIds = await getPayingUserLeadIds(); //only fetch those users, whose minutes are above 2 min threshold
   // return;
-  // console.log("Lead ids of paying users", JSON.stringify(leadIds));
+  console.log("Lead ids of paying users", leadIds.length);
   // let leadCadence = await db.LeadCadence.findAll({
   //   where: {
   //     status: CadenceStatus.Pending,
@@ -286,7 +286,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
     // limit: batchSize, // Fetch only `batchSize` number of records
   });
 
-  // console.log(`Fetched ${leadCadence.length} leads`);
+  console.log(`Fetched ${leadCadence.length} leads`);
 
   let batchIds = [];
   leadCadence.map((lc) => {
@@ -302,6 +302,11 @@ export const CronRunCadenceCallsFirstBatch = async () => {
   console.log(
     `Found ${leadCadence.length}  leads to start ${batchIds.length} batches calls`
   );
+  // for (const lc of leadCadence) {
+  //   if (lc.leadId == 59784) {
+  //     console.log("Found lead ", lc);
+  //   }
+  // }
   // return;
   if (leadCadence.length == 0) {
     // WriteToFile(`FirstBatch: Found No new leads to start batch calls today`);
@@ -313,7 +318,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
 
   for (let i = 0; i < leadCadence.length; i++) {
     let leadCad = leadCadence[i];
-    // console.log(`LeadCad , ${leadCad.id} : Batch=${leadCad.batchId}`);
+    console.log(`LeadCad , ${leadCad.id} : Batch=${leadCad.batchId}`);
     // WriteToFile("Iteration", i);
     try {
       // let lead = await db.LeadModel.findOne(leadCad.leadId)
@@ -1341,5 +1346,5 @@ async function CheckAndTryToPlaceCall(
 
 // CadenceBookedCalls();
 
-// CronRunCadenceCallsFirstBatch();
+CronRunCadenceCallsFirstBatch();
 // CronRunCadenceCallsSubsequentStages();
