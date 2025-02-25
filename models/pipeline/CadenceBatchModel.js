@@ -47,6 +47,11 @@ const CadenceBatchModel = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: BatchStatus.Active, // when user assigns that lead to another pipeline then that cadence status changes to Paused
     },
+    zap: {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: false, // when user assigns that lead to another pipeline then that cadence status changes to Paused
+    },
   });
 
   return CadenceBatchModel;

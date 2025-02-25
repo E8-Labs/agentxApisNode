@@ -4,6 +4,10 @@ const UserActivityModel = (sequelize, Sequelize) => {
       type: Sequelize.TEXT("medium"),
       allowNull: true,
     },
+    headers: {
+      type: Sequelize.TEXT("medium"),
+      allowNull: true,
+    },
     action: {
       type: Sequelize.STRING,
       allowNull: false,

@@ -88,7 +88,7 @@ const HtmlTemplateAutoMinuteTopup = `
 
 </p>
 
-<p>If you’d like to adjust your plan or check your usage, <a href="{CTA_Link}" class="ctasimple"you can manage your settings.</a></p>
+<p>If you’d like to adjust your plan or check your usage, <a href="{CTA_Link}" class="ctasimple">you can manage your settings.</a></p>
       <p>Your AI assistant is always working for you—let’s keep those calls going!</p>
       <p>Best,<br>AgentX Team</p>
     </div>

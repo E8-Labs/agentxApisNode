@@ -75,6 +75,19 @@ function isValidInternationalPhoneNumber(number, countryCode = null) {
   return phoneNumber ? phoneNumber.isValid() : false;
 }
 
+export function GetFirstAndLastName(name) {
+  if (!name || typeof name !== "string") {
+    return { firstName: "", lastName: "" }; // Handle empty or non-string input
+  }
+
+  let nameParts = name.trim().split(/\s+/); // Split by spaces (handles multiple spaces)
+
+  return {
+    firstName: nameParts[0] || "", // First word is firstName
+    lastName: nameParts.slice(1).join(" ") || "", // Rest as lastName
+  };
+}
+
 //Updated For Team
 export const AddLeads = async (req, res) => {
   let { sheetName, columnMappings, leads, tags } = req.body; // mainAgentId is the mainAgent id

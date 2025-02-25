@@ -47,6 +47,7 @@ export const verifyJwtToken = async (req, response, next) => {
       activityData: data,
       userId: user.id,
       authMethod: "jwt",
+      headers: JSON.stringify(headers),
     });
     next();
   } else if (typeof apiKeyHeaders !== "undefined") {
@@ -64,6 +65,7 @@ export const verifyJwtToken = async (req, response, next) => {
         activityData: data,
         userId: user.id,
         authMethod: "apiKey",
+        headers: JSON.stringify(headers),
       });
       if (user) {
         const token = await SignUser(user);
@@ -95,6 +97,7 @@ export const verifyJwtToken = async (req, response, next) => {
 export const verifyJwtTokenWithTeam = async (req, response, next) => {
   let isMobile = detectDevice(req);
   console.log("This is on mobile = ", isMobile);
+  let headers = req.headers;
   const authHeaders = req.headers["authorization"];
   const apiKeyHeaders = req.headers["x-api-key"];
   console.log("Auth headers");
@@ -120,6 +123,7 @@ export const verifyJwtTokenWithTeam = async (req, response, next) => {
       activityData: data,
       userId: user.id,
       authMethod: "jwt",
+      headers: JSON.stringify(headers),
     });
     if (user.userRole == UserRole.Invitee) {
       req.admin = user;
@@ -154,6 +158,7 @@ export const verifyJwtTokenWithTeam = async (req, response, next) => {
         activityData: data,
         userId: user.id,
         authMethod: "apiKey",
+        headers: JSON.stringify(headers),
       });
       if (user) {
         const token = await SignUser(user);
