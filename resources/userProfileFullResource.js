@@ -98,6 +98,7 @@ async function getUserData(user, currentUser = null) {
 
   const UserFullResource = {
     ...user.get(),
+    userType: admin ? admin.userType : user.userType,
     plan: planHistory && planHistory.length > 0 ? planHistory[0] : null,
     alreadyAssignedGlobal:
       alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
