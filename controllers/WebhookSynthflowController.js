@@ -30,6 +30,7 @@ import {
   AddOrUpdateTag,
   AddTagsFromCustoStageToLead,
   GetColumnsInSheet,
+  GetFirstAndLastName,
   mergeAndRemoveDuplicates,
   postDataToWebhook,
 } from "./LeadsController.js";
@@ -748,7 +749,9 @@ async function extractIEAndStoreKycs(
             }
           } else if (question === "prospectname") {
             if (lead.firstName == "" || lead.firstName == null) {
-              lead.firstName = answer == "Not Provided" ? "" : answer;
+              let name = GetFirstAndLastName(answer);
+              lead.firstName = name.firstName;
+              lead.lastName = name.lastName;
               await lead.save();
             }
           } else if (!question.includes(process.env.StagePrefix)) {

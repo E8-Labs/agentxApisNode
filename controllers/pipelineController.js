@@ -744,7 +744,8 @@ export async function AssignLeads(
   leadIds,
   mainAgentIds,
   startTimeDifFromNow = 0,
-  batchSize = 50
+  batchSize = 50,
+  zap = false
 ) {
   //if a team member is calling this function then set it to get the admin user and change it to that.
   user = await GetTeamAdminFor(user);
@@ -798,6 +799,7 @@ export async function AssignLeads(
       totalLeads: leadIds.length,
       batchSize: batchSize,
       startTime: startTime,
+      zap: zap,
     });
     for (let i = 0; i < leadIds.length; i++) {
       let leadId = leadIds[i];
@@ -859,6 +861,15 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       startTimeDifFromNow,
       sheetId,
     });
+
+    //check if request came from zap
+    let zap = false;
+    if (
+      req.headers["user-agent"] == process.env.ZapUserAgent ||
+      req.headers["host"] == process.env.ZapHost
+    ) {
+      zap = true;
+    }
     if (authData) {
       let userId = authData.user.id;
       let user = await db.User.findOne({
@@ -893,7 +904,8 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
         leadIds,
         mainAgentIds,
         startTimeDifFromNow,
-        batchSize
+        batchSize,
+        zap
       );
 
       return res.send({

@@ -69,17 +69,25 @@ async function getPayingUserLeadIds(user = null) {
         // { status: BatchStatus.Started },
       ],
       startTime: { [Op.lt]: now }, // Ensure `startTime` is in the past
-      [Op.and]: [
-        db.Sequelize.where(
-          db.Sequelize.fn("DATE", db.Sequelize.col("startTime")),
-          "<=",
-          db.Sequelize.fn("CURDATE") // Ensure batch started today or earlier
-        ),
-        db.Sequelize.where(
-          db.Sequelize.fn("TIME", db.Sequelize.col("startTime")),
-          "<=",
-          db.Sequelize.fn("CURTIME") // Ensure today’s execution time is reached
-        ),
+      [Op.or]: [
+        {
+          zap: true, // If zap is true, only check if startTime has passed
+        },
+        {
+          zap: false,
+          [Op.and]: [
+            db.Sequelize.where(
+              db.Sequelize.fn("DATE", db.Sequelize.col("startTime")),
+              "<=",
+              db.Sequelize.fn("CURDATE") // Ensure batch started today or earlier
+            ),
+            db.Sequelize.where(
+              db.Sequelize.fn("TIME", db.Sequelize.col("startTime")),
+              "<=",
+              db.Sequelize.fn("CURTIME") // Ensure today's execution time is reached
+            ),
+          ],
+        },
       ],
     },
   });
@@ -198,6 +206,9 @@ async function getCallCount(batch) {
 //checks if 9 pm is passed or not/ If passed then false else true
 
 function canRunCallsDuringDay(u, batch) {
+  if (batch.zap) {
+    return true; // batches started from zap can run any time.
+  }
   let todayStartTimeForBatch = getTodayStartTimeForBatch(batch);
   let timeZone = u.timeZone || "America/Los_Angeles";
 

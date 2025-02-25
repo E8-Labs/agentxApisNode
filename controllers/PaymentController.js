@@ -564,7 +564,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               let charge = await chargeUser(
                 user.id,
                 price,
-                "Charging for plan " + foundPlan.type,
+                "Subscription renewed for " + foundPlan.type,
                 foundPlan.type,
                 false,
                 req
@@ -630,7 +630,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           let charge = await chargeUser(
             user.id,
             price,
-            "Charging for plan " + foundPlan.type,
+            "Subscription activated for " + foundPlan.type,
             foundPlan.type,
             false,
             req
@@ -917,7 +917,7 @@ export async function ReChargeUserAccount(user) {
       let charge = await chargeUser(
         user.id,
         foundPlan.price * 100,
-        `Subscription payment for ${foundPlan.price}`,
+        `Subscription renewed for ${foundPlan.type}`,
         foundPlan.type,
         true
       );
@@ -967,7 +967,7 @@ export async function ReChargeUserAccount(user) {
     let charge = await chargeUser(
       user.id,
       price,
-      "Charging for plan " + foundPlan.type,
+      foundPlan.duration / 60 + " minutes renewed",
       foundPlan.type
     );
     // user = await db.User.findByPk(user.id);
