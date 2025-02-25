@@ -870,6 +870,7 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
     ) {
       zap = true;
     }
+    console.log("Headers are ", req.headers);
     if (authData) {
       let userId = authData.user.id;
       let user = await db.User.findOne({
