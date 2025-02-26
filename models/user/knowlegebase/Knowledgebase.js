@@ -64,7 +64,7 @@ const KnowledgeBase = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       defaultValue: null,
       references: {
-        model: "Users", // Table name (plural form)
+        model: "AgentModels", // Table name (plural form)
         key: "id",
       },
       onDelete: "CASCADE",
@@ -74,7 +74,7 @@ const KnowledgeBase = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       defaultValue: null,
       references: {
-        model: "Users", // Table name (plural form)
+        model: "MainAgentModels", // Table name (plural form)
         key: "id",
       },
       onDelete: "CASCADE",

@@ -8,6 +8,7 @@ import fs from "fs";
 import path from "path";
 import { ensureDirExists } from "../utils/mediaservice.js";
 import { GetTeamAdminFor } from "../utils/auth.js";
+import { addToVectorDb } from "../services/pineconeDb.js";
 export async function AddKnowledgebase(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (error) {
@@ -29,8 +30,10 @@ export async function AddKnowledgebase(req, res) {
     let agentId = req.body.agentId;
     let mainAgentId = req.body.mainAgentId;
 
+    let agent = await db.AgentModel.findByPk(agentId);
+
     if (req.files && req.files.media) {
-      console.log("Found file uploaded", req.files);
+      // console.log("Found file uploaded", req.files);
       // Type is Document
       let file = req.files.media[0];
 
@@ -99,9 +102,16 @@ export async function AddKnowledgebase(req, res) {
         description: description,
         userId: userId,
         title: title,
-        mainAgentId: mainAgentId,
+        mainAgentId: agent.mainAgentId,
         agentId: agentId,
       });
+
+      let added = await addToVectorDb(originalContent, user, agent, type, {
+        mainAgentId: agent.mainAgentId,
+        date: new Date(),
+        kbId: kbcreated.id,
+      });
+      // console.log("Vector added ", added);
 
       if (kbcreated) {
         return res.send({
@@ -111,7 +121,7 @@ export async function AddKnowledgebase(req, res) {
         });
       }
     } catch (dbError) {
-      console.error("Error creating KnowledgeBase entry:", dbError);
+      console.error("Error creating KnowledgeBase entry:", dbError.message);
       return res
         .status(500)
         .send({ status: false, message: "Error saving KnowledgeBase entry." });
@@ -177,3 +187,5 @@ export async function DeleteKnowledgebase(req, res) {
     });
   });
 }
+
+export async function SearchKb(req, res) {}

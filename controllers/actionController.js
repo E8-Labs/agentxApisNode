@@ -94,7 +94,6 @@ async function CreateCustomAction(user, assistant, type = "kb") {
       }
     );
     return response.data;
-    console.log("Booking response:", response.data);
   } catch (error) {
     console.error(
       "Error booking appointment:",
@@ -134,11 +133,13 @@ export async function AttachActionToModel(actionId, modelId) {
 
 function GetActionApiData(user, assistant, type = "kb") {
   if (type == "kb") {
+    let baseUrl =
+      process.env.Environment == "Production"
+        ? "https://www.blindcircle.com/agentx"
+        : "https://www.blindcircle.com/agentxtest";
     return {
       http_mode: "GET", // Set to tomorrow's date
-      url:
-        "https://www.blindcircle.com/voice/api/action/getKb?modelId=" +
-        assistant.modelId,
+      url: `${baseUrl}/api/kb/searchKb?modelId=` + assistant.modelId,
       run_action_before_call_start: false,
       name: `Get Data From ${user.name} Knowledgebase`,
       description: "Gets knowledgebase for " + user.name,
