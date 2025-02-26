@@ -497,7 +497,7 @@ export const PurchasePhoneNumber = async (req, res) => {
       // Charge user for phone number
       const phoneNumberCost = constants.phoneNumberCost; //200; // Monthly cost in cents
       let charge = await chargeUser(
-        userId,
+        user.id,
         phoneNumberCost,
         `Purchase of phone number ${phoneNumber}`
       );
@@ -574,7 +574,7 @@ export const PurchasePhoneNumber = async (req, res) => {
           phone: phoneNumber,
           phoneSid: purchasedNumber.sid,
           phoneStatus: "active",
-          userId,
+          userId: user.id,
           subAccountSid: "", //subAccountSid,
           nextBillingDate: new Date(
             new Date().setMonth(new Date().getMonth() + 1)
@@ -583,7 +583,7 @@ export const PurchasePhoneNumber = async (req, res) => {
         let planHistory = await db.PaymentHistory.create({
           title: `${phoneNumber} Purchased`,
           description: `Monthly charge for phone number ${phoneNumber}`,
-          userId: userId,
+          userId: user.id,
           type: "PhonePurchase",
           price: 2,
           phone: phoneNumber,

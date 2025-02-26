@@ -60,6 +60,26 @@ const KnowledgeBase = (sequelize, Sequelize) => {
       type: Sequelize.BOOLEAN,
       defaultValue: false,
     },
+    agentId: {
+      type: Sequelize.INTEGER,
+      defaultValue: null,
+      references: {
+        model: "AgentModels", // Table name (plural form)
+        key: "id",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    },
+    mainAgentId: {
+      type: Sequelize.INTEGER,
+      defaultValue: null,
+      references: {
+        model: "MainAgentModels", // Table name (plural form)
+        key: "id",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    },
   });
 
   return User;

@@ -8,6 +8,7 @@ import fs from "fs";
 import path from "path";
 import { ensureDirExists } from "../utils/mediaservice.js";
 import { GetTeamAdminFor } from "../utils/auth.js";
+import { addToVectorDb } from "../services/pineconeDb.js";
 export async function AddKnowledgebase(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (error) {
@@ -26,8 +27,13 @@ export async function AddKnowledgebase(req, res) {
     let title = req.body.title || ""; //Name of document
     let pdf = null;
 
+    let agentId = req.body.agentId;
+    let mainAgentId = req.body.mainAgentId;
+
+    let agent = await db.AgentModel.findByPk(agentId);
+
     if (req.files && req.files.media) {
-      console.log("Found file uploaded", req.files);
+      // console.log("Found file uploaded", req.files);
       // Type is Document
       let file = req.files.media[0];
 
@@ -96,7 +102,16 @@ export async function AddKnowledgebase(req, res) {
         description: description,
         userId: userId,
         title: title,
+        mainAgentId: agent.mainAgentId,
+        agentId: agentId,
       });
+
+      let added = await addToVectorDb(originalContent, user, agent, type, {
+        mainAgentId: agent.mainAgentId,
+        date: new Date(),
+        kbId: kbcreated.id,
+      });
+      // console.log("Vector added ", added);
 
       if (kbcreated) {
         return res.send({
@@ -106,7 +121,7 @@ export async function AddKnowledgebase(req, res) {
         });
       }
     } catch (dbError) {
-      console.error("Error creating KnowledgeBase entry:", dbError);
+      console.error("Error creating KnowledgeBase entry:", dbError.message);
       return res
         .status(500)
         .send({ status: false, message: "Error saving KnowledgeBase entry." });
@@ -120,6 +135,7 @@ export async function GetKnowledgebase(req, res) {
       return res.send({ status: false, message: "Unauthenticated User" });
     }
 
+    let agentId = req.query.agentId;
     let userId = authData.user.id;
     let user = await db.User.findByPk(userId);
     let admin = await GetTeamAdminFor(user);
@@ -128,6 +144,7 @@ export async function GetKnowledgebase(req, res) {
     let kb = await db.KnowledgeBase.findAll({
       where: {
         userId: user.id,
+        agentId: agentId,
       },
     });
 
@@ -170,3 +187,5 @@ export async function DeleteKnowledgebase(req, res) {
     });
   });
 }
+
+export async function SearchKb(req, res) {}
