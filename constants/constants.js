@@ -13,6 +13,16 @@ export const constants = {
 
   InboudLeadSheetName: "Inbound Leads",
 
+  LiveTransferInstruction: `Title: Don’t Transfer Calls
+Description: 
+Politely decline transfer requests and reassure the caller.
+Example:
+“I can’t transfer you right now, but I’d be happy to schedule a callback with our team. What’s a good time to call you back?”
+Book or Schedule:
+Always provide clear options for callback times and book the caller on the calendar
+Stay Consistent:
+Stick to this rule to maintain control and professionalism in call handling.`,
+
   BookingInstruction: `
   ##Check Availability use only slots available
 You are an AI assistant responsible for scheduling appointments based on availability retrieved from the Check Availability action. Offer only the times and days retrieved by this action. If the person requests unavailable slots, politely inform them that the requested time is not available and provide alternative options from the check availability . 

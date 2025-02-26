@@ -60,8 +60,10 @@ const __dirname = path.dirname(__filename);
 export async function getInboudPromptText(prompt, assistant, user) {
   let callScript = prompt.callScript;
 
+  let objective = prompt.objective;
   let greeting = prompt.greeting;
   let companyAgentInfo = prompt.companyAgentInfo;
+
   companyAgentInfo = companyAgentInfo.replace(/{agent_name}/g, assistant.name);
   companyAgentInfo = companyAgentInfo.replace(
     /{agent_role}/gi,
@@ -101,6 +103,12 @@ export async function getInboudPromptText(prompt, assistant, user) {
   callScript = callScript.replace(/{CU_status}/gi, assistant.status);
   callScript = callScript.replace(/{CU_address}/gi, assistant.address);
 
+  objective = objective.replace(/{agent_name}/g, assistant.name);
+  objective = objective.replace(/{brokerage_name}/g, user.brokerage);
+
+  objective = objective.replace(/{CU_status}/gi, assistant.status);
+  objective = objective.replace(/{CU_address}/gi, assistant.address);
+
   let guardrails = await db.ObjectionAndGuradrails.findAll({
     where: {
       mainAgentId: assistant.mainAgentId,
@@ -127,16 +135,7 @@ export async function getInboudPromptText(prompt, assistant, user) {
   );
 
   if (!assistant.liveTransfer) {
-    let t = `Title: Don’t Transfer Calls
-Description: 
-Politely decline transfer requests and reassure the caller.
-Example:
-“I can’t transfer you right now, but I’d be happy to schedule a callback with our team. What’s a good time to call you back?”
-Book or Schedule:
-Always provide clear options for callback times and book the caller on the calendar
-Stay Consistent:
-Stick to this rule to maintain control and professionalism in call handling.
-`;
+    let t = constants.LiveTransferInstruction;
     guardrailPromptText = `${guardrailPromptText}\n\n${t}`;
   }
   //console.log("New Objection Text is ", objectionPromptText);
@@ -144,7 +143,7 @@ Stick to this rule to maintain control and professionalism in call handling.
   //udpate the call script here
   let text = "";
 
-  text = `${text}\n\n${prompt.objective}\n\n`;
+  text = `${text}\n\n${objective}\n\n`;
   text = `${text}\n\n${companyAgentInfo}`;
   text = `${text}\n\n${prompt.personalCharacteristics}`;
   text = `${text}\n\n${prompt.communication}`;
@@ -185,6 +184,7 @@ async function GetCompletePromptTextFrom(
   let customVariables = [];
   // console.log("Prompt ");
   // console.log(prompt);
+  let objective = prompt.objective;
   let callScript = prompt.callScript;
   // console.log("User ", user);
   let greeting = prompt.greeting;
@@ -271,6 +271,19 @@ async function GetCompletePromptTextFrom(
   callScript = callScript.replace(/{Email}/gi, lead.email);
   callScript = callScript.replace(/{Address}/gi, lead.address);
 
+  objective = objective.replace(/{agent_name}/g, assistant.name);
+  objective = objective.replace(/{brokerage_name}/g, user.brokerage);
+
+  objective = objective.replace(/{CU_status}/gi, assistant.status);
+  objective = objective.replace(/{CU_address}/gi, assistant.address);
+
+  objective = objective.replace(/{first_name}/g, lead.firstName);
+  objective = objective.replace(/{firstName}/g, lead.firstName);
+  objective = objective.replace(/{First Name}/g, lead.firstName);
+  objective = objective.replace(/{Last Name}/g, lead.lastName);
+  objective = objective.replace(/{Email}/gi, lead.email);
+  objective = objective.replace(/{Address}/gi, lead.address);
+
   // console.log("Call script before");
   // console.log(callScript);
   //Get UniqueColumns in Sheets
@@ -285,6 +298,11 @@ async function GetCompletePromptTextFrom(
 
     //greeting
     while ((match = regex.exec(greeting)) !== null) {
+      keys.push(match[1]); // Add the variable name (without braces) to the array
+    }
+
+    //objective
+    while ((match = regex.exec(objective)) !== null) {
       keys.push(match[1]); // Add the variable name (without braces) to the array
     }
   } else {
@@ -349,6 +367,7 @@ async function GetCompletePromptTextFrom(
         //console.log(`replacing ${key} with ${value}`);
         callScript = callScript.replace(regex, value);
         greeting = greeting.replace(regex, value);
+        objective = objective.replace(regex, value);
       }
     }
   }
@@ -380,16 +399,7 @@ async function GetCompletePromptTextFrom(
   );
 
   if (!assistant.liveTransfer) {
-    let t = `Title: Don’t Transfer Calls
-Description: 
-Politely decline transfer requests and reassure the caller.
-Example:
-“I can’t transfer you right now, but I’d be happy to schedule a callback with our team. What’s a good time to call you back?”
-Book or Schedule:
-Always provide clear options for callback times and book the caller on the calendar
-Stay Consistent:
-Stick to this rule to maintain control and professionalism in call handling.
-`;
+    let t = constants.LiveTransferInstruction;
     guardrailPromptText = `${guardrailPromptText}\n\n${t}`;
   }
   //console.log("New Objection Text is ", objectionPromptText);
@@ -399,7 +409,7 @@ Stick to this rule to maintain control and professionalism in call handling.
   greeting = `"${greeting}"`;
   let basePrompt = "";
   basePrompt = `${basePrompt}\n\n${greeting}`;
-  basePrompt = `${basePrompt}\n\n${prompt.objective}\n\n`;
+  basePrompt = `${basePrompt}\n\n${objective}\n\n`;
   basePrompt = `${basePrompt}\n\n${companyAgentInfo}`;
   basePrompt = `${basePrompt}\n\n${prompt.personalCharacteristics}`;
   basePrompt = `${basePrompt}\n\n${prompt.communication}`;

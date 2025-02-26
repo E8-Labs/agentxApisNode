@@ -26,6 +26,9 @@ export async function AddKnowledgebase(req, res) {
     let title = req.body.title || ""; //Name of document
     let pdf = null;
 
+    let agentId = req.body.agentId;
+    let mainAgentId = req.body.mainAgentId;
+
     if (req.files && req.files.media) {
       console.log("Found file uploaded", req.files);
       // Type is Document
@@ -96,6 +99,8 @@ export async function AddKnowledgebase(req, res) {
         description: description,
         userId: userId,
         title: title,
+        mainAgentId: mainAgentId,
+        agentId: agentId,
       });
 
       if (kbcreated) {
@@ -120,6 +125,7 @@ export async function GetKnowledgebase(req, res) {
       return res.send({ status: false, message: "Unauthenticated User" });
     }
 
+    let agentId = req.query.agentId;
     let userId = authData.user.id;
     let user = await db.User.findByPk(userId);
     let admin = await GetTeamAdminFor(user);
@@ -128,6 +134,7 @@ export async function GetKnowledgebase(req, res) {
     let kb = await db.KnowledgeBase.findAll({
       where: {
         userId: user.id,
+        agentId: agentId,
       },
     });
 
