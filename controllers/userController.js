@@ -219,6 +219,14 @@ export const RegisterUser = async (req, res) => {
   const email = req.body.email;
   const userType = req.body.userType;
   let phone = req.body.phone;
+
+  let firmOrCompanyAffiliation = req.body.firmOrCompanyAffiliation;
+  let territory = req.body.territory;
+  // let businessAffiliation = req.body.businessAffiliation;
+  let averageMonthlyClients = req.body.averageMonthlyClients;
+  let caseVolume = req.body.caseVolume;
+  let consultationFormat = req.body.consultationFormat;
+  let clientType = req.body.clientType;
   // if (!phone.startsWith("+")) {
   phone = phone.replace("+", "");
   // }
@@ -348,6 +356,12 @@ export const RegisterUser = async (req, res) => {
     primaryClientType: primaryClientType,
     timeZone: timeZone,
     campaigneeId: campaignee?.id,
+    clientType: clientType,
+    firmOrCompanyAffiliation: firmOrCompanyAffiliation,
+    averageMonthlyClients: averageMonthlyClients,
+    territory: territory,
+    caseVolume: caseVolume,
+    consultationFormat: consultationFormat,
   };
   if (collectionStrategies) {
     userDataRegisteration.collectionStrategies =
