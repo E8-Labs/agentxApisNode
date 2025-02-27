@@ -555,7 +555,7 @@ export const UpdateProfile = async (req, res) => {
         let areaOfFocus = req.body.areaOfFocus;
         if (agentService && agentService.length > 0) {
           agentService = removeDuplicates(agentService);
-          await db.AgentService.destroy({
+          await db.UserServicesModel.destroy({
             where: {
               userId: user.id,
             },
@@ -587,7 +587,7 @@ export const UpdateProfile = async (req, res) => {
         }
         if (areaOfFocus && areaOfFocus.length > 0) {
           areaOfFocus = removeDuplicates(areaOfFocus);
-          await db.AreaOfFocus.destroy({
+          await db.UserFocusModel.destroy({
             where: {
               userId: user.id,
             },
