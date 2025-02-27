@@ -476,6 +476,7 @@ export const RegisterUser = async (req, res) => {
 };
 
 export const UpdateProfile = async (req, res) => {
+  const removeDuplicates = (arr) => [...new Set(arr)];
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -553,6 +554,7 @@ export const UpdateProfile = async (req, res) => {
         let agentService = req.body.agentService;
         let areaOfFocus = req.body.areaOfFocus;
         if (agentService && agentService.length > 0) {
+          agentService = removeDuplicates(agentService);
           await db.AgentService.destroy({
             where: {
               userId: user.id,
@@ -584,7 +586,7 @@ export const UpdateProfile = async (req, res) => {
           }
         }
         if (areaOfFocus && areaOfFocus.length > 0) {
-          // areaOfFocus = JSON.parse(areaOfFocus);
+          areaOfFocus = removeDuplicates(areaOfFocus);
           await db.AreaOfFocus.destroy({
             where: {
               userId: user.id,

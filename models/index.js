@@ -112,6 +112,7 @@ db.User.hasMany(db.KnowledgeBase, {
 
 db.UserFocusModel = UserFocusModel(sequelize, Sequelize);
 db.UserServicesModel = UserServicesModel(sequelize, Sequelize);
+
 db.UserPhoneNumbers = UserPhoneNumbers(sequelize, Sequelize);
 db.User.hasMany(db.UserPhoneNumbers, {
   foreignKey: "userId",

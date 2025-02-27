@@ -7,6 +7,8 @@ const UserServicesModel = (sequelize, Sequelize) => {
         model: "AgentServices",
         key: "id",
       },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
     },
     userId: {
       type: Sequelize.INTEGER,
