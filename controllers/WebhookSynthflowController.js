@@ -46,6 +46,7 @@ import { GetTeamAdminFor } from "../utils/auth.js";
 import { constants } from "../constants/constants.js";
 import { generateFailedOrCallVoilationEmail } from "../emails/system/FailedOrCallVoilationEmail.js";
 import { SendEmail } from "../services/MailService.js";
+import ZapierLeadResource from "../resources/ZapierLeadResource.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -998,7 +999,8 @@ async function handleInfoExtractorValues(
       let user = await db.User.findByPk(pipeline?.userId || null);
       if (user) {
         let leadRes = await LeadResource([lead]);
-        await postDataToWebhook(user, leadRes, WebhookTypes.TypeStageChange);
+        let zapLeadRes = await ZapierLeadResource([lead]);
+        await postDataToWebhook(user, zapLeadRes, WebhookTypes.TypeStageChange);
       }
     } catch (error) {
       console.log("Exception ", error);

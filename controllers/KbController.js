@@ -2,13 +2,22 @@
 import JWT from "jsonwebtoken";
 import db from "../models/index.js";
 import mammoth from "mammoth";
+import axios from "axios";
 
 import pdfExtract from "pdf-extraction";
 import fs from "fs";
 import path from "path";
 import { ensureDirExists } from "../utils/mediaservice.js";
 import { GetTeamAdminFor } from "../utils/auth.js";
-import { addToVectorDb } from "../services/pineconeDb.js";
+import { addToVectorDb, findVectorData } from "../services/pineconeDb.js";
+import { CallOpenAi } from "../services/GptService.js";
+import { GptPrompts } from "../constants/GptPrompts.js";
+
+function getYouTubeVideoId(url) {
+  const match = url.match(/(?:youtu\.be\/|youtube\.com\/.*[?&]v=)([^&]+)/);
+  return match ? match[1] : null;
+}
+
 export async function AddKnowledgebase(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (error) {
@@ -26,6 +35,7 @@ export async function AddKnowledgebase(req, res) {
     let originalContent = req.body.originalContent; // Default content from request body
     let title = req.body.title || ""; //Name of document
     let pdf = null;
+    let webUrl = "";
 
     let agentId = req.body.agentId;
     let mainAgentId = req.body.mainAgentId;
@@ -88,6 +98,36 @@ export async function AddKnowledgebase(req, res) {
         }
       }
     }
+
+    if (type == "Url") {
+      webUrl = originalContent;
+      originalContent = "";
+      //process with gpt
+      let prompt = GptPrompts.WeburlPrompt;
+      prompt = prompt.replace(new RegExp("{website}", "g"), webUrl);
+      let result = await CallOpenAi(prompt);
+      if (result.status) {
+        let totalCost = result.cost || 0;
+        let content = result.message;
+        originalContent = content;
+      } else {
+        console.log("Could not summarize web url");
+        return res.send({
+          status: false,
+          message: "Some error occurred while processing the url",
+        });
+      }
+    }
+    if (type == "Youtube") {
+      webUrl = originalContent;
+      originalContent = "";
+      let vidId = getYouTubeVideoId(webUrl);
+      let transcript = await fetchVideoCaptionsAndProcessWithPrompt(
+        vidId,
+        user
+      );
+      originalContent = transcript;
+    }
     // else if(type == "Text"){
     //     originalContent = req.body.originalContent;
     // }
@@ -97,6 +137,7 @@ export async function AddKnowledgebase(req, res) {
       let kbcreated = await db.KnowledgeBase.create({
         type: type,
         originalContent: originalContent, // Use the extracted or default text content
+        webUrl: webUrl,
         documentUrl: pdf,
         documentName: documentName,
         description: description,
@@ -188,4 +229,78 @@ export async function DeleteKnowledgebase(req, res) {
   });
 }
 
-export async function SearchKb(req, res) {}
+export async function SearchKb(req, res) {
+  let question = req.query.user_question;
+  let modelId = req.query.modelId;
+  let agent = await db.AgentModel.findOne({
+    where: {
+      modelId: modelId,
+    },
+  });
+
+  if (!agent) {
+    return res.send({
+      status: false,
+      message: "No such agent",
+    });
+  }
+  let user = await db.User.findByPk(agent.userId);
+  //find the data from vector db
+  let response = await findVectorData(question, user, agent);
+  if (response) {
+    return res.send({
+      status: false,
+      message: "Found answer",
+      data: response,
+    });
+  } else {
+    return res.send({
+      status: false,
+      message: "Nothing found",
+    });
+  }
+}
+
+//Youtube Video Transcripts
+export const fetchVideoCaptionsAndProcessWithPrompt = async (videoId, user) => {
+  let data = "";
+
+  console.log("Fetching Transcript", user.id);
+  // return;
+  let transcript = "";
+
+  if (transcript == null || transcript == "") {
+    console.log("Dont have transcript. Fetching New");
+    let config = {
+      method: "get",
+      maxBodyLength: Infinity,
+      url: `https://www.searchapi.io/api/v1/search?api_key=${process.env.YoutubeSearchApiKey}&engine=youtube_transcripts&video_id=${videoId}`,
+      headers: {
+        Authorization: `Bearer ${process.env.YoutubeSearchApiKey}`,
+      },
+      data: data,
+    };
+
+    let response = await axios.request(config);
+    let resData = response.data;
+    if (resData.error) {
+      return null;
+    } else {
+      // continue
+    }
+    console.log("Fetched Transcript");
+
+    resData.transcripts.map((t) => {
+      transcript += t.text ? t.text : "";
+    });
+  } else {
+    console.log("Already have transcript. Using that.");
+  }
+
+  //add the transcript to vdb
+
+  if (transcript == null || transcript == "") {
+    return null;
+  }
+  return transcript;
+};

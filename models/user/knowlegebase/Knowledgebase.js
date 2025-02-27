@@ -10,6 +10,7 @@ const KnowledgeBase = (sequelize, Sequelize) => {
       // defaultValue: "",
       allowNull: true,
     },
+
     title: {
       // name of the document
       type: Sequelize.STRING,
@@ -32,7 +33,12 @@ const KnowledgeBase = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       defaultValue: "",
     },
-    documentName: {
+    documentUrl: {
+      //if document then the url of the document
+      type: Sequelize.STRING,
+      defaultValue: "",
+    },
+    webUrl: {
       //if document then the url of the document
       type: Sequelize.STRING,
       defaultValue: "",
@@ -89,6 +95,7 @@ export const KbTypes = {
   Text: "Text",
   Document: "Document",
   Url: "Url",
+  Youtube: "Youtube",
 };
 
 export default KnowledgeBase;
