@@ -575,7 +575,7 @@ async function fetchUserPlans(startDate) {
     `,
     {
       replacements: { startDate: start },
-      type: Sequelize.QueryTypes.SELECT,
+      type: db.Sequelize.QueryTypes.SELECT,
     }
   );
 
