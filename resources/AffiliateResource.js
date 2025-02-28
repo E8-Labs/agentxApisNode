@@ -47,27 +47,30 @@ async function getUserData(item, currentUser = null) {
   const topSpender = await db.PaymentHistory.findOne({
     attributes: [
       "userId",
-      [Sequelize.fn("SUM", Sequelize.col("price")), "totalSpent"],
+      [db.Sequelize.fn("SUM", db.Sequelize.col("price")), "totalSpent"],
     ],
     include: [
       {
         model: db.User,
-        attributes: [], // Don't fetch extra user details here
-        where: { campaigneeId: { [Op.not]: null } }, // Add your constraint on User table
+        attributes: ["name", "id", "email"], // Don't fetch extra user details here
+        where: { campaigneeId: item.id }, // Add your constraint on User table
       },
     ],
     group: ["userId"],
-    order: [[Sequelize.literal("totalSpent"), "DESC"]], // Sort highest first
+    order: [[db.Sequelize.literal("totalSpent"), "DESC"]], // Sort highest first
     raw: true,
+    nest: true,
   });
 
   const xbarTotalRevenue = await db.PaymentHistory.findOne({
-    attributes: [[Sequelize.fn("SUM", Sequelize.col("price")), "totalSpent"]],
+    attributes: [
+      [db.Sequelize.fn("SUM", db.Sequelize.col("price")), "totalSpent"],
+    ],
     include: [
       {
         model: db.User,
         attributes: [], // We don't need extra user details
-        where: { campaigneeId: { [Op.not]: null } }, // Ensure user has a campaigneeId
+        where: { campaigneeId: item.id }, // Ensure user has a campaigneeId
       },
     ],
     where: { type: "SupportPlan" }, // Filter for only SupportPlan payments
