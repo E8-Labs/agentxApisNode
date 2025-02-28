@@ -16,7 +16,7 @@ let kbRouter = express.Router();
 
 kbRouter.get("/getKnowledgebase", verifyJwtTokenWithTeam, GetKnowledgebase);
 
-kbRouter.get("/searchKb", verifyJwtTokenWithTeam, SearchKb);
+kbRouter.get("/searchKb", SearchKb);
 kbRouter.post(
   "/addKnowledgebase",
   verifyJwtTokenWithTeam,
