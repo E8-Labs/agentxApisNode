@@ -537,7 +537,7 @@ async function calculateReactivationRate(startDate, endDate) {
     `,
     {
       replacements: { churnedUserIds, start, end },
-      type: Sequelize.QueryTypes.SELECT,
+      type: db.Sequelize.QueryTypes.SELECT,
     }
   );
 
