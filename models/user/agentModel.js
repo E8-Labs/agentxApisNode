@@ -167,9 +167,33 @@ const AgentModel = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    voiceStability: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    initialPauseSeconds: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    consentRecording: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: true,
+    },
   });
 
   return AgentModel;
 };
 
 export default AgentModel;
+
+export const VoiceStability = {
+  Expressive: "Expressive",
+  Balanced: "Balanced",
+  Steady: "Steady",
+};
+
+export const InitialPause = {
+  Instant: "Instant",
+  ShortPause: "Short Pause",
+  NaturalConversationFlow: "Natural Conversation Flow",
+};

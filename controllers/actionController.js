@@ -156,10 +156,10 @@ function GetActionApiData(user, assistant, type = "kb") {
       query_parameters: [
         {
           key: "user_question",
-          value: "what do you think about the gender equality?",
+          value: "<user_question>",
         },
       ],
-      prompt: `Use the result from <results.data.message> and respond accordingly`,
+      prompt: `Use the result from <results.data.data> and respond accordingly`,
     };
   }
   if (type == "booking") {
