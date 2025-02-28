@@ -1,6 +1,6 @@
 import JWT from "jsonwebtoken";
 import db from "../models/index.js";
-import { Op } from "sequelize";
+import { Op, fn, col, literal } from "sequelize";
 import axios from "axios";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import UserProfileLiteResource from "../resources/userProfileLiteResource.js";
@@ -506,13 +506,14 @@ async function calculateReactivationRate(startDate, endDate) {
   const start = new Date(startDate);
   const end = new Date(endDate);
 
-  // Step 1: Get DISTINCT user IDs of users who churned (cancelled)
+  // Step 1: Get DISTINCT user IDs who cancelled within the period
   const churnedUsers = await db.PlanHistory.findAll({
-    attributes: [[Sequelize.fn("DISTINCT", Sequelize.col("userId")), "userId"]],
+    attributes: [[col("userId"), "userId"]], // Only selecting userId
     where: {
       status: "cancelled",
       updatedAt: { [Op.between]: [start, end] },
     },
+    group: ["userId"], // Group only by userId
     raw: true,
   });
 
@@ -528,12 +529,13 @@ async function calculateReactivationRate(startDate, endDate) {
 
   // Step 2: Find DISTINCT user IDs who reactivated (bought a new plan)
   const reactivatedUsers = await db.PlanHistory.findAll({
-    attributes: [[Sequelize.fn("DISTINCT", Sequelize.col("userId")), "userId"]],
+    attributes: [[col("userId"), "userId"]], // Only selecting userId
     where: {
       userId: { [Op.in]: churnedUserIds }, // Must have previously churned
       status: { [Op.in]: ["active", "upgrade"] }, // Valid reactivation statuses
       updatedAt: { [Op.between]: [start, end] }, // Must have reactivated in the same period
     },
+    group: ["userId"], // Group only by userId
     raw: true,
   });
 
