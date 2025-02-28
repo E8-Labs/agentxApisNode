@@ -558,6 +558,30 @@ async function calculateReactivationRate(startDate, endDate) {
   };
 }
 
+async function fetchUserPlans(startDate) {
+  if (!startDate) {
+    throw new Error("startDate is required.");
+  }
+
+  const start = new Date(startDate);
+
+  let userPlansTrials = await db.sequelize.query(
+    `
+    SELECT DISTINCT ON (ph.userId) ph.id, ph.userId, ph.type, ph.createdAt, ph.status, u.isTrial
+    FROM PlanHistories AS ph
+    LEFT JOIN Users AS u ON ph.userId = u.id
+    WHERE ph.createdAt >= :startDate
+    ORDER BY ph.userId, ph.createdAt ASC
+    `,
+    {
+      replacements: { startDate: start },
+      type: Sequelize.QueryTypes.SELECT,
+    }
+  );
+
+  return userPlansTrials;
+}
+
 async function calculateUpgradeBreakdown(startDate) {
   function GetKeyForUpgrade(fromPlan, toPlan, isTrial) {
     let StartPlan = fromPlan.type;
@@ -598,17 +622,7 @@ async function calculateUpgradeBreakdown(startDate) {
     Plan720: 0,
   };
 
-  let userPlansTrials = await db.PlanHistory.findAll({
-    attributes: ["id", "userId", "type", "createdAt", "status"],
-    include: [{ model: db.User, attributes: ["isTrial"] }],
-    where: {
-      createdAt: { [Op.gte]: new Date(startDate) },
-      // type: PayAsYouGoPlanTypes.Plan30Min,
-    },
-    order: [["createdAt", "ASC"]], // Order by oldest first
-    group: ["userId"], // Fetch only the first entry for each user
-    raw: true,
-  });
+  let userPlansTrials = await fetchUserPlans(startDate);
 
   console.log(userPlansTrials);
   console.log(`${userPlansTrials.length} started `);
