@@ -359,9 +359,14 @@ export async function GetAdminStats(req, res) {
   });
 }
 
-export async function calculateSubscriptionStats(duration, month) {
-  const startDate = new Date("2025-01-01");
-  const endDate = new Date();
+export async function calculateSubscriptionStats(
+  duration,
+  month,
+  startDate = new Date("2025-01-01"),
+  endDate = new Date()
+) {
+  // const startDate = new Date("2025-01-01");
+  // const endDate = new Date();
 
   console.log("Duration is ", duration);
   let interval;
@@ -474,15 +479,7 @@ export async function calculateSubscriptionStats(duration, month) {
   }
 
   // Reactivation Rate
-  let reactivationRate = {};
-  let reactivatedUsers = await db.PlanHistory.findAll({
-    attributes: ["userId"],
-    where: {
-      status: "reactivated",
-    },
-    raw: true,
-  });
-  reactivationRate.count = reactivatedUsers.length;
+  let reactivationRate = await calculateReactivationRate(startDate, endDate);
 
   // Referral Code Rate
   let referralCodeRate = await db.User.count({
@@ -498,6 +495,72 @@ export async function calculateSubscriptionStats(duration, month) {
     // monthlyPlanCounts,
     reactivationRate,
     referralCodeRate,
+  };
+}
+
+async function calculateReactivationRate(startDate, endDate) {
+  if (!startDate || !endDate) {
+    throw new Error("Both startDate and endDate are required.");
+  }
+
+  // Convert startDate and endDate to Date objects
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  // Find users who churned (cancelled) in the period
+  const churnedUsers = await db.PlanHistory.findAll({
+    attributes: ["userId"],
+    where: {
+      status: "cancelled",
+      updatedAt: {
+        [Op.between]: [start, end],
+      },
+    },
+    raw: true,
+  });
+
+  const churnedUserIds = churnedUsers.map((user) => user.userId);
+
+  if (churnedUserIds.length === 0) {
+    return {
+      churnedCount: 0,
+      reactivatedCount: 0,
+      reactivationRate: "0%",
+    };
+  }
+
+  // Find users who reactivated by checking if they have a new row with status "active" or "upgrade"
+  const reactivatedUsers = await db.PlanHistory.findAll({
+    attributes: ["userId"],
+    where: {
+      userId: {
+        [Op.in]: churnedUserIds, // Only consider users who previously cancelled
+      },
+      status: {
+        [Op.in]: ["active", "upgrade"], // They must have a new row indicating reactivation
+      },
+      updatedAt: {
+        [Op.between]: [start, end],
+      },
+    },
+    raw: true,
+  });
+
+  // Get unique reactivated users
+  const reactivatedUserIds = new Set(
+    reactivatedUsers.map((user) => user.userId)
+  );
+
+  // Calculate reactivation rate
+  const churnedCount = churnedUserIds.length;
+  const reactivatedCount = reactivatedUserIds.size;
+  const reactivationRate =
+    churnedCount > 0 ? (reactivatedCount / churnedCount) * 100 : 0;
+
+  return {
+    churnedCount,
+    reactivatedCount,
+    reactivationRate: reactivationRate.toFixed(2) + "%",
   };
 }
 
@@ -706,6 +769,9 @@ export async function GetAdminAnalytics(req, res) {
       });
     }
 
+    let startDate = new Date(req.query.startDate || "2025-01-01");
+    let endDate = new Date(req.query.endDate || new Date());
+
     let offset = Number(req.query.offset || 0) || 0;
     // let limit = Number(req.query.limit || limit) || limit; // Default limit
 
@@ -731,7 +797,12 @@ export async function GetAdminAnalytics(req, res) {
         });
       }
 
-      let stats = await calculateSubscriptionStats("monthly", 0, 1);
+      let stats = await calculateSubscriptionStats(
+        "monthly",
+        0,
+        startDate,
+        endDate
+      );
       stats.clv = await calculateAvgCLV();
       stats.nrr = await calculateNRR();
       stats.mrr = await calculateMRR();
