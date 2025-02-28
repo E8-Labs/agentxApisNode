@@ -1665,13 +1665,13 @@ export const UpdateSubAgent = async (req, res) => {
         let voiceStability = req.body.voiceStability;
         let vs = 1;
         if (voiceStability == VoiceStability.Expressive) {
-          vs = 1;
+          vs = 0;
         }
         if (voiceStability == VoiceStability.Balanced) {
           vs = 0.6;
         }
         if (voiceStability == VoiceStability.Steady) {
-          vs = 0.3;
+          vs = 1;
         }
         agentDataToUpdate["voice_stability"] = vs;
         let updated = await db.AgentModel.update(
@@ -1720,7 +1720,8 @@ export const UpdateSubAgent = async (req, res) => {
           vs = false;
         }
 
-        agentDataToUpdate["initial_pause_seconds"] = vs;
+        dataToUpdate["consent_recording"] = vs;
+
         let updated = await db.AgentModel.update(
           {
             consentRecording: vs,
@@ -1747,6 +1748,7 @@ export const UpdateSubAgent = async (req, res) => {
       // }
 
       dataToUpdate.agent = agentDataToUpdate;
+      console.log("Agent data to update", dataToUpdate);
       let updatedSynthflow = await UpdateAssistantSynthflow(
         agent,
         dataToUpdate
