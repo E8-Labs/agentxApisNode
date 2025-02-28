@@ -567,15 +567,20 @@ async function fetchUserPlans(startDate) {
 
   let userPlansTrials = await db.sequelize.query(
     `
-    SELECT DISTINCT ON (ph.userId) ph.id, ph.userId, ph.type, ph.createdAt, ph.status, u.isTrial
+    SELECT ph.id, ph.userId, ph.type, ph.createdAt, ph.status, u.isTrial
     FROM PlanHistories AS ph
     LEFT JOIN Users AS u ON ph.userId = u.id
     WHERE ph.createdAt >= :startDate
-    ORDER BY ph.userId, ph.createdAt ASC
+    AND ph.id = (
+        SELECT MIN(id) FROM PlanHistories 
+        WHERE userId = ph.userId
+        AND createdAt >= :startDate
+    )
+    ORDER BY ph.createdAt ASC
     `,
     {
       replacements: { startDate: start },
-      type: db.Sequelize.QueryTypes.SELECT,
+      type: Sequelize.QueryTypes.SELECT,
     }
   );
 
