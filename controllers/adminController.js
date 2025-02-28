@@ -506,16 +506,17 @@ async function calculateReactivationRate(startDate, endDate) {
   const start = new Date(startDate);
   const end = new Date(endDate);
 
-  // Step 1: Get all users who churned in the period
+  // Step 1: Find users who churned (cancelled) within the period
   const churnedUsers = await db.PlanHistory.findAll({
-    attributes: ["userId"],
+    attributes: [
+      "userId",
+      [fn("MIN", col("updatedAt")), "cancelledAt"], // Get the earliest cancellation date
+    ],
     where: {
       status: "cancelled",
-      updatedAt: {
-        [Op.between]: [start, end],
-      },
+      updatedAt: { [Op.between]: [start, end] },
     },
-    group: ["userId"], // Ensure only unique users
+    group: ["userId"], // Ensures only unique users
     raw: true,
   });
 
@@ -529,21 +530,18 @@ async function calculateReactivationRate(startDate, endDate) {
     };
   }
 
-  // Step 2: Check if churned users reactivated within the same period
+  // Step 2: Check how many of these churned users reactivated within the same period
   const reactivatedUsers = await db.PlanHistory.findAll({
-    attributes: ["userId"],
+    attributes: [
+      "userId",
+      [fn("MIN", col("updatedAt")), "reactivatedAt"], // Get the earliest reactivation date
+    ],
     where: {
-      userId: {
-        [Op.in]: churnedUserIds, // Only users who churned
-      },
-      status: {
-        [Op.in]: ["active", "upgrade"], // Reactivated users
-      },
-      updatedAt: {
-        [Op.between]: [start, end],
-      },
+      userId: { [Op.in]: churnedUserIds }, // Only previously churned users
+      status: { [Op.in]: ["active", "upgrade"] }, // Reactivation statuses
+      updatedAt: { [Op.between]: [start, end] }, // Reactivated within the same period
     },
-    group: ["userId"], // Only count each user once
+    group: ["userId"], // Ensures only unique users
     raw: true,
   });
 
