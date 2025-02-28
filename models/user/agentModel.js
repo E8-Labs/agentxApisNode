@@ -163,6 +163,10 @@ const AgentModel = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       defaultValue: "",
     },
+    actionId: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return AgentModel;

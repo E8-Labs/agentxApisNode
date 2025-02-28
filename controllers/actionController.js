@@ -228,13 +228,13 @@ export async function CreateAndAttachAction(user, type = "kb", assistant) {
     );
     if (attached.status == "success") {
       console.log("Action attached");
-      return true;
+      return action;
     } else {
-      return false;
+      return null;
     }
   } else {
     console.log("Could not create action", action);
-    return false;
+    return null;
   }
 }
 

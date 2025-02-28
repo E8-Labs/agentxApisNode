@@ -2687,6 +2687,8 @@ export async function CreateAssistantSynthflow(
           );
 
           let kbAction = await CreateAndAttachAction(user, "kb", assistant);
+          assistant.actionId = kbAction.response.action_id;
+          await assistant.save();
 
           let created = await AttachInfoExtractor(
             mainAgent.id,

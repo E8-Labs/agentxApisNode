@@ -220,7 +220,8 @@ export const RegisterUser = async (req, res) => {
   const userType = req.body.userType;
   let phone = req.body.phone;
 
-  let firmOrCompanyAffiliation = req.body.firmOrCompanyAffiliation;
+  let firmOrCompanyAffiliation =
+    req.body.firmOrCompanyAffiliation || req.body.businessAffiliation; //businessAffiliation might not be needed
   let territory = req.body.territory;
   // let businessAffiliation = req.body.businessAffiliation;
   let averageMonthlyClients = req.body.averageMonthlyClients;

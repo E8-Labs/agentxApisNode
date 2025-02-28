@@ -12,6 +12,7 @@ import { GetTeamAdminFor } from "../utils/auth.js";
 import { addToVectorDb, findVectorData } from "../services/pineconeDb.js";
 import { CallOpenAi } from "../services/GptService.js";
 import { GptPrompts } from "../constants/GptPrompts.js";
+import { CreateAndAttachAction } from "./actionController.js";
 
 function getYouTubeVideoId(url) {
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/.*[?&]v=)([^&]+)/);
@@ -152,6 +153,13 @@ export async function AddKnowledgebase(req, res) {
         date: new Date(),
         kbId: kbcreated.id,
       });
+
+      if (agent.actionId == null || agent.actionId == "") {
+        let action = await CreateAndAttachAction(user, "kb", agent);
+        console.log("Action ", action);
+        agent.actionId = action.response.action_id;
+        await agent.save();
+      }
       // console.log("Vector added ", added);
 
       if (kbcreated) {

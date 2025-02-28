@@ -615,8 +615,45 @@ async function calculateUpgradeBreakdown(startDate) {
   return { upgradeBreakdown, cancellations, Plans };
 }
 
-async function calculateCLV(averageRevenuePerUser, customerLifetimeMonths) {
-  return averageRevenuePerUser * customerLifetimeMonths;
+async function calculateAvgCLV() {
+  // Define the date range for the last 6 months
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  // Fetch payments within the last 6 months
+  const payments = await db.PaymentHistory.findAll({
+    attributes: ["userId", "price"],
+    // where: {
+    //   createdAt: {
+    //     [Op.gte]: sixMonthsAgo,
+    //   },
+    // },
+    raw: true,
+  });
+
+  // Calculate total revenue per user
+  let userRevenue = 0;
+  let userIds = [];
+  let uniqueUsers = 0;
+  payments.forEach(({ userId, price }) => {
+    if (!userIds.includes(userId)) {
+      userIds.push(userId);
+      uniqueUsers += 1;
+    }
+
+    userRevenue += price;
+  });
+  console.log(`Users ${uniqueUsers} has total ${userRevenue}`);
+
+  // Calculate CLV per user
+  // const clvValues = Object.values(userRevenue).map((totalSpent) => {
+  //   return (totalSpent / 6) * 6; // Avg per month * 6 months
+  // });
+
+  // Compute the overall average CLV
+  const avgCLV = (userRevenue / uniqueUsers) * 6;
+
+  return avgCLV.toFixed(2);
 }
 
 // Function to calculate Monthly Recurring Revenue (MRR)
@@ -635,18 +672,18 @@ async function calculateMRR(plan = null) {
         // },
       },
     });
-    return totalMRR;
+    return totalMRR.toFixed(2);
   }
 }
 
 // Function to calculate Annual Recurring Revenue (ARR)
 async function calculateARR() {
   let totalMRR = await calculateMRR();
-  return totalMRR * 12;
+  return (totalMRR * 12).toFixed(2);
 }
 
 // Function to calculate Net Revenue Retention (NRR)
-async function calculateNRR() {
+async function calculateNRR(startDate = new Date()) {
   let revenueStart = await db.PlanHistory.sum("price", {
     where: { createdAt: { [Op.lte]: new Date(startDate) } },
   });
@@ -657,7 +694,7 @@ async function calculateNRR() {
     where: { status: "cancelled" },
   });
 
-  return ((revenueEnd - lostRevenue) / revenueStart) * 100;
+  return (((revenueEnd - lostRevenue) / revenueStart) * 100).toFixed(2);
 }
 
 export async function GetAdminAnalytics(req, res) {
@@ -695,6 +732,10 @@ export async function GetAdminAnalytics(req, res) {
       }
 
       let stats = await calculateSubscriptionStats("monthly", 0, 1);
+      stats.clv = await calculateAvgCLV();
+      stats.nrr = await calculateNRR();
+      stats.mrr = await calculateMRR();
+      stats.arr = await calculateARR();
       return res.send({
         status: true,
         message: "Admin analytics",
