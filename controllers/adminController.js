@@ -503,11 +503,10 @@ async function calculateReactivationRate(startDate, endDate) {
     throw new Error("Both startDate and endDate are required.");
   }
 
-  // Convert startDate and endDate to Date objects
   const start = new Date(startDate);
   const end = new Date(endDate);
 
-  // Find users who churned (cancelled) in the period
+  // Step 1: Get all users who churned in the period
   const churnedUsers = await db.PlanHistory.findAll({
     attributes: ["userId"],
     where: {
@@ -516,6 +515,7 @@ async function calculateReactivationRate(startDate, endDate) {
         [Op.between]: [start, end],
       },
     },
+    group: ["userId"], // Ensure only unique users
     raw: true,
   });
 
@@ -529,38 +529,36 @@ async function calculateReactivationRate(startDate, endDate) {
     };
   }
 
-  // Find users who reactivated by checking if they have a new row with status "active" or "upgrade"
+  // Step 2: Check if churned users reactivated within the same period
   const reactivatedUsers = await db.PlanHistory.findAll({
     attributes: ["userId"],
     where: {
       userId: {
-        [Op.in]: churnedUserIds, // Only consider users who previously cancelled
+        [Op.in]: churnedUserIds, // Only users who churned
       },
       status: {
-        [Op.in]: ["active", "upgrade"], // They must have a new row indicating reactivation
+        [Op.in]: ["active", "upgrade"], // Reactivated users
       },
       updatedAt: {
         [Op.between]: [start, end],
       },
     },
+    group: ["userId"], // Only count each user once
     raw: true,
   });
 
-  // Get unique reactivated users
-  const reactivatedUserIds = new Set(
-    reactivatedUsers.map((user) => user.userId)
-  );
-
-  // Calculate reactivation rate
+  // Step 3: Calculate Reactivation Rate
   const churnedCount = churnedUserIds.length;
-  const reactivatedCount = reactivatedUserIds.size;
+  const reactivatedCount = reactivatedUsers.length;
   const reactivationRate =
-    churnedCount > 0 ? (reactivatedCount / churnedCount) * 100 : 0;
+    churnedCount > 0
+      ? ((reactivatedCount / churnedCount) * 100).toFixed(2) + "%"
+      : "0%";
 
   return {
     churnedCount,
     reactivatedCount,
-    reactivationRate: reactivationRate.toFixed(2) + "%",
+    reactivationRate,
   };
 }
 
