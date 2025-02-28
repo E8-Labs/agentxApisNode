@@ -506,14 +506,14 @@ async function calculateReactivationRate(startDate, endDate) {
   const start = new Date(startDate);
   const end = new Date(endDate);
 
-  // Step 1: Get DISTINCT user IDs who cancelled within the period
+  // Step 1: Get DISTINCT user IDs of users who churned (cancelled)
   const churnedUsers = await db.PlanHistory.findAll({
-    attributes: [[col("userId"), "userId"]], // Only selecting userId
+    attributes: ["userId"], // Selecting only userId
     where: {
       status: "cancelled",
       updatedAt: { [Op.between]: [start, end] },
     },
-    group: ["userId"], // Group only by userId
+    group: ["userId"], // This ensures unique userId selection
     raw: true,
   });
 
@@ -527,21 +527,25 @@ async function calculateReactivationRate(startDate, endDate) {
     };
   }
 
-  // Step 2: Find DISTINCT user IDs who reactivated (bought a new plan)
-  const reactivatedUsers = await db.PlanHistory.findAll({
-    attributes: [[col("userId"), "userId"]], // Only selecting userId
-    where: {
-      userId: { [Op.in]: churnedUserIds }, // Must have previously churned
-      status: { [Op.in]: ["active", "upgrade"] }, // Valid reactivation statuses
-      updatedAt: { [Op.between]: [start, end] }, // Must have reactivated in the same period
-    },
-    group: ["userId"], // Group only by userId
-    raw: true,
-  });
+  // Step 2: Find DISTINCT user IDs who reactivated (subscribed again)
+  const reactivatedUsers = await db.sequelize.query(
+    `
+    SELECT DISTINCT userId FROM PlanHistories
+    WHERE userId IN (:churnedUserIds)
+    AND status IN ('active', 'upgrade')
+    AND updatedAt BETWEEN :start AND :end
+    `,
+    {
+      replacements: { churnedUserIds, start, end },
+      type: Sequelize.QueryTypes.SELECT,
+    }
+  );
+
+  const reactivatedUserIds = reactivatedUsers.map((user) => user.userId);
 
   // Step 3: Compute Reactivation Rate
   const churnedCount = churnedUserIds.length;
-  const reactivatedCount = reactivatedUsers.length;
+  const reactivatedCount = reactivatedUserIds.length;
   const reactivationRate =
     churnedCount > 0
       ? ((reactivatedCount / churnedCount) * 100).toFixed(2) + "%"
