@@ -506,17 +506,13 @@ async function calculateReactivationRate(startDate, endDate) {
   const start = new Date(startDate);
   const end = new Date(endDate);
 
-  // Step 1: Find users who churned (cancelled) within the period
+  // Step 1: Get DISTINCT user IDs of users who churned (cancelled)
   const churnedUsers = await db.PlanHistory.findAll({
-    attributes: [
-      "userId",
-      [fn("MIN", col("updatedAt")), "cancelledAt"], // Get the earliest cancellation date
-    ],
+    attributes: [[Sequelize.fn("DISTINCT", Sequelize.col("userId")), "userId"]],
     where: {
       status: "cancelled",
       updatedAt: { [Op.between]: [start, end] },
     },
-    group: ["userId"], // Ensures only unique users
     raw: true,
   });
 
@@ -530,22 +526,18 @@ async function calculateReactivationRate(startDate, endDate) {
     };
   }
 
-  // Step 2: Check how many of these churned users reactivated within the same period
+  // Step 2: Find DISTINCT user IDs who reactivated (bought a new plan)
   const reactivatedUsers = await db.PlanHistory.findAll({
-    attributes: [
-      "userId",
-      [fn("MIN", col("updatedAt")), "reactivatedAt"], // Get the earliest reactivation date
-    ],
+    attributes: [[Sequelize.fn("DISTINCT", Sequelize.col("userId")), "userId"]],
     where: {
-      userId: { [Op.in]: churnedUserIds }, // Only previously churned users
-      status: { [Op.in]: ["active", "upgrade"] }, // Reactivation statuses
-      updatedAt: { [Op.between]: [start, end] }, // Reactivated within the same period
+      userId: { [Op.in]: churnedUserIds }, // Must have previously churned
+      status: { [Op.in]: ["active", "upgrade"] }, // Valid reactivation statuses
+      updatedAt: { [Op.between]: [start, end] }, // Must have reactivated in the same period
     },
-    group: ["userId"], // Ensures only unique users
     raw: true,
   });
 
-  // Step 3: Calculate Reactivation Rate
+  // Step 3: Compute Reactivation Rate
   const churnedCount = churnedUserIds.length;
   const reactivatedCount = reactivatedUsers.length;
   const reactivationRate =
