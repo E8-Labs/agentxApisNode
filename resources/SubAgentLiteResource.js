@@ -97,6 +97,9 @@ async function getUserData(subAgent, currentUser = null) {
     phoneNumber: subAgent.phoneNumber,
     voiceId: subAgent.voiceId,
     thumb_profile_image: subAgent.thumb_profile_image,
+    voiceStability: subAgent.voiceStability,
+    initialPauseSeconds: subAgent.initialPauseSeconds,
+    consentRecording: subAgent.consentRecording,
   };
 
   return AgentLiteResource;
