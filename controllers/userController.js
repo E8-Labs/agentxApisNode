@@ -408,8 +408,12 @@ export const RegisterUser = async (req, res) => {
     let areaOfFocus = req.body.areaOfFocus;
     let userIndustry = req.body.userIndustry;
     if (userIndustry && userIndustry.length > 0) {
-      if (typeof userIndustry == "string") {
-        userIndustry = JSON.parse(userIndustry);
+      try {
+        if (typeof userIndustry == "string") {
+          userIndustry = JSON.parse(userIndustry);
+        }
+      } catch (error) {
+        console.log("Error parsing User Industry");
       }
       for (let i = 0; i < userIndustry.length; i++) {
         let service = userIndustry[i];
@@ -436,8 +440,12 @@ export const RegisterUser = async (req, res) => {
       }
     }
     if (agentService && agentService.length > 0) {
-      if (typeof agentService == "string") {
-        agentService = JSON.parse(agentService);
+      try {
+        if (typeof agentService == "string") {
+          agentService = JSON.parse(agentService);
+        }
+      } catch (error) {
+        console.log("Error parsing agent Service");
       }
       for (let i = 0; i < agentService.length; i++) {
         let service = agentService[i];
@@ -464,9 +472,14 @@ export const RegisterUser = async (req, res) => {
       }
     }
     if (areaOfFocus && areaOfFocus.length > 0) {
-      if (typeof areaOfFocus == "string") {
-        areaOfFocus = JSON.parse(areaOfFocus);
+      if (typeof areaOfFocus === "string") {
+        try {
+          areaOfFocus = JSON.parse(areaOfFocus);
+        } catch (error) {
+          console.error("Invalid JSON:", error);
+        }
       }
+
       // areaOfFocus = JSON.parse(areaOfFocus);
       for (let i = 0; i < areaOfFocus.length; i++) {
         let service = areaOfFocus[i];
