@@ -55,21 +55,33 @@ async function getUserData(user, currentUser = null) {
     limit: 1,
   });
 
-  let userIndustry = await db.UserSelectedIndustryModel.findAll({
+  let userIndustry = await db.UserIndustries.findAll({
     where: {
-      userId: user.id,
+      id: {
+        [db.Sequelize.Op.in]: db.Sequelize.literal(
+          `(SELECT industry FROM UserSelectedIndustryModels WHERE userId = ${user.id})`
+        ),
+      },
     },
   });
 
-  let services = await db.UserServicesModel.findAll({
+  let services = await db.AgentServices.findAll({
     where: {
-      userId: user.id,
+      id: {
+        [db.Sequelize.Op.in]: db.Sequelize.literal(
+          `(SELECT agentService FROM UserServicesModels WHERE userId = ${user.id})`
+        ),
+      },
     },
   });
 
-  let focusAreas = await db.UserFocusModel.findAll({
+  let focusAreas = await db.AreaOfFocus.findAll({
     where: {
-      userId: user.id,
+      id: {
+        [db.Sequelize.Op.in]: db.Sequelize.literal(
+          `(SELECT areaOfFocus FROM UserFocusModels WHERE userId = ${user.id})`
+        ),
+      },
     },
   });
 
