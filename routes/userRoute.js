@@ -79,7 +79,7 @@ UserRouter.post(
   DeleteTestNumber
 );
 UserRouter.post("/login", NoAuthMiddleware, LoginUser);
-UserRouter.post("/register", NoAuthMiddleware, uploadFiles, RegisterUser);
+UserRouter.post("/register", uploadFiles, NoAuthMiddleware, RegisterUser);
 
 UserRouter.post("/generateApiKey", verifyJwtTokenWithTeam, GenerateApiKey);
 UserRouter.get("/apiKeys", verifyJwtTokenWithTeam, GetMyApiKeys);
