@@ -103,6 +103,13 @@ export const AddLeads = async (req, res) => {
     }
   }
 
+  let zap = false;
+  if (req.headers["user-agent"] == "Zapier") {
+    zap = true;
+  }
+  console.log("Headers are ", req.headers);
+  console.log("Zap is true", zap);
+
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -281,7 +288,8 @@ export const AddLeads = async (req, res) => {
             leadIds,
             ids,
             req.body.startTimeDifFromNow || 0,
-            req.body.batchSize || 50
+            req.body.batchSize || 50,
+            zap
           );
         }
       }
