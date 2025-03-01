@@ -408,7 +408,9 @@ export const RegisterUser = async (req, res) => {
     let areaOfFocus = req.body.areaOfFocus;
     let userIndustry = req.body.userIndustry;
     if (userIndustry && userIndustry.length > 0) {
-      // agentService = JSON.parse(agentService);
+      if (typeof userIndustry == "string") {
+        userIndustry = JSON.parse(userIndustry);
+      }
       for (let i = 0; i < userIndustry.length; i++) {
         let service = userIndustry[i];
         console.log("Adding Service", service);
@@ -434,7 +436,9 @@ export const RegisterUser = async (req, res) => {
       }
     }
     if (agentService && agentService.length > 0) {
-      // agentService = JSON.parse(agentService);
+      if (typeof agentService == "string") {
+        agentService = JSON.parse(agentService);
+      }
       for (let i = 0; i < agentService.length; i++) {
         let service = agentService[i];
         console.log("Adding Service", service);
@@ -460,6 +464,9 @@ export const RegisterUser = async (req, res) => {
       }
     }
     if (areaOfFocus && areaOfFocus.length > 0) {
+      if (typeof areaOfFocus == "string") {
+        areaOfFocus = JSON.parse(areaOfFocus);
+      }
       // areaOfFocus = JSON.parse(areaOfFocus);
       for (let i = 0; i < areaOfFocus.length; i++) {
         let service = areaOfFocus[i];
