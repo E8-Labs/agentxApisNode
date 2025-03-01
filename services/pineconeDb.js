@@ -115,7 +115,7 @@ export const findVectorData = async (
     const chunkLength = getChunkLength(text);
     console.log("FindingForVector", text);
     // const { chatId, query } = req.body;
-    let topVectors = 20;
+    let topVectors = 5;
     // if(query == null){
     //   console.log("Find Context  query null", text)
     //   topVectors = 5
@@ -136,7 +136,7 @@ export const findVectorData = async (
           agentId: agent.id,
         },
       });
-      // console.log("Found results ", searchResults.length)
+
       allResults.push(searchResults);
     }
 
@@ -145,20 +145,23 @@ export const findVectorData = async (
     if (!allResults) {
       return null;
     }
+    console.log("Found results ", JSON.stringify(allResults));
     const contextTexts = Array.from(
       new Set(
         allResults.flatMap((result) =>
-          result.matches.map((match) => match.metadata.text)
+          result.matches.map((match) =>
+            match.score > 0.7 ? match.metadata.text : ""
+          )
         )
       )
     );
     // return allResults
-    console.log("Found context for user", contextTexts);
+    // console.log("Found context for user", contextTexts);
     let context = "";
     contextTexts.map((text) => {
       context = `${context}\n${text}`;
     });
-    return context; //contextTexts;
+    return context.trim(); //contextTexts;
   } catch (error) {
     console.log("Error finding context ", error);
     return null;

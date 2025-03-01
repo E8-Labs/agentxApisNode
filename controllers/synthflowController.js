@@ -51,6 +51,7 @@ import { WriteToFile } from "../services/FileService.js";
 import { UserTypes } from "../models/user/userModel.js";
 import { generateFailedOrCallVoilationEmail } from "../emails/system/FailedOrCallVoilationEmail.js";
 import { SendEmail } from "../services/MailService.js";
+import { InitialPause, VoiceStability } from "../models/user/agentModel.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -1645,6 +1646,7 @@ export const UpdateSubAgent = async (req, res) => {
       console.log("User ", userId);
       console.log("Update ", req.body);
       let dataToUpdate = {};
+      let agentDataToUpdate = {};
 
       if (req.body.name) {
         dataToUpdate["name"] = req.body.name;
@@ -1659,6 +1661,94 @@ export const UpdateSubAgent = async (req, res) => {
           }
         );
       }
+      if (req.body.voiceStability) {
+        let voiceStability = req.body.voiceStability;
+        let vs = 1;
+        if (voiceStability == VoiceStability.Expressive) {
+          vs = 0;
+        }
+        if (voiceStability == VoiceStability.Balanced) {
+          vs = 0.6;
+        }
+        if (voiceStability == VoiceStability.Steady) {
+          vs = 1;
+        }
+        agentDataToUpdate["voice_stability"] = vs;
+        let updated = await db.AgentModel.update(
+          {
+            voiceStability: req.body.voiceStability,
+          },
+          {
+            where: {
+              id: agent.id,
+            },
+          }
+        );
+      }
+      if (req.body.initialPauseSeconds) {
+        let initialPauseSeconds = req.body.initialPauseSeconds;
+        let vs = 1;
+        if (initialPauseSeconds == InitialPause.Instant) {
+          vs = 0;
+        }
+        if (initialPauseSeconds == InitialPause.ShortPause) {
+          vs = 1;
+        }
+        if (initialPauseSeconds == InitialPause.NaturalConversationFlow) {
+          vs = 2;
+        }
+        agentDataToUpdate["initial_pause_seconds"] = vs;
+        let updated = await db.AgentModel.update(
+          {
+            initialPauseSeconds: initialPauseSeconds,
+          },
+          {
+            where: {
+              id: agent.id,
+            },
+          }
+        );
+      }
+
+      if (req.body.consentRecording) {
+        let consentRecording = req.body.consentRecording;
+        let vs = true;
+        if (consentRecording == "Yes" || consentRecording == true) {
+          vs = true;
+        }
+        if (consentRecording == "No" || consentRecording == false) {
+          vs = false;
+        }
+
+        dataToUpdate["consent_recording"] = vs;
+
+        let updated = await db.AgentModel.update(
+          {
+            consentRecording: vs,
+          },
+          {
+            where: {
+              id: agent.id,
+            },
+          }
+        );
+      }
+      // if (req.body.voiceId) {
+      //   let updated = await db.AgentModel.update(
+      //     {
+      //       voiceId: req.body.voiceId,
+      //     },
+      //     {
+      //       where: {
+      //         id: agent.id,
+      //       },
+      //     }
+      //   );
+      //   agentDataToUpdate["voice_id"] = voiceId;
+      // }
+
+      dataToUpdate.agent = agentDataToUpdate;
+      console.log("Agent data to update", dataToUpdate);
       let updatedSynthflow = await UpdateAssistantSynthflow(
         agent,
         dataToUpdate
@@ -2687,6 +2777,8 @@ export async function CreateAssistantSynthflow(
           );
 
           let kbAction = await CreateAndAttachAction(user, "kb", assistant);
+          assistant.actionId = kbAction.response.action_id;
+          await assistant.save();
 
           let created = await AttachInfoExtractor(
             mainAgent.id,

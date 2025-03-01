@@ -219,6 +219,15 @@ export const RegisterUser = async (req, res) => {
   const email = req.body.email;
   const userType = req.body.userType;
   let phone = req.body.phone;
+
+  let firmOrCompanyAffiliation =
+    req.body.firmOrCompanyAffiliation || req.body.businessAffiliation; //businessAffiliation might not be needed
+  let territory = req.body.territory;
+  // let businessAffiliation = req.body.businessAffiliation;
+  let averageMonthlyClients = req.body.averageMonthlyClients;
+  let caseVolume = req.body.caseVolume;
+  let consultationFormat = req.body.consultationFormat;
+  let clientType = req.body.clientType;
   // if (!phone.startsWith("+")) {
   phone = phone.replace("+", "");
   // }
@@ -348,6 +357,12 @@ export const RegisterUser = async (req, res) => {
     primaryClientType: primaryClientType,
     timeZone: timeZone,
     campaigneeId: campaignee?.id,
+    clientType: clientType,
+    firmOrCompanyAffiliation: firmOrCompanyAffiliation,
+    averageMonthlyClients: averageMonthlyClients,
+    territory: territory,
+    caseVolume: caseVolume,
+    consultationFormat: consultationFormat,
   };
   if (collectionStrategies) {
     userDataRegisteration.collectionStrategies =
@@ -391,8 +406,47 @@ export const RegisterUser = async (req, res) => {
   try {
     let agentService = req.body.agentService;
     let areaOfFocus = req.body.areaOfFocus;
+    let userIndustry = req.body.userIndustry;
+    if (userIndustry && userIndustry.length > 0) {
+      try {
+        if (typeof userIndustry == "string") {
+          userIndustry = JSON.parse(userIndustry);
+        }
+      } catch (error) {
+        console.log("Error parsing User Industry");
+      }
+      for (let i = 0; i < userIndustry.length; i++) {
+        let service = userIndustry[i];
+        console.log("Adding Service", service);
+        let dbService = await db.UserIndustry.findOne({
+          where: {
+            id: service,
+          },
+        });
+        if (!dbService) {
+          dbService = await db.UserIndustry.create({
+            userId: user.id,
+            title: "Other",
+            description: service,
+          });
+        }
+
+        if (dbService) {
+          let created = await db.UserSelectedIndustryModel.create({
+            userId: user.id,
+            industry: dbService.id,
+          });
+        }
+      }
+    }
     if (agentService && agentService.length > 0) {
-      // agentService = JSON.parse(agentService);
+      try {
+        if (typeof agentService == "string") {
+          agentService = JSON.parse(agentService);
+        }
+      } catch (error) {
+        console.log("Error parsing agent Service");
+      }
       for (let i = 0; i < agentService.length; i++) {
         let service = agentService[i];
         console.log("Adding Service", service);
@@ -418,6 +472,14 @@ export const RegisterUser = async (req, res) => {
       }
     }
     if (areaOfFocus && areaOfFocus.length > 0) {
+      if (typeof areaOfFocus === "string") {
+        try {
+          areaOfFocus = JSON.parse(areaOfFocus);
+        } catch (error) {
+          console.error("Invalid JSON:", error);
+        }
+      }
+
       // areaOfFocus = JSON.parse(areaOfFocus);
       for (let i = 0; i < areaOfFocus.length; i++) {
         let service = areaOfFocus[i];
@@ -476,6 +538,7 @@ export const RegisterUser = async (req, res) => {
 };
 
 export const UpdateProfile = async (req, res) => {
+  const removeDuplicates = (arr) => [...new Set(arr)];
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -552,8 +615,42 @@ export const UpdateProfile = async (req, res) => {
       try {
         let agentService = req.body.agentService;
         let areaOfFocus = req.body.areaOfFocus;
+        let userIndustry = req.body.userIndustry;
+        if (userIndustry && userIndustry.length > 0) {
+          userIndustry = removeDuplicates(userIndustry);
+          await db.UserSelectedIndustryModel.destroy({
+            where: {
+              userId: user.id,
+            },
+          });
+          // agentService = JSON.parse(agentService);
+          for (let i = 0; i < userIndustry.length; i++) {
+            let service = userIndustry[i];
+            console.log("Adding Industry", service);
+            let dbService = await db.UserIndustry.findOne({
+              where: {
+                id: service,
+              },
+            });
+            if (!dbService) {
+              dbService = await db.UserIndustry.create({
+                userId: user.id,
+                title: "Other",
+                description: service,
+              });
+            }
+
+            if (dbService) {
+              let created = await db.UserSelectedIndustryModel.create({
+                userId: user.id,
+                industry: dbService.id,
+              });
+            }
+          }
+        }
         if (agentService && agentService.length > 0) {
-          await db.AgentService.destroy({
+          agentService = removeDuplicates(agentService);
+          await db.UserServicesModel.destroy({
             where: {
               userId: user.id,
             },
@@ -584,8 +681,8 @@ export const UpdateProfile = async (req, res) => {
           }
         }
         if (areaOfFocus && areaOfFocus.length > 0) {
-          // areaOfFocus = JSON.parse(areaOfFocus);
-          await db.AreaOfFocus.destroy({
+          areaOfFocus = removeDuplicates(areaOfFocus);
+          await db.UserFocusModel.destroy({
             where: {
               userId: user.id,
             },

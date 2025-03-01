@@ -23,6 +23,7 @@ import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import parsePhoneNumberFromString from "libphonenumber-js";
+import ZapierLeadResource from "../resources/ZapierLeadResource.js";
 const limit = 30;
 /**
  * Check for stage conflicts among agents.
@@ -286,10 +287,15 @@ export const AddLeads = async (req, res) => {
       }
 
       let leadsRes = await LeadResource(dbLeads);
-
+      let zapLeadRes = await ZapierLeadResource(dbLeads);
+      // console.log("Zap ", zapLeadRes);
       //call the api for webhook of this user
       if (dbLeads.length > 0) {
-        await postDataToWebhook(admin, leadsRes, WebhookTypes.TypeNewLeadAdded);
+        await postDataToWebhook(
+          admin,
+          zapLeadRes,
+          WebhookTypes.TypeNewLeadAdded
+        );
       }
       //Send First Lead Notification
       if (leadsCountBefore == 0) {
@@ -397,6 +403,7 @@ export const postDataToWebhook = async (
   data,
   action = WebhookTypes.TypeNewLeadAdded
 ) => {
+  console.log("Zap ", data);
   let ids = await GetTeamIds(user);
   let webhooks = await db.WebhookModel.findAll({
     where: {
@@ -840,8 +847,9 @@ export const UpdateLeadStage = async (req, res) => {
         }
         await lead.save();
         let resource = await LeadResource(lead);
+        let zapLeadRes = await ZapierLeadResource(lead);
 
-        postDataToWebhook(user, [resource], WebhookTypes.TypeStageChange);
+        postDataToWebhook(user, [zapLeadRes], WebhookTypes.TypeStageChange);
         res.send({
           status: true,
           message: `Lead updated`,

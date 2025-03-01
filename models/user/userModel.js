@@ -174,6 +174,36 @@ const User = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+
+    territory: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    businessAffiliation: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    averageMonthlyClients: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+
+    firmOrCompanyAffiliation: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    caseVolume: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    consultationFormat: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    clientType: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return User;

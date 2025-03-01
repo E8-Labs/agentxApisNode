@@ -22,6 +22,7 @@ const SignUser = async (user) => {
 };
 
 export const verifyJwtToken = async (req, response, next) => {
+  let isMobile = detectDevice(req);
   const authHeaders = req.headers["authorization"];
   const apiKeyHeaders = req.headers["x-api-key"];
   console.log("Auth headers");
@@ -30,6 +31,7 @@ export const verifyJwtToken = async (req, response, next) => {
     body: req.body || null,
     query: req.query || null,
     params: req.params || null,
+    isMobile: isMobile,
   });
   if (typeof authHeaders !== "undefined") {
     const parts = authHeaders.split(" ");
@@ -106,6 +108,7 @@ export const verifyJwtTokenWithTeam = async (req, response, next) => {
     body: req.body || null,
     query: req.query || null,
     params: req.params || null,
+    isMobile: isMobile,
   });
   if (typeof authHeaders !== "undefined") {
     const parts = authHeaders.split(" ");
@@ -196,6 +199,29 @@ export const verifyJwtTokenWithTeam = async (req, response, next) => {
       data: null,
     });
   }
+};
+
+export const NoAuthMiddleware = async (req, response, next) => {
+  // console.log(authHeaders);
+  let isMobile = detectDevice(req);
+  console.log("This is on mobile = ", isMobile);
+  let data = JSON.stringify({
+    body: req.body || null,
+    query: req.query || null,
+    params: req.params || null,
+    isMobile: isMobile,
+  });
+
+  // let user = authData.user;
+  db.UserActivityModel.create({
+    action: req.url,
+    method: req.method,
+    activityData: data,
+    userId: 1,
+    authMethod: "none",
+    headers: JSON.stringify(req.headers),
+  });
+  next();
 };
 
 export default verifyJwtToken;

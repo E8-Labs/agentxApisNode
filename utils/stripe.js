@@ -767,28 +767,28 @@ const handleFailedPaymentMethod = async (userId, failedPaymentMethodId) => {
     });
 
     // If there's only one card, remove it
-    if (paymentMethods.data.length === 1) {
-      console.log("Only one payment method available. Removing it.");
-      await stripe.paymentMethods.detach(failedPaymentMethodId);
-      await db.PaymentMethod.destroy({
-        where: {
-          paymentMethodId: failedPaymentMethodId,
-        },
-      });
-      return {
-        status: true,
-        message: "Removed the only payment method for the user.",
-      };
-    }
+    // if (paymentMethods.data.length === 1) {
+    //   console.log("Only one payment method available. Removing it.");
+    //   await stripe.paymentMethods.detach(failedPaymentMethodId);
+    //   await db.PaymentMethod.destroy({
+    //     where: {
+    //       paymentMethodId: failedPaymentMethodId,
+    //     },
+    //   });
+    //   return {
+    //     status: true,
+    //     message: "Removed the only payment method for the user.",
+    //   };
+    // }
 
     // If multiple cards exist, remove the failed one and set the next as default
     console.log("Multiple payment methods available. Removing failed one.");
-    await stripe.paymentMethods.detach(failedPaymentMethodId);
-    await db.PaymentMethod.destroy({
-      where: {
-        paymentMethodId: failedPaymentMethodId,
-      },
-    });
+    // await stripe.paymentMethods.detach(failedPaymentMethodId);
+    // await db.PaymentMethod.destroy({
+    //   where: {
+    //     paymentMethodId: failedPaymentMethodId,
+    //   },
+    // });
     const remainingMethods = paymentMethods.data.filter(
       (method) => method.id !== failedPaymentMethodId
     );
@@ -808,7 +808,7 @@ const handleFailedPaymentMethod = async (userId, failedPaymentMethodId) => {
 
       return {
         status: true,
-        message: "Failed payment method removed, and new default set.",
+        message: "Failed payment method removed default, and new default set.",
       };
     }
 

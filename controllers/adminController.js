@@ -1,6 +1,6 @@
 import JWT from "jsonwebtoken";
 import db from "../models/index.js";
-import { Op } from "sequelize";
+import { Op, fn, col, literal } from "sequelize";
 import axios from "axios";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import UserProfileLiteResource from "../resources/userProfileLiteResource.js";
@@ -359,9 +359,14 @@ export async function GetAdminStats(req, res) {
   });
 }
 
-export async function calculateSubscriptionStats(duration, month) {
-  const startDate = new Date("2025-01-01");
-  const endDate = new Date();
+export async function calculateSubscriptionStats(
+  duration,
+  month,
+  startDate = new Date("2025-01-01"),
+  endDate = new Date()
+) {
+  // const startDate = new Date("2025-01-01");
+  // const endDate = new Date();
 
   console.log("Duration is ", duration);
   let interval;
@@ -474,15 +479,7 @@ export async function calculateSubscriptionStats(duration, month) {
   }
 
   // Reactivation Rate
-  let reactivationRate = {};
-  let reactivatedUsers = await db.PlanHistory.findAll({
-    attributes: ["userId"],
-    where: {
-      status: "reactivated",
-    },
-    raw: true,
-  });
-  reactivationRate.count = reactivatedUsers.length;
+  let reactivationRate = await calculateReactivationRate(startDate, endDate);
 
   // Referral Code Rate
   let referralCodeRate = await db.User.count({
@@ -499,6 +496,95 @@ export async function calculateSubscriptionStats(duration, month) {
     reactivationRate,
     referralCodeRate,
   };
+}
+
+async function calculateReactivationRate(startDate, endDate) {
+  if (!startDate || !endDate) {
+    throw new Error("Both startDate and endDate are required.");
+  }
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  // Step 1: Get DISTINCT user IDs of users who churned (cancelled)
+  const churnedUsers = await db.PlanHistory.findAll({
+    attributes: ["userId"], // Selecting only userId
+    where: {
+      status: "cancelled",
+      updatedAt: { [Op.between]: [start, end] },
+    },
+    group: ["userId"], // This ensures unique userId selection
+    raw: true,
+  });
+
+  const churnedUserIds = churnedUsers.map((user) => user.userId);
+
+  if (churnedUserIds.length === 0) {
+    return {
+      churnedCount: 0,
+      reactivatedCount: 0,
+      reactivationRate: "0%",
+    };
+  }
+
+  // Step 2: Find DISTINCT user IDs who reactivated (subscribed again)
+  const reactivatedUsers = await db.sequelize.query(
+    `
+    SELECT DISTINCT userId FROM PlanHistories
+    WHERE userId IN (:churnedUserIds)
+    AND status IN ('active', 'upgrade')
+    AND updatedAt BETWEEN :start AND :end
+    `,
+    {
+      replacements: { churnedUserIds, start, end },
+      type: db.Sequelize.QueryTypes.SELECT,
+    }
+  );
+
+  const reactivatedUserIds = reactivatedUsers.map((user) => user.userId);
+
+  // Step 3: Compute Reactivation Rate
+  const churnedCount = churnedUserIds.length;
+  const reactivatedCount = reactivatedUserIds.length;
+  const reactivationRate =
+    churnedCount > 0
+      ? ((reactivatedCount / churnedCount) * 100).toFixed(2) + "%"
+      : "0%";
+
+  return {
+    churnedCount,
+    reactivatedCount,
+    reactivationRate,
+  };
+}
+
+async function fetchUserPlans(startDate) {
+  if (!startDate) {
+    throw new Error("startDate is required.");
+  }
+
+  const start = new Date(startDate);
+
+  let userPlansTrials = await db.sequelize.query(
+    `
+    SELECT ph.id, ph.userId, ph.type, ph.createdAt, ph.status, u.isTrial
+    FROM PlanHistories AS ph
+    LEFT JOIN Users AS u ON ph.userId = u.id
+    WHERE ph.createdAt >= :startDate
+    AND ph.id = (
+        SELECT MIN(id) FROM PlanHistories 
+        WHERE userId = ph.userId
+        AND createdAt >= :startDate
+    )
+    ORDER BY ph.createdAt ASC
+    `,
+    {
+      replacements: { startDate: start },
+      type: db.Sequelize.QueryTypes.SELECT,
+    }
+  );
+
+  return userPlansTrials;
 }
 
 async function calculateUpgradeBreakdown(startDate) {
@@ -541,17 +627,7 @@ async function calculateUpgradeBreakdown(startDate) {
     Plan720: 0,
   };
 
-  let userPlansTrials = await db.PlanHistory.findAll({
-    attributes: ["id", "userId", "type", "createdAt", "status"],
-    include: [{ model: db.User, attributes: ["isTrial"] }],
-    where: {
-      createdAt: { [Op.gte]: new Date(startDate) },
-      // type: PayAsYouGoPlanTypes.Plan30Min,
-    },
-    order: [["createdAt", "ASC"]], // Order by oldest first
-    group: ["userId"], // Fetch only the first entry for each user
-    raw: true,
-  });
+  let userPlansTrials = await fetchUserPlans(startDate);
 
   console.log(userPlansTrials);
   console.log(`${userPlansTrials.length} started `);
@@ -615,8 +691,45 @@ async function calculateUpgradeBreakdown(startDate) {
   return { upgradeBreakdown, cancellations, Plans };
 }
 
-async function calculateCLV(averageRevenuePerUser, customerLifetimeMonths) {
-  return averageRevenuePerUser * customerLifetimeMonths;
+async function calculateAvgCLV() {
+  // Define the date range for the last 6 months
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  // Fetch payments within the last 6 months
+  const payments = await db.PaymentHistory.findAll({
+    attributes: ["userId", "price"],
+    // where: {
+    //   createdAt: {
+    //     [Op.gte]: sixMonthsAgo,
+    //   },
+    // },
+    raw: true,
+  });
+
+  // Calculate total revenue per user
+  let userRevenue = 0;
+  let userIds = [];
+  let uniqueUsers = 0;
+  payments.forEach(({ userId, price }) => {
+    if (!userIds.includes(userId)) {
+      userIds.push(userId);
+      uniqueUsers += 1;
+    }
+
+    userRevenue += price;
+  });
+  console.log(`Users ${uniqueUsers} has total ${userRevenue}`);
+
+  // Calculate CLV per user
+  // const clvValues = Object.values(userRevenue).map((totalSpent) => {
+  //   return (totalSpent / 6) * 6; // Avg per month * 6 months
+  // });
+
+  // Compute the overall average CLV
+  const avgCLV = (userRevenue / uniqueUsers) * 6;
+
+  return avgCLV.toFixed(2);
 }
 
 // Function to calculate Monthly Recurring Revenue (MRR)
@@ -635,18 +748,18 @@ async function calculateMRR(plan = null) {
         // },
       },
     });
-    return totalMRR;
+    return totalMRR.toFixed(2);
   }
 }
 
 // Function to calculate Annual Recurring Revenue (ARR)
 async function calculateARR() {
   let totalMRR = await calculateMRR();
-  return totalMRR * 12;
+  return (totalMRR * 12).toFixed(2);
 }
 
 // Function to calculate Net Revenue Retention (NRR)
-async function calculateNRR() {
+async function calculateNRR(startDate = new Date()) {
   let revenueStart = await db.PlanHistory.sum("price", {
     where: { createdAt: { [Op.lte]: new Date(startDate) } },
   });
@@ -657,7 +770,7 @@ async function calculateNRR() {
     where: { status: "cancelled" },
   });
 
-  return ((revenueEnd - lostRevenue) / revenueStart) * 100;
+  return (((revenueEnd - lostRevenue) / revenueStart) * 100).toFixed(2);
 }
 
 export async function GetAdminAnalytics(req, res) {
@@ -668,6 +781,9 @@ export async function GetAdminAnalytics(req, res) {
         message: "Unauthorized access. Invalid token.",
       });
     }
+
+    let startDate = new Date(req.query.startDate || "2025-01-01");
+    let endDate = new Date(req.query.endDate || new Date());
 
     let offset = Number(req.query.offset || 0) || 0;
     // let limit = Number(req.query.limit || limit) || limit; // Default limit
@@ -694,7 +810,16 @@ export async function GetAdminAnalytics(req, res) {
         });
       }
 
-      let stats = await calculateSubscriptionStats("monthly", 0, 1);
+      let stats = await calculateSubscriptionStats(
+        "monthly",
+        0,
+        startDate,
+        endDate
+      );
+      stats.clv = await calculateAvgCLV();
+      stats.nrr = await calculateNRR();
+      stats.mrr = await calculateMRR();
+      stats.arr = await calculateARR();
       return res.send({
         status: true,
         message: "Admin analytics",

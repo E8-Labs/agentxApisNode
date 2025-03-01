@@ -9,11 +9,14 @@ import {
   AddKnowledgebase,
   DeleteKnowledgebase,
   GetKnowledgebase,
+  SearchKb,
 } from "../controllers/KbController.js";
 
 let kbRouter = express.Router();
 
 kbRouter.get("/getKnowledgebase", verifyJwtTokenWithTeam, GetKnowledgebase);
+
+kbRouter.get("/searchKb", SearchKb);
 kbRouter.post(
   "/addKnowledgebase",
   verifyJwtTokenWithTeam,

@@ -156,10 +156,10 @@ function GetActionApiData(user, assistant, type = "kb") {
       query_parameters: [
         {
           key: "user_question",
-          value: "what do you think about the gender equality?",
+          value: "<user_question>",
         },
       ],
-      prompt: `Use the result from <results.data.message> and respond accordingly`,
+      prompt: `Use the result from <results.data.data> and respond accordingly`,
     };
   }
   if (type == "booking") {
@@ -228,13 +228,13 @@ export async function CreateAndAttachAction(user, type = "kb", assistant) {
     );
     if (attached.status == "success") {
       console.log("Action attached");
-      return true;
+      return action;
     } else {
-      return false;
+      return null;
     }
   } else {
     console.log("Could not create action", action);
-    return false;
+    return null;
   }
 }
 

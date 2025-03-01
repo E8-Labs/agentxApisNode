@@ -1,10 +1,10 @@
-const UserServicesModel = (sequelize, Sequelize) => {
-  const UserServicesModel = sequelize.define("UserServicesModel", {
-    agentService: {
+const UserSelectedIndustryModel = (sequelize, Sequelize) => {
+  const UserServicesModel = sequelize.define("UserSelectedIndustryModel", {
+    industry: {
       type: Sequelize.INTEGER,
       allowNull: false,
       references: {
-        model: "AgentServices",
+        model: "UserIndustries",
         key: "id",
       },
       onDelete: "CASCADE",
@@ -25,4 +25,4 @@ const UserServicesModel = (sequelize, Sequelize) => {
   return UserServicesModel;
 };
 
-export default UserServicesModel;
+export default UserSelectedIndustryModel;
