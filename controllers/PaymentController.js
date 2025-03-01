@@ -922,14 +922,18 @@ export async function ReChargeUserAccount(user) {
 
   let paymentAddedAfterFailure = false;
 
-  if (
-    !lastFailedPayment ||
-    new Date(lastFailedPayment.createdAt) <
-      new Date(lastPaymentMethodAdded.createdAt)
-  ) {
-    // User has added a new payment method after failure, retry immediately.
+  if (!lastFailedPayment) {
+    //there is no last failed payment
     paymentAddedAfterFailure = true;
-  } else {
+  } else if (lastFailedPayment && lastPaymentMethodAdded) {
+    if (
+      new Date(lastFailedPayment.createdAt) <
+      new Date(lastPaymentMethodAdded.createdAt)
+    ) {
+      // User has added a new payment method after failure, retry immediately.
+      paymentAddedAfterFailure = true;
+    }
+  } else if (lastFailedPayment) {
     // Check if 24 hours have passed since the last failed payment
     const failedTime = new Date(lastFailedPayment.createdAt);
     const currentTime = new Date();
