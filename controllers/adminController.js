@@ -11,7 +11,7 @@ import UserProfileAdminResource from "../resources/UserProfileAdminResource.js";
 import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
 
 export async function calculateAvgSessionDuration(db) {
-  const sessionTimeout = 10 * 60 * 1000; // 10 minutes in milliseconds
+  const sessionTimeout = 20 * 60 * 1000; // 20 minutes in milliseconds
 
   // Fetch all user activity logs sorted by user & time
   const userActivities = await db.UserActivityModel.findAll({
@@ -65,7 +65,7 @@ export async function calculateAvgSessionDuration(db) {
 export async function calculateAvgDAU(days = 30) {
   const startDate = new Date();
   startDate.setDate(1);
-  startDate.setMonth(0);
+  startDate.setMonth(1);
   startDate.setFullYear(2025);
 
   const dailyUserCounts = await db.UserActivityModel.findAll({
@@ -97,7 +97,7 @@ export async function calculateAvgDAU(days = 30) {
 export async function calculateAvgMAU() {
   const startDate = new Date();
   startDate.setDate(1);
-  startDate.setMonth(0);
+  startDate.setMonth(1);
   startDate.setFullYear(2025);
 
   const monthlyUserCounts = await db.UserActivityModel.findAll({
@@ -134,7 +134,7 @@ export async function calculateAvgMAU() {
 export async function fetchUserStats(days = 0, months = 0, years = 0) {
   const startDate = new Date();
   startDate.setDate(1);
-  startDate.setMonth(0);
+  startDate.setMonth(1);
   startDate.setFullYear(2025);
 
   const totalUsers = await db.User.count({ where: { userRole: "AgentX" } });
@@ -172,6 +172,7 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
   const dauPercentage = ((dailyActiveUsers / totalUsers) * 100).toFixed(2);
   const mauPercentage = ((monthlyActiveUsers / totalUsers) * 100).toFixed(2);
 
+  //udpate to calculate average starting from feb 1st
   const weeklySignups = await db.User.count({
     where: {
       createdAt: {

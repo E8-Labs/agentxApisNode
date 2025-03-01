@@ -236,6 +236,9 @@ async function getUserData(mainAgent, currentUser = null) {
     // calendar: calendar,
     alreadyAssignedGlobal:
       alreadyUsedGlobalNumber && alreadyUsedGlobalNumber.length > 0,
+    voiceStability,
+    initialPauseSeconds,
+    consentRecording,
     // calls: calls,
     // callsGreaterThan10Sec: callsGt10,
     // durationInMin: durationText,
