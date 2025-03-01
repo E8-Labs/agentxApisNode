@@ -55,7 +55,7 @@ async function getUserData(user, currentUser = null) {
     limit: 1,
   });
 
-  let userIndustry = await db.UserIndustries.findAll({
+  let userIndustry = await db.UserIndustry.findAll({
     where: {
       id: {
         [db.Sequelize.Op.in]: db.Sequelize.literal(
@@ -65,7 +65,7 @@ async function getUserData(user, currentUser = null) {
     },
   });
 
-  let services = await db.AgentServices.findAll({
+  let services = await db.AgentService.findAll({
     where: {
       id: {
         [db.Sequelize.Op.in]: db.Sequelize.literal(
