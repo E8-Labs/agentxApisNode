@@ -217,8 +217,8 @@ export const NoAuthMiddleware = async (req, response, next) => {
     action: req.url,
     method: req.method,
     activityData: data,
-    userId: user.id,
-    authMethod: "jwt",
+    // userId: user.id,
+    authMethod: "none",
     headers: JSON.stringify(headers),
   });
   next();

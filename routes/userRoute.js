@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 
 import verifyJwtToken, {
+  NoAuthMiddleware,
   verifyJwtTokenWithTeam,
 } from "../middleware/jwtmiddleware.js";
 import {
@@ -60,11 +61,25 @@ const uploadMedia = multer().fields([
 
 let UserRouter = express.Router();
 
-UserRouter.post("/sendVerificationCode", SendPhoneVerificationCode);
-UserRouter.post("/addTestNumbers", uploadFiles, AddTestNumber);
-UserRouter.post("/deleteTestNumber", uploadFiles, DeleteTestNumber);
-UserRouter.post("/login", LoginUser);
-UserRouter.post("/register", uploadFiles, RegisterUser);
+UserRouter.post(
+  "/sendVerificationCode",
+  NoAuthMiddleware,
+  SendPhoneVerificationCode
+);
+UserRouter.post(
+  "/addTestNumbers",
+  NoAuthMiddleware,
+  uploadFiles,
+  AddTestNumber
+);
+UserRouter.post(
+  "/deleteTestNumber",
+  NoAuthMiddleware,
+  uploadFiles,
+  DeleteTestNumber
+);
+UserRouter.post("/login", NoAuthMiddleware, LoginUser);
+UserRouter.post("/register", NoAuthMiddleware, uploadFiles, RegisterUser);
 
 UserRouter.post("/generateApiKey", verifyJwtTokenWithTeam, GenerateApiKey);
 UserRouter.get("/apiKeys", verifyJwtTokenWithTeam, GetMyApiKeys);
@@ -89,10 +104,10 @@ UserRouter.post(
 // getTransactionsHistory
 
 // UserRouter.post("/updateProfile", verifyJwtTokenWithTeam, uploadFiles, UpdateProfile);
-UserRouter.post("/checkPhoneNumber", CheckPhoneExists);
+UserRouter.post("/checkPhoneNumber", NoAuthMiddleware, CheckPhoneExists);
 // UserRouter.post("/checkUsernameExists", CheckUsernameExists);
 // UserRouter.get("/getProfileFromUsername", GetProfileWithUsername);
-UserRouter.post("/checkEmailExists", CheckEmailExists);
+UserRouter.post("/checkEmailExists", NoAuthMiddleware, CheckEmailExists);
 // UserRouter.post("/sendVerificationCode", SendPhoneVerificationCode);
 // UserRouter.post("/verifyCode", VerifyPhoneCode);
 
