@@ -906,6 +906,46 @@ export async function ReChargeUserAccount(user) {
   // console.log("Current date", now);
 
   let isTrialActive = await IsTrialActive(user);
+  let lastFailedPayment = await db.PaymentMethodFails.findOne({
+    wehre: {
+      userId: user.id,
+    },
+    order: [["createdAt", "DESC"]],
+  });
+
+  let lastPaymentMethodAdded = await db.PaymentMethod.findOne({
+    where: {
+      userId: user.id,
+    },
+    order: [["createdAt", "DESC"]],
+  });
+
+  let paymentAddedAfterFailure = false;
+
+  if (
+    !lastFailedPayment ||
+    new Date(lastFailedPayment.createdAt) <
+      new Date(lastPaymentMethodAdded.createdAt)
+  ) {
+    // User has added a new payment method after failure, retry immediately.
+    paymentAddedAfterFailure = true;
+  } else {
+    // Check if 24 hours have passed since the last failed payment
+    const failedTime = new Date(lastFailedPayment.createdAt);
+    const currentTime = new Date();
+    const hoursPassed = (currentTime - failedTime) / (1000 * 60 * 60); // Convert ms to hours
+
+    if (hoursPassed >= 24) {
+      // 24 hours have passed, so mark as true to retry charge
+      paymentAddedAfterFailure = true;
+    }
+  }
+
+  if (!paymentAddedAfterFailure) {
+    console.log("No chargeable payment method found");
+    return;
+  }
+
   if (nextChargeDate < now) {
     console.log("User ", user.id);
     console.log("Next Charged is less", user.nextChargeDate);

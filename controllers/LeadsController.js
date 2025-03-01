@@ -288,7 +288,7 @@ export const AddLeads = async (req, res) => {
 
       let leadsRes = await LeadResource(dbLeads);
       let zapLeadRes = await ZapierLeadResource(dbLeads);
-
+      // console.log("Zap ", zapLeadRes);
       //call the api for webhook of this user
       if (dbLeads.length > 0) {
         await postDataToWebhook(
@@ -403,6 +403,7 @@ export const postDataToWebhook = async (
   data,
   action = WebhookTypes.TypeNewLeadAdded
 ) => {
+  console.log("Zap ", data);
   let ids = await GetTeamIds(user);
   let webhooks = await db.WebhookModel.findAll({
     where: {
