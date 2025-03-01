@@ -212,7 +212,7 @@ export const NoAuthMiddleware = async (req, response, next) => {
     isMobile: isMobile,
   });
 
-  let user = authData.user;
+  // let user = authData.user;
   db.UserActivityModel.create({
     action: req.url,
     method: req.method,
