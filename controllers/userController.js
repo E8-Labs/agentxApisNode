@@ -406,6 +406,33 @@ export const RegisterUser = async (req, res) => {
   try {
     let agentService = req.body.agentService;
     let areaOfFocus = req.body.areaOfFocus;
+    let userIndustry = req.body.userIndustry;
+    if (userIndustry && userIndustry.length > 0) {
+      // agentService = JSON.parse(agentService);
+      for (let i = 0; i < userIndustry.length; i++) {
+        let service = userIndustry[i];
+        console.log("Adding Service", service);
+        let dbService = await db.UserIndustry.findOne({
+          where: {
+            id: service,
+          },
+        });
+        if (!dbService) {
+          dbService = await db.UserIndustry.create({
+            userId: user.id,
+            title: "Other",
+            description: service,
+          });
+        }
+
+        if (dbService) {
+          let created = await db.UserSelectedIndustryModel.create({
+            userId: user.id,
+            industry: dbService.id,
+          });
+        }
+      }
+    }
     if (agentService && agentService.length > 0) {
       // agentService = JSON.parse(agentService);
       for (let i = 0; i < agentService.length; i++) {
@@ -568,6 +595,39 @@ export const UpdateProfile = async (req, res) => {
       try {
         let agentService = req.body.agentService;
         let areaOfFocus = req.body.areaOfFocus;
+        let userIndustry = req.body.userIndustry;
+        if (userIndustry && userIndustry.length > 0) {
+          userIndustry = removeDuplicates(userIndustry);
+          await db.UserSelectedIndustryModel.destroy({
+            where: {
+              userId: user.id,
+            },
+          });
+          // agentService = JSON.parse(agentService);
+          for (let i = 0; i < userIndustry.length; i++) {
+            let service = userIndustry[i];
+            console.log("Adding Industry", service);
+            let dbService = await db.UserIndustry.findOne({
+              where: {
+                id: service,
+              },
+            });
+            if (!dbService) {
+              dbService = await db.UserIndustry.create({
+                userId: user.id,
+                title: "Other",
+                description: service,
+              });
+            }
+
+            if (dbService) {
+              let created = await db.UserSelectedIndustryModel.create({
+                userId: user.id,
+                industry: dbService.id,
+              });
+            }
+          }
+        }
         if (agentService && agentService.length > 0) {
           agentService = removeDuplicates(agentService);
           await db.UserServicesModel.destroy({

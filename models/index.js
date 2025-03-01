@@ -66,6 +66,7 @@ import { UserTwilioAccounts } from "./user/UserTwilioAccount.js";
 import PaymentMethod from "./user/payment/paymentMethod.js";
 import PaymentMethodFails from "./user/payment/PaymentFails.js";
 import KnowledgeBase from "./user/knowlegebase/Knowledgebase.js";
+import UserSelectedIndustryModel from "./user/UserSelectedIndustry.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -112,6 +113,7 @@ db.User.hasMany(db.KnowledgeBase, {
 
 db.UserFocusModel = UserFocusModel(sequelize, Sequelize);
 db.UserServicesModel = UserServicesModel(sequelize, Sequelize);
+db.UserSelectedIndustryModel = UserSelectedIndustryModel(sequelize, Sequelize);
 
 db.UserPhoneNumbers = UserPhoneNumbers(sequelize, Sequelize);
 db.User.hasMany(db.UserPhoneNumbers, {

@@ -55,6 +55,12 @@ async function getUserData(user, currentUser = null) {
     limit: 1,
   });
 
+  let userIndustry = await db.UserSelectedIndustryModel.findAll({
+    where: {
+      userId: user.id,
+    },
+  });
+
   let services = await db.UserServicesModel.findAll({
     where: {
       userId: user.id,
@@ -110,6 +116,7 @@ async function getUserData(user, currentUser = null) {
     unread: unread,
     focusAreas,
     services,
+    userIndustry,
     cards: cards,
     campaignee: campaignee,
     waitlist: waitlist,
