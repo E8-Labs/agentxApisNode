@@ -142,14 +142,7 @@ async function getUserData(lead, currentUser = null) {
       return callData;
     });
   }
-  // console.log("Formatted calls zapier ", formattedCalls);
 
-  // let scheduled = await db.ScheduledBooking.findOne({
-  //   where: {
-  //     leadId: lead.id,
-  //   },
-  //   order: [["createdAt", "DESC"]],
-  // });
   let scheduledBookings = await fetchFutureBookings(lead);
   let scheduled = null;
   if (scheduledBookings && scheduledBookings.length > 0) {

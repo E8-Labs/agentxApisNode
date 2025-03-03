@@ -12,8 +12,9 @@ import {
   GetUsersForAffiliates,
   GetAdminEngagements,
   GetUsersWithUniqueNumbers,
-  GetCallLogs,
 } from "../controllers/adminController.js";
+
+import { GetCallLogs } from "../controllers/AdminCallAndUser.js";
 
 const uploadFiles = multer().fields([
   { name: "media", maxCount: 1 },
