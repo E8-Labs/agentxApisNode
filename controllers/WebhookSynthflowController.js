@@ -672,10 +672,13 @@ async function extractIEAndStoreKycs(
     for (const key of keys) {
       const data = extractors[key];
       const returnValue = data.return_value;
-      let question = key.replace("info_extractor_", "");
-      console.log("Question is ", question);
-      const answer = returnValue[question];
+      let question = key.replace("info_extractor_", "").trim();
+      console.log("Question is :", question);
 
+      // console.log("Return val :", Object.keys(returnValue)[0]);
+      let questionWithoutSpacesAndQuotes = question.replace(/^"(.*)"$/, "$1");
+      const answer = returnValue[questionWithoutSpacesAndQuotes];
+      console.log("Return val :", questionWithoutSpacesAndQuotes);
       ie[question] = answer;
       console.log(`IE found ${question} : ${answer}`);
       if (question.startsWith("book_appointment_with")) {
@@ -735,6 +738,7 @@ async function extractIEAndStoreKycs(
 
       if (lead) {
         if (typeof answer === "string") {
+          console.log("Answer is of type string");
           if (question === "prospectemail") {
             const emailFound = await db.LeadEmailModel.findOne({
               where: { email: answer, leadId: lead.id },
@@ -756,6 +760,7 @@ async function extractIEAndStoreKycs(
               await lead.save();
             }
           } else if (!question.includes(process.env.StagePrefix)) {
+            console.log("Found kyc", question);
             let found = await db.InfoExtractorModel.findOne({
               where: { identifier: question },
             });

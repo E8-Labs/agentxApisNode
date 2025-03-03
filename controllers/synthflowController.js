@@ -1668,7 +1668,7 @@ export const UpdateSubAgent = async (req, res) => {
           vs = 0;
         }
         if (voiceStability == VoiceStability.Balanced) {
-          vs = 0.6;
+          vs = 0.5;
         }
         if (voiceStability == VoiceStability.Steady) {
           vs = 1;

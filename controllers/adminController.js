@@ -9,9 +9,10 @@ import { UserTypes } from "../models/user/userModel.js";
 import AffilitateResource from "../resources/AffiliateResource.js";
 import UserProfileAdminResource from "../resources/UserProfileAdminResource.js";
 import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
+import { getEngagementsData } from "./AdminEngagements.js";
 
 export async function calculateAvgSessionDuration(db) {
-  const sessionTimeout = 10 * 60 * 1000; // 10 minutes in milliseconds
+  const sessionTimeout = 20 * 60 * 1000; // 20 minutes in milliseconds
 
   // Fetch all user activity logs sorted by user & time
   const userActivities = await db.UserActivityModel.findAll({
@@ -65,7 +66,7 @@ export async function calculateAvgSessionDuration(db) {
 export async function calculateAvgDAU(days = 30) {
   const startDate = new Date();
   startDate.setDate(1);
-  startDate.setMonth(0);
+  startDate.setMonth(1);
   startDate.setFullYear(2025);
 
   const dailyUserCounts = await db.UserActivityModel.findAll({
@@ -97,7 +98,7 @@ export async function calculateAvgDAU(days = 30) {
 export async function calculateAvgMAU() {
   const startDate = new Date();
   startDate.setDate(1);
-  startDate.setMonth(0);
+  startDate.setMonth(1);
   startDate.setFullYear(2025);
 
   const monthlyUserCounts = await db.UserActivityModel.findAll({
@@ -134,7 +135,7 @@ export async function calculateAvgMAU() {
 export async function fetchUserStats(days = 0, months = 0, years = 0) {
   const startDate = new Date();
   startDate.setDate(1);
-  startDate.setMonth(0);
+  startDate.setMonth(1);
   startDate.setFullYear(2025);
 
   const totalUsers = await db.User.count({ where: { userRole: "AgentX" } });
@@ -172,6 +173,7 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
   const dauPercentage = ((dailyActiveUsers / totalUsers) * 100).toFixed(2);
   const mauPercentage = ((monthlyActiveUsers / totalUsers) * 100).toFixed(2);
 
+  //udpate to calculate average starting from feb 1st
   const weeklySignups = await db.User.count({
     where: {
       createdAt: {
@@ -187,8 +189,12 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
   // Unique Phone Numbers
   const uniquePhoneUsers = await db.AgentModel.count({
     distinct: true,
-    col: "phoneNumber",
+    col: "userId", // Count unique users
+    where: {
+      phoneNumber: { [Op.ne]: "" }, // Only consider agents with a phone number assigned
+    },
   });
+
   const uniquePhonePercentage = (uniquePhoneUsers / totalUsers) * 100;
 
   // Users with More than 1 Pipeline
@@ -253,7 +259,7 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
     },
     group: ["voiceId"],
     order: [[db.Sequelize.literal("count"), "DESC"]],
-    limit: 3,
+    limit: 30,
   });
 
   const totalUsersWithVoice = await db.AgentModel.count({
@@ -392,6 +398,7 @@ export async function calculateSubscriptionStats(
     // Plan360: {},
     // Plan720: {},
   };
+  let totalSubscriptions = 0;
   let allPlans = ["Plan30", "Plan120", "Plan360", "Plan720"];
   for (let plan of allPlans) {
     let planStats = {};
@@ -419,6 +426,7 @@ export async function calculateSubscriptionStats(
           type: plan,
         },
       });
+      totalSubscriptions += count;
       if (planStats[label]) {
         planStats[label] += count;
       } else {
@@ -491,6 +499,7 @@ export async function calculateSubscriptionStats(
   return {
     planSubscriptionStats,
     subscription: upgradeBreakdown,
+    totalSubscriptions: totalSubscriptions,
     // planCancellations,
     // monthlyPlanCounts,
     reactivationRate,
@@ -824,6 +833,51 @@ export async function GetAdminAnalytics(req, res) {
         status: true,
         message: "Admin analytics",
         data: stats,
+      });
+    }
+  });
+}
+
+export async function GetAdminEngagements(req, res) {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    let startDate = new Date(req.query.startDate || "2025-01-01");
+    let endDate = new Date(req.query.endDate || new Date());
+
+    if (authData) {
+      let userId = authData.user.id;
+
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      let engegements = await getEngagementsData(startDate, endDate);
+
+      return res.send({
+        status: true,
+        message: "Admin engagements",
+        data: engegements,
       });
     }
   });
@@ -1164,6 +1218,7 @@ export async function GetAffiliates(req, res) {
           "email",
           "phone",
           "uniqueUrl",
+          "createdAt",
           [
             db.Sequelize.literal(`(
               SELECT COUNT(*) FROM Users WHERE campaigneeId = CampaigneeModel.id
@@ -1303,6 +1358,79 @@ export async function DeleteAnAffiliate(req, res) {
         data: affiliateDel,
         message: "Affiliate deleted",
       });
+    }
+  });
+}
+
+export async function GetUsersWithUniqueNumbers(req, res) {
+  let { id } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    let offset = Number(req.query.offset || 0) || 0;
+    // let limit = Number(req.query.limit || limit) || limit; // Default limit
+
+    if (authData) {
+      let userId = authData.user.id;
+
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      const usersWithPhoneCount = await db.User.findAll({
+        attributes: [
+          "id", // User ID
+          "name",
+          "email",
+          "phone",
+          "thumb_profile_image",
+          [
+            db.Sequelize.fn(
+              "COUNT",
+              db.Sequelize.fn(
+                "DISTINCT",
+                db.Sequelize.col("agents.phoneNumber")
+              )
+            ),
+            "phoneCount",
+          ],
+        ],
+        include: [
+          {
+            model: db.AgentModel,
+            as: "agents", // Use the alias defined in associations
+            attributes: [], // We don’t need extra fields from AgentModel, just the count
+            where: {
+              phoneNumber: { [Op.ne]: "" }, // Only count valid phone numbers
+            },
+            required: true, // Ensures only users with at least one agent phone number are included
+          },
+        ],
+        group: ["User.id"],
+        raw: true, // Return plain JSON
+      });
+
+      return res.send({ status: true, data: usersWithPhoneCount });
     }
   });
 }
