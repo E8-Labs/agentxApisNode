@@ -1437,6 +1437,125 @@ export async function GetUsersWithUniqueNumbers(req, res) {
   });
 }
 
+// export const GetCallLogs = async (req, res) => {
+//   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+//     if (authData) {
+//       let offset = Number(req.query.offset) || 0;
+//       let userId = authData.user.id;
+//       if (req.query.userId) {
+//         userId = req.query.userId;
+//       }
+//       let user = await db.User.findByPk(userId);
+//       if (user.userType !== "admin") {
+//         return res.status(401).send({
+//           status: false,
+//           message: "Unauthorized access. Only admin can access this",
+//         });
+//       }
+//       try {
+//         const { name, duration, status, startDate, endDate, stageIds } =
+//           req.query; // duration in seconds
+
+//         // Define filters for LeadCallsSent
+//         const callLogFilters = {};
+
+//         // Define filters for LeadModel (related model)
+//         const leadFilters = {
+//           // userId: {
+//           //   [db.Sequelize.Op.in]: teamIds,
+//           // }, // Ensure the lead belongs to the user
+//         };
+
+//         const agentFilters = {};
+
+//         if (name) {
+//           // leadFilters[Op.or] = [
+//           //   { firstName: { [Op.like]: `%${name}%` } },
+//           //   { lastName: { [Op.like]: `%${name}%` } },
+//           //   { phone: { [Op.like]: `%${name}%` } },
+//           //   { email: { [Op.like]: `%${name}%` } },
+//           // ];
+//           agentFilters["$agent.user.name$"] = { [Op.like]: `%${name}%` };
+//           console.log("Name filter", agentFilters);
+//         }
+
+//         if (stageIds) {
+//           const stagesArray = stageIds
+//             .split(",")
+//             .map((id) => parseInt(id.trim(), 10));
+//           // leadFilters.stage = { [Op.in]: stagesArray };
+//           callLogFilters.stage = { [Op.in]: stagesArray };
+//         }
+
+//         if (duration) {
+//           const [minDuration, maxDuration] = duration.split("-");
+//           callLogFilters.duration = {
+//             [Op.gte]: parseFloat(minDuration) || 0,
+//             [Op.lte]: parseFloat(maxDuration) || Number.MAX_SAFE_INTEGER,
+//           };
+//         }
+
+//         if (status) {
+//           callLogFilters.status = { [Op.like]: `%${status}%` };
+//         }
+
+//         if (startDate && endDate) {
+//           const adjustedFromDate = new Date(startDate);
+//           adjustedFromDate.setHours(0, 0, 0, 0);
+
+//           const adjustedToDate = new Date(endDate);
+//           adjustedToDate.setHours(23, 59, 59, 999);
+
+//           callLogFilters.createdAt = {
+//             [Op.between]: [adjustedFromDate, adjustedToDate],
+//           };
+//         }
+
+//         // Query to fetch call logs
+//         const callLogs = await db.LeadCallsSent.findAll({
+//           where: callLogFilters,
+//           order: [["createdAt", "DESC"]],
+//           offset: offset,
+//           limit: limit,
+//           include: [
+//             {
+//               model: db.LeadModel,
+//               as: "LeadModel",
+//               where: leadFilters, // Apply the stage filter here
+//             },
+//             {
+//               model: db.AgentModel,
+//               as: "agent", // Use the alias defined in the association
+//               include: [
+//                 {
+//                   model: db.User,
+//                   as: "user",
+//                   where: agentFilters, // Search by username linked to Agent
+//                 },
+//               ],
+//             },
+//           ],
+//         });
+
+//         let callsWithCompleteData = [];
+//         callLogs.map((call) => {
+//           if (call.leadId != null) {
+//             callsWithCompleteData.push(call);
+//           }
+//         });
+
+//         let callRes = await LeadCallAdminResource(callsWithCompleteData);
+//         return res.status(200).json({ success: true, data: callRes });
+//       } catch (error) {
+//         console.error("Error fetching call logs:", error);
+//         return res.status(500).json({ success: false, error: "Server error" });
+//       }
+//     } else {
+//       return res.status(403).json({ success: false, error: "Unauthorized" });
+//     }
+//   });
+// };
+
 export const GetCallLogs = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -1454,32 +1573,29 @@ export const GetCallLogs = async (req, res) => {
       }
       try {
         const { name, duration, status, startDate, endDate, stageIds } =
-          req.query; // duration in seconds
+          req.query;
 
         // Define filters for LeadCallsSent
         const callLogFilters = {};
 
-        // Define filters for LeadModel (related model)
-        const leadFilters = {
-          // userId: {
-          //   [db.Sequelize.Op.in]: teamIds,
-          // }, // Ensure the lead belongs to the user
-        };
+        // Define filters for AgentModel (related to LeadCallsSent)
+        const agentFilters = {};
+
+        // ✅ Debug: Log name filter input
+        console.log("🔍 Filtering by Name:", name);
 
         if (name) {
-          leadFilters[Op.or] = [
-            { firstName: { [Op.like]: `%${name}%` } },
-            { lastName: { [Op.like]: `%${name}%` } },
-            { phone: { [Op.like]: `%${name}%` } },
-            { email: { [Op.like]: `%${name}%` } },
-          ];
+          callLogFilters.agentId = {
+            [db.Sequelize.Op.in]: db.Sequelize.literal(
+              `(SELECT id FROM AgentModels WHERE userId IN (SELECT id FROM Users WHERE name LIKE '%${name}%' OR phone LIKE '%${name}%' OR email LIKE '%${name}%'))`
+            ),
+          };
         }
 
         if (stageIds) {
           const stagesArray = stageIds
             .split(",")
             .map((id) => parseInt(id.trim(), 10));
-          // leadFilters.stage = { [Op.in]: stagesArray };
           callLogFilters.stage = { [Op.in]: stagesArray };
         }
 
@@ -1507,7 +1623,11 @@ export const GetCallLogs = async (req, res) => {
           };
         }
 
-        // Query to fetch call logs
+        // ✅ Debug: Log Applied Filters
+        console.log("🔍 Agent Filters:", agentFilters);
+        console.log("🔍 Call Log Filters:", callLogFilters);
+
+        // ✅ Query to fetch call logs
         const callLogs = await db.LeadCallsSent.findAll({
           where: callLogFilters,
           order: [["createdAt", "DESC"]],
@@ -1515,24 +1635,27 @@ export const GetCallLogs = async (req, res) => {
           limit: limit,
           include: [
             {
-              model: db.LeadModel,
-              as: "LeadModel",
-              where: leadFilters, // Apply the stage filter here
+              model: db.AgentModel,
+              as: "agent", // ✅ Ensure alias is correct
+              include: [
+                {
+                  model: db.User,
+                  as: "user", // ✅ Ensure alias is correct for User inside AgentModel
+                  where: agentFilters,
+                },
+              ],
             },
           ],
+          logging: console.log, // ✅ Logs final SQL query to debug
         });
 
-        let callsWithCompleteData = [];
-        callLogs.map((call) => {
-          if (call.leadId != null) {
-            callsWithCompleteData.push(call);
-          }
-        });
+        // ✅ Debug: Log Retrieved Data Count
+        console.log("✅ Fetched Call Logs Count:", callLogs.length);
 
-        let callRes = await LeadCallAdminResource(callsWithCompleteData);
+        let callRes = await LeadCallAdminResource(callLogs);
         return res.status(200).json({ success: true, data: callRes });
       } catch (error) {
-        console.error("Error fetching call logs:", error);
+        console.error("❌ Error fetching call logs:", error);
         return res.status(500).json({ success: false, error: "Server error" });
       }
     } else {
