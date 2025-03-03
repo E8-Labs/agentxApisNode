@@ -10,6 +10,8 @@ import {
   GetAdminStats,
   GetAdminAnalytics,
   GetUsersForAffiliates,
+  GetAdminEngagements,
+  GetUsersWithUniqueNumbers,
 } from "../controllers/adminController.js";
 
 const uploadFiles = multer().fields([
@@ -62,6 +64,19 @@ AdminRouter.get(
   verifyJwtTokenWithTeam,
   uploadFiles,
   GetAdminAnalytics
+);
+AdminRouter.get(
+  "/adminEngagements",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetAdminEngagements
+);
+
+AdminRouter.get(
+  "/adminUsersWithUniquePhoneNumbers",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetUsersWithUniqueNumbers
 );
 
 export default AdminRouter;
