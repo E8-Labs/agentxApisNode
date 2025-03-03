@@ -67,7 +67,7 @@ async function getUserData(call, currentUser = null) {
 
   let subAgentId = callData.agentId;
   let agent = await db.AgentModel.findByPk(subAgentId);
-  callData.agent = SubAgentLiteResource(agent);
+  callData.agent = await SubAgentLiteResource(agent);
 
   let callStage = null;
   if (callData.stage) {
