@@ -10,6 +10,10 @@ import AffilitateResource from "../resources/AffiliateResource.js";
 import UserProfileAdminResource from "../resources/UserProfileAdminResource.js";
 import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
 import { getEngagementsData } from "./AdminEngagements.js";
+import LeadCallResource from "../resources/LeadCallResource.js";
+import LeadCallAdminResource from "../resources/LeadCallAdminResource.js";
+import { SendEmail } from "../services/MailService.js";
+import { generateAffiliateEmail } from "../emails/system/NewAffiliateEmail.js";
 
 export async function calculateAvgSessionDuration(db) {
   const sessionTimeout = 20 * 60 * 1000; // 20 minutes in milliseconds
@@ -1303,6 +1307,15 @@ export async function AddAnAffiliate(req, res) {
         uniqueUrl: uniqueUrl,
       });
 
+      try {
+        let emailNot = generateAffiliateEmail(
+          name,
+          `ai.myagentx.com/${uniqueUrl}`
+        );
+        let sent = await SendEmail(email, emailNot.subject, emailNot.html);
+      } catch (error) {
+        console.log("error sending affiliate email ", error);
+      }
       return res.send({
         status: true,
         data: affiliate,

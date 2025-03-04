@@ -284,6 +284,12 @@ models["LeadCadence"] = db.LeadCadence;
 db.LeadCallsSent = LeadCallsSent(sequelize, Sequelize);
 models["LeadCallsSent"] = db.LeadCallsSent;
 
+db.AgentModel.hasMany(db.LeadCallsSent, { foreignKey: "agentId", as: "calls" });
+db.LeadCallsSent.belongsTo(db.AgentModel, {
+  foreignKey: "agentId",
+  as: "agent",
+});
+
 db.LeadCallTriesModel = LeadCallTriesModel(sequelize, Sequelize);
 models["LeadCallTriesModel"] = db.LeadCallTriesModel;
 

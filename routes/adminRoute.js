@@ -14,6 +14,11 @@ import {
   GetUsersWithUniqueNumbers,
 } from "../controllers/adminController.js";
 
+import {
+  GetCallLogs,
+  AddMinutesToUser,
+} from "../controllers/AdminCallAndUser.js";
+
 const uploadFiles = multer().fields([
   { name: "media", maxCount: 1 },
   { name: "driver_license", maxCount: 1 },
@@ -79,4 +84,17 @@ AdminRouter.get(
   GetUsersWithUniqueNumbers
 );
 
+AdminRouter.get(
+  "/callLogsAdmin",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetCallLogs
+);
+
+AdminRouter.post(
+  "/addMinutesToUser",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  AddMinutesToUser
+);
 export default AdminRouter;

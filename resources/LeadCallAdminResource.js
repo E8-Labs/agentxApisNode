@@ -1,9 +1,10 @@
 import db from "../models/index.js";
 import SubAgentLiteResource from "./SubAgentLiteResource.js";
+import UserProfileLiteResource from "./userProfileLiteResource.js";
 
 const Op = db.Sequelize.Op;
 
-const LeadCallResource = async (user, currentUser = null) => {
+const LeadCallAdminResource = async (user, currentUser = null) => {
   if (!Array.isArray(user)) {
     ////////console.log("Not array")
     return await getUserData(user, currentUser);
@@ -67,7 +68,11 @@ async function getUserData(call, currentUser = null) {
 
   let subAgentId = callData.agentId;
   let agent = await db.AgentModel.findByPk(subAgentId);
-  callData.agent = await SubAgentLiteResource(agent);
+  let user = await db.User.findByPk(agent.userId);
+  callData.agent = {
+    name: agent.name,
+    phoneNumber: agent.phoneNumber,
+  };
 
   let callStage = null;
   if (callData.stage) {
@@ -76,8 +81,14 @@ async function getUserData(call, currentUser = null) {
   }
 
   const LeadCallResource = callData;
+  LeadCallResource.user = {
+    name: user.name,
+    id: user.id,
+    email: user.email,
+    phone: user.phone,
+  };
 
   return LeadCallResource;
 }
 
-export default LeadCallResource;
+export default LeadCallAdminResource;

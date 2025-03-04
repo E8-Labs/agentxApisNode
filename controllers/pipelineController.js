@@ -864,12 +864,12 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
 
     //check if request came from zap
     let zap = false;
-    if (
-      req.headers["user-agent"] == "Zapier" ||
-      req.headers["host"] == process.env.ZapHost
-    ) {
-      zap = true;
-    }
+    // if (
+    //   req.headers["user-agent"] == "Zapier" ||
+    //   req.headers["host"] == process.env.ZapHost
+    // ) {
+    //   zap = true;
+    // }
 
     console.log("Headers are ", req.headers);
     console.log("Zap is true", zap);

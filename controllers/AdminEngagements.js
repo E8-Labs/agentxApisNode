@@ -56,9 +56,12 @@ export async function calculateUsersWithAgentsPercentage(startDate, endDate) {
     },
   });
 
-  return parseFloat(
-    ((usersWithAgentsCount / activeUsersCount) * 100).toFixed(2)
-  );
+  return {
+    usersWithAgentsCount: parseFloat(
+      ((usersWithAgentsCount / activeUsersCount) * 100).toFixed(2)
+    ),
+    total: usersWithAgentsCount,
+  };
 }
 
 /**
@@ -92,9 +95,12 @@ export async function calculateUsersWhoSentCallsPercentage(startDate, endDate) {
     },
   });
 
-  return parseFloat(
-    ((usersWhoSentCallsCount / activeUsersCount) * 100).toFixed(2)
-  );
+  return {
+    usersWhoSentCallsCount: parseFloat(
+      ((usersWhoSentCallsCount / activeUsersCount) * 100).toFixed(2)
+    ),
+    total: usersWhoSentCallsCount,
+  };
 }
 
 /**
@@ -115,9 +121,12 @@ export async function calculateUsersWithLeadsPercentage(startDate, endDate) {
     },
   });
 
-  return parseFloat(
-    ((usersWithLeadsCount / activeUsersCount) * 100).toFixed(2)
-  );
+  return {
+    usersWithLeadsCount: parseFloat(
+      ((usersWithLeadsCount / activeUsersCount) * 100).toFixed(2)
+    ),
+    total: usersWithLeadsCount,
+  };
 }
 
 // 1. Calculate Retention Rate
@@ -164,7 +173,10 @@ const calculateRetentionRate = async (startDate, endDate) => {
 
   const retentionRate =
     (100 * (endUsers - newUsersWithActivePlan)) / startUsers;
-  return retentionRate.toFixed(2);
+  return {
+    retentionRate: retentionRate.toFixed(2),
+    total: endUsers - newUsersWithActivePlan,
+  };
 };
 
 // 2. Calculate Total Users with Active Plans
@@ -213,11 +225,15 @@ export async function calculateChurnRate(startDate, endDate) {
   console.log("ChurnRate: Lost Users : ", usersLost);
 
   const churnRate = (usersLost / activeUsersAtStart) * 100;
-  return parseFloat(churnRate.toFixed(2));
+  return {
+    churnRate: parseFloat(churnRate.toFixed(2)),
+    total: usersLost,
+  };
 }
 
 // 4. Cohort Retention Rate
 const calculateCohortRetention = async (startDate, endDate) => {
+  // total users in each month in the given period
   const cohorts = await User.findAll({
     attributes: [
       [
@@ -235,6 +251,7 @@ const calculateCohortRetention = async (startDate, endDate) => {
 
   let cohortRetention = [];
 
+  //Get users with active plan in each month and divide by total cohort users * 100 to get perc
   for (const cohort of cohorts) {
     const retainedUsers = await PlanHistory.count({
       where: {
@@ -272,7 +289,10 @@ export async function calculateStickinessRatio(startDate, endDate) {
   if (avgMAU === 0) return 0; // Prevent division by zero
 
   const stickinessRatio = (avgDAU / avgMAU) * 100;
-  return parseFloat(stickinessRatio.toFixed(2));
+  return {
+    stickinessRatio: parseFloat(stickinessRatio.toFixed(2)),
+    total: avgDAU,
+  };
 }
 
 export async function calculateAvgDAU(startDate, endDate) {

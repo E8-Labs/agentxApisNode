@@ -126,26 +126,23 @@ async function getUserData(lead, currentUser = null) {
   let formattedCalls = [];
   if (callActivity && callActivity.length > 0) {
     formattedCalls = callActivity.map((call) => {
-      delete call.synthflowCallId;
+      // delete call.synthflowCallId;
       const minutes = Math.floor(call.duration / 60);
       const seconds = call.duration % 60;
       const formattedDuration = `${String(minutes).padStart(2, "0")}:${String(
         seconds
       ).padStart(2, "0")}`;
 
-      return {
+      let callData = {
         ...call.dataValues, // Include existing call data
         durationFormatted: formattedDuration,
       };
+      delete callData.synthflowCallId;
+      // callData.synthflowCallId = null;
+      return callData;
     });
   }
 
-  // let scheduled = await db.ScheduledBooking.findOne({
-  //   where: {
-  //     leadId: lead.id,
-  //   },
-  //   order: [["createdAt", "DESC"]],
-  // });
   let scheduledBookings = await fetchFutureBookings(lead);
   let scheduled = null;
   if (scheduledBookings && scheduledBookings.length > 0) {
@@ -213,6 +210,7 @@ async function getUserData(lead, currentUser = null) {
     teamsAssigned: teamsAssigned,
     // sheetTagsArray,
   };
+  console.log("Zapier resource ", LeadResource);
 
   return LeadResource;
 }
