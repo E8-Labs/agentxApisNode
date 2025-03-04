@@ -173,7 +173,10 @@ const calculateRetentionRate = async (startDate, endDate) => {
 
   const retentionRate =
     (100 * (endUsers - newUsersWithActivePlan)) / startUsers;
-  return retentionRate.toFixed(2);
+  return {
+    retentionRate: retentionRate.toFixed(2),
+    total: endUsers - newUsersWithActivePlan,
+  };
 };
 
 // 2. Calculate Total Users with Active Plans
@@ -222,7 +225,10 @@ export async function calculateChurnRate(startDate, endDate) {
   console.log("ChurnRate: Lost Users : ", usersLost);
 
   const churnRate = (usersLost / activeUsersAtStart) * 100;
-  return parseFloat(churnRate.toFixed(2));
+  return {
+    churnRate: parseFloat(churnRate.toFixed(2)),
+    total: usersLost,
+  };
 }
 
 // 4. Cohort Retention Rate
@@ -283,7 +289,10 @@ export async function calculateStickinessRatio(startDate, endDate) {
   if (avgMAU === 0) return 0; // Prevent division by zero
 
   const stickinessRatio = (avgDAU / avgMAU) * 100;
-  return parseFloat(stickinessRatio.toFixed(2));
+  return {
+    stickinessRatio: parseFloat(stickinessRatio.toFixed(2)),
+    total: avgDAU,
+  };
 }
 
 export async function calculateAvgDAU(startDate, endDate) {
