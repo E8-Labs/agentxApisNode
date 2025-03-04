@@ -5,8 +5,8 @@ const LeadKycsExtracted = (sequelize, Sequelize) => {
       defaultValue: "",
     },
     answer: {
-      type: Sequelize.STRING,
-      defaultValue: "",
+      type: Sequelize.TEXT("medium"),
+      allowNull: true,
     },
 
     leadId: {
