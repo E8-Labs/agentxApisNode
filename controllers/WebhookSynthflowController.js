@@ -737,6 +737,7 @@ async function extractIEAndStoreKycs(
       }
 
       if (lead) {
+        let defKycs = ["emailprovided", "dnd", "hotlead"];
         if (typeof answer === "string") {
           console.log("Answer is of type string");
           if (question === "prospectemail") {
@@ -759,7 +760,10 @@ async function extractIEAndStoreKycs(
               lead.lastName = name.lastName;
               await lead.save();
             }
-          } else if (!question.includes(process.env.StagePrefix)) {
+          } else if (
+            !question.includes(process.env.StagePrefix) &&
+            !defKycs.includes(question)
+          ) {
             console.log("Found kyc", question);
             let found = await db.InfoExtractorModel.findOne({
               where: { identifier: question },
@@ -783,7 +787,7 @@ async function extractIEAndStoreKycs(
     console.log("IE obtained", ie);
     return ie;
   } catch (error) {
-    console.log("Some error processing ExtractIEAndStore");
+    console.log("Some error processing ExtractIEAndStore", error);
     return {};
   }
 }
