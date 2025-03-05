@@ -19,6 +19,7 @@ import {
   SendFeedbackEmail,
   UploadVideo,
   DeleteUserProfile,
+  GetProfileById,
 } from "../controllers/userController.js";
 
 import {
@@ -106,7 +107,7 @@ UserRouter.post(
 // UserRouter.post("/updateProfile", verifyJwtTokenWithTeam, uploadFiles, UpdateProfile);
 UserRouter.post("/checkPhoneNumber", NoAuthMiddleware, CheckPhoneExists);
 // UserRouter.post("/checkUsernameExists", CheckUsernameExists);
-// UserRouter.get("/getProfileFromUsername", GetProfileWithUsername);
+UserRouter.get("/getProfileFromId", GetProfileById);
 UserRouter.post("/checkEmailExists", NoAuthMiddleware, CheckEmailExists);
 // UserRouter.post("/sendVerificationCode", SendPhoneVerificationCode);
 // UserRouter.post("/verifyCode", VerifyPhoneCode);

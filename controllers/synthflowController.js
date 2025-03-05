@@ -1669,7 +1669,7 @@ export const UpdateSubAgent = async (req, res) => {
         let voiceStability = req.body.voiceStability;
         let vs = 1;
         if (voiceStability == VoiceStability.Expressive) {
-          vs = 0;
+          vs = 0.2;
         }
         if (voiceStability == VoiceStability.Balanced) {
           vs = 0.5;
