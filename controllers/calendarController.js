@@ -503,16 +503,16 @@ export async function ScheduleEvent(req, res) {
       // if (totalSchedules == 7) {
       //   AddNotification(user, null, NotificationTypes.SevenAppointments);
       // }
-      await AddNotification(
-        user,
-        null,
-        NotificationTypes.MeetingBooked,
-        lead,
-        agent,
-        null,
-        null,
-        pacificTime
-      );
+      // await AddNotification(
+      //   user,
+      //   null,
+      //   NotificationTypes.MeetingBooked,
+      //   lead,
+      //   agent,
+      //   null,
+      //   null,
+      //   pacificTime
+      // );
       return res.send({
         status: true,
         message: "Event scheduled successfully",

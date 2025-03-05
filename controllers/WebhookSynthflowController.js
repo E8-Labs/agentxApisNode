@@ -260,7 +260,7 @@ async function handleNewCall(
   // const assistant = await db.AgentModel.findOne({ where: { modelId } });
 
   if (!assistant) {
-    console.log("No such agent");
+    console.log("No such agent", assistant);
     return;
   }
 
@@ -643,8 +643,8 @@ async function extractIEAndStoreKycs(
   callId,
   modelId,
   shouldSendEmail = true,
-  recordingUrl
-  // assistant = null
+  recordingUrl,
+  assistant = null
 ) {
   try {
     let user = await db.User.findByPk(lead.userId);
@@ -687,9 +687,9 @@ async function extractIEAndStoreKycs(
         ie["meetingscheduled"] = true;
         //logic to add meeting to the database and attach to lead
         try {
-          MatchAndAssignLeadToMeeting(data, lead, assistant);
+          MatchAndAssignLeadToMeeting(data, lead, assistant, recordingUrl);
         } catch (error) {
-          console.log("error finding meeting id");
+          console.log("error finding meeting id", error);
         }
       }
       if (shouldSendEmail) {
@@ -737,7 +737,22 @@ async function extractIEAndStoreKycs(
       }
 
       if (lead) {
-        let defKycs = ["emailprovided", "dnd", "hotlead"];
+        let defKycs = [
+          "emailprovided",
+          "dnd",
+          "hotlead",
+          "meetingscheduled",
+          "callbackrequested",
+          "notinterested",
+          "humancalldrop",
+          "voicemail",
+          "livetransfer",
+          "Busycallback",
+          "nodecisionmaker",
+          "conversation_detected",
+          "call_violation_detected",
+          "ai_non_responsive_detected",
+        ];
         if (typeof answer === "string") {
           console.log("Answer is of type string");
           if (question === "prospectemail") {
@@ -754,7 +769,12 @@ async function extractIEAndStoreKycs(
               });
             }
           } else if (question === "prospectname") {
-            if (lead.firstName == "" || lead.firstName == null) {
+            console.log("Prospect name is ", answer);
+            if (
+              lead.firstName == "" ||
+              lead.firstName == null ||
+              (lead.firstName == "Not" && lead.lastName == "Provided")
+            ) {
               let name = GetFirstAndLastName(answer);
               lead.firstName = name.firstName;
               lead.lastName = name.lastName;
@@ -793,7 +813,12 @@ async function extractIEAndStoreKycs(
 }
 
 // async function MatchAndAssignLeadToMeeting()
-async function MatchAndAssignLeadToMeeting(data, lead, assistant = null) {
+async function MatchAndAssignLeadToMeeting(
+  data,
+  lead,
+  assistant = null,
+  recordingUrl = null
+) {
   try {
     console.log("Trying to check and match lead with meeting scheduled");
     // Extract the meeting ID from the provided data
@@ -820,6 +845,7 @@ async function MatchAndAssignLeadToMeeting(data, lead, assistant = null) {
       //(scheduledMeeting.leadId === null) {
       await scheduledMeeting.update({ leadId: lead.id });
       let user = await db.User.findByPk(lead.userId);
+      console.log("Adding notification ", recordingUrl);
       await AddNotification(
         user,
         null,
@@ -827,8 +853,11 @@ async function MatchAndAssignLeadToMeeting(data, lead, assistant = null) {
         lead,
         assistant,
         null,
-        null,
-        scheduledMeeting.datetime
+        0,
+        0,
+        0,
+        recordingUrl,
+        scheduledMeeting.date + " " + scheduledMeeting.time
       );
       console.log(
         `Updated scheduled meeting (ID: ${meetingId}) with leadId: ${lead.id}`
