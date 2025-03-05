@@ -416,6 +416,7 @@ async function FindLead(leadPhone, userId) {
       sheetId: {
         [db.Sequelize.Op.notIn]: ids,
       },
+      status: "active",
       userId: userId,
     },
   });
@@ -462,6 +463,7 @@ async function findOrCreateLead(leadPhone, userId, sheet, leadData, assistant) {
       sheetId: {
         [db.Sequelize.Op.notIn]: ids,
       },
+      status: "active",
       userId: userId,
     },
   });
