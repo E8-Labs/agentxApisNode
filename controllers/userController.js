@@ -1055,13 +1055,13 @@ export const CheckPhoneExists = async (req, res) => {
   }
 };
 
-export const GetProfileWithUsername = async (req, res) => {
-  let phone = req.query.username;
+export const GetProfileById = async (req, res) => {
+  let id = req.query.id;
   // let code = req.body.code;
 
   let user = await db.User.findOne({
     where: {
-      username: phone,
+      id: id,
     },
   });
 

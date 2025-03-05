@@ -51,7 +51,11 @@ import { WriteToFile } from "../services/FileService.js";
 import { UserTypes } from "../models/user/userModel.js";
 import { generateFailedOrCallVoilationEmail } from "../emails/system/FailedOrCallVoilationEmail.js";
 import { SendEmail } from "../services/MailService.js";
-import { InitialPause, VoiceStability } from "../models/user/agentModel.js";
+import {
+  InitialPause,
+  PatienceLevel,
+  VoiceStability,
+} from "../models/user/agentModel.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -1665,7 +1669,7 @@ export const UpdateSubAgent = async (req, res) => {
         let voiceStability = req.body.voiceStability;
         let vs = 1;
         if (voiceStability == VoiceStability.Expressive) {
-          vs = 0;
+          vs = 0.2;
         }
         if (voiceStability == VoiceStability.Balanced) {
           vs = 0.5;
@@ -1701,6 +1705,31 @@ export const UpdateSubAgent = async (req, res) => {
         let updated = await db.AgentModel.update(
           {
             initialPauseSeconds: initialPauseSeconds,
+          },
+          {
+            where: {
+              id: agent.id,
+            },
+          }
+        );
+      }
+
+      if (req.body.patienceLevel) {
+        let patienceLevel = req.body.patienceLevel;
+        let vs = 1;
+        if (patienceLevel == PatienceLevel.Fast) {
+          vs = 1;
+        }
+        if (patienceLevel == PatienceLevel.Balanced) {
+          vs = 3;
+        }
+        if (patienceLevel == PatienceLevel.Slow) {
+          vs = 5;
+        }
+        dataToUpdate["patience_level"] = vs;
+        let updated = await db.AgentModel.update(
+          {
+            patienceLevel: patienceLevel,
           },
           {
             where: {

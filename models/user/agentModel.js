@@ -179,6 +179,10 @@ const AgentModel = (sequelize, Sequelize) => {
       type: Sequelize.BOOLEAN,
       defaultValue: true,
     },
+    patienceLevel: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return AgentModel;
@@ -196,4 +200,10 @@ export const InitialPause = {
   Instant: "Instant",
   ShortPause: "Short Pause",
   NaturalConversationFlow: "Natural Conversation Flow",
+};
+
+export const PatienceLevel = {
+  Fast: "Fast",
+  Balanced: "Balanced",
+  Slow: "Slow",
 };
