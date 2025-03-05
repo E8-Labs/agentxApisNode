@@ -72,7 +72,7 @@ const HtmlTemplateMeetingBooked = `
         <li><strong>Name:</strong> {Leadname}</li>
         <li><strong>Email:</strong> {Leademail}</li>
         <li><strong>Phone:</strong> {Leadphone}</li>
-        <li><strong>Call Recording:</strong> <a href="{LinkToRecording}" style="color: #007BFF; text-decoration: none;">Link to Recording</a></li>
+        <li><strong>Call Recording:</strong> <a href="{LinkToRecording}" style="color: #007BFF; text-decoration: none;">Listen to recording</a></li>
         <li><strong>Date and Time:</strong> {MeetingDateTime}</li>
       </ul>
       <p>Don’t miss this chance to make an impact.</p>
