@@ -25,6 +25,7 @@ import { NotificationTypes } from "../models/user/NotificationModel.js";
 import parsePhoneNumberFromString from "libphonenumber-js";
 import ZapierLeadResource from "../resources/ZapierLeadResource.js";
 import { time } from "console";
+import { DateTime } from "luxon";
 const limit = 30;
 /**
  * Check for stage conflicts among agents.
@@ -1461,20 +1462,15 @@ export const GetCallLogs = async (req, res) => {
         }
 
         const convertToUTC = (dateStr, userTimeZone) => {
-          const date = new Date(dateStr);
-
-          // Convert the date to user's timezone first
-          const localTime = new Date(
-            date.toLocaleString("en-US", { timeZone: userTimeZone })
-          );
-
-          // Get UTC offset in minutes and adjust the date
-          const offsetMinutes = localTime.getTimezoneOffset();
-          return new Date(localTime.getTime() - offsetMinutes * 60 * 1000);
+          return DateTime.fromFormat(dateStr, "MM-dd-yyyy HH:mm:ss", {
+            zone: userTimeZone,
+          })
+            .toUTC()
+            .toJSDate();
         };
 
         if (startDate && endDate) {
-          console.log("User timezone start date ", startDate);
+          console.log(`User timezone start date ${timezone}`, startDate);
           const adjustedFromDate = convertToUTC(startDate, timezone);
           // adjustedFromDate.setUTCHours(0, 0, 0, 0); // Start of day in UTC
           console.log("Server timezone start date ", adjustedFromDate);
