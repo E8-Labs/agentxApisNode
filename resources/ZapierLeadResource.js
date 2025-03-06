@@ -138,6 +138,7 @@ async function getUserData(lead, currentUser = null) {
         durationFormatted: formattedDuration,
       };
       delete callData.synthflowCallId;
+      delete callData.callData;
       // callData.synthflowCallId = null;
       return callData;
     });

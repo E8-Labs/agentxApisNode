@@ -24,6 +24,7 @@ import { AddNotification } from "./NotificationController.js";
 import { NotificationTypes } from "../models/user/NotificationModel.js";
 import parsePhoneNumberFromString from "libphonenumber-js";
 import ZapierLeadResource from "../resources/ZapierLeadResource.js";
+import { time } from "console";
 const limit = 30;
 /**
  * Check for stage conflicts among agents.
@@ -1410,8 +1411,15 @@ export const GetCallLogs = async (req, res) => {
       let offset = Number(req.query.offset) || 0;
       let teamIds = await GetTeamIds(user);
       try {
-        const { name, duration, status, startDate, endDate, stageIds } =
-          req.query; // duration in seconds
+        const {
+          name,
+          duration,
+          status,
+          startDate,
+          endDate,
+          stageIds,
+          timezone = "America/Los_Angeles",
+        } = req.query; // duration in seconds
 
         // Define filters for LeadCallsSent
         const callLogFilters = {};
@@ -1452,12 +1460,35 @@ export const GetCallLogs = async (req, res) => {
           callLogFilters.status = { [Op.like]: `%${status}%` };
         }
 
-        if (startDate && endDate) {
-          const adjustedFromDate = new Date(startDate);
-          adjustedFromDate.setHours(0, 0, 0, 0);
+        const convertToUTC = (dateStr, userTimeZone) => {
+          const date = new Date(dateStr);
 
-          const adjustedToDate = new Date(endDate);
-          adjustedToDate.setHours(23, 59, 59, 999);
+          // Convert the date from the user's timezone to UTC
+          const utcDate = new Date(
+            new Intl.DateTimeFormat("en-US", {
+              timeZone: "UTC",
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+              second: "2-digit",
+              hour12: false,
+            }).format(
+              new Date(date.toLocaleString("en-US", { timeZone: userTimeZone }))
+            )
+          );
+
+          return utcDate;
+        };
+
+        if (startDate && endDate) {
+          const adjustedFromDate = convertToUTC(startDate, timezone);
+          // const adjustedFromDate = new Date(startDate);
+          // adjustedFromDate.setHours(0, 0, 0, 0);
+
+          const adjustedToDate = convertToUTC(endDate, timezone); //new Date(endDate);
+          // adjustedToDate.setHours(23, 59, 59, 999);
 
           callLogFilters.createdAt = {
             [Op.between]: [adjustedFromDate, adjustedToDate],
