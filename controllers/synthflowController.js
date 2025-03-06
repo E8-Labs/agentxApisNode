@@ -1665,6 +1665,22 @@ export const UpdateSubAgent = async (req, res) => {
           }
         );
       }
+      // agentLlmModel
+      if (req.body.agentLLmModel) {
+        let agentLLmModel = req.body.agentLLmModel;
+
+        agentDataToUpdate["llm"] = agentLLmModel;
+        let updated = await db.AgentModel.update(
+          {
+            agentLLmModel: agentLLmModel,
+          },
+          {
+            where: {
+              id: agent.id,
+            },
+          }
+        );
+      }
       if (req.body.voiceStability) {
         let voiceStability = req.body.voiceStability;
         let vs = 1;
