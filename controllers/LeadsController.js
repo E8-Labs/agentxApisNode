@@ -1483,11 +1483,14 @@ export const GetCallLogs = async (req, res) => {
         };
 
         if (startDate && endDate) {
+          console.log("User timezone start date ", startDate);
           const adjustedFromDate = convertToUTC(startDate, timezone);
+          console.log("Server timezone start date ", adjustedFromDate);
           // const adjustedFromDate = new Date(startDate);
           // adjustedFromDate.setHours(0, 0, 0, 0);
-
+          console.log("User timezone end date ", endDate);
           const adjustedToDate = convertToUTC(endDate, timezone); //new Date(endDate);
+          console.log("Server timezone end date ", adjustedToDate);
           // adjustedToDate.setHours(23, 59, 59, 999);
 
           callLogFilters.createdAt = {
