@@ -434,7 +434,9 @@ async function SendEmailForNotification(
   } else if (type == NotificationTypes.Hotlead) {
     emailNot = GenerateHotLeadEmail(
       user.name, // Name
-      lead?.firstName || "New Lead", // Leadname
+      lead?.firstName
+        ? lead.firstName + ` ${lead.lastName ? lead.lastName : ""}`
+        : "New Lead", // Leadname
       lead?.email || "Not provided", // Leademail
       lead?.phone, // Leadphone
       recording || "", // LinkToRecording
@@ -445,7 +447,9 @@ async function SendEmailForNotification(
   } else if (type == NotificationTypes.MeetingBooked) {
     emailNot = GenerateMeetingBookedEmail(
       user.name, // Name
-      lead?.firstName || "New Lead", // Leadname
+      lead?.firstName
+        ? lead.firstName + ` ${lead.lastName ? lead.lastName : ""}`
+        : "New Lead", // Leadname
       lead?.email || "Not provided", // Leademail
       lead?.phone, // Leadphone
       recording || "", // LinkToRecording

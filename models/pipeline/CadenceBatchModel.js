@@ -52,6 +52,10 @@ const CadenceBatchModel = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: false, // when user assigns that lead to another pipeline then that cadence status changes to Paused
     },
+    dncCheck: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+    },
   });
 
   return CadenceBatchModel;

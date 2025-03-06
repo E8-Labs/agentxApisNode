@@ -745,7 +745,8 @@ export async function AssignLeads(
   mainAgentIds,
   startTimeDifFromNow = 0,
   batchSize = 50,
-  zap = false
+  zap = false,
+  dncCheck = false
 ) {
   //if a team member is calling this function then set it to get the admin user and change it to that.
   user = await GetTeamAdminFor(user);
@@ -800,6 +801,7 @@ export async function AssignLeads(
       batchSize: batchSize,
       startTime: startTime,
       zap: zap,
+      dncCheck: dncCheck,
     });
     for (let i = 0; i < leadIds.length; i++) {
       let leadId = leadIds[i];
@@ -852,6 +854,7 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       startTimeDifFromNow,
       selectedAll,
       sheetId,
+      dncCheck = false,
     } = req.body;
     console.log("Data in assign leads", {
       pipelineId,
@@ -908,7 +911,8 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
         mainAgentIds,
         startTimeDifFromNow,
         batchSize,
-        zap
+        zap,
+        dncCheck
       );
 
       return res.send({

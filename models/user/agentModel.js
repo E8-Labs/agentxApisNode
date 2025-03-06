@@ -183,6 +183,11 @@ const AgentModel = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    agentLLmModel: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: AgentLLmModels.synthflow,
+    },
   });
 
   return AgentModel;
@@ -206,4 +211,10 @@ export const PatienceLevel = {
   Fast: "Fast",
   Balanced: "Balanced",
   Slow: "Slow",
+};
+
+export const AgentLLmModels = {
+  Gpt4o: "gpt-4o",
+  Gpt4oMini: "gpt-4-turbo",
+  synthflow: "synthflow",
 };

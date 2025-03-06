@@ -52,7 +52,7 @@ export function generateInactive5DaysEmail(Name, CTA_Link, CTA_Text) {
           color: #FFFFFF
         }
         .cta:hover {
-          background-color: #218838;
+          background-color: #7902DF;
         }
         .footer {
           text-align: center;
@@ -80,8 +80,13 @@ export function generateInactive5DaysEmail(Name, CTA_Link, CTA_Text) {
     </html>
     `;
 
+  let parts = Name.trim().split(" ");
+  let firstName = Name;
+  if (parts.length > 1) {
+    firstName = parts[0];
+  }
   return {
-    html: HtmlTemplateInactive5Days.replace("{Name}", Name)
+    html: HtmlTemplateInactive5Days.replace("{Name}", firstName)
       .replace("{CTA_Link}", CTA_Link)
       .replace("{CTA_Text}", CTA_Text),
     subject: "We Noticed You Haven’t Made Calls This Week",
