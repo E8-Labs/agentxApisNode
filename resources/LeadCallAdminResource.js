@@ -72,25 +72,32 @@ async function getUserData(call, currentUser = null) {
 
   let subAgentId = callData.agentId;
   let agent = await db.AgentModel.findByPk(subAgentId);
-  let user = await db.User.findByPk(agent.userId);
-  callData.agent = {
-    name: agent.name,
-    phoneNumber: agent.phoneNumber,
-  };
 
   let callStage = null;
-  if (callData.stage) {
-    callStage = await db.PipelineStages.findByPk(callData.stage);
-    callData.callStage = callStage;
-  }
 
   const LeadCallResource = callData;
-  LeadCallResource.user = {
-    name: user.name,
-    id: user.id,
-    email: user.email,
-    phone: user.phone,
-  };
+  if (agent) {
+    callData.agent = {
+      name: agent?.name,
+      phoneNumber: agent?.phoneNumber,
+    };
+    let user = await db.User.findByPk(agent?.userId || 0);
+    if (callData?.stage) {
+      callStage = await db.PipelineStages.findByPk(callData.stage);
+      callData.callStage = callStage;
+    }
+    if (!user && pipeline) {
+      user = await db.User.findByPk(pipeline.userId);
+    }
+    if (user) {
+      LeadCallResource.user = {
+        name: user?.name,
+        id: user?.id,
+        email: user?.email,
+        phone: user.phone,
+      };
+    }
+  }
 
   return LeadCallResource;
 }
