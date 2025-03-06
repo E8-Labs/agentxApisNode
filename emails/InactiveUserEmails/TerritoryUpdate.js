@@ -94,8 +94,13 @@ export function generateTerritoryUpdateEmail(
           </html>
           `;
 
+  let parts = Name.trim().split(" ");
+  let firstName = Name;
+  if (parts.length > 1) {
+    firstName = parts[0];
+  }
   return {
-    html: HtmlTemplateSameCitySuccess.replace("{Name}", Name)
+    html: HtmlTemplateSameCitySuccess.replace("{Name}", firstName)
       .replace("{Same_City}", Same_City)
       .replace("{CTA_Link}", CTA_Link)
       .replace("{CTA_Text}", CTA_Text),

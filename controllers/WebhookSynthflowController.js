@@ -1013,13 +1013,20 @@ async function handleInfoExtractorValues(
   if (json.hotlead) {
     let user = await db.User.findByPk(lead.userId);
     let admin = await GetTeamAdminFor(user);
-    // let agent = awa
+    let agent = await db.AgentModel.findByPk(dbCall.agentId);
+
+    console.log("Sending Hotlead not");
     await AddNotification(
       user,
       null,
       NotificationTypes.Hotlead,
       lead,
+      agent,
       null,
+      0,
+      0,
+      0,
+      dbCall.recordingUrl,
       null
     );
   }

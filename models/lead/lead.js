@@ -71,6 +71,11 @@ const LeadModel = (sequelize, Sequelize) => {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+    dncCheckPassed: {
+      // column to track whether this lead has passed the dnc check or not
+      type: Sequelize.BOOLEAN, // by default null, if batch has dncCheck true then this value should be true in order to be called
+      allowNull: true,
+    },
   });
   LeadModel.associate = (models) => {
     LeadModel.hasMany(models.LeadCallsSent, {
