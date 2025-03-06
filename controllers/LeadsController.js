@@ -1463,35 +1463,26 @@ export const GetCallLogs = async (req, res) => {
         const convertToUTC = (dateStr, userTimeZone) => {
           const date = new Date(dateStr);
 
-          // Convert the date from the user's timezone to UTC
-          const utcDate = new Date(
-            new Intl.DateTimeFormat("en-US", {
-              timeZone: "UTC",
-              year: "numeric",
-              month: "2-digit",
-              day: "2-digit",
-              hour: "2-digit",
-              minute: "2-digit",
-              second: "2-digit",
-              hour12: false,
-            }).format(
-              new Date(date.toLocaleString("en-US", { timeZone: userTimeZone }))
-            )
+          // Convert the date to user's timezone first
+          const localTime = new Date(
+            date.toLocaleString("en-US", { timeZone: userTimeZone })
           );
 
-          return utcDate;
+          // Get UTC offset in minutes and adjust the date
+          const offsetMinutes = localTime.getTimezoneOffset();
+          return new Date(localTime.getTime() - offsetMinutes * 60 * 1000);
         };
 
         if (startDate && endDate) {
           console.log("User timezone start date ", startDate);
           const adjustedFromDate = convertToUTC(startDate, timezone);
+          // adjustedFromDate.setUTCHours(0, 0, 0, 0); // Start of day in UTC
           console.log("Server timezone start date ", adjustedFromDate);
-          // const adjustedFromDate = new Date(startDate);
-          // adjustedFromDate.setHours(0, 0, 0, 0);
+
           console.log("User timezone end date ", endDate);
-          const adjustedToDate = convertToUTC(endDate, timezone); //new Date(endDate);
+          const adjustedToDate = convertToUTC(endDate, timezone);
+          // adjustedToDate.setUTCHours(23, 59, 59, 999); // End of day in UTC
           console.log("Server timezone end date ", adjustedToDate);
-          // adjustedToDate.setHours(23, 59, 59, 999);
 
           callLogFilters.createdAt = {
             [Op.between]: [adjustedFromDate, adjustedToDate],
