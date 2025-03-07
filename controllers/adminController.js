@@ -1447,3 +1447,358 @@ export async function GetUsersWithUniqueNumbers(req, res) {
     }
   });
 }
+
+export async function GetUsersWithAgents(req, res) {
+  let { id } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    let offset = Number(req.query.offset || 0) || 0;
+    // let limit = Number(req.query.limit || limit) || limit; // Default limit
+
+    if (authData) {
+      let userId = authData.user.id;
+
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      const usersWithAgentsCount = await db.User.findAll({
+        attributes: [
+          "id", // User ID
+          "name",
+          "email",
+          "phone",
+          "thumb_profile_image",
+          [
+            db.Sequelize.fn(
+              "COUNT",
+              db.Sequelize.fn("DISTINCT", db.Sequelize.col("agents.id"))
+            ),
+            "agentsCount",
+          ],
+        ],
+        include: [
+          {
+            model: db.AgentModel,
+            as: "agents", // Use the alias defined in associations
+            attributes: [], // We don’t need extra fields from AgentModel, just the count
+            // where: {
+            //   phoneNumber: { [Op.ne]: "" }, // Only count valid phone numbers
+            // },
+            required: true, // Ensures only users with at least one agent phone number are included
+          },
+        ],
+        group: ["User.id"],
+        having: db.Sequelize.literal("COUNT(DISTINCT agents.id) > 2"),
+        raw: true, // Return plain JSON
+      });
+
+      return res.send({ status: true, data: usersWithAgentsCount });
+    }
+  });
+}
+
+export async function GetUsersWithPipelines(req, res) {
+  let { id } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    let offset = Number(req.query.offset || 0) || 0;
+    // let limit = Number(req.query.limit || limit) || limit; // Default limit
+
+    if (authData) {
+      let userId = authData.user.id;
+
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      const usersWithAgentsCount = await db.User.findAll({
+        attributes: [
+          "id", // User ID
+          "name",
+          "email",
+          "phone",
+          "thumb_profile_image",
+          [
+            db.Sequelize.fn(
+              "COUNT",
+              db.Sequelize.fn("DISTINCT", db.Sequelize.col("pipelines.id"))
+            ),
+            "pipelinesCount",
+          ],
+        ],
+        include: [
+          {
+            model: db.Pipeline,
+            as: "pipelines", // Use the alias defined in associations
+            attributes: [], // We don’t need extra fields from AgentModel, just the count
+            // where: {
+            //   phoneNumber: { [Op.ne]: "" }, // Only count valid phone numbers
+            // },
+            required: true, // Ensures only users with at least one agent phone number are included
+          },
+        ],
+        group: ["User.id"],
+        having: db.Sequelize.literal("COUNT(DISTINCT pipelines.id) > 1"),
+        raw: true, // Return plain JSON
+      });
+
+      return res.send({ status: true, data: usersWithAgentsCount });
+    }
+  });
+}
+
+export async function GetUsersWithLeads(req, res) {
+  let { id } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    let offset = Number(req.query.offset || 0) || 0;
+    // let limit = Number(req.query.limit || limit) || limit; // Default limit
+
+    if (authData) {
+      let userId = authData.user.id;
+
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      const usersWithAgentsCount = await db.User.findAll({
+        attributes: [
+          "id", // User ID
+          "name",
+          "email",
+          "phone",
+          "thumb_profile_image",
+          [
+            db.Sequelize.fn(
+              "COUNT",
+              db.Sequelize.fn("DISTINCT", db.Sequelize.col("leads.id"))
+            ),
+            "leadsCount",
+          ],
+        ],
+        include: [
+          {
+            model: db.LeadModel,
+            as: "leads", // Use the alias defined in associations
+            attributes: [], // We don’t need extra fields from AgentModel, just the count
+            // where: {
+            //   phoneNumber: { [Op.ne]: "" }, // Only count valid phone numbers
+            // },
+            required: true, // Ensures only users with at least one agent phone number are included
+          },
+        ],
+        group: ["User.id"],
+        having: db.Sequelize.literal("COUNT(DISTINCT leads.id) > 0"),
+        raw: true, // Return plain JSON
+      });
+
+      return res.send({ status: true, data: usersWithAgentsCount });
+    }
+  });
+}
+
+export async function GetUsersWithCalendars(req, res) {
+  let { id } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    let offset = Number(req.query.offset || 0) || 0;
+    // let limit = Number(req.query.limit || limit) || limit; // Default limit
+
+    if (authData) {
+      let userId = authData.user.id;
+
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      const usersWithAgentsCount = await db.User.findAll({
+        attributes: [
+          "id", // User ID
+          "name",
+          "email",
+          "phone",
+          "thumb_profile_image",
+          [
+            db.Sequelize.fn(
+              "COUNT",
+              db.Sequelize.fn("DISTINCT", db.Sequelize.col("calendars.id"))
+            ),
+            "calendarsCount",
+          ],
+        ],
+        include: [
+          {
+            model: db.CalendarIntegration,
+            as: "calendars", // Use the alias defined in associations
+            attributes: [], // We don’t need extra fields from AgentModel, just the count
+            // where: {
+            //   phoneNumber: { [Op.ne]: "" }, // Only count valid phone numbers
+            // },
+            required: true, // Ensures only users with at least one agent phone number are included
+          },
+        ],
+        group: ["User.id"],
+        having: db.Sequelize.literal("COUNT(DISTINCT calendars.id) > 0"),
+        raw: true, // Return plain JSON
+      });
+
+      return res.send({ status: true, data: usersWithAgentsCount });
+    }
+  });
+}
+
+export async function GetUsersWithTeams(req, res) {
+  let { id } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    let offset = Number(req.query.offset || 0) || 0;
+    // let limit = Number(req.query.limit || limit) || limit; // Default limit
+
+    if (authData) {
+      let userId = authData.user.id;
+
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      const usersWithAgentsCount = await db.User.findAll({
+        attributes: [
+          "id", // User ID
+          "name",
+          "email",
+          "phone",
+          "thumb_profile_image",
+          [
+            db.Sequelize.fn(
+              "COUNT",
+              db.Sequelize.fn("DISTINCT", db.Sequelize.col("InvitingUser.id"))
+            ),
+            "teamsCount",
+          ],
+        ],
+        include: [
+          {
+            model: db.TeamModel,
+            as: "InvitingUser", // Use the alias defined in associations
+            attributes: [], // We don’t need extra fields from AgentModel, just the count
+            // where: {
+            //   phoneNumber: { [Op.ne]: "" }, // Only count valid phone numbers
+            // },
+            required: true, // Ensures only users with at least one agent phone number are included
+          },
+        ],
+        group: ["User.id"],
+        having: db.Sequelize.literal("COUNT(DISTINCT InvitingUser.id) > 0"),
+        raw: true, // Return plain JSON
+      });
+
+      return res.send({ status: true, data: usersWithAgentsCount });
+    }
+  });
+}

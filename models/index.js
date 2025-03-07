@@ -209,6 +209,14 @@ db.LeadSheetColumnModel.belongsTo(db.LeadSheetModel, {
 });
 
 db.LeadModel = LeadModel(sequelize, Sequelize);
+db.User.hasMany(db.LeadModel, {
+  foreignKey: "userId",
+  as: "leads",
+});
+db.LeadModel.belongsTo(db.User, {
+  foreignKey: "userId",
+  as: "user",
+});
 models["LeadModel"] = db.LeadModel;
 
 db.TeamLeadAssignModel = TeamLeadAssignModel(sequelize, Sequelize);
@@ -223,6 +231,15 @@ db.LeadNotesModel = LeadNotesModel(sequelize, Sequelize);
 db.LeadTagsModel = LeadTagsModel(sequelize, Sequelize);
 
 db.Pipeline = Pipeline(sequelize, Sequelize);
+db.User.hasMany(db.Pipeline, {
+  foreignKey: "userId",
+  as: "pipelines", // Alias for association
+});
+db.Pipeline.belongsTo(db.User, {
+  foreignKey: "pipelineId",
+  as: "user", // Alias for association
+});
+
 db.PipelineStages = PipelineStages(sequelize, Sequelize);
 db.Pipeline.hasMany(db.PipelineStages, {
   foreignKey: "pipelineId",
@@ -311,6 +328,15 @@ models["ApiKeysModel"] = db.ApiKeysModel;
 db.GhlCalendarModel = GhlCalendarModel(sequelize, Sequelize);
 
 db.CalendarIntegration = CalendarIntegration(sequelize, Sequelize);
+
+db.User.hasMany(db.CalendarIntegration, {
+  foreignKey: "userId",
+  as: "calendars",
+});
+db.CalendarIntegration.belongsTo(db.User, {
+  foreignKey: "userId",
+  as: "user",
+});
 models["CalendarIntegration"] = db.CalendarIntegration;
 models["GhlCalendarModel"] = db.GhlCalendarModel;
 

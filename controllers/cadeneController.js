@@ -27,6 +27,7 @@ import {
   GetAgentsWorkingOnStage,
   GetPipelineStageWithIdentifier,
 } from "../utils/agentUtility.js";
+import { isDncCheckPassed } from "./CallController.js";
 
 //Concurrent Calls- Set Limit to 100
 //https://docs.synthflow.ai/docs/concurrency-calls
@@ -257,6 +258,32 @@ function canRunCallsDuringDay(u, batch) {
   }
 }
 
+//Checks whether the user can be called or not because of dnc
+async function CheckDNC(lead) {
+  let canCall = true;
+  if (lead.dncCheckPassed) {
+    if (lead.dncCheckPassed == "N") {
+      //don't make calls
+      console.log("This lead DNC Check is not passed");
+      canCall = false;
+    }
+  } else {
+    console.log("Lead DNC Check status run");
+    try {
+      let passed = await isDncCheckPassed(lead);
+      if (passed == "N") {
+        console.log("This lead DNC Check is not passed");
+        canCall = false;
+      }
+    } catch (error) {
+      console.log("Error checking dnc", error);
+      //skip this lead for now
+      canCall = false;
+    }
+  }
+  return canCall;
+}
+
 export const CronRunCadenceCallsFirstBatch = async () => {
   //Find Cadences to run for leads in the initial State (New Lead)
   //Step-1 Find all leadCadences which are not completed. All leads which are pending should be pushed
@@ -359,8 +386,22 @@ export const CronRunCadenceCallsFirstBatch = async () => {
     try {
       // let lead = await db.LeadModel.findOne(leadCad.leadId)
       let lead = await db.LeadModel.findByPk(leadCad.leadId);
+
       let user = await db.User.findByPk(lead.userId);
       if (lead) {
+        let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
+        if (!batch) {
+          continue; // don't send cadence if not batched leadsCad calls because they were not added through assigning leads
+        }
+        if (batch.dncCheck == true || batch.dncCheck == 1) {
+          let canCall = await CheckDNC(lead);
+          if (!canCall) {
+            continue;
+          }
+        } else {
+          console.log("Don't check dnc for batch", batch.id);
+        }
+        continue;
         //check the total number of ongoing calls atm
 
         // let leadIds = [];
@@ -402,10 +443,6 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         // if(user.totalSecondsAvailable)
       }
 
-      let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
-      if (!batch) {
-        continue; // don't send cadence if not batched leadsCad calls because they were not added through assigning leads
-      }
       const canRun = canRunCallsDuringDay(user, batch);
       // continue;
       if (!canRun) {
