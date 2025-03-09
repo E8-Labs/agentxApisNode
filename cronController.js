@@ -168,7 +168,7 @@ const NotificationSendingCron = nodeCron.schedule(
 );
 NotificationSendingCron.start();
 
-const RechargeCron = nodeCron.schedule("*/1 * * * *", async () => {
+const RechargeCron = nodeCron.schedule("*/3 * * * *", async () => {
   try {
     // Check if the lock file exists
     let cronRunning = await db.CronLockTable.findOne({
