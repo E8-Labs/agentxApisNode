@@ -945,7 +945,8 @@ export async function ReChargeUserAccount(user) {
         const failedTime = new Date(lastFailedPayment.createdAt);
         const currentTime = new Date();
         const hoursPassed = (currentTime - failedTime) / (1000 * 60 * 60); // Convert ms to hours
-
+        console.log("Hours passed ", hoursPassed);
+        console.log("Failed Date ", lastFailedPayment.createdAt);
         if (hoursPassed >= 24) {
           console.log("Yes passed");
           // 24 hours have passed, so mark as true to retry charge
