@@ -12,6 +12,11 @@ import {
   GetUsersForAffiliates,
   GetAdminEngagements,
   GetUsersWithUniqueNumbers,
+  GetUsersWithAgents,
+  GetUsersWithPipelines,
+  GetUsersWithLeads,
+  GetUsersWithCalendars,
+  GetUsersWithTeams,
 } from "../controllers/adminController.js";
 
 import {
@@ -96,5 +101,39 @@ AdminRouter.post(
   verifyJwtTokenWithTeam,
   uploadFiles,
   AddMinutesToUser
+);
+
+AdminRouter.get(
+  "/adminUsersWithAgents",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetUsersWithAgents
+);
+
+AdminRouter.get(
+  "/adminUsersWithPipelines",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetUsersWithPipelines
+);
+
+AdminRouter.get(
+  "/adminUsersWithLeads",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetUsersWithLeads
+);
+AdminRouter.get(
+  "/adminUsersWithCalendars",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetUsersWithCalendars
+);
+
+AdminRouter.get(
+  "/adminUsersWithTeams",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetUsersWithTeams
 );
 export default AdminRouter;

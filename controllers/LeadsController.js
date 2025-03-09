@@ -949,6 +949,12 @@ export const GetLeads = async (req, res) => {
       });
     }
 
+    let zap = false;
+    if (req.headers["user-agent"] == "Zapier") {
+      zap = true;
+    }
+    console.log("Headers are ", req.headers);
+    console.log("Zap is true", zap);
     if (authData) {
       try {
         const { sheetId, stageIds, fromDate, toDate, noStage, search } =
@@ -1115,15 +1121,28 @@ export const GetLeads = async (req, res) => {
           // }
         }
 
-        let reso = await LeadResource(leadsWithCadence);
-        return res.send({
-          status: true,
-          data: reso, //leadsWithCadence,
-          columns: AllColumns,
-          keys: keys,
-          message: "Leads list with applied filters",
-          leadCount: totalLeadCount,
-        });
+        if (zap) {
+          let reso = await ZapierLeadResource(leadsWithCadence);
+          console.log("Sending zapier resource ", JSON.stringify(reso));
+          return res.send({
+            status: true,
+            data: reso, //leadsWithCadence,
+            columns: AllColumns,
+            keys: keys,
+            message: "Leads list with applied filters",
+            leadCount: totalLeadCount,
+          });
+        } else {
+          let reso = await LeadResource(leadsWithCadence);
+          return res.send({
+            status: true,
+            data: reso, //leadsWithCadence,
+            columns: AllColumns,
+            keys: keys,
+            message: "Leads list with applied filters",
+            leadCount: totalLeadCount,
+          });
+        }
       } catch (err) {
         console.error(err);
         return res.status(500).send({

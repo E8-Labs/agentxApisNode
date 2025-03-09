@@ -76,6 +76,11 @@ const LeadModel = (sequelize, Sequelize) => {
       type: Sequelize.BOOLEAN, // by default null, if batch has dncCheck true then this value should be true in order to be called
       allowNull: true,
     },
+    dncData: {
+      // column to track whether this lead has passed the dnc check or not
+      type: Sequelize.TEXT("medium"), // by default null, if batch has dncCheck true then this value should be true in order to be called
+      allowNull: true,
+    },
   });
   LeadModel.associate = (models) => {
     LeadModel.hasMany(models.LeadCallsSent, {

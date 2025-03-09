@@ -59,8 +59,6 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-//Generate Prompt
-
 //user is admin user
 export async function getInboudPromptText(prompt, assistant, user) {
   let callScript = prompt.callScript;
@@ -1732,17 +1730,18 @@ export const UpdateSubAgent = async (req, res) => {
 
       if (req.body.patienceLevel) {
         let patienceLevel = req.body.patienceLevel;
-        let vs = 1;
+        console.log("Patience Level ", patienceLevel);
+        let vs = "slow";
         if (patienceLevel == PatienceLevel.Fast) {
-          vs = 1;
+          vs = "low";
         }
         if (patienceLevel == PatienceLevel.Balanced) {
-          vs = 3;
+          vs = "medium";
         }
         if (patienceLevel == PatienceLevel.Slow) {
-          vs = 5;
+          vs = "high";
         }
-        dataToUpdate["patience_level"] = vs;
+        agentDataToUpdate["patience_level"] = vs;
         let updated = await db.AgentModel.update(
           {
             patienceLevel: patienceLevel,
