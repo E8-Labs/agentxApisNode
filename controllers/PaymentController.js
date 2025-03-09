@@ -910,7 +910,7 @@ export async function ReChargeUserAccount(user) {
 
   let isTrialActive = await IsTrialActive(user);
   let lastFailedPayment = await db.PaymentMethodFails.findOne({
-    wehre: {
+    where: {
       userId: user.id,
     },
     order: [["createdAt", "DESC"]],
