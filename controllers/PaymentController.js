@@ -930,6 +930,7 @@ export async function ReChargeUserAccount(user) {
     console.log("No last failed payment", user.id);
     paymentAddedAfterFailure = true;
   } else if (lastFailedPayment && lastPaymentMethodAdded) {
+    console.log("User has payment methods", user.id);
     if (
       new Date(lastFailedPayment.createdAt) <
       new Date(lastPaymentMethodAdded.createdAt)
@@ -937,18 +938,20 @@ export async function ReChargeUserAccount(user) {
       // User has added a new payment method after failure, retry immediately.
       console.log("New pm added after failure so retry", user.id);
       paymentAddedAfterFailure = true;
-    }
-  } else if (lastFailedPayment) {
-    // Check if 24 hours have passed since the last failed payment
-    console.log("check 24 hours passed after failure", user.id);
-    const failedTime = new Date(lastFailedPayment.createdAt);
-    const currentTime = new Date();
-    const hoursPassed = (currentTime - failedTime) / (1000 * 60 * 60); // Convert ms to hours
+    } else {
+      if (lastFailedPayment) {
+        // Check if 24 hours have passed since the last failed payment
+        console.log("check 24 hours passed after failure", user.id);
+        const failedTime = new Date(lastFailedPayment.createdAt);
+        const currentTime = new Date();
+        const hoursPassed = (currentTime - failedTime) / (1000 * 60 * 60); // Convert ms to hours
 
-    if (hoursPassed >= 24) {
-      console.log("Yes passed");
-      // 24 hours have passed, so mark as true to retry charge
-      paymentAddedAfterFailure = true;
+        if (hoursPassed >= 24) {
+          console.log("Yes passed");
+          // 24 hours have passed, so mark as true to retry charge
+          paymentAddedAfterFailure = true;
+        }
+      }
     }
   }
 
