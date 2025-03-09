@@ -927,6 +927,7 @@ export async function ReChargeUserAccount(user) {
 
   if (!lastFailedPayment) {
     //there is no last failed payment
+    console.log("No last failed payment", user.id);
     paymentAddedAfterFailure = true;
   } else if (lastFailedPayment && lastPaymentMethodAdded) {
     if (
@@ -934,22 +935,25 @@ export async function ReChargeUserAccount(user) {
       new Date(lastPaymentMethodAdded.createdAt)
     ) {
       // User has added a new payment method after failure, retry immediately.
+      console.log("New pm added after failure so retry", user.id);
       paymentAddedAfterFailure = true;
     }
   } else if (lastFailedPayment) {
     // Check if 24 hours have passed since the last failed payment
+    console.log("check 24 hours passed after failure", user.id);
     const failedTime = new Date(lastFailedPayment.createdAt);
     const currentTime = new Date();
     const hoursPassed = (currentTime - failedTime) / (1000 * 60 * 60); // Convert ms to hours
 
     if (hoursPassed >= 24) {
+      console.log("Yes passed");
       // 24 hours have passed, so mark as true to retry charge
       paymentAddedAfterFailure = true;
     }
   }
 
   if (!paymentAddedAfterFailure) {
-    console.log("No chargeable payment method found");
+    console.log("No chargeable payment method found", user.id);
     return;
   }
 
@@ -959,8 +963,9 @@ export async function ReChargeUserAccount(user) {
     //charge date has reached
     // console.log("Subscription charge date has reached");
     if (lastPlan && lastPlan.status == "active") {
-      // console.log("Charging user");
+      console.log("Charging user next chargedate < now and lastplan active");
       let foundPlan = FindPlanWithtype(lastPlan.type);
+      // return;
       let charge = await chargeUser(
         user.id,
         foundPlan.price * 100,
@@ -989,6 +994,9 @@ export async function ReChargeUserAccount(user) {
         user.totalSecondsAvailable += foundPlan.duration;
         await user.save();
       }
+    } else {
+      console.log("Last plan", lastPlan);
+      console.log("User's plan is not active", user.id);
     }
   } else if (
     lastPlan &&
@@ -999,6 +1007,7 @@ export async function ReChargeUserAccount(user) {
       "user have an active plan and has less than 120 sec: So charge him",
       user.isTrial
     );
+    // return;
     // console.log("There is a last plan", user.id);
     let foundPlan = null;
     // console.log(PayAsYouGoPlans);
@@ -1058,10 +1067,11 @@ export async function ReChargeUserAccount(user) {
     }
     return null;
   } else {
-    // console.log("Nothing to charge", user.id);
-    // console.log(
-    //   "So Check try to remove his free minutes from trial if 7 days have passed"
-    // );
+    console.log("Nothing to charge", user.id);
+    console.log(
+      "So Check try to remove his free minutes from trial if 7 days have passed"
+    );
+    // return;
     await RemoveTrialMinutesIf7DaysPassedAndNotCharged(user);
 
     return null;
@@ -1125,4 +1135,4 @@ export async function RechargeFunction() {
   // ReChargeUserAccount
 }
 
-// RechargeFunction();
+RechargeFunction();
