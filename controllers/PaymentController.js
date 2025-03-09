@@ -979,7 +979,7 @@ export async function ReChargeUserAccount(user) {
         foundPlan.type,
         true
       );
-      console.log("Charge ", charge);
+      // console.log("Charge ", charge);
       if (charge.status) {
         let historyCreated = await db.PaymentHistory.create({
           title: `${foundPlan.duration / 60} Min subscription renewed`,
@@ -1001,7 +1001,7 @@ export async function ReChargeUserAccount(user) {
         await user.save();
       }
     } else {
-      console.log("Last plan", lastPlan);
+      // console.log("Last plan", lastPlan);
       console.log("User's plan is not active", user.id);
     }
   } else if (

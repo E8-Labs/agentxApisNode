@@ -32,141 +32,141 @@ import {
 import { RemoveLock, TryToLockFile } from "./services/FileService.js";
 import { ProcessTypes } from "./models/webhooks/cronLock.js";
 
-// const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
-//   "*/10 * * * * *",
-//   async () => {
-//     try {
-//       // Check if the lock file exists
-//       let cronRunning = await db.CronLockTable.findOne({
-//         where: { process: ProcessTypes.BatchCron },
-//       });
+const CronRunCadenceCallsFirstBatchCron = nodeCron.schedule(
+  "*/10 * * * * *",
+  async () => {
+    try {
+      // Check if the lock file exists
+      let cronRunning = await db.CronLockTable.findOne({
+        where: { process: ProcessTypes.BatchCron },
+      });
 
-//       if (cronRunning) {
-//         console.log("Batch:Cron is already running");
-//         return;
-//       }
-//       let created = await db.CronLockTable.create({
-//         process: ProcessTypes.BatchCron,
-//       });
-//       // Execute the job function
-//       console.log("Batch:Calling the cron function");
-//       await CronRunCadenceCallsFirstBatch();
-//       // await runCronJob();
-//       console.log("Batch:Cron completed");
-//       await db.CronLockTable.destroy({
-//         where: {
-//           process: ProcessTypes.BatchCron,
-//         },
-//       });
-//     } catch (error) {
-//       console.log(error);
-//       await db.CronLockTable.destroy({
-//         where: {
-//           process: ProcessTypes.BatchCron,
-//         },
-//       });
-//       console.error("Batch:Error during task execution:", error.message);
-//     } finally {
-//       // Remove the lock file
-//     }
-//   }
-// );
-// CronRunCadenceCallsFirstBatchCron.start();
+      if (cronRunning) {
+        console.log("Batch:Cron is already running");
+        return;
+      }
+      let created = await db.CronLockTable.create({
+        process: ProcessTypes.BatchCron,
+      });
+      // Execute the job function
+      console.log("Batch:Calling the cron function");
+      await CronRunCadenceCallsFirstBatch();
+      // await runCronJob();
+      console.log("Batch:Cron completed");
+      await db.CronLockTable.destroy({
+        where: {
+          process: ProcessTypes.BatchCron,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      await db.CronLockTable.destroy({
+        where: {
+          process: ProcessTypes.BatchCron,
+        },
+      });
+      console.error("Batch:Error during task execution:", error.message);
+    } finally {
+      // Remove the lock file
+    }
+  }
+);
+CronRunCadenceCallsFirstBatchCron.start();
 
-// const CronRunCadenceCallsSubsequentStagesCron = nodeCron.schedule(
-//   "*/1 * * * *",
-//   async () => {
-//     try {
-//       // Check if the lock file exists
-//       let cronRunning = await db.CronLockTable.findOne({
-//         where: { process: ProcessTypes.SubsequentCron },
-//       });
+const CronRunCadenceCallsSubsequentStagesCron = nodeCron.schedule(
+  "*/1 * * * *",
+  async () => {
+    try {
+      // Check if the lock file exists
+      let cronRunning = await db.CronLockTable.findOne({
+        where: { process: ProcessTypes.SubsequentCron },
+      });
 
-//       if (cronRunning) {
-//         console.log("Sub: Cron is already running");
-//         return;
-//       } else {
-//         let created = await db.CronLockTable.create({
-//           process: ProcessTypes.SubsequentCron,
-//         });
-//         // Execute the job function
-//         console.log("Calling the cron function");
-//         await CronRunCadenceCallsSubsequentStages();
-//         await db.CronLockTable.destroy({
-//           where: {
-//             process: ProcessTypes.SubsequentCron,
-//           },
-//         });
-//       }
+      if (cronRunning) {
+        console.log("Sub: Cron is already running");
+        return;
+      } else {
+        let created = await db.CronLockTable.create({
+          process: ProcessTypes.SubsequentCron,
+        });
+        // Execute the job function
+        console.log("Calling the cron function");
+        await CronRunCadenceCallsSubsequentStages();
+        await db.CronLockTable.destroy({
+          where: {
+            process: ProcessTypes.SubsequentCron,
+          },
+        });
+      }
 
-//       // await runCronJob();
-//     } catch (error) {
-//       console.log(error);
-//       console.error("Error during task execution:", error.message);
-//     } finally {
-//       // Remove the lock file
-//     }
-//   }
-// );
-// CronRunCadenceCallsSubsequentStagesCron.start();
+      // await runCronJob();
+    } catch (error) {
+      console.log(error);
+      console.error("Error during task execution:", error.message);
+    } finally {
+      // Remove the lock file
+    }
+  }
+);
+CronRunCadenceCallsSubsequentStagesCron.start();
 
-// //Booked Calls
-// const CronRunCadenceCallsBookingCron = nodeCron.schedule(
-//   "*/10 * * * *",
-//   async () => {
-//     try {
-//       // Check if the lock file exists
-//       let cronRunning = await db.CronLockTable.findOne({
-//         where: { process: ProcessTypes.BookingCron },
-//       });
+//Booked Calls
+const CronRunCadenceCallsBookingCron = nodeCron.schedule(
+  "*/10 * * * *",
+  async () => {
+    try {
+      // Check if the lock file exists
+      let cronRunning = await db.CronLockTable.findOne({
+        where: { process: ProcessTypes.BookingCron },
+      });
 
-//       if (cronRunning) {
-//         console.log("Booking Cron is already running");
-//         return;
-//       }
-//       let created = await db.CronLockTable.create({
-//         process: ProcessTypes.BookingCron,
-//       });
-//       // Execute the job function
-//       console.log("Calling the Booking cron function");
-//       await CadenceBookedCalls();
-//       // await runCronJob();
-//       console.log("Booking Cron completed");
-//       await db.CronLockTable.destroy({
-//         where: {
-//           process: ProcessTypes.BookingCron,
-//         },
-//       });
-//     } catch (error) {
-//       console.log(error);
-//       console.error("Error during task execution:", error.message);
-//     } finally {
-//       // Remove the lock file
-//     }
-//   }
-// );
-// CronRunCadenceCallsBookingCron.start();
+      if (cronRunning) {
+        console.log("Booking Cron is already running");
+        return;
+      }
+      let created = await db.CronLockTable.create({
+        process: ProcessTypes.BookingCron,
+      });
+      // Execute the job function
+      console.log("Calling the Booking cron function");
+      await CadenceBookedCalls();
+      // await runCronJob();
+      console.log("Booking Cron completed");
+      await db.CronLockTable.destroy({
+        where: {
+          process: ProcessTypes.BookingCron,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      console.error("Error during task execution:", error.message);
+    } finally {
+      // Remove the lock file
+    }
+  }
+);
+CronRunCadenceCallsBookingCron.start();
 
-// //Testing every min
-// const CronPhone = nodeCron.schedule("0 0 * * *", PhoneNumberCron);
-// CronPhone.start();
+//Testing every min
+const CronPhone = nodeCron.schedule("0 0 * * *", PhoneNumberCron);
+CronPhone.start();
 
-// //Call status cron
-// const CronCallOutcome = nodeCron.schedule(
-//   "*/30 * * * * *",
-//   SetOutcomeforpreviousCalls
-// );
-// CronCallOutcome.start();
+//Call status cron
+const CronCallOutcome = nodeCron.schedule(
+  "*/30 * * * * *",
+  SetOutcomeforpreviousCalls
+);
+CronCallOutcome.start();
 
-// // Release Number cron
-// // const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
-// // CronReleaseNumber.start();
+// Release Number cron
+// const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
+// CronReleaseNumber.start();
 
-// const NotificationSendingCron = nodeCron.schedule(
-//   "*/1 * * * *", //"*/59 * * * * *",
-//   NotificationCron
-// );
-// NotificationSendingCron.start();
+const NotificationSendingCron = nodeCron.schedule(
+  "*/1 * * * *", //"*/59 * * * * *",
+  NotificationCron
+);
+NotificationSendingCron.start();
 
 const RechargeCron = nodeCron.schedule("*/1 * * * *", async () => {
   try {
