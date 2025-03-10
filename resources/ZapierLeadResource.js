@@ -66,7 +66,11 @@ async function getLatestAndUniqueKycs(leadId) {
   // Extract unique KYCs from the map
   const uniqueKycs = Array.from(uniqueKycsMap.values());
 
-  return uniqueKycs;
+  const updateKycsFormat = uniqueKycs.map((kyc) => {
+    return { [`${kyc.question}`]: kyc.answer };
+  });
+
+  return updateKycsFormat;
 }
 
 async function getUserData(lead, currentUser = null) {

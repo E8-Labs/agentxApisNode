@@ -401,7 +401,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         } else {
           console.log("Don't check dnc for batch", batch.id);
         }
-        continue;
+        // continue;
         //check the total number of ongoing calls atm
 
         // let leadIds = [];
