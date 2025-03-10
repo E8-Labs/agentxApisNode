@@ -511,7 +511,11 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         continue;
       }
       // WriteToFile(`Here 1`);
-      let pipeline = await db.Pipeline.findByPk(leadCad.pipelineId);
+      let pipeline = await db.Pipeline.findOne({
+        where: {
+          id: leadCad?.pipelineId || 0,
+        },
+      });
 
       // WriteToFile(`Finding agent for ", ${leadCad.mainAgentId}`);
       let mainAgent = await db.MainAgentModel.findByPk(leadCad.mainAgentId);
