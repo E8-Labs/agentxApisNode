@@ -388,8 +388,8 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       let lead = await db.LeadModel.findByPk(leadCad.leadId);
 
       let user = await db.User.findByPk(lead.userId);
+      let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
       if (lead) {
-        let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
         if (!batch) {
           continue; // don't send cadence if not batched leadsCad calls because they were not added through assigning leads
         }
