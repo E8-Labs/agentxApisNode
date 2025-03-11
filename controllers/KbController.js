@@ -8,7 +8,7 @@ import pdfExtract from "pdf-extraction";
 import fs from "fs";
 import path from "path";
 import { ensureDirExists } from "../utils/mediaservice.js";
-import { GetTeamAdminFor } from "../utils/auth.js";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { addToVectorDb, findVectorData } from "../services/pineconeDb.js";
 import { CallOpenAi } from "../services/GptService.js";
 import { GptPrompts } from "../constants/GptPrompts.js";
@@ -189,16 +189,19 @@ export async function GetKnowledgebase(req, res) {
     let user = await db.User.findByPk(userId);
     let admin = await GetTeamAdminFor(user);
     user = admin;
+    let teamIds = await GetTeamIds(user);
 
     let kb = await db.KnowledgeBase.findAll({
       where: {
-        userId: user.id,
+        // userId: {
+        //   [db.Sequelize.Op.in]: teamIds,
+        // },
         agentId: agentId,
       },
     });
 
     return res.send({
-      message: "Kb",
+      message: "Kb" + user.id,
       status: true,
       data: kb,
     });
