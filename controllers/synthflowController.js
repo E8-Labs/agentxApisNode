@@ -194,7 +194,7 @@ async function GetCompletePromptTextFrom(
   let companyAgentInfo = prompt.companyAgentInfo;
   companyAgentInfo = companyAgentInfo.replace(/{agent_name}/g, assistant.name);
   if (assistant.name != null && assistant.name != "") {
-    customVariables.push(`agent_name: ${assistant.name || "Not provided"}`);
+    customVariables.push(`agent_name: ${assistant.name || "NA"}`);
   }
   companyAgentInfo = companyAgentInfo.replace(
     /{agent_role}/g,
@@ -234,28 +234,24 @@ async function GetCompletePromptTextFrom(
   }
 
   greeting = greeting.replace(/{First Name}/g, lead.firstName);
-  customVariables.push(`First Name: ${lead.firstName ?? "Not Provided"}`);
+  customVariables.push(`First Name: ${lead.firstName ?? "NA"}`);
 
   greeting = greeting.replace(/{Last Name}/g, lead.lastName);
   customVariables.push(
-    `Last Name: ${
-      lead.lastName && lead.lastName != "" ? lead.lastName : "Not Provided"
-    }`
+    `Last Name: ${lead.lastName && lead.lastName != "" ? lead.lastName : "NA"}`
   );
 
   greeting = greeting.replace(/{Phone Number}/g, lead.phone);
-  customVariables.push(`Phone Number: ${lead.phone ?? "Not Provided"}`);
+  customVariables.push(`Phone Number: ${lead.phone ?? "NA"}`);
 
   greeting = greeting.replace(/{Email}/gi, lead.email);
   customVariables.push(
-    `Email: ${lead.email && lead.email != "" ? lead.email : "Not Provided"}`
+    `Email: ${lead.email && lead.email != "" ? lead.email : "NA"}`
   );
 
   greeting = greeting.replace(/{Address}/gi, lead.address);
   customVariables.push(
-    `Address: ${
-      lead.address && lead.address != "" ? lead.address : "Not Provided"
-    }`
+    `Address: ${lead.address && lead.address != "" ? lead.address : "NA"}`
   );
 
   greeting = greeting.replace(/{agent_name}/g, assistant.name);
@@ -364,7 +360,7 @@ async function GetCompletePromptTextFrom(
 
       if (value) {
         if (value != "" && typeof value != "undefined") {
-          customVariables.push(`${key}: ${value ?? "Not Provided"}`);
+          customVariables.push(`${key}: ${value ?? "NA"}`);
         }
         const regex = new RegExp(`\\{${key}\\}`, "gi"); // Create a dynamic regex to match `${key}`
         //console.log(`replacing ${key} with ${value}`);
@@ -453,7 +449,7 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
   return {
     callScript: basePrompt,
     greeting: greeting,
-    customVariables: customVariables,
+    customVariables: [], //customVariables,
   };
 }
 
