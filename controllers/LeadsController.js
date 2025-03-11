@@ -1001,6 +1001,7 @@ export const GetLeads = async (req, res) => {
           where: leadFilters,
           offset: offset,
           limit: limit,
+          order: [["createdAt", "DESC"]],
           // attributes: ["id", "firstName", "lastName", "email", "phone", "stage"], // Adjust attributes as needed
           raw: true, // Return plain objects
         });

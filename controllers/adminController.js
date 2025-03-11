@@ -1092,6 +1092,9 @@ export async function GetUsers(req, res) {
             `(SELECT SUM(price) FROM PaymentHistories WHERE userId = User.id) ${sortOrder}`
           );
           break;
+        case ("Renewal", "Renewals"):
+          orderClause = ["nextChargeDate", sortOrder];
+          break;
         case "MinutesBalance":
           orderClause = ["totalSecondsAvailable", sortOrder];
           break;
