@@ -449,7 +449,7 @@ Lead Email: ${lead.email ? lead.email : "N/A"}
   return {
     callScript: basePrompt,
     greeting: greeting,
-    customVariables: [], //customVariables,
+    customVariables: customVariables,
   };
 }
 
@@ -995,7 +995,12 @@ async function initiateCall(
         });
 
         //console.log("Saved ", saved);
-        return { status: true, message: "call is initiated", data: saved };
+        return {
+          status: true,
+          message: "call is initiated",
+          data: saved,
+          callData: data,
+        };
       } catch (error) {
         //console.log("Error Call ", error);
         await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
