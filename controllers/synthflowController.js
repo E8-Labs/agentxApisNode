@@ -648,6 +648,7 @@ export const MakeACall = async (
       custom_variables: basePrompt.customVariables,
       // greeting: basePrompt.greeting,
     };
+
     let res = await initiateCall(
       data,
       leadCadence,
@@ -934,7 +935,7 @@ async function initiateCall(
   meeting = null
 ) {
   console.log("IS call test ", test);
-  // console.log("Data ", data);
+  console.log("Data ", data);
   // if (!data.phone.startsWith("+1") && !data.phone.startsWith("1")) {
   //   return { status: false, data: null, message: "Not a US/CAN number" }; // Number is NOT from the US or Canada
   // }
