@@ -184,27 +184,36 @@ export async function GetKnowledgebase(req, res) {
       return res.send({ status: false, message: "Unauthenticated User" });
     }
 
-    let agentId = req.query.agentId;
-    let userId = authData.user.id;
-    let user = await db.User.findByPk(userId);
-    let admin = await GetTeamAdminFor(user);
-    user = admin;
-    let teamIds = await GetTeamIds(user);
+    try {
+      let agentId = req.query.agentId;
+      let userId = authData.user.id;
+      let user = await db.User.findByPk(userId);
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
+      let teamIds = await GetTeamIds(user);
 
-    let kb = await db.KnowledgeBase.findAll({
-      where: {
-        // userId: {
-        //   [db.Sequelize.Op.in]: teamIds,
-        // },
-        agentId: agentId,
-      },
-    });
+      let kb = await db.KnowledgeBase.findAll({
+        where: {
+          // userId: {
+          //   [db.Sequelize.Op.in]: teamIds,
+          // },
+          agentId: agentId,
+        },
+      });
 
-    return res.send({
-      message: "Kb" + user.id,
-      status: true,
-      data: kb,
-    });
+      return res.send({
+        message: "Kb" + user.id,
+        status: true,
+        data: kb,
+      });
+    } catch (error) {
+      console.log("Kb Error Get", error);
+      return res.send({
+        message: error.message,
+        status: trfalseue,
+        data: null,
+      });
+    }
   });
 }
 
