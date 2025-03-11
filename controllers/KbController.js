@@ -242,7 +242,7 @@ export async function DeleteKnowledgebase(req, res) {
     // });
 
     return res.send({
-      message: "Kb",
+      message: "Knowledge base deleted",
       status: true,
       data: null,
       // data: kb,
