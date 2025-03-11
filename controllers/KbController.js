@@ -235,16 +235,17 @@ export async function DeleteKnowledgebase(req, res) {
         id: kbId,
       },
     });
-    let kb = await db.KnowledgeBase.findAll({
-      where: {
-        userId: user.Id,
-      },
-    });
+    // let kb = await db.KnowledgeBase.findAll({
+    //   where: {
+    //     userId: user.Id,
+    //   },
+    // });
 
     return res.send({
       message: "Kb",
       status: true,
-      data: kb,
+      data: null,
+      // data: kb,
     });
   });
 }
