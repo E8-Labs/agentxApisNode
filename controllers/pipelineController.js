@@ -1236,7 +1236,7 @@ export async function GetLeadsForABatch(req, res) {
   });
 }
 
-//Scheduled calls | Updated For Team
+//Scheduled calls | Updated For Team. This is the one being used: Current
 export const GetScheduledCalls = async (req, res) => {
   const { mainAgentId, scheduled } = req.query;
 
