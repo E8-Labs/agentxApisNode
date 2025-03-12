@@ -146,7 +146,7 @@ const calculateRetentionRate = async (startDate, endDate) => {
   console.log("Users at start ", startUsers);
 
   let activeUserIdsAtEnd = await getActiveUserIds(
-    new Date("2025-01-01"),
+    new Date("2025-02-01"),
     endDate
   );
 

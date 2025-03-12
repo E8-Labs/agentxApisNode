@@ -721,6 +721,13 @@ async function countPlan30Upgrades(startDate, endDate) {
   });
 
   let userPlanMap = {};
+  let upgradeStats = {
+    "Trial to Plan30": 0,
+    "Plan30 to Plan120": 0,
+    "Plan30 to Plan360": 0,
+    "Plan30 to Plan720": 0,
+  };
+
   for (let record of userPlans) {
     if (!userPlanMap[record.userId]) {
       userPlanMap[record.userId] = {
@@ -732,45 +739,30 @@ async function countPlan30Upgrades(startDate, endDate) {
     }
   }
 
-  let upgradeCount = Object.values(userPlanMap).filter(
-    (plans) => plans.firstPlan === "Plan30" && plans.lastPlan !== "Plan30"
-  ).length;
+  for (let userId in userPlanMap) {
+    let plans = userPlanMap[userId];
 
-  return upgradeCount;
+    if (plans.firstPlan === "Plan30" && plans.lastPlan === "Plan120") {
+      upgradeStats["Plan30 to Plan120"] += 1;
+    } else if (plans.firstPlan === "Plan30" && plans.lastPlan === "Plan360") {
+      upgradeStats["Plan30 to Plan360"] += 1;
+    } else if (plans.firstPlan === "Plan30" && plans.lastPlan === "Plan720") {
+      upgradeStats["Plan30 to Plan720"] += 1;
+    } else if (plans.firstPlan === "Plan30" && plans.lastPlan === "Plan30") {
+      upgradeStats["Trial to Plan30"] += 1;
+    }
+  }
+
+  return upgradeStats;
 }
 
 //will check and fix this function
 async function calculateUpgradeBreakdown(startDate, endDate) {
-  function GetKeyForUpgrade(fromPlan, toPlan, isTrial) {
-    let StartPlan = fromPlan.type;
-    if (isTrial) {
-      StartPlan = "Trial";
-    }
-
-    if (toPlan.type == PayAsYouGoPlanTypes.Plan120Min) {
-      return StartPlan + " to Plan120";
-    }
-    if (toPlan.type == PayAsYouGoPlanTypes.Plan30Min) {
-      return StartPlan + " to Plan30";
-    }
-    if (toPlan.type == PayAsYouGoPlanTypes.Plan120Min) {
-      return StartPlan + " to Plan360";
-    }
-    if (toPlan.type == PayAsYouGoPlanTypes.Plan120Min) {
-      return StartPlan + " to Plan720";
-    }
-  }
   let upgradeBreakdown = {
     "Trial to Plan30": 0,
     "Trial to Plan120": 0,
     "Trial to Plan360": 0,
     "Trial to Plan720": 0,
-  };
-  let Plans = {
-    Plan120: 0,
-    Plan30: 0,
-    Plan360: 0,
-    Plan720: 0,
   };
   let cancellations = {
     trial: 0,
@@ -779,69 +771,50 @@ async function calculateUpgradeBreakdown(startDate, endDate) {
     Plan360: 0,
     Plan720: 0,
   };
+  let activePlans = {
+    Plan30: 0,
+    Plan120: 0,
+    Plan360: 0,
+    Plan720: 0,
+  };
 
-  let userPlansTrials = await fetchUserPlans(startDate, endDate);
-
-  console.log(userPlansTrials);
-  console.log(`${userPlansTrials.length} started `);
-
-  for (const p of userPlansTrials) {
-    console.log("\n\n");
-    console.log(
-      `Checking if user ${p.userId} upgraded from ${p.type} Id = ${p.id} status = ${p.status}`
-    );
-    let latestPlan = await db.PlanHistory.findOne({
-      where: {
-        userId: p.userId,
-        // status: "active"
-        id: {
-          [db.Sequelize.Op.gt]: p.id,
+  let userPlans = await db.User.findAll({
+    attributes: ["id", "isTrial"],
+    include: [
+      {
+        model: db.PlanHistory,
+        as: "planHistory",
+        attributes: ["type", "status", "createdAt"],
+        where: {
+          createdAt: { [db.Sequelize.Op.between]: [startDate, endDate] },
         },
+        order: [["createdAt", "ASC"]],
       },
-      order: [["createdAt", "DESC"]],
-    });
+    ],
+    raw: true,
+  });
 
-    console.log(`Found Latest Plan ${latestPlan?.type} ${latestPlan?.status}`);
-    if (latestPlan) {
-      if (latestPlan.status == "active") {
-        Plans[latestPlan.type] = (Plans[latestPlan.type] || 0) + 1;
-      }
-      if (latestPlan.status == "cancelled") {
-        cancellations[p.type] = (cancellations[p.type] || 0) + 1;
-        console.log("It's a cancelled plan", latestPlan.userId);
-      } else {
-        //user probably upgraded
-        let startDate = new Date(p.createdAt);
-        let secondPlanDate = new Date(latestPlan.createdAt);
-        let timeDifference = secondPlanDate - startDate;
-        let differenceInDays = timeDifference / (1000 * 60 * 60 * 24);
-        console.log(`Difference in days: ${differenceInDays}`);
-        if (differenceInDays > 7) {
-          //Then it will not be upgrade from Trial. It will be upgrade from Plan30
-          let key = GetKeyForUpgrade(p, latestPlan, false);
-          upgradeBreakdown[key] = (upgradeBreakdown[key] || 0) + 1;
-        } else {
-          let key = GetKeyForUpgrade(p, latestPlan, true);
-          upgradeBreakdown[key] = (upgradeBreakdown[key] || 0) + 1;
-        }
-      }
-    } else {
-      //user doesn't have any other plan so let's check if he is active and 7 days have passed or not
-      if (p.status == "cancelled") {
-        cancellations[p.type] = (cancellations[p.type] || 0) + 1;
-        console.log("It's a cancelled plan", p.userId);
-      } else {
-        if (p.status == "active") {
-          Plans[p.type] = (Plans[p.type] || 0) + 1;
-        }
-        let key = GetKeyForUpgrade(p, p, true);
-        upgradeBreakdown[key] = (upgradeBreakdown[key] || 0) + 1;
+  for (let user of userPlans) {
+    let userId = user["id"];
+    let isTrial = user["isTrial"];
+    let firstPlan = user["planHistory.type"];
+    let planStatus = user["planHistory.status"];
+
+    if (firstPlan === "Plan30" && isTrial) {
+      // User is still on trial, ignore them
+      continue;
+    } else if (!isTrial) {
+      // User completed trial and subscribed
+      if (planStatus === "active") {
+        upgradeBreakdown["Trial to " + firstPlan] += 1;
+        activePlans[firstPlan] += 1;
+      } else if (planStatus === "cancelled") {
+        cancellations[firstPlan] += 1;
       }
     }
   }
 
-  console.log("Upgrades ", upgradeBreakdown);
-  return { upgradeBreakdown, cancellations, Plans };
+  return { upgradeBreakdown, cancellations, activePlans };
 }
 
 async function calculateAvgCLV() {
