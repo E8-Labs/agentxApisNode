@@ -771,8 +771,9 @@ async function countPlan30Upgrades(startDate, endDate) {
   }
 
   // ✅ Debugging - Ensure it's an object before returning
-  console.log("Final Upgrade Breakdown: ", upgradeStats);
-  return upgradeStats;
+  console.log("Final Upgrade Breakdown: ", JSON.stringify(upgradeStats));
+
+  return { ...upgradeStats }; // Force object return, prevent number conversion
 }
 
 //will check and fix this function
