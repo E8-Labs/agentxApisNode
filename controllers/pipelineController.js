@@ -154,6 +154,18 @@ export const CreatePipelineStage = async (req, res) => {
         color = process.env.DefaultPipelineColor;
       }
       let pipeline = await db.Pipeline.findByPk(pipelineId);
+      let stageExists = await db.PipelineStages.findOne({
+        where: {
+          stageTitle: stageTitle.trim(),
+          pipelineId: pipelineId,
+        },
+      });
+      if (stageExists) {
+        return res.send({
+          status: false,
+          message: "A stage with same name already exists",
+        });
+      }
       let lastStageByOrder = await db.PipelineStages.findOne({
         where: {
           pipelineId: pipeline.id,
