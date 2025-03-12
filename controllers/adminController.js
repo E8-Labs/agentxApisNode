@@ -709,7 +709,7 @@ async function fetchUserPlans(startDate, endDate) {
 //Plan $45 to any other plan
 async function countPlan30Upgrades(startDate, endDate) {
   const userPlans = await db.PlanHistory.findAll({
-    attributes: ["userId", "type", "createdAt"],
+    attributes: ["userId", "type", "createdAt", "status"],
     where: {
       createdAt: { [db.Sequelize.Op.between]: [startDate, endDate] },
     },
@@ -728,31 +728,50 @@ async function countPlan30Upgrades(startDate, endDate) {
     "Plan30 to Plan720": 0,
   };
 
+  // Step 1: Collect first and last plans for each user
   for (let record of userPlans) {
     if (!userPlanMap[record.userId]) {
       userPlanMap[record.userId] = {
         firstPlan: record.type,
         lastPlan: record.type,
+        lastPlanStatus: record.status,
       };
     } else {
       userPlanMap[record.userId].lastPlan = record.type;
+      userPlanMap[record.userId].lastPlanStatus = record.status;
     }
   }
 
+  // Step 2: Analyze Upgrades
   for (let userId in userPlanMap) {
     let plans = userPlanMap[userId];
 
-    if (plans.firstPlan === "Plan30" && plans.lastPlan === "Plan120") {
-      upgradeStats["Plan30 to Plan120"] += 1;
-    } else if (plans.firstPlan === "Plan30" && plans.lastPlan === "Plan360") {
-      upgradeStats["Plan30 to Plan360"] += 1;
-    } else if (plans.firstPlan === "Plan30" && plans.lastPlan === "Plan720") {
-      upgradeStats["Plan30 to Plan720"] += 1;
-    } else if (plans.firstPlan === "Plan30" && plans.lastPlan === "Plan30") {
-      upgradeStats["Trial to Plan30"] += 1;
+    // ✅ Fetch isTrial status from User table
+    const user = await db.User.findOne({
+      attributes: ["isTrial"],
+      where: { id: userId },
+      raw: true,
+    });
+
+    if (user?.isTrial) continue; // Skip users who are still on trial
+
+    if (plans.firstPlan === "Plan30") {
+      if (plans.lastPlanStatus !== "active") continue; // Ignore cancelled users
+
+      if (plans.lastPlan === "Plan120") {
+        upgradeStats["Plan30 to Plan120"] += 1;
+      } else if (plans.lastPlan === "Plan360") {
+        upgradeStats["Plan30 to Plan360"] += 1;
+      } else if (plans.lastPlan === "Plan720") {
+        upgradeStats["Plan30 to Plan720"] += 1;
+      } else if (plans.lastPlan === "Plan30") {
+        upgradeStats["Trial to Plan30"] += 1;
+      }
     }
   }
 
+  // ✅ Debugging - Ensure it's an object before returning
+  console.log("Final Upgrade Breakdown: ", upgradeStats);
   return upgradeStats;
 }
 
