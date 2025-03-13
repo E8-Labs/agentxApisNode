@@ -124,8 +124,10 @@ export const AddLeads = async (req, res) => {
         },
       });
 
+      console.log("User role ", user.userRole);
       if (user.userRole.toLowerCase() == UserRole.Admin.toLowerCase()) {
         userId = req.body.userId;
+        console.log("This is admin adding leads for other user", userId);
         user = await db.User.findOne({
           where: {
             id: userId,
