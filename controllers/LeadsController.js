@@ -26,7 +26,7 @@ import parsePhoneNumberFromString from "libphonenumber-js";
 import ZapierLeadResource from "../resources/ZapierLeadResource.js";
 import { time } from "console";
 import { DateTime } from "luxon";
-import { UserRole } from "../models/user/userModel.js";
+import { UserRole, UserTypes } from "../models/user/userModel.js";
 const limit = 30;
 /**
  * Check for stage conflicts among agents.
@@ -125,7 +125,7 @@ export const AddLeads = async (req, res) => {
       });
 
       console.log("User role ", user.userRole);
-      if (user.userRole.toLowerCase() == UserRole.Admin.toLowerCase()) {
+      if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
         userId = req.body.userId;
         console.log("This is admin adding leads for other user", userId);
         user = await db.User.findOne({
