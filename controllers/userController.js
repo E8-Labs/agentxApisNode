@@ -833,9 +833,9 @@ export const DeleteUserProfileTemporary = async (req, res) => {
   }
   //delete all agents
   try {
-    await deleteAllAgents(user);
-    await deleteKycs(user);
-    await deleteCalendars(user);
+    // await deleteAllAgents(user);
+    // await deleteKycs(user);
+    // await deleteCalendars(user);
     user.profile_status = "deleted";
     await user.save();
     return res.send({ status: true, message: "Profile deleted" });
