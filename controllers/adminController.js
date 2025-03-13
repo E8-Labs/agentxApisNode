@@ -1053,6 +1053,7 @@ export async function GetUsers(req, res) {
       let searchQuery = req.query.search ? req.query.search.trim() : "";
       let whereCondition = {
         userRole: "AgentX",
+        profile_status: "active",
         userType: { [db.Sequelize.Op.notIn]: [UserTypes.Admin] },
       };
 
