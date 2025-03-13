@@ -939,7 +939,24 @@ export async function ReChargeUserAccount(user) {
       console.log("New pm added after failure so retry", user.id);
       paymentAddedAfterFailure = true;
     } else {
-      if (lastFailedPayment) {
+      //Now we will first check how many failed attempts have been made after the last payment method added.
+      //If more than 1 attempts are made then we will not make any further attempt for this user
+      let failedAttemptsAfterLastPaymentAdded =
+        await db.PaymentMethodFails.findAll({
+          where: {
+            userId: user.id,
+            createdAt: {
+              [db.Sequelize.Op.gt]: new Date(lastPaymentMethodAdded.createdAt),
+            },
+          },
+        });
+      if (
+        failedAttemptsAfterLastPaymentAdded &&
+        failedAttemptsAfterLastPaymentAdded.length >= 2
+      ) {
+        console.log("User have made more than 2 failed attempts");
+        paymentAddedAfterFailure = false;
+      } else if (lastFailedPayment) {
         // Check if 24 hours have passed since the last failed payment
         console.log("check 24 hours passed after failure", user.id);
         const failedTime = new Date(lastFailedPayment.createdAt);

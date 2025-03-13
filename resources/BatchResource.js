@@ -44,6 +44,8 @@ async function getUserData(batch, currentUser = null) {
       batchId: batch.id,
     },
   });
+  let user = await db.User.findByPk(batch.userId);
+
   let agentIds = [];
   leadCad.map((lc) => {
     if (!agentIds.includes(lc.mainAgentId)) {
@@ -116,6 +118,12 @@ async function getUserData(batch, currentUser = null) {
   const BatchResource = {
     ...batch.get(),
     // leadsCount: leads.length,
+    user: {
+      name: user?.name,
+      email: user?.email,
+      id: user?.id,
+      phone: user?.phone,
+    },
     agents: await AgentExtraLiteResource(agents),
     //Below three fields will be removed from here and will be fetched via an api call on request
     // leads: await LeadLiteResource(leads),
