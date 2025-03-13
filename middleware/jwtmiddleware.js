@@ -49,7 +49,7 @@ export const verifyJwtToken = async (req, response, next) => {
       activityData: data,
       userId: user.id,
       authMethod: "jwt",
-      headers: JSON.stringify(headers),
+      headers: JSON.stringify(authHeaders),
     });
     next();
   } else if (typeof apiKeyHeaders !== "undefined") {
@@ -67,7 +67,7 @@ export const verifyJwtToken = async (req, response, next) => {
         activityData: data,
         userId: user.id,
         authMethod: "apiKey",
-        headers: JSON.stringify(headers),
+        headers: JSON.stringify(authHeaders),
       });
       if (user) {
         const token = await SignUser(user);
