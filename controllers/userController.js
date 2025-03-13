@@ -832,12 +832,16 @@ export const DeleteUserProfileTemporary = async (req, res) => {
     return res.send({ status: false, message: "No such user" });
   }
   //delete all agents
-  await deleteAllAgents(user);
-  await deleteKycs(user);
-  await deleteCalendars(user);
-  user.profile_status = "deleted";
-  await user.save();
-  return res.send({ status: true, message: "Profile deleted" });
+  try {
+    await deleteAllAgents(user);
+    await deleteKycs(user);
+    await deleteCalendars(user);
+    user.profile_status = "deleted";
+    await user.save();
+    return res.send({ status: true, message: "Profile deleted" });
+  } catch (error) {
+    return res.send({ status: false, message: error.message, data: error });
+  }
 };
 
 export function AddTestNumber(req, res) {
