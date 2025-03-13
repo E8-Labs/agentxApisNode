@@ -277,9 +277,14 @@ async function handleNewCall(
         userId: assistant.userId,
         type: "inbound",
       },
+      order: [["createdAt", "DESC"]],
     });
     if (!sheet) {
-      sheet = await findOrCreateSheet(assistant, constants.InboudLeadSheetName);
+      sheet = await findOrCreateSheet(
+        assistant,
+        constants.InboudLeadSheetName,
+        "inbound"
+      );
     }
   }
   if (!lead) {
@@ -383,7 +388,7 @@ async function handleNewCall(
   }
 }
 
-async function findOrCreateSheet(assistant, sheetName) {
+async function findOrCreateSheet(assistant, sheetName, type = "inbound") {
   let sheet = await db.LeadSheetModel.findOne({
     where: { sheetName, userId: assistant.userId, status: "active" },
   });
@@ -391,6 +396,7 @@ async function findOrCreateSheet(assistant, sheetName) {
     sheet = await db.LeadSheetModel.create({
       userId: assistant.userId,
       sheetName,
+      type: type,
     });
   }
   return sheet;
@@ -435,13 +441,6 @@ async function findOrCreateLead(leadPhone, userId, sheet, leadData, assistant) {
         status: "active",
       },
     });
-    //if user don't have any sheet: Removing this logic as of 13 Jan 2025
-    // if (!sheet) {
-    //   sheet = await db.LeadSheetModel.create({
-    //     sheetName: "Outbound",
-    //     userId: userId,
-    //   });
-    // }
   }
   let phone = leadPhone.replace("+", "");
   //get the deleted sheets and find the leads that are not in these sheets
