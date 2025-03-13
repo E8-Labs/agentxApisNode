@@ -47,6 +47,7 @@ import { constants } from "../constants/constants.js";
 import { generateFailedOrCallVoilationEmail } from "../emails/system/FailedOrCallVoilationEmail.js";
 import { SendEmail } from "../services/MailService.js";
 import ZapierLeadResource from "../resources/ZapierLeadResource.js";
+import { formatDateMMDDYYYY } from "../utils/dateutil.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -683,6 +684,77 @@ async function extractIEAndStoreKycs(
       console.log("Return val :", questionWithoutSpacesAndQuotes);
       ie[question] = answer;
       console.log(`IE found ${question} : ${answer}`);
+
+      if (lead) {
+        let defKycs = [
+          "emailprovided",
+          "dnd",
+          "hotlead",
+          "meetingscheduled",
+          "callbackrequested",
+          "notinterested",
+          "humancalldrop",
+          "voicemail",
+          "livetransfer",
+          "Busycallback",
+          "nodecisionmaker",
+          "conversation_detected",
+          "call_violation_detected",
+          "ai_non_responsive_detected",
+        ];
+        if (typeof answer === "string") {
+          console.log("Answer is of type string");
+          if (question === "prospectemail") {
+            const emailFound = await db.LeadEmailModel.findOne({
+              where: { email: answer, leadId: lead.id },
+            });
+
+            if (!emailFound) {
+              if (lead.email == "" || lead.email == null) {
+                lead.email = answer.trim();
+                await lead.save();
+              } else {
+                await db.LeadEmailModel.create({
+                  email: answer.trim(),
+                  leadId: lead.id,
+                });
+              }
+              console.log("New email added");
+            }
+          } else if (question === "prospectname") {
+            console.log("Prospect name is ", answer);
+            if (
+              lead.firstName == "" ||
+              lead.firstName == null ||
+              (lead.firstName == "Not" && lead.lastName == "Provided")
+            ) {
+              let name = GetFirstAndLastName(answer);
+              lead.firstName = name.firstName;
+              lead.lastName = name.lastName;
+              await lead.save();
+            }
+          } else if (
+            !question.includes(process.env.StagePrefix) &&
+            !defKycs.includes(question)
+          ) {
+            console.log("Found kyc", question);
+            let found = await db.InfoExtractorModel.findOne({
+              where: { identifier: question },
+            });
+            if (found) {
+              question = found.question;
+            }
+            await db.LeadKycsExtracted.create({
+              question,
+              answer,
+              leadId: lead.id,
+              callId,
+            });
+          }
+        } else {
+          console.log("IE is not open question");
+        }
+      }
       if (question.startsWith("book_appointment_with")) {
         //it is a booking action
         console.log("It is a booking action");
@@ -737,73 +809,6 @@ async function extractIEAndStoreKycs(
           );
         }
       }
-
-      if (lead) {
-        let defKycs = [
-          "emailprovided",
-          "dnd",
-          "hotlead",
-          "meetingscheduled",
-          "callbackrequested",
-          "notinterested",
-          "humancalldrop",
-          "voicemail",
-          "livetransfer",
-          "Busycallback",
-          "nodecisionmaker",
-          "conversation_detected",
-          "call_violation_detected",
-          "ai_non_responsive_detected",
-        ];
-        if (typeof answer === "string") {
-          console.log("Answer is of type string");
-          if (question === "prospectemail") {
-            const emailFound = await db.LeadEmailModel.findOne({
-              where: { email: answer, leadId: lead.id },
-            });
-
-            if (!emailFound) {
-              console.log("New email added");
-
-              await db.LeadEmailModel.create({
-                email: answer,
-                leadId: lead.id,
-              });
-            }
-          } else if (question === "prospectname") {
-            console.log("Prospect name is ", answer);
-            if (
-              lead.firstName == "" ||
-              lead.firstName == null ||
-              (lead.firstName == "Not" && lead.lastName == "Provided")
-            ) {
-              let name = GetFirstAndLastName(answer);
-              lead.firstName = name.firstName;
-              lead.lastName = name.lastName;
-              await lead.save();
-            }
-          } else if (
-            !question.includes(process.env.StagePrefix) &&
-            !defKycs.includes(question)
-          ) {
-            console.log("Found kyc", question);
-            let found = await db.InfoExtractorModel.findOne({
-              where: { identifier: question },
-            });
-            if (found) {
-              question = found.question;
-            }
-            await db.LeadKycsExtracted.create({
-              question,
-              answer,
-              leadId: lead.id,
-              callId,
-            });
-          }
-        } else {
-          console.log("IE is not open question");
-        }
-      }
     }
 
     console.log("IE obtained", ie);
@@ -814,6 +819,30 @@ async function extractIEAndStoreKycs(
   }
 }
 
+async function GetValidEmailIfExistsForlead(lead) {
+  let email = "";
+  if (
+    lead.email == "" ||
+    lead.email == null ||
+    lead.email.toLowerCase() == "not provided"
+  ) {
+    console.log("This lead doesn't have an email");
+    let lastEmailObtained = await db.LeadEmailModel.findOne({
+      where: {
+        leadId: lead.id,
+      },
+      order: [["createdAt", "DESC"]],
+    });
+    if (lastEmailObtained) {
+      email = lastEmailObtained.email;
+    }
+  } else {
+    email = lead.email;
+  }
+  lead.email = email;
+  await lead.save();
+  return lead;
+}
 // async function MatchAndAssignLeadToMeeting()
 async function MatchAndAssignLeadToMeeting(
   data,
@@ -844,10 +873,13 @@ async function MatchAndAssignLeadToMeeting(
 
     // Check if leadId is null in the scheduled meeting row
     if (lead?.id != null) {
+      lead = await GetValidEmailIfExistsForlead(lead);
+      // lead.email = leadEmail;
       //(scheduledMeeting.leadId === null) {
       await scheduledMeeting.update({ leadId: lead.id });
       let user = await db.User.findByPk(lead.userId);
       console.log("Adding notification ", recordingUrl);
+      let dateFormatted = formatDateMMDDYYYY(scheduledMeeting.date);
       await AddNotification(
         user,
         null,
@@ -859,7 +891,7 @@ async function MatchAndAssignLeadToMeeting(
         0,
         0,
         recordingUrl,
-        scheduledMeeting.date + " " + scheduledMeeting.time
+        dateFormatted + " " + scheduledMeeting.time
       );
       console.log(
         `Updated scheduled meeting (ID: ${meetingId}) with leadId: ${lead.id}`
@@ -1015,6 +1047,7 @@ async function handleInfoExtractorValues(
     let admin = await GetTeamAdminFor(user);
     let agent = await db.AgentModel.findByPk(dbCall.agentId);
 
+    lead = await GetValidEmailIfExistsForlead(lead);
     console.log("Sending Hotlead not");
     await AddNotification(
       user,

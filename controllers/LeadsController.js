@@ -26,6 +26,7 @@ import parsePhoneNumberFromString from "libphonenumber-js";
 import ZapierLeadResource from "../resources/ZapierLeadResource.js";
 import { time } from "console";
 import { DateTime } from "luxon";
+import { UserRole } from "../models/user/userModel.js";
 const limit = 30;
 /**
  * Check for stage conflicts among agents.
@@ -116,11 +117,21 @@ export const AddLeads = async (req, res) => {
     if (authData) {
       let userId = authData.user.id;
       //   if(userId == null)
+
       let user = await db.User.findOne({
         where: {
           id: userId,
         },
       });
+
+      if (user.userRole == UserRole.Admin) {
+        userId = req.body.userId;
+        user = await db.User.findOne({
+          where: {
+            id: userId,
+          },
+        });
+      }
       let leadsCountBefore = await db.LeadModel.count({
         where: {
           userId: user.id,

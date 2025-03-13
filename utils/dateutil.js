@@ -29,3 +29,11 @@ export function convertUTCToTimezone(utcTimestamp, timezone = null) {
     .setZone(timezone)
     .toFormat("yyyy-MM-dd HH:mm:ss");
 }
+
+export const formatDateMMDDYYYY = (dateString) => {
+  const date = new Date(dateString);
+  const month = (date.getMonth() + 1).toString().padStart(2, "0"); // Ensure 2 digits
+  const day = date.getDate().toString().padStart(2, "0");
+  const year = date.getFullYear();
+  return `${month}-${day}-${year}`;
+};

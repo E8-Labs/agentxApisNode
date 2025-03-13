@@ -150,7 +150,11 @@ export const GetScheduledCallsAdmin = async (req, res) => {
 
       //find batches whose start time is in past
       console.log("sch ", scheduled);
-      if (scheduled == false || scheduled == "false") {
+      if (
+        scheduled == false ||
+        scheduled == "false" ||
+        typeof scheduled == "undefined"
+      ) {
         console.log("In less than");
         startTimeFilter = {
           [db.Sequelize.Op.lt]: new Date(),

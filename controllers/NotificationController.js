@@ -441,7 +441,7 @@ async function SendEmailForNotification(
       lead?.phone, // Leadphone
       recording || "", // LinkToRecording
       "https://ai.myagentx.com/dashboard/leads", // CTA_Link
-      "View Hot Lead and Take Action" // CTA_Text
+      "View Hot Lead" // CTA_Text
     );
     email = user.email;
   } else if (type == NotificationTypes.MeetingBooked) {
@@ -455,7 +455,7 @@ async function SendEmailForNotification(
       recording || "", // LinkToRecording
       meetingDate, // MeetingDateTime
       constants.LeadPage, // CTA_Link
-      "View Hot Lead and Take Action" // CTA_Text
+      "View Hot Lead" // CTA_Text
     );
     email = user.email;
   } else if (type === NotificationTypes.PaymentFailed) {
