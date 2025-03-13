@@ -236,7 +236,7 @@ export const AddLeads = async (req, res) => {
           ) {
             // only push the lead if the number is valid
 
-            console.log("Lead phone is ", lead.phone);
+            // console.log("Lead phone is ", lead.phone);
             try {
               if (lead.lastName == null) {
                 lead.lastName = "";
@@ -426,7 +426,7 @@ export const postDataToWebhook = async (
   data,
   action = WebhookTypes.TypeNewLeadAdded
 ) => {
-  console.log("Zap ", data);
+  // console.log("Zap ", data);
   let ids = await GetTeamIds(user);
   let webhooks = await db.WebhookModel.findAll({
     where: {
@@ -436,8 +436,8 @@ export const postDataToWebhook = async (
       action: action, //WebhookTypes.TypeNewLeadAdded,
     },
   });
-  console.log("Action ", action);
-  console.log("Found webhooks ", webhooks.length);
+  // console.log("Action ", action);
+  // console.log("Found webhooks ", webhooks.length);
   if (webhooks && webhooks.length > 0) {
     for (const webhook of webhooks) {
       // postDataToWebhook(webhook.url, leadsRes);
