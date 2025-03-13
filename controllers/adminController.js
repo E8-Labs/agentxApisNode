@@ -214,7 +214,7 @@ export async function fetchUserStats(
   const weeksBetween = Math.ceil(
     (new Date(endDate) - new Date(startDate)) / (7 * 24 * 60 * 60 * 1000)
   );
-  const weeklySignups = totalSignups / weeksBetween;
+  const weeklySignups = (totalSignups / weeksBetween).toFixed(2);
   const sessionStats = await calculateAvgSessionDuration(db);
 
   // Unique Phone Numbers
