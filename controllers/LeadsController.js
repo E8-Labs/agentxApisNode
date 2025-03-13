@@ -124,7 +124,7 @@ export const AddLeads = async (req, res) => {
         },
       });
 
-      if (user.userRole == UserRole.Admin) {
+      if (user.userRole.toLowerCase() == UserRole.Admin.toLowerCase()) {
         userId = req.body.userId;
         user = await db.User.findOne({
           where: {
