@@ -912,6 +912,9 @@ export async function ReChargeUserAccount(user) {
   let lastFailedPayment = await db.PaymentMethodFails.findOne({
     where: {
       userId: user.id,
+      data: {
+        [db.Sequelize.Op.like]: `%"status":false%`,
+      },
     },
     order: [["createdAt", "DESC"]],
   });
@@ -948,13 +951,16 @@ export async function ReChargeUserAccount(user) {
             createdAt: {
               [db.Sequelize.Op.gt]: new Date(lastPaymentMethodAdded.createdAt),
             },
+            data: {
+              [db.Sequelize.Op.like]: `%"status":false%`,
+            },
           },
         });
       if (
         failedAttemptsAfterLastPaymentAdded &&
         failedAttemptsAfterLastPaymentAdded.length >= 2
       ) {
-        console.log("User have made more than 2 failed attempts");
+        console.log("User have made more than 2 failed attempts", user.id);
         paymentAddedAfterFailure = false;
       } else if (lastFailedPayment) {
         // Check if 24 hours have passed since the last failed payment
@@ -1159,4 +1165,4 @@ export async function RechargeFunction() {
   // ReChargeUserAccount
 }
 
-// RechargeFunction();
+RechargeFunction();

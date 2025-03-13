@@ -19,6 +19,7 @@ import {
   SendFeedbackEmail,
   UploadVideo,
   DeleteUserProfile,
+  DeleteUserProfileTemporary,
   GetProfileById,
 } from "../controllers/userController.js";
 
@@ -95,7 +96,8 @@ UserRouter.get(
   GetTransactionsHistory
 );
 
-UserRouter.post("/deleteProfile", verifyJwtToken, DeleteUserProfile);
+UserRouter.post("/deleteProfile", verifyJwtToken, DeleteUserProfileTemporary);
+UserRouter.post("/deleteProfilePermanent", verifyJwtToken, DeleteUserProfile);
 UserRouter.post(
   "/sendFeedback",
   verifyJwtTokenWithTeam,

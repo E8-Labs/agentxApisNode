@@ -144,6 +144,12 @@ export const LoginUser = async (req, res) => {
       data: null,
     });
   } else {
+    if (user.profile_status != "active") {
+      return res.send({
+        status: false,
+        message: `This account is ${user.profile_status}`,
+      });
+    }
     let customerId = await generateStripeCustomerId(user.id);
     console.log("Stripe Custome Id Generated in Login");
     if (user.userRole == UserRole.Invitee) {
@@ -816,6 +822,21 @@ export const DeleteUserProfile = async (req, res) => {
   await deleteKycs(user);
   await deleteCalendars(user);
   await user.destroy();
+  return res.send({ status: true, message: "Profile deleted" });
+};
+
+export const DeleteUserProfileTemporary = async (req, res) => {
+  let userId = req.body.userId;
+  let user = await db.User.findByPk(userId);
+  if (!user) {
+    return res.send({ status: false, message: "No such user" });
+  }
+  //delete all agents
+  await deleteAllAgents(user);
+  await deleteKycs(user);
+  await deleteCalendars(user);
+  user.profile_status = "deleted";
+  await user.save();
   return res.send({ status: true, message: "Profile deleted" });
 };
 
