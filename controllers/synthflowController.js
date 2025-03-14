@@ -268,7 +268,17 @@ async function GetCompletePromptTextFrom(
   callScript = callScript.replace(/{First Name}/g, lead.firstName);
   callScript = callScript.replace(/{Last Name}/g, lead.lastName);
   callScript = callScript.replace(/{Email}/gi, lead.email);
-  callScript = callScript.replace(/{Address}/gi, lead.address);
+  if (typeof lead.email != "undefined" && lead.email != null) {
+    if (lead.email != "" && lead.email.toLowerCase() != "not provided") {
+      callScript = callScript.replace(/{Email}/gi, lead.email);
+    }
+  }
+
+  if (typeof lead.address != "undefined" && lead.address != null) {
+    if (lead.address != "" && lead.address.toLowerCase() != "not provided") {
+      callScript = callScript.replace(/{Address}/gi, lead.address);
+    }
+  }
 
   objective = objective.replace(/{agent_name}/g, assistant.name);
   objective = objective.replace(/{brokerage_name}/g, user.brokerage);
@@ -676,6 +686,15 @@ export const TestAI = async (req, res) => {
           id: userId,
         },
       });
+      if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+        userId = req.body.userId;
+        console.log("This is admin adding leads for other user", userId);
+        user = await db.User.findOne({
+          where: {
+            id: userId,
+          },
+        });
+      }
 
       let admin = await GetTeamAdminFor(user);
       user = admin;
@@ -1762,6 +1781,38 @@ export const UpdateSubAgent = async (req, res) => {
         let updated = await db.AgentModel.update(
           {
             consentRecording: vs,
+          },
+          {
+            where: {
+              id: agent.id,
+            },
+          }
+        );
+      }
+      if (req.body.callbackNumber) {
+        let callbackNumber = req.body.callbackNumber;
+
+        // dataToUpdate["consent_recording"] = vs;
+
+        let updated = await db.AgentModel.update(
+          {
+            callbackNumber: callbackNumber,
+          },
+          {
+            where: {
+              id: agent.id,
+            },
+          }
+        );
+      }
+      if (req.body.liveTransferkNumber) {
+        let liveTransferkNumber = req.body.liveTransferkNumber;
+
+        // dataToUpdate["consent_recording"] = vs;
+
+        let updated = await db.AgentModel.update(
+          {
+            liveTransferkNumber: liveTransferkNumber,
           },
           {
             where: {

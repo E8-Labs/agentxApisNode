@@ -204,6 +204,12 @@ const User = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    profile_status: {
+      type: Sequelize.ENUM,
+      values: ["active", "deleted"],
+      defaultValue: "active",
+      allowNull: false,
+    },
   });
 
   return User;

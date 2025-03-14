@@ -215,7 +215,7 @@ async function getUserData(lead, currentUser = null) {
     teamsAssigned: teamsAssigned,
     // sheetTagsArray,
   };
-  console.log("Zapier resource ", LeadResource);
+  // console.log("Zapier resource ", LeadResource);
 
   return LeadResource;
 }

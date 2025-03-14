@@ -8,7 +8,7 @@ import pdfExtract from "pdf-extraction";
 import fs from "fs";
 import path from "path";
 import { ensureDirExists } from "../utils/mediaservice.js";
-import { GetTeamAdminFor } from "../utils/auth.js";
+import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { addToVectorDb, findVectorData } from "../services/pineconeDb.js";
 import { CallOpenAi } from "../services/GptService.js";
 import { GptPrompts } from "../constants/GptPrompts.js";
@@ -184,24 +184,36 @@ export async function GetKnowledgebase(req, res) {
       return res.send({ status: false, message: "Unauthenticated User" });
     }
 
-    let agentId = req.query.agentId;
-    let userId = authData.user.id;
-    let user = await db.User.findByPk(userId);
-    let admin = await GetTeamAdminFor(user);
-    user = admin;
+    try {
+      let agentId = req.query.agentId;
+      let userId = authData.user.id;
+      let user = await db.User.findByPk(userId);
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
+      let teamIds = await GetTeamIds(user);
 
-    let kb = await db.KnowledgeBase.findAll({
-      where: {
-        userId: user.id,
-        agentId: agentId,
-      },
-    });
+      let kb = await db.KnowledgeBase.findAll({
+        where: {
+          // userId: {
+          //   [db.Sequelize.Op.in]: teamIds,
+          // },
+          agentId: agentId,
+        },
+      });
 
-    return res.send({
-      message: "Kb",
-      status: true,
-      data: kb,
-    });
+      return res.send({
+        message: "Kb" + user.id,
+        status: true,
+        data: kb,
+      });
+    } catch (error) {
+      console.log("Kb Error Get", error);
+      return res.send({
+        message: error.message,
+        status: trfalseue,
+        data: null,
+      });
+    }
   });
 }
 
@@ -223,16 +235,17 @@ export async function DeleteKnowledgebase(req, res) {
         id: kbId,
       },
     });
-    let kb = await db.KnowledgeBase.findAll({
-      where: {
-        userId: user.Id,
-      },
-    });
+    // let kb = await db.KnowledgeBase.findAll({
+    //   where: {
+    //     userId: user.Id,
+    //   },
+    // });
 
     return res.send({
-      message: "Kb",
+      message: "Knowledge base deleted",
       status: true,
-      data: kb,
+      data: null,
+      // data: kb,
     });
   });
 }

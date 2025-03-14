@@ -5,7 +5,7 @@ import axios from "axios";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import UserProfileLiteResource from "../resources/userProfileLiteResource.js";
 const limit = 30;
-import { UserTypes } from "../models/user/userModel.js";
+import { UserRole, UserTypes } from "../models/user/userModel.js";
 import AffilitateResource from "../resources/AffiliateResource.js";
 import UserProfileAdminResource from "../resources/UserProfileAdminResource.js";
 import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
@@ -136,39 +136,78 @@ export async function calculateAvgMAU() {
   return parseFloat((totalMAU / totalMonths).toFixed(2));
 }
 
-export async function fetchUserStats(days = 0, months = 0, years = 0) {
-  const startDate = new Date();
-  startDate.setDate(1);
-  startDate.setMonth(1);
-  startDate.setFullYear(2025);
-
-  const totalUsers = await db.User.count({ where: { userRole: "AgentX" } });
+export async function fetchUserStats(
+  startDate = new Date("2025-02-01"),
+  endDate = new Date()
+) {
+  //Do we fetch all users or only ones who are active?
+  const totalUsers = await db.User.count({
+    where: {
+      userRole: "AgentX",
+      createdAt: { [Op.between]: [startDate, endDate] },
+    },
+  });
 
   const trialUsers = await db.User.count({
     where: {
       isTrial: true,
-      createdAt: { [db.Sequelize.Op.gte]: startDate },
+      createdAt: { [Op.between]: [startDate, endDate] },
       userRole: "AgentX",
     },
   });
 
   const trialPercentage = ((trialUsers / totalUsers) * 100).toFixed(2);
 
-  const plans = ["Plan30", "Plan120", "Plan360", "Plan720"];
+  const plans = ["No Plan", "Trial", "Plan30", "Plan120", "Plan360", "Plan720"];
   const usersOnPlans = {};
 
   for (const plan of plans) {
-    const count = await db.PlanHistory.count({
-      where: {
-        type: plan,
-        status: "active",
-        createdAt: { [db.Sequelize.Op.gte]: startDate },
-      },
-    });
-    usersOnPlans[plan] = {
-      count,
-      percentage: ((count / totalUsers) * 100).toFixed(2),
-    };
+    if (plan == "No Plan") {
+      let usersOnActivePlan = await db.PlanHistory.count({
+        where: {
+          status: "active",
+        },
+      });
+      console.log("Total active users", totalUsers);
+      console.log("Total plans active ", usersOnActivePlan);
+      let usersNotOnPlans = totalUsers - usersOnActivePlan;
+      console.log("Users not on plans ", usersNotOnPlans);
+      usersOnPlans[plan] = {
+        count: usersNotOnPlans,
+        percentage: ((usersNotOnPlans / totalUsers) * 100).toFixed(2),
+      };
+    } else if (plan == "Trial") {
+      const count = await db.User.count({
+        where: {
+          isTrial: true,
+          createdAt: { [Op.between]: [startDate, endDate] },
+        },
+      });
+      usersOnPlans[plan] = {
+        count,
+        percentage: ((count / totalUsers) * 100).toFixed(2),
+      };
+    } else {
+      const count = await db.PlanHistory.count({
+        where: {
+          type: plan,
+          status: "active",
+          createdAt: { [Op.between]: [startDate, endDate] },
+        },
+        include: [
+          {
+            model: db.User,
+            attributes: [],
+            where: { isTrial: false }, // Exclude users who are on trial
+          },
+        ],
+      });
+
+      usersOnPlans[plan] = {
+        count,
+        percentage: ((count / totalUsers) * 100).toFixed(2),
+      };
+    }
   }
 
   const dailyActiveUsers = await calculateAvgDAU();
@@ -178,16 +217,18 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
   const mauPercentage = ((monthlyActiveUsers / totalUsers) * 100).toFixed(2);
 
   //udpate to calculate average starting from feb 1st
-  const weeklySignups = await db.User.count({
+  const totalSignups = await db.User.count({
     where: {
       createdAt: {
-        [db.Sequelize.Op.gte]: db.Sequelize.literal(
-          "DATE_SUB(CURRENT_DATE, INTERVAL 7 DAY)"
-        ),
+        [db.Sequelize.Op.between]: [startDate, endDate],
       },
     },
   });
 
+  const weeksBetween = Math.ceil(
+    (new Date(endDate) - new Date(startDate)) / (7 * 24 * 60 * 60 * 1000)
+  );
+  const weeklySignups = (totalSignups / weeksBetween).toFixed(2);
   const sessionStats = await calculateAvgSessionDuration(db);
 
   // Unique Phone Numbers
@@ -196,6 +237,9 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
     col: "userId", // Count unique users
     where: {
       phoneNumber: { [Op.ne]: "" }, // Only consider agents with a phone number assigned
+      createdAt: {
+        [db.Sequelize.Op.between]: [startDate, endDate],
+      },
     },
   });
 
@@ -203,6 +247,11 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
 
   // Users with More than 1 Pipeline
   const usersWithMultiplePipelines = await db.Pipeline.count({
+    where: {
+      createdAt: {
+        [db.Sequelize.Op.between]: [startDate, endDate],
+      },
+    },
     group: ["userId"],
     having: db.Sequelize.literal("COUNT(userId) > 1"),
   });
@@ -211,6 +260,11 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
 
   // Users with More than 2 Agents
   const usersWithMultipleAgents = await db.AgentModel.count({
+    where: {
+      createdAt: {
+        [db.Sequelize.Op.between]: [startDate, endDate],
+      },
+    },
     group: ["userId"],
     having: db.Sequelize.literal("COUNT(userId) > 2"),
   });
@@ -219,6 +273,11 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
 
   // Users Who Have Leads
   const usersWithLeads = await db.LeadModel.count({
+    where: {
+      createdAt: {
+        [db.Sequelize.Op.between]: [startDate, endDate],
+      },
+    },
     distinct: true,
     col: "userId",
   });
@@ -226,6 +285,11 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
 
   // Users Who Have Invited Teams
   const usersWithTeams = await db.TeamModel.count({
+    where: {
+      createdAt: {
+        [db.Sequelize.Op.between]: [startDate, endDate],
+      },
+    },
     distinct: true,
     col: "invitingUserId",
   });
@@ -237,15 +301,32 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
 
   // Users Who Have Added Calendar
   const usersWithCalendars = await db.CalendarIntegration.count({
+    where: {
+      createdAt: {
+        [db.Sequelize.Op.between]: [startDate, endDate],
+      },
+    },
     distinct: true,
     col: "userId",
   });
   const calendarUsersPercentage = (usersWithCalendars / totalUsers) * 100;
 
   // Call Success Rate
-  const totalCallsMade = await db.LeadCallsSent.count();
+  const totalCallsMade = await db.LeadCallsSent.count({
+    where: {
+      createdAt: {
+        [db.Sequelize.Op.between]: [startDate, endDate],
+      },
+    },
+  });
   const failedCalls = await db.LeadCallsSent.count({
-    where: { status: "failed" },
+    where: {
+      status: "failed",
+
+      createdAt: {
+        [db.Sequelize.Op.between]: [startDate, endDate],
+      },
+    },
   });
   const callSuccessRate =
     totalCallsMade > 0
@@ -260,6 +341,10 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
     ],
     where: {
       voiceId: { [db.Sequelize.Op.ne]: null }, // Exclude null voiceId
+
+      createdAt: {
+        [db.Sequelize.Op.between]: [startDate, endDate],
+      },
     },
     group: ["voiceId"],
     order: [[db.Sequelize.literal("count"), "DESC"]],
@@ -267,7 +352,12 @@ export async function fetchUserStats(days = 0, months = 0, years = 0) {
   });
 
   const totalUsersWithVoice = await db.AgentModel.count({
-    where: { voiceId: { [db.Sequelize.Op.ne]: null } }, // Count only users with a voice assigned
+    where: {
+      voiceId: { [db.Sequelize.Op.ne]: null },
+      createdAt: {
+        [db.Sequelize.Op.between]: [startDate, endDate],
+      },
+    }, // Count only users with a voice assigned
   });
 
   const topVoices = voiceCounts.map((voice) => ({
@@ -338,6 +428,8 @@ export async function GetAdminStats(req, res) {
       });
     }
 
+    let startDate = new Date(req.query.startDate || "2025-02-01");
+    let endDate = new Date(req.query.endDate || new Date());
     let offset = Number(req.query.offset || 0) || 0;
     // let limit = Number(req.query.limit || limit) || limit; // Default limit
 
@@ -363,7 +455,7 @@ export async function GetAdminStats(req, res) {
         });
       }
 
-      let stats = await fetchUserStats();
+      let stats = await fetchUserStats(startDate, endDate);
       return res.send({ status: true, message: "Admin stats", data: stats });
     }
   });
@@ -372,7 +464,7 @@ export async function GetAdminStats(req, res) {
 export async function calculateSubscriptionStats(
   duration,
   month,
-  startDate = new Date("2025-01-01"),
+  startDate = new Date("2025-02-01"),
   endDate = new Date()
 ) {
   // const startDate = new Date("2025-01-01");
@@ -390,6 +482,9 @@ export async function calculateSubscriptionStats(
     case "yearly":
       interval = "yearly";
       break;
+    case "daily":
+      interval = "daily";
+      break;
     default:
       interval = "monthly";
   }
@@ -403,7 +498,7 @@ export async function calculateSubscriptionStats(
     // Plan720: {},
   };
   let totalSubscriptions = 0;
-  let allPlans = ["Plan30", "Plan120", "Plan360", "Plan720"];
+  let allPlans = ["Trial", "Plan30", "Plan120", "Plan360", "Plan720"];
   for (let plan of allPlans) {
     let planStats = {};
     let date = new Date(startDate);
@@ -421,15 +516,48 @@ export async function calculateSubscriptionStats(
           Math.ceil((date - startDate) / (7 * 24 * 60 * 60 * 1000)) + 1;
         label = `Week ${weekNumber} ${date.getFullYear()}`;
         nextDate.setDate(date.getDate() + 7);
+      } else if (interval === "daily") {
+        label = date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "2-digit",
+          year: "2-digit",
+        }); // Example: "Jan 01, 25"
+        nextDate.setDate(date.getDate() + 1);
       }
       console.log("Label is ", label);
+      let count = 0;
+      if (plan == "Trial") {
+        count = await db.User.count({
+          where: {
+            createdAt: { [Op.gte]: date, [Op.lt]: nextDate },
+            isTrial: true,
+            // status: "active"
+          },
+        });
+      } else {
+        // count = await db.PlanHistory.count({
+        //   where: {
+        //     createdAt: { [Op.gte]: date, [Op.lt]: nextDate },
+        //     type: plan,
+        //     // status: "active"
+        //   },
+        // });
 
-      const count = await db.PlanHistory.count({
-        where: {
-          createdAt: { [Op.gte]: date, [Op.lt]: nextDate },
-          type: plan,
-        },
-      });
+        count = await db.PlanHistory.count({
+          where: {
+            type: plan,
+            // status: "active",
+            createdAt: { [Op.gte]: date, [Op.lt]: nextDate },
+          },
+          include: [
+            {
+              model: db.User,
+              attributes: [],
+              where: { isTrial: false }, // Exclude users who are on trial
+            },
+          ],
+        });
+      }
       totalSubscriptions += count;
       if (planStats[label]) {
         planStats[label] += count;
@@ -442,7 +570,7 @@ export async function calculateSubscriptionStats(
   }
 
   // Subscription Upgrade Rate
-  let upgradeBreakdown = await calculateUpgradeBreakdown(startDate);
+  let upgradeBreakdown = await calculateUpgradeBreakdown(startDate, endDate);
 
   // Plan Cancellations
   let planCancellations = {};
@@ -511,6 +639,7 @@ export async function calculateSubscriptionStats(
   };
 }
 
+//Subscription Performance Related  Functions Below
 async function calculateReactivationRate(startDate, endDate) {
   if (!startDate || !endDate) {
     throw new Error("Both startDate and endDate are required.");
@@ -571,7 +700,7 @@ async function calculateReactivationRate(startDate, endDate) {
   };
 }
 
-async function fetchUserPlans(startDate) {
+async function fetchUserPlans(startDate, endDate) {
   if (!startDate) {
     throw new Error("startDate is required.");
   }
@@ -588,11 +717,12 @@ async function fetchUserPlans(startDate) {
         SELECT MIN(id) FROM PlanHistories 
         WHERE userId = ph.userId
         AND createdAt >= :startDate
+        AND createdAt <= :endDate
     )
     ORDER BY ph.createdAt ASC
     `,
     {
-      replacements: { startDate: start },
+      replacements: { startDate: start, endDate: endDate },
       type: db.Sequelize.QueryTypes.SELECT,
     }
   );
@@ -600,37 +730,83 @@ async function fetchUserPlans(startDate) {
   return userPlansTrials;
 }
 
-async function calculateUpgradeBreakdown(startDate) {
-  function GetKeyForUpgrade(fromPlan, toPlan, isTrial) {
-    let StartPlan = fromPlan.type;
-    if (isTrial) {
-      StartPlan = "Trial";
-    }
+//Plan $45 to any other plan
+async function countPlan30Upgrades(startDate, endDate) {
+  const userPlans = await db.PlanHistory.findAll({
+    attributes: ["userId", "type", "createdAt", "status"],
+    where: {
+      createdAt: { [db.Sequelize.Op.between]: [startDate, endDate] },
+    },
+    order: [
+      ["userId", "ASC"],
+      ["createdAt", "ASC"],
+    ],
+    raw: true,
+  });
 
-    if (toPlan.type == PayAsYouGoPlanTypes.Plan120Min) {
-      return StartPlan + " to Plan120";
-    }
-    if (toPlan.type == PayAsYouGoPlanTypes.Plan30Min) {
-      return StartPlan + " to Plan30";
-    }
-    if (toPlan.type == PayAsYouGoPlanTypes.Plan120Min) {
-      return StartPlan + " to Plan360";
-    }
-    if (toPlan.type == PayAsYouGoPlanTypes.Plan120Min) {
-      return StartPlan + " to Plan720";
+  let userPlanMap = {};
+  let upgradeStats = {
+    "Trial to Plan30": 0,
+    "Plan30 to Plan120": 0,
+    "Plan30 to Plan360": 0,
+    "Plan30 to Plan720": 0,
+  };
+
+  // Step 1: Collect first and last plans for each user
+  for (let record of userPlans) {
+    if (!userPlanMap[record.userId]) {
+      userPlanMap[record.userId] = {
+        firstPlan: record.type,
+        lastPlan: record.type,
+        lastPlanStatus: record.status,
+      };
+    } else {
+      userPlanMap[record.userId].lastPlan = record.type;
+      userPlanMap[record.userId].lastPlanStatus = record.status;
     }
   }
+
+  // Step 2: Analyze Upgrades
+  for (let userId in userPlanMap) {
+    let plans = userPlanMap[userId];
+
+    // ✅ Fetch isTrial status from User table
+    const user = await db.User.findOne({
+      attributes: ["isTrial"],
+      where: { id: userId },
+      raw: true,
+    });
+
+    if (user?.isTrial) continue; // Skip users who are still on trial
+
+    if (plans.firstPlan === "Plan30") {
+      if (plans.lastPlanStatus !== "active") continue; // Ignore cancelled users
+
+      if (plans.lastPlan === "Plan120") {
+        upgradeStats["Plan30 to Plan120"] += 1;
+      } else if (plans.lastPlan === "Plan360") {
+        upgradeStats["Plan30 to Plan360"] += 1;
+      } else if (plans.lastPlan === "Plan720") {
+        upgradeStats["Plan30 to Plan720"] += 1;
+      } else if (plans.lastPlan === "Plan30") {
+        upgradeStats["Trial to Plan30"] += 1;
+      }
+    }
+  }
+
+  // ✅ Debugging - Ensure it's an object before returning
+  console.log("Final Upgrade Breakdown: ", JSON.stringify(upgradeStats));
+
+  return { ...upgradeStats }; // Force object return, prevent number conversion
+}
+
+//will check and fix this function
+async function calculateUpgradeBreakdown(startDate, endDate) {
   let upgradeBreakdown = {
     "Trial to Plan30": 0,
     "Trial to Plan120": 0,
     "Trial to Plan360": 0,
     "Trial to Plan720": 0,
-  };
-  let Plans = {
-    Plan120: 0,
-    Plan30: 0,
-    Plan360: 0,
-    Plan720: 0,
   };
   let cancellations = {
     trial: 0,
@@ -639,69 +815,50 @@ async function calculateUpgradeBreakdown(startDate) {
     Plan360: 0,
     Plan720: 0,
   };
+  let activePlans = {
+    Plan30: 0,
+    Plan120: 0,
+    Plan360: 0,
+    Plan720: 0,
+  };
 
-  let userPlansTrials = await fetchUserPlans(startDate);
-
-  console.log(userPlansTrials);
-  console.log(`${userPlansTrials.length} started `);
-
-  for (const p of userPlansTrials) {
-    console.log("\n\n");
-    console.log(
-      `Checking if user ${p.userId} upgraded from ${p.type} Id = ${p.id} status = ${p.status}`
-    );
-    let latestPlan = await db.PlanHistory.findOne({
-      where: {
-        userId: p.userId,
-        // status: "active"
-        id: {
-          [db.Sequelize.Op.gt]: p.id,
+  let userPlans = await db.User.findAll({
+    attributes: ["id", "isTrial"],
+    include: [
+      {
+        model: db.PlanHistory,
+        as: "planHistory",
+        attributes: ["type", "status", "createdAt"],
+        where: {
+          createdAt: { [db.Sequelize.Op.between]: [startDate, endDate] },
         },
+        order: [["createdAt", "ASC"]],
       },
-      order: [["createdAt", "DESC"]],
-    });
+    ],
+    raw: true,
+  });
 
-    console.log(`Found Latest Plan ${latestPlan?.type} ${latestPlan?.status}`);
-    if (latestPlan) {
-      if (latestPlan.status == "active") {
-        Plans[latestPlan.type] = (Plans[latestPlan.type] || 0) + 1;
-      }
-      if (latestPlan.status == "cancelled") {
-        cancellations[p.type] = (cancellations[p.type] || 0) + 1;
-        console.log("It's a cancelled plan", latestPlan.userId);
-      } else {
-        //user probably upgraded
-        let startDate = new Date(p.createdAt);
-        let secondPlanDate = new Date(latestPlan.createdAt);
-        let timeDifference = secondPlanDate - startDate;
-        let differenceInDays = timeDifference / (1000 * 60 * 60 * 24);
-        console.log(`Difference in days: ${differenceInDays}`);
-        if (differenceInDays > 7) {
-          //Then it will not be upgrade from Trial. It will be upgrade from Plan30
-          let key = GetKeyForUpgrade(p, latestPlan, false);
-          upgradeBreakdown[key] = (upgradeBreakdown[key] || 0) + 1;
-        } else {
-          let key = GetKeyForUpgrade(p, latestPlan, true);
-          upgradeBreakdown[key] = (upgradeBreakdown[key] || 0) + 1;
-        }
-      }
-    } else {
-      //user doesn't have any other plan so let's check if he is active and 7 days have passed or not
-      if (p.status == "cancelled") {
-        cancellations[p.type] = (cancellations[p.type] || 0) + 1;
-        console.log("It's a cancelled plan", p.userId);
-      } else {
-        if (p.status == "active") {
-          Plans[p.type] = (Plans[p.type] || 0) + 1;
-        }
-        let key = GetKeyForUpgrade(p, p, true);
-        upgradeBreakdown[key] = (upgradeBreakdown[key] || 0) + 1;
+  for (let user of userPlans) {
+    let userId = user["id"];
+    let isTrial = user["isTrial"];
+    let firstPlan = user["planHistory.type"];
+    let planStatus = user["planHistory.status"];
+
+    if (firstPlan === "Plan30" && isTrial) {
+      // User is still on trial, ignore them
+      continue;
+    } else if (!isTrial) {
+      // User completed trial and subscribed
+      if (planStatus === "active") {
+        upgradeBreakdown["Trial to " + firstPlan] += 1;
+        activePlans[firstPlan] += 1;
+      } else if (planStatus === "cancelled") {
+        cancellations[firstPlan] += 1;
       }
     }
   }
 
-  console.log("Upgrades ", upgradeBreakdown);
-  return { upgradeBreakdown, cancellations, Plans };
+  return { upgradeBreakdown, cancellations, activePlans };
 }
 
 async function calculateAvgCLV() {
@@ -795,7 +952,7 @@ export async function GetAdminAnalytics(req, res) {
       });
     }
 
-    let startDate = new Date(req.query.startDate || "2025-01-01");
+    let startDate = new Date(req.query.startDate || "2025-02-01");
     let endDate = new Date(req.query.endDate || new Date());
 
     let offset = Number(req.query.offset || 0) || 0;
@@ -823,8 +980,10 @@ export async function GetAdminAnalytics(req, res) {
         });
       }
 
+      let plan30Upgrades = await countPlan30Upgrades(startDate, endDate);
+
       let stats = await calculateSubscriptionStats(
-        "monthly",
+        "daily",
         0,
         startDate,
         endDate
@@ -833,6 +992,7 @@ export async function GetAdminAnalytics(req, res) {
       stats.nrr = await calculateNRR();
       stats.mrr = await calculateMRR();
       stats.arr = await calculateARR();
+      stats.plan30Upgrades = plan30Upgrades;
       return res.send({
         status: true,
         message: "Admin analytics",
@@ -917,6 +1077,7 @@ export async function GetUsers(req, res) {
       let searchQuery = req.query.search ? req.query.search.trim() : "";
       let whereCondition = {
         userRole: "AgentX",
+        profile_status: "active",
         userType: { [db.Sequelize.Op.notIn]: [UserTypes.Admin] },
       };
 
@@ -1091,6 +1252,9 @@ export async function GetUsers(req, res) {
           orderClause = db.Sequelize.literal(
             `(SELECT SUM(price) FROM PaymentHistories WHERE userId = User.id) ${sortOrder}`
           );
+          break;
+        case "Renewal":
+          orderClause = ["nextChargeDate", sortOrder];
           break;
         case "MinutesBalance":
           orderClause = ["totalSecondsAvailable", sortOrder];

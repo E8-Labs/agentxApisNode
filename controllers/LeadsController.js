@@ -26,6 +26,7 @@ import parsePhoneNumberFromString from "libphonenumber-js";
 import ZapierLeadResource from "../resources/ZapierLeadResource.js";
 import { time } from "console";
 import { DateTime } from "luxon";
+import { UserRole, UserTypes } from "../models/user/userModel.js";
 const limit = 30;
 /**
  * Check for stage conflicts among agents.
@@ -116,11 +117,23 @@ export const AddLeads = async (req, res) => {
     if (authData) {
       let userId = authData.user.id;
       //   if(userId == null)
+
       let user = await db.User.findOne({
         where: {
           id: userId,
         },
       });
+
+      console.log("User role ", user.userRole);
+      if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+        userId = req.body.userId;
+        console.log("This is admin adding leads for other user", userId);
+        user = await db.User.findOne({
+          where: {
+            id: userId,
+          },
+        });
+      }
       let leadsCountBefore = await db.LeadModel.count({
         where: {
           userId: user.id,
@@ -223,7 +236,7 @@ export const AddLeads = async (req, res) => {
           ) {
             // only push the lead if the number is valid
 
-            console.log("Lead phone is ", lead.phone);
+            // console.log("Lead phone is ", lead.phone);
             try {
               if (lead.lastName == null) {
                 lead.lastName = "";
@@ -413,7 +426,7 @@ export const postDataToWebhook = async (
   data,
   action = WebhookTypes.TypeNewLeadAdded
 ) => {
-  console.log("Zap ", data);
+  // console.log("Zap ", data);
   let ids = await GetTeamIds(user);
   let webhooks = await db.WebhookModel.findAll({
     where: {
@@ -423,8 +436,8 @@ export const postDataToWebhook = async (
       action: action, //WebhookTypes.TypeNewLeadAdded,
     },
   });
-  console.log("Action ", action);
-  console.log("Found webhooks ", webhooks.length);
+  // console.log("Action ", action);
+  // console.log("Found webhooks ", webhooks.length);
   if (webhooks && webhooks.length > 0) {
     for (const webhook of webhooks) {
       // postDataToWebhook(webhook.url, leadsRes);
@@ -455,6 +468,16 @@ export const AddSmartList = async (req, res) => {
           id: userId,
         },
       });
+
+      if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+        userId = req.body.userId;
+        console.log("This is admin adding smartlist for other user", userId);
+        user = await db.User.findOne({
+          where: {
+            id: userId,
+          },
+        });
+      }
 
       let admin = await GetTeamAdminFor(user);
       user = admin;
@@ -1001,6 +1024,7 @@ export const GetLeads = async (req, res) => {
           where: leadFilters,
           offset: offset,
           limit: limit,
+          order: [["createdAt", "DESC"]],
           // attributes: ["id", "firstName", "lastName", "email", "phone", "stage"], // Adjust attributes as needed
           raw: true, // Return plain objects
         });

@@ -35,6 +35,7 @@ import LeadLiteResource from "../resources/LeadLiteResource.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import { getFilteredQuery } from "./LeadsController.js";
 import PipelineLiteResource from "../resources/PipelineLiteResource.js";
+import PipelineStageLiteResource from "../resources/PipelineStageLiteResource.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -154,6 +155,18 @@ export const CreatePipelineStage = async (req, res) => {
         color = process.env.DefaultPipelineColor;
       }
       let pipeline = await db.Pipeline.findByPk(pipelineId);
+      let stageExists = await db.PipelineStages.findOne({
+        where: {
+          stageTitle: stageTitle.trim(),
+          pipelineId: pipelineId,
+        },
+      });
+      if (stageExists) {
+        return res.send({
+          status: false,
+          message: "A stage with same name already exists",
+        });
+      }
       let lastStageByOrder = await db.PipelineStages.findOne({
         where: {
           pipelineId: pipeline.id,
@@ -548,6 +561,109 @@ export const GetPipelines = async (req, res) => {
   });
 };
 
+// async function getPipelineData(pipeline) {
+//   //   console.log("Type of kyc is ", typeof kyc);
+
+//   let cadences = await db.PipelineCadence.findAll({
+//     where: {
+//       pipelineId: pipeline.id,
+//     },
+//   });
+
+//   let leadCadences = await db.LeadCadence.findAll({
+//     where: {
+//       pipelineId: pipeline.id,
+//       status: {
+//         [db.Sequelize.Op.in]: [CadenceStatus.Started, CadenceStatus.TestLead],
+//       },
+//     },
+//     // group: ["leadId"], // Group by leadId to ensure uniqueness
+//   });
+
+//   let leads = [];
+//   let leadIds = [];
+//   for (let i = 0; i < leadCadences.length; i++) {
+//     let lc = leadCadences[i];
+//     let mainAgentId = lc.mainAgentId;
+//     let lead = await db.LeadModel.findByPk(lc.leadId);
+//     let pipelineCadence = await db.PipelineCadence.findOne({
+//       where: {
+//         pipelineId: pipeline.id,
+//         mainAgentId: mainAgentId,
+//         stage: lead.stage,
+//       },
+//     });
+
+//     if (!leadIds.includes(lc.leadId) && pipelineCadence) {
+//       leadIds.push(lc.leadId);
+//       let leadRes = await LeadCadenceResource(lc);
+//       leads.push(leadRes);
+//     }
+//   }
+//   //if a lead is in a stage which is not assigned to any agent
+//   for (const lc of leadCadences) {
+//     if (!leadIds.includes(lc.leadId)) {
+//       leadIds.push(lc.leadId);
+//       let leadRes = await LeadCadenceResource(lc);
+//       leads.push(leadRes);
+//     }
+//   }
+
+//   let stages = await db.PipelineStages.findAll({
+//     where: {
+//       pipelineId: pipeline.id,
+//     },
+//     order: [["order", "ASC"]],
+//   });
+//   let stageLeads = {};
+//   for (let i = 0; i < stages.length; i++) {
+//     let st = stages[i];
+//     //count total leads in this stage
+//     let count = 0;
+//     leads.map((item) => {
+//       if (item.stage == st.id) {
+//         count += 1;
+//       }
+//     });
+//     stageLeads[st.id] = count;
+//   }
+
+//   const PipelineResource = {
+//     ...pipeline.get(),
+//     stages: await PipelineStageLiteResource(stages),
+//     cadences: await PipelineCadenceResource(cadences),
+//     leads: leads,
+//     leadsCountInStage: stageLeads,
+//   };
+
+//   return PipelineResource;
+// }
+
+// export const GetPipelineDetails = async (req, res) => {
+//   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+//     if (authData) {
+//       let userId = authData.user.id;
+//       let pipelineId = req.query.pipelineId;
+//       let user = await db.User.findOne({
+//         where: {
+//           id: userId,
+//         },
+//       });
+
+//       let pipeline = await db.Pipeline.findByPk(pipelineId);
+//       if (!pipeline) {
+//         return res.send({ status: false, message: "No such pipeline" });
+//       }
+//       let pipelineRes = await PipelineResource(pipeline);
+
+//       return res.send({
+//         status: true,
+//         data: pipelineRes,
+//         message: "Pipeline obtained",
+//       });
+//     }
+//   });
+// };
 //Updated For Team
 export const GetPipelineDetail = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -563,11 +679,7 @@ export const GetPipelineDetail = async (req, res) => {
         },
       });
 
-      let pipeline = await db.Pipeline.findAll({
-        where: {
-          id: pipelineId,
-        },
-      });
+      let pipeline = await db.Pipeline.findByPk(pipelineId);
 
       return res.send({
         status: true,
@@ -1236,7 +1348,7 @@ export async function GetLeadsForABatch(req, res) {
   });
 }
 
-//Scheduled calls | Updated For Team
+//Scheduled calls | Updated For Team. This is the one being used: Current
 export const GetScheduledCalls = async (req, res) => {
   const { mainAgentId, scheduled } = req.query;
 

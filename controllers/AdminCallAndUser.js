@@ -12,6 +12,8 @@ import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
 import { getEngagementsData } from "./AdminEngagements.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import LeadCallAdminResource from "../resources/LeadCallAdminResource.js";
+import { GetTeamIds } from "../utils/auth.js";
+import BatchResource from "../resources/BatchResource.js";
 
 export const GetCallLogs = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -121,6 +123,73 @@ export const GetCallLogs = async (req, res) => {
       }
     } else {
       return res.status(403).json({ success: false, error: "Unauthorized" });
+    }
+  });
+};
+
+export const GetScheduledCallsAdmin = async (req, res) => {
+  const { mainAgentId, scheduled } = req.query;
+
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+
+      //   if(userId == null)
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+
+      //find batches whose start time is in future
+      let startTimeFilter = {
+        [db.Sequelize.Op.gt]: new Date(),
+      };
+      //For scheduled, fetch the schedules which are going to happen first
+      let order = [[["startTime", "ASC"]]];
+
+      //find batches whose start time is in past
+      console.log("sch ", scheduled);
+      if (
+        scheduled == false ||
+        scheduled == "false" ||
+        typeof scheduled == "undefined"
+      ) {
+        console.log("In less than");
+        startTimeFilter = {
+          [db.Sequelize.Op.lt]: new Date(),
+        };
+        //Fetch based on the most recent one
+        order = [[["createdAt", "DESC"]]];
+      }
+
+      console.log("Filters ", startTimeFilter);
+      console.log("Order ", order);
+      let teamIds = await GetTeamIds(user);
+      let batches = await db.CadenceBatchModel.findAll({
+        where: {
+          // userId: {
+          //   [db.Sequelize.Op.in]: teamIds,
+          // },
+          startTime: startTimeFilter,
+        },
+        order: order,
+      });
+      let batchIds = batches.map((batch) => batch.id);
+
+      let resource = await BatchResource(batches);
+      if (batches) {
+        return res.send({
+          status: true,
+          message: "Batched Calls found",
+          data: resource,
+        });
+      } else {
+        return res.send({
+          status: false,
+          message: "No Scheduled calls",
+        });
+      }
     }
   });
 };
