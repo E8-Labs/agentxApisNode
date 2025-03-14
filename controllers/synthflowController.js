@@ -358,11 +358,12 @@ async function GetCompletePromptTextFrom(
   extraColumns = extraColumsDic;
   console.log("Data json");
   console.log(extraColumns);
+  console.log("Gr÷eeting before replacing is ", greeting);
   for (const key of keys) {
     // console.log(`Replacing key ${key} `);
     if (extraColumns) {
       let value = extraColumns[key];
-      // console.log(`Replacing key ${key} with ${value}`);
+      console.log(`Replacing key ${key} with ${value}`);
 
       if (value) {
         if (value != "" && typeof value != "undefined") {
@@ -376,7 +377,7 @@ async function GetCompletePromptTextFrom(
       }
     }
   }
-  // console.log("Greeting after replacing is ", greeting);
+  console.log("Gr÷eeting after replacing is ", greeting);
   // return;
   let guardrails = await db.ObjectionAndGuradrails.findAll({
     where: {
