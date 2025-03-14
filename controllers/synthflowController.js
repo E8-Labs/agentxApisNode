@@ -1779,6 +1779,38 @@ export const UpdateSubAgent = async (req, res) => {
           }
         );
       }
+      if (req.body.callbackNumber) {
+        let callbackNumber = req.body.callbackNumber;
+
+        // dataToUpdate["consent_recording"] = vs;
+
+        let updated = await db.AgentModel.update(
+          {
+            callbackNumber: callbackNumber,
+          },
+          {
+            where: {
+              id: agent.id,
+            },
+          }
+        );
+      }
+      if (req.body.liveTransferkNumber) {
+        let liveTransferkNumber = req.body.liveTransferkNumber;
+
+        // dataToUpdate["consent_recording"] = vs;
+
+        let updated = await db.AgentModel.update(
+          {
+            liveTransferkNumber: liveTransferkNumber,
+          },
+          {
+            where: {
+              id: agent.id,
+            },
+          }
+        );
+      }
       // if (req.body.voiceId) {
       //   let updated = await db.AgentModel.update(
       //     {
