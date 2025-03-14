@@ -244,16 +244,6 @@ async function GetCompletePromptTextFrom(
   greeting = greeting.replace(/{Phone Number}/g, lead.phone);
   customVariables.push(`Phone Number: ${lead.phone ?? "NA"}`);
 
-  greeting = greeting.replace(/{Email}/gi, lead.email);
-  customVariables.push(
-    `Email: ${lead.email && lead.email != "" ? lead.email : "NA"}`
-  );
-
-  greeting = greeting.replace(/{Address}/gi, lead.address);
-  customVariables.push(
-    `Address: ${lead.address && lead.address != "" ? lead.address : "NA"}`
-  );
-
   greeting = greeting.replace(/{agent_name}/g, assistant.name);
   greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
 
@@ -271,12 +261,20 @@ async function GetCompletePromptTextFrom(
   if (typeof lead.email != "undefined" && lead.email != null) {
     if (lead.email != "" && lead.email.toLowerCase() != "not provided") {
       callScript = callScript.replace(/{Email}/gi, lead.email);
+      objective = objective.replace(/{Email}/gi, lead.email);
+      greeting = greeting.replace(/{Email}/gi, lead.email);
+      customVariables.push(
+        `Email: ${lead.email && lead.email != "" ? lead.email : "NA"}`
+      );
     }
   }
 
   if (typeof lead.address != "undefined" && lead.address != null) {
     if (lead.address != "" && lead.address.toLowerCase() != "not provided") {
       callScript = callScript.replace(/{Address}/gi, lead.address);
+      objective = objective.replace(/{Address}/gi, lead.address);
+      greeting = greeting.replace(/{Address}/gi, lead.address);
+      customVariables.push(`Address: ${lead.address}`);
     }
   }
 
@@ -290,8 +288,6 @@ async function GetCompletePromptTextFrom(
   objective = objective.replace(/{firstName}/g, lead.firstName);
   objective = objective.replace(/{First Name}/g, lead.firstName);
   objective = objective.replace(/{Last Name}/g, lead.lastName);
-  objective = objective.replace(/{Email}/gi, lead.email);
-  objective = objective.replace(/{Address}/gi, lead.address);
 
   // console.log("Call script before");
   // console.log(callScript);
@@ -362,11 +358,12 @@ async function GetCompletePromptTextFrom(
   extraColumns = extraColumsDic;
   console.log("Data json");
   console.log(extraColumns);
+  console.log("Gr÷eeting before replacing is ", greeting);
   for (const key of keys) {
     // console.log(`Replacing key ${key} `);
     if (extraColumns) {
       let value = extraColumns[key];
-      // console.log(`Replacing key ${key} with ${value}`);
+      console.log(`Replacing key ${key} with ${value}`);
 
       if (value) {
         if (value != "" && typeof value != "undefined") {
@@ -380,7 +377,7 @@ async function GetCompletePromptTextFrom(
       }
     }
   }
-  // console.log("Greeting after replacing is ", greeting);
+  console.log("Gr÷eeting after replacing is ", greeting);
   // return;
   let guardrails = await db.ObjectionAndGuradrails.findAll({
     where: {
