@@ -5,7 +5,7 @@ import axios from "axios";
 import UserProfileFullResource from "../resources/userProfileFullResource.js";
 import UserProfileLiteResource from "../resources/userProfileLiteResource.js";
 const limit = 30;
-import { UserTypes } from "../models/user/userModel.js";
+import { UserRole, UserTypes } from "../models/user/userModel.js";
 import AffilitateResource from "../resources/AffiliateResource.js";
 import UserProfileAdminResource from "../resources/UserProfileAdminResource.js";
 import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
@@ -158,11 +158,25 @@ export async function fetchUserStats(
 
   const trialPercentage = ((trialUsers / totalUsers) * 100).toFixed(2);
 
-  const plans = ["Trial", "Plan30", "Plan120", "Plan360", "Plan720"];
+  const plans = ["No Plan", "Trial", "Plan30", "Plan120", "Plan360", "Plan720"];
   const usersOnPlans = {};
 
   for (const plan of plans) {
-    if (plan == "Trial") {
+    if (plan == "No Plan") {
+      let usersOnActivePlan = await db.PlanHistory.count({
+        where: {
+          status: "active",
+        },
+      });
+      console.log("Total active users", totalUsers);
+      console.log("Total plans active ", usersOnActivePlan);
+      let usersNotOnPlans = totalUsers - usersOnActivePlan;
+      console.log("Users not on plans ", usersNotOnPlans);
+      usersOnPlans[plan] = {
+        count: usersNotOnPlans,
+        percentage: ((usersNotOnPlans / totalUsers) * 100).toFixed(2),
+      };
+    } else if (plan == "Trial") {
       const count = await db.User.count({
         where: {
           isTrial: true,
@@ -468,6 +482,9 @@ export async function calculateSubscriptionStats(
     case "yearly":
       interval = "yearly";
       break;
+    case "daily":
+      interval = "daily";
+      break;
     default:
       interval = "monthly";
   }
@@ -499,6 +516,13 @@ export async function calculateSubscriptionStats(
           Math.ceil((date - startDate) / (7 * 24 * 60 * 60 * 1000)) + 1;
         label = `Week ${weekNumber} ${date.getFullYear()}`;
         nextDate.setDate(date.getDate() + 7);
+      } else if (interval === "daily") {
+        label = date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "2-digit",
+          year: "2-digit",
+        }); // Example: "Jan 01, 25"
+        nextDate.setDate(date.getDate() + 1);
       }
       console.log("Label is ", label);
       let count = 0;
@@ -959,7 +983,7 @@ export async function GetAdminAnalytics(req, res) {
       let plan30Upgrades = await countPlan30Upgrades(startDate, endDate);
 
       let stats = await calculateSubscriptionStats(
-        "monthly",
+        "daily",
         0,
         startDate,
         endDate
