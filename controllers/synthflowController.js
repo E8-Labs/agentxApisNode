@@ -268,7 +268,17 @@ async function GetCompletePromptTextFrom(
   callScript = callScript.replace(/{First Name}/g, lead.firstName);
   callScript = callScript.replace(/{Last Name}/g, lead.lastName);
   callScript = callScript.replace(/{Email}/gi, lead.email);
-  callScript = callScript.replace(/{Address}/gi, lead.address);
+  if (typeof lead.email != "undefined" && lead.email != null) {
+    if (lead.email != "" && lead.email.toLowerCase() != "not provided") {
+      callScript = callScript.replace(/{Email}/gi, lead.email);
+    }
+  }
+
+  if (typeof lead.address != "undefined" && lead.address != null) {
+    if (lead.address != "" && lead.address.toLowerCase() != "not provided") {
+      callScript = callScript.replace(/{Address}/gi, lead.address);
+    }
+  }
 
   objective = objective.replace(/{agent_name}/g, assistant.name);
   objective = objective.replace(/{brokerage_name}/g, user.brokerage);
