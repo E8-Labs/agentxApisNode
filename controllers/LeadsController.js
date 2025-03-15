@@ -487,7 +487,7 @@ export const AddSmartList = async (req, res) => {
 
       let sheet = await db.LeadSheetModel.create({
         sheetName: sheetName,
-        userId: userId,
+        userId: admin.id,
         type: inbound ? "inbound" : "general",
       });
 
