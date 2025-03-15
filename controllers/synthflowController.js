@@ -683,14 +683,16 @@ export const TestAI = async (req, res) => {
           id: userId,
         },
       });
-      if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
-        userId = req.body.userId;
-        console.log("This is admin adding leads for other user", userId);
-        user = await db.User.findOne({
-          where: {
-            id: userId,
-          },
-        });
+      if (user.userType) {
+        if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+          userId = req.body.userId;
+          console.log("This is admin adding leads for other user", userId);
+          user = await db.User.findOne({
+            where: {
+              id: userId,
+            },
+          });
+        }
       }
 
       let admin = await GetTeamAdminFor(user);
