@@ -957,14 +957,17 @@ async function handleInfoExtractorValues(
   }
 
   if (!movedToPriorityStage) {
+    console.log("Didn't move to priority stage");
     for (const csIE of customStageIEs) {
+      console.log("Checking csIE", csIE);
       const value = json[csIE];
-
+      console.log("Value ", value);
       if (value) {
         const stageIdentifier = csIE.replace(
           `${process.env.StagePrefix}_stage_`,
           ""
         );
+        console.log("Stage identifier ", stageIdentifier);
         const stage = await db.PipelineStages.findOne({
           where: {
             identifier: stageIdentifier,
@@ -986,6 +989,8 @@ async function handleInfoExtractorValues(
 
           movedToCustom = true;
           console.log(`Successfully moved to ${stageIdentifier}`, json[csIE]);
+        } else {
+          console.log("No such stage");
         }
 
         break;
