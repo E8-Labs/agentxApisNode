@@ -1804,14 +1804,14 @@ export const UpdateSubAgent = async (req, res) => {
           }
         );
       }
-      if (req.body.liveTransferkNumber) {
-        let liveTransferkNumber = req.body.liveTransferkNumber;
+      if (req.body.liveTransferNumber) {
+        let liveTransferNumber = req.body.liveTransferNumber;
 
         // dataToUpdate["consent_recording"] = vs;
 
         let updated = await db.AgentModel.update(
           {
-            liveTransferkNumber: liveTransferkNumber,
+            liveTransferkNumber: liveTransferNumber,
           },
           {
             where: {
