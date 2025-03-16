@@ -963,10 +963,12 @@ async function handleInfoExtractorValues(
       const value = json[csIE];
       console.log("Value ", value);
       if (value) {
-        const stageIdentifier = csIE.replace(
+        let stageIdentifier = csIE.replace(
           `${process.env.StagePrefix}_stage_`,
           ""
         );
+        // stageIdentifier = stageIdentifier.replace(" ", "_")
+        stageIdentifier = `custom_stage_${stageIdentifier.toLowerCase()}`;
         console.log("Stage identifier ", stageIdentifier);
         const stage = await db.PipelineStages.findOne({
           where: {
