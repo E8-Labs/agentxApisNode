@@ -1811,7 +1811,7 @@ export const UpdateSubAgent = async (req, res) => {
 
         let updated = await db.AgentModel.update(
           {
-            liveTransferkNumber: liveTransferNumber,
+            liveTransferNumber: liveTransferNumber,
           },
           {
             where: {
