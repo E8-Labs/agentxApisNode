@@ -201,7 +201,7 @@ async function getUserData(lead, currentUser = null) {
   delete leadData.status;
 
   let dncData = leadData.dncData;
-  let cell = "Y";
+  let cell = null;
   let isOnDncList = false;
   if (dncData) {
     try {
