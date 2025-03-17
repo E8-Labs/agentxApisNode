@@ -200,6 +200,33 @@ async function getUserData(lead, currentUser = null) {
 
   delete leadData.status;
 
+  let dncData = leadData.dncData;
+  let cell = "Y";
+  let isOnDncList = false;
+  if (dncData) {
+    try {
+      dncData = JSON.stringify(dncData);
+
+      const code = dncData.RESPONSECODE;
+
+      if (code !== "OK") {
+        if (code == "-1" || code == "invalid-phone") {
+          console.log("DNC CHECK: Invalid phone number");
+        }
+        // isOnDncList = null;
+        // throw new Error("DNC API Error: Invalid Response");
+      } else {
+        // ✅ 4. Check if lead is on any DNC list
+        isOnDncList =
+          dncData.national_dnc === "Y" ||
+          dncData.state_dnc === "Y" ||
+          dncData.dma === "Y" ||
+          dncData.litigator === "Y";
+        cell = dncData.iscell;
+      }
+    } catch (error) {}
+  }
+
   const LeadResource = {
     ...leadData,
     tags: tags, //{ ...tags, ...sheetTagsArray },
@@ -210,6 +237,8 @@ async function getUserData(lead, currentUser = null) {
     booking: scheduled,
     pipeline: pipeline,
     teamsAssigned: teamsAssigned,
+    cell: cell,
+    isOnDncList: isOnDncList,
     // sheetTagsArray,
   };
 
