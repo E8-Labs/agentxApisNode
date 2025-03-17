@@ -222,7 +222,13 @@ async function getUserData(lead, currentUser = null) {
           dncData.state_dnc === "Y" ||
           dncData.dma === "Y" ||
           dncData.litigator === "Y";
-        cell = dncData.iscell;
+        if (dncData.iscell == "Y") {
+          cell = "Cellphone";
+        } else if (dncData.iscell == "N") {
+          cell = "Landline";
+        } else {
+          cell = "VOIP";
+        }
       }
     } catch (error) {}
   }
