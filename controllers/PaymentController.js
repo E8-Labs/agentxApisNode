@@ -277,6 +277,7 @@ export async function PurchaseSupportPlan(req, res) {
         req
       );
       if (charge && charge.status) {
+        user.totalSecondsAvailable += foundSupportPlan.minutes * 60;
         let historyCreated = await db.PaymentHistory.create({
           title: `Support plan ${foundSupportPlan.type}`,
           description: `Payment for ${foundSupportPlan.type} Support Plan`,
