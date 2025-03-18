@@ -72,6 +72,7 @@ export const ChargeTypes = {
   MinutesRenewed: "MinutesRenewed",
   PhonePurchase: "PhonePurchase",
   SupportPlan: "SupportPlan",
+  DNCCheck: "DNCCheck",
 };
 
 let TestPlans = [
