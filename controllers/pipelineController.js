@@ -1001,38 +1001,42 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       let admin = await GetTeamAdminFor(user);
       user = admin;
 
-      let amount = 100; //cents
-      if (leadIds.length > 33) {
-        amount = 3 * leadIds.length; // cents
-      }
+      if (dncCheck) {
+        let amount = 100; //cents
+        if (leadIds.length > 33) {
+          amount = 3 * leadIds.length; // cents
+        }
 
-      let charge = await chargeUser(
-        user.id,
-        amount,
-        `DNC Checklist payment`,
-        ChargeTypes.DNCCheck,
-        false,
-        req
-      );
-      if (charge && charge.status) {
-        console.log("Dnc check payment Success: ", amount / 100);
-        let historyCreated = await db.PaymentHistory.create({
-          title: `DNC Check`,
-          description: `DNC Check Payment for ${leadIds.length} leads`,
-          type: ChargeTypes.DNCCheck,
-          price: amount / 100,
-          userId: user.id,
-          environment: process.env.Environment,
-          transactionId: charge.paymentIntent.id,
-        });
+        let charge = await chargeUser(
+          user.id,
+          amount,
+          `DNC Checklist payment`,
+          ChargeTypes.DNCCheck,
+          false,
+          req
+        );
+        if (charge && charge.status) {
+          console.log("Dnc check payment Success: ", amount / 100);
+          let historyCreated = await db.PaymentHistory.create({
+            title: `DNC Check`,
+            description: `DNC Check Payment for ${leadIds.length} leads`,
+            type: ChargeTypes.DNCCheck,
+            price: amount / 100,
+            userId: user.id,
+            environment: process.env.Environment,
+            transactionId: charge.paymentIntent.id,
+          });
+        } else {
+          return res.send({
+            status: false,
+            message: "An issue occurred while processing payment",
+            charge: charge,
+            error: charge.message,
+            data: null,
+          });
+        }
       } else {
-        return res.send({
-          status: false,
-          message: "An issue occurred while processing payment",
-          charge: charge,
-          error: charge.message,
-          data: null,
-        });
+        console.log("DNC Check not applied");
       }
 
       //if select all
