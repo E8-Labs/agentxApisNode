@@ -1001,6 +1001,20 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
       let admin = await GetTeamAdminFor(user);
       user = admin;
 
+      //if select all
+      if (selectedAll) {
+        console.log("User have selected all");
+        let filters = getFilteredQuery(req, userId);
+        console.log("Applied Filters are ", filters);
+        if (filters) {
+          console.log("User have filters selected for the lead and");
+        }
+        let leadIdsFiltered = await getLeadIdsBySheetIdAndFilter(filters);
+        const difference = leadIdsFiltered.filter(
+          (item) => !leadIds.includes(item)
+        );
+        leadIds = difference;
+      }
       if (dncCheck) {
         let amount = 100; //cents
         if (leadIds.length > 33) {
@@ -1037,21 +1051,6 @@ export const AssignLeadsToPipelineAndAgents = async (req, res) => {
         }
       } else {
         console.log("DNC Check not applied");
-      }
-
-      //if select all
-      if (selectedAll) {
-        console.log("User have selected all");
-        let filters = getFilteredQuery(req, userId);
-        console.log("Applied Filters are ", filters);
-        if (filters) {
-          console.log("User have filters selected for the lead and");
-        }
-        let leadIdsFiltered = await getLeadIdsBySheetIdAndFilter(filters);
-        const difference = leadIdsFiltered.filter(
-          (item) => !leadIds.includes(item)
-        );
-        leadIds = difference;
       }
 
       console.log("Leads selected ", leadIds.length);
