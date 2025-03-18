@@ -596,6 +596,7 @@ export const MakeACall = async (
       synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`,
       stage: lead.stage,
       status: "failed",
+      callOutcome: "Failed",
       duration: 50,
       batchId: batchId,
       meeting: meeting?.id,
@@ -1031,9 +1032,11 @@ async function initiateCall(
       }
     } else {
       try {
-        const callId = json.response.call_id;
+        const callId = json.response?.call_id;
         let answer = json.response?.answer;
+        console.log("Adding call try error ");
 
+        await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
         sendFailedCallEmail(
           lead,
           assistant,
@@ -1045,9 +1048,7 @@ async function initiateCall(
       } catch (error) {
         console.log("Error sending failed email", error);
       }
-      console.log("Adding call try error ");
 
-      await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
       console.log("Call Failed with line 834", json);
       if (json.status == "error") {
         if (leadCadence) {
