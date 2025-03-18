@@ -663,7 +663,7 @@ export const MakeACall = async (
     let data = {
       name: Name,
       phone: PhoneNumber,
-      model: assistant.modelId, //"1722652829145x214249543190325760",
+      model_id: assistant.modelId, //"1722652829145x214249543190325760",
       prompt: basePrompt.callScript,
       custom_variables: basePrompt.customVariables,
       // greeting: basePrompt.greeting,
@@ -849,7 +849,7 @@ export const TestAI = async (req, res) => {
         let data = {
           name: name,
           phone: phone,
-          model: agent.modelId, //"1722652829145x214249543190325760",
+          model_id: agent.modelId, //"1722652829145x214249543190325760",
           prompt: basePrompt.callScript,
           custom_variables: basePrompt.customVariables,
           // greeting: basePrompt.greeting,
