@@ -209,7 +209,7 @@ async function getUserData(lead, currentUser = null) {
 
       const code = dncData.RESPONSECODE;
       leadData.ResponseCode = code;
-      if (code === "Ok") {
+      if (code == "OK") {
         leadData.codeOk = true;
         isOnDncList =
           dncData.national_dnc === "Y" ||
