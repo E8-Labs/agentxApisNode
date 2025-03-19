@@ -1000,7 +1000,7 @@ async function initiateCall(
 
     if (json.status === "ok" || json.status === "success") {
       const callId = json.response.call_id;
-      //console.log("Call id ", callId);
+      console.log("Call id ", callId);
       await addCallTry(
         leadCadence,
         lead,
@@ -1010,6 +1010,7 @@ async function initiateCall(
         "success",
         callId
       );
+      console.log("Call Try added");
       try {
         const saved = await db.LeadCallsSent.create({
           leadCadenceId: leadCadence?.id,
@@ -1029,7 +1030,7 @@ async function initiateCall(
           meeting: meeting?.id,
         });
 
-        //console.log("Saved ", saved);
+        console.log("Saved ", saved);
         return {
           status: true,
           message: "call is initiated",
@@ -1037,7 +1038,7 @@ async function initiateCall(
           callData: data,
         };
       } catch (error) {
-        //console.log("Error Call ", error);
+        console.log("Error Call ", error);
         await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
         return {
           status: false,
