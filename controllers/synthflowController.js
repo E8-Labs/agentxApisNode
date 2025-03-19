@@ -663,10 +663,10 @@ export const MakeACall = async (
     let data = {
       name: Name,
       phone: PhoneNumber,
-      // model_id: assistant.modelId, //"1722652829145x214249543190325760",
-      model: assistant.modelId, //"1722652829145x214249543190325760",
+      model_id: assistant.modelId, //"1722652829145x214249543190325760",
+      // model: assistant.modelId, //"1722652829145x214249543190325760",
       prompt: basePrompt.callScript,
-      // custom_variables: basePrompt.customVariables,
+      custom_variables: basePrompt.customVariables,
       // greeting: basePrompt.greeting,
     };
 
@@ -850,10 +850,10 @@ export const TestAI = async (req, res) => {
         let data = {
           name: name,
           phone: phone,
-          // model_id: agent.modelId, //"1722652829145x214249543190325760",
-          model: agent.modelId,
+          model_id: agent.modelId, //"1722652829145x214249543190325760",
+          // model: agent.modelId,
           prompt: basePrompt.callScript,
-          // custom_variables: basePrompt.customVariables,
+          custom_variables: basePrompt.customVariables,
           // greeting: basePrompt.greeting,
         };
 
@@ -980,8 +980,7 @@ async function initiateCall(
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      // url: "https://api.synthflow.ai/v2/calls", //
-      url: "https://fine-tuner.ai/api/1.1/wf/v2_voice_agent_call",
+      url: "https://api.synthflow.ai/v2/calls", //"https://fine-tuner.ai/api/1.1/wf/v2_voice_agent_call",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${synthKey}`,
