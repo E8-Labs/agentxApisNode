@@ -205,12 +205,12 @@ async function getUserData(lead, currentUser = null) {
   let isOnDncList = false;
   if (dncData) {
     try {
-      dncData = JSON.stringify(dncData);
+      dncData = JSON.parse(dncData);
 
       const code = dncData.RESPONSECODE;
-      leadData.ResponseCode = code;
+      // leadData.ResponseCode = code;
       if (code == "OK") {
-        leadData.codeOk = true;
+        // leadData.codeOk = true;
         isOnDncList =
           dncData.national_dnc === "Y" ||
           dncData.state_dnc === "Y" ||
@@ -224,15 +224,15 @@ async function getUserData(lead, currentUser = null) {
           cell = "VOIP";
         }
       } else {
-        leadData.codeOk = false;
+        // leadData.codeOk = false;
         // ✅ 4. Check if lead is on any DNC list
         if (code == "-1" || code == "invalid-phone") {
           console.log("DNC CHECK: Invalid phone number");
         }
       }
     } catch (error) {
-      leadData.codeOk = "error";
-      dncData = "NA";
+      // leadData.codeOk = "error";
+      // dncData = "NA";
     }
   }
 
