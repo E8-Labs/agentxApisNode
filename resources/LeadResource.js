@@ -224,12 +224,14 @@ async function getUserData(lead, currentUser = null) {
           cell = "VOIP";
         }
       } else {
+        leadData.codeOk = false;
         // ✅ 4. Check if lead is on any DNC list
         if (code == "-1" || code == "invalid-phone") {
           console.log("DNC CHECK: Invalid phone number");
         }
       }
     } catch (error) {
+      leadData.codeOk = "error";
       dncData = "NA";
     }
   }
