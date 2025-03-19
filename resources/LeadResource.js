@@ -208,8 +208,8 @@ async function getUserData(lead, currentUser = null) {
       dncData = JSON.stringify(dncData);
 
       const code = dncData.RESPONSECODE;
-
-      if (code === "Ok") {
+      leadData.ResponseCode = code;
+      if (code == "OK") {
         leadData.codeOk = true;
         isOnDncList =
           dncData.national_dnc === "Y" ||
