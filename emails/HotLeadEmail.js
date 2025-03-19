@@ -72,7 +72,7 @@ const HtmlTemplateHotLeadAlert = `
         <li><strong>Name:</strong> {Leadname}</li>
         <li><strong>Email:</strong> {Leademail}</li>
         <li><strong>Phone:</strong> {Leadphone}</li>
-        <li><strong>Call Recording:</strong> <a href="{LinkToRecording}" style="color: #007BFF; text-decoration: none;">Link to Recording</a></li>
+        <li><strong>Call Recording:</strong> <a href="{LinkToRecording}" style="color: #007BFF; text-decoration: none;">Listen to recording</a></li>
       </ul>
       <p>This is your opportunity to follow up and close the deal.</p>
       <a href="{CTA_Link}" class="cta"><p class="ctaText">{CTA_Text}</p></a>
