@@ -666,7 +666,7 @@ export const MakeACall = async (
       // model_id: assistant.modelId, //"1722652829145x214249543190325760",
       model: assistant.modelId, //"1722652829145x214249543190325760",
       prompt: basePrompt.callScript,
-      custom_variables: basePrompt.customVariables,
+      // custom_variables: basePrompt.customVariables,
       // greeting: basePrompt.greeting,
     };
 
@@ -853,7 +853,7 @@ export const TestAI = async (req, res) => {
           // model_id: agent.modelId, //"1722652829145x214249543190325760",
           model: agent.modelId,
           prompt: basePrompt.callScript,
-          custom_variables: basePrompt.customVariables,
+          // custom_variables: basePrompt.customVariables,
           // greeting: basePrompt.greeting,
         };
 
