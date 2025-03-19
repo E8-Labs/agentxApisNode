@@ -209,7 +209,8 @@ async function getUserData(lead, currentUser = null) {
 
       const code = dncData.RESPONSECODE;
 
-      if (code !== "OK") {
+      if (code === "OK") {
+        leadData.codeOk = true;
         isOnDncList =
           dncData.national_dnc === "Y" ||
           dncData.state_dnc === "Y" ||
@@ -228,8 +229,12 @@ async function getUserData(lead, currentUser = null) {
           console.log("DNC CHECK: Invalid phone number");
         }
       }
-    } catch (error) {}
+    } catch (error) {
+      dncData = "NA";
+    }
   }
+
+  // leadData.dncData = null;
 
   const LeadResource = {
     ...leadData,
