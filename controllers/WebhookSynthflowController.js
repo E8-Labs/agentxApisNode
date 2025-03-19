@@ -176,8 +176,7 @@ export const WebhookSynthflow = async (req, res) => {
           leadCadence,
           lead,
           dbCall,
-          endCallReason,
-          dbCall
+          endCallReason
         );
       }
     }

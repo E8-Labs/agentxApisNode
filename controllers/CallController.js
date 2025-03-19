@@ -45,7 +45,8 @@ export const isDncCheckPassed = async (lead) => {
       isOnDncList =
         response.data.national_dnc === "Y" ||
         response.data.state_dnc === "Y" ||
-        response.data.dma === "Y";
+        response.data.dma === "Y" ||
+        response.data.litigator === "Y";
     }
 
     // ✅ 3. Update the LeadModel in the database

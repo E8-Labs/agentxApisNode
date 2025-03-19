@@ -1504,7 +1504,8 @@ export const GetCallLogs = async (req, res) => {
         }
 
         if (status) {
-          callLogFilters.status = { [Op.like]: `%${status}%` };
+          const statusArray = status.split(",").map((s) => s.trim()); // Convert to an array
+          callLogFilters.callOutcome = { [Op.in]: statusArray }; // Filter for multiple statuses
         }
 
         const convertToUTC = (dateStr, userTimeZone) => {

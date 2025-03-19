@@ -18,6 +18,7 @@ const PaymentHistory = (sequelize, Sequelize) => {
         "Plan360",
         "Plan720",
         ChargeTypes.SupportPlan,
+        ChargeTypes.DNCCheck,
       ],
       defaultValue: "PhonePurchase",
     },
@@ -72,6 +73,7 @@ export const ChargeTypes = {
   MinutesRenewed: "MinutesRenewed",
   PhonePurchase: "PhonePurchase",
   SupportPlan: "SupportPlan",
+  DNCCheck: "DNCCheck",
 };
 
 let TestPlans = [
@@ -186,9 +188,9 @@ export const SupportPlanTypes = {
   Enterprise: "Enterprise",
 };
 export const SupportPlans = [
-  { type: SupportPlanTypes.Starter, price: 997 },
-  { type: SupportPlanTypes.Professional, price: 2997 },
-  { type: SupportPlanTypes.Enterprise, price: 4997 },
+  { type: SupportPlanTypes.Starter, price: 997, minutes: 250 },
+  { type: SupportPlanTypes.Professional, price: 2997, minutes: 750 },
+  { type: SupportPlanTypes.Enterprise, price: 4997, minutes: 1500 },
 ];
 
 export function findSupportPlan(type) {

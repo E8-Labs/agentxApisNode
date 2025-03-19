@@ -229,6 +229,10 @@ export async function fetchUserStats(
     (new Date(endDate) - new Date(startDate)) / (7 * 24 * 60 * 60 * 1000)
   );
   const weeklySignups = (totalSignups / weeksBetween).toFixed(2);
+  const weeklySignupsPercentage = (
+    (weeklySignups / totalSignups) *
+    100
+  ).toFixed(2);
   const sessionStats = await calculateAvgSessionDuration(db);
 
   // Unique Phone Numbers
@@ -386,6 +390,7 @@ export async function fetchUserStats(
       },
     },
     weeklySignups,
+    weeklySignupsPercentage,
     avgSessionDuration: `${sessionStats.avgSessionDuration}`,
 
     weeklySignups,

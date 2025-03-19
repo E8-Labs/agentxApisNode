@@ -194,7 +194,8 @@ async function GetCompletePromptTextFrom(
   let companyAgentInfo = prompt.companyAgentInfo;
   companyAgentInfo = companyAgentInfo.replace(/{agent_name}/g, assistant.name);
   if (assistant.name != null && assistant.name != "") {
-    customVariables.push(`agent_name: ${assistant.name || "NA"}`);
+    customVariables.push({ key: "agent_name", value: assistant.name || "NA" });
+    // customVariables.push(`agent_name: ${assistant.name || "NA"}`);
   }
   companyAgentInfo = companyAgentInfo.replace(
     /{agent_role}/g,
@@ -202,11 +203,19 @@ async function GetCompletePromptTextFrom(
   );
 
   if (assistant.agentRole != null && assistant.agentRole != "") {
-    customVariables.push(`agent_role: ${assistant.agentRole}`);
+    customVariables.push({
+      key: "agent_role",
+      value: assistant.agentRole || "NA",
+    });
+    // customVariables.push(`agent_role: ${assistant.agentRole}`);
   }
 
   if (user.brokerage_name != null && user.brokerage_name != "") {
-    customVariables.push(`brokerage_name: ${user.brokerage_name}`);
+    customVariables.push({
+      key: "brokerage_name",
+      value: user.brokerage_name || "NA",
+    });
+    // customVariables.push(`brokerage_name: ${user.brokerage_name}`);
   }
   companyAgentInfo = companyAgentInfo.replace(
     /{CU_status}/gi,
@@ -214,7 +223,8 @@ async function GetCompletePromptTextFrom(
   );
 
   if (assistant.status != null && assistant.status != "") {
-    customVariables.push(`CU_status: ${assistant.status}`);
+    customVariables.push({ key: "CU_status", value: assistant.status || "NA" });
+    // customVariables.push(`CU_status: ${assistant.status}`);
   }
   companyAgentInfo = companyAgentInfo.replace(
     /{CU_address}/g,
@@ -234,15 +244,18 @@ async function GetCompletePromptTextFrom(
   }
 
   greeting = greeting.replace(/{First Name}/g, lead.firstName);
-  customVariables.push(`First Name: ${lead.firstName ?? "NA"}`);
+  customVariables.push({ key: "First Name", value: lead.firstName || "NA" });
+  // customVariables.push(`First Name: ${lead.firstName ?? "NA"}`);
 
   greeting = greeting.replace(/{Last Name}/g, lead.lastName);
-  customVariables.push(
-    `Last Name: ${lead.lastName && lead.lastName != "" ? lead.lastName : "NA"}`
-  );
+  customVariables.push({ key: "Last Name", value: lead.lastName || "NA" });
+  // customVariables.push(
+  //   `Last Name: ${lead.lastName && lead.lastName != "" ? lead.lastName : "NA"}`
+  // );
 
   greeting = greeting.replace(/{Phone Number}/g, lead.phone);
-  customVariables.push(`Phone Number: ${lead.phone ?? "NA"}`);
+  customVariables.push({ key: "Phone Number", value: lead.phone || "NA" });
+  // customVariables.push(`Phone Number: ${lead.phone ?? "NA"}`);
 
   greeting = greeting.replace(/{agent_name}/g, assistant.name);
   greeting = greeting.replace(/{brokerage_name}/g, user.brokerage);
@@ -263,9 +276,10 @@ async function GetCompletePromptTextFrom(
       callScript = callScript.replace(/{Email}/gi, lead.email);
       objective = objective.replace(/{Email}/gi, lead.email);
       greeting = greeting.replace(/{Email}/gi, lead.email);
-      customVariables.push(
-        `Email: ${lead.email && lead.email != "" ? lead.email : "NA"}`
-      );
+      customVariables.push({ key: "Email", value: lead.email || "NA" });
+      // customVariables.push(
+      //   `Email: ${lead.email && lead.email != "" ? lead.email : "NA"}`
+      // );
     }
   }
 
@@ -274,7 +288,8 @@ async function GetCompletePromptTextFrom(
       callScript = callScript.replace(/{Address}/gi, lead.address);
       objective = objective.replace(/{Address}/gi, lead.address);
       greeting = greeting.replace(/{Address}/gi, lead.address);
-      customVariables.push(`Address: ${lead.address}`);
+      customVariables.push({ key: "Address", value: lead.address || "NA" });
+      // customVariables.push(`Address: ${lead.address}`);
     }
   }
 
@@ -367,7 +382,8 @@ async function GetCompletePromptTextFrom(
 
       if (value) {
         if (value != "" && typeof value != "undefined") {
-          customVariables.push(`${key}: ${value ?? "NA"}`);
+          customVariables.push({ key: key, value: value || "NA" });
+          // customVariables.push(`${key}: ${value ?? "NA"}`);
         }
         const regex = new RegExp(`\\{${key}\\}`, "gi"); // Create a dynamic regex to match `${key}`
         //console.log(`replacing ${key} with ${value}`);
@@ -596,6 +612,7 @@ export const MakeACall = async (
       synthflowCallId: `CallNo-${calls.length}-LeadCadId-${leadCadence.id}-${lead.stage}`,
       stage: lead.stage,
       status: "failed",
+      callOutcome: "Failed",
       duration: 50,
       batchId: batchId,
       meeting: meeting?.id,
@@ -646,7 +663,7 @@ export const MakeACall = async (
     let data = {
       name: Name,
       phone: PhoneNumber,
-      model: assistant.modelId, //"1722652829145x214249543190325760",
+      model_id: assistant.modelId, //"1722652829145x214249543190325760",
       prompt: basePrompt.callScript,
       custom_variables: basePrompt.customVariables,
       // greeting: basePrompt.greeting,
@@ -832,7 +849,7 @@ export const TestAI = async (req, res) => {
         let data = {
           name: name,
           phone: phone,
-          model: agent.modelId, //"1722652829145x214249543190325760",
+          model_id: agent.modelId, //"1722652829145x214249543190325760",
           prompt: basePrompt.callScript,
           custom_variables: basePrompt.customVariables,
           // greeting: basePrompt.greeting,
@@ -961,7 +978,7 @@ async function initiateCall(
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: "https://fine-tuner.ai/api/1.1/wf/v2_voice_agent_call",
+      url: "https://api.synthflow.ai/v2/calls", //"https://fine-tuner.ai/api/1.1/wf/v2_voice_agent_call",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${synthKey}`,
@@ -1031,9 +1048,11 @@ async function initiateCall(
       }
     } else {
       try {
-        const callId = json.response.call_id;
+        const callId = json.response?.call_id;
         let answer = json.response?.answer;
+        console.log("Adding call try error ");
 
+        await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
         sendFailedCallEmail(
           lead,
           assistant,
@@ -1045,9 +1064,7 @@ async function initiateCall(
       } catch (error) {
         console.log("Error sending failed email", error);
       }
-      console.log("Adding call try error ");
 
-      await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
       console.log("Call Failed with line 834", json);
       if (json.status == "error") {
         if (leadCadence) {

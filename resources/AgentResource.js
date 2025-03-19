@@ -137,9 +137,7 @@ async function getUserData(mainAgent, currentUser = null) {
     let callsGt10 = await db.LeadCallsSent.count({
       where: {
         agentId: ag.id,
-        duration: {
-          [db.Sequelize.Op.gt]: 10,
-        },
+        conversation_detected: true,
       },
     });
     agent.callsGt10 = callsGt10;
