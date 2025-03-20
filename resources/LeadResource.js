@@ -164,7 +164,7 @@ async function getUserData(lead, currentUser = null) {
     if (
       leadData.email == null ||
       leadData.email == "" ||
-      leadData.email?.toLowerCassed() == "not provided"
+      leadData.email?.toLowerCase() == "not provided"
     ) {
       leadData.email = emails[0].email;
       let newEmails = [];
