@@ -8,6 +8,7 @@ import {
   CheckCalendarAvailability,
   GetUserConnectedCalendars,
   GetCalendarSchedule,
+  DeleteCalendarApi,
 } from "../controllers/calendarController.js";
 
 import { GenerateApiKey, GetMyApiKeys } from "../controllers/apiController.js";
@@ -29,6 +30,12 @@ CalendarRouter.post(
   verifyJwtTokenWithTeam,
   uploadFiles,
   AddCalendarCalDotCom
+);
+CalendarRouter.post(
+  "/deleteCalendar",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  DeleteCalendarApi
 );
 CalendarRouter.get("/getAvailability", uploadFiles, CheckCalendarAvailability);
 CalendarRouter.post("/schedule", uploadFiles, ScheduleEvent);

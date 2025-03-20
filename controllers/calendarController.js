@@ -718,6 +718,36 @@ export async function AddCalendarCalDotCom(req, res) {
   });
 }
 
+export async function DeleteCalendarApi(req, res) {
+  let calendarId = req.body.calendarId;
+  let calendar = await db.CalendarIntegration.findByPk(calendarId);
+  if (!calendar) {
+    return res.send({ status: false, message: "No such calendar" });
+  }
+  let data = calendar.data || null;
+  console.log("Calendar", calendarId);
+  if (data) {
+    try {
+      let actions = JSON.stringify(data);
+      console.log("Total actions ", actions.length);
+      if (actions && actions.length > 0) {
+        for (let action of actions) {
+          let del = DeleteActionSynthflow(action);
+        }
+      }
+      console.log("Del cal from db");
+      calendar.destroy();
+      return res.send({ status: true, message: "Calendar deleted" });
+    } catch (error) {
+      console.log("Error deleting calendar", error);
+      return res.send({ status: false, message: "Error deleting calendar" });
+    }
+  } else {
+    calendar.destroy();
+    return res.send({ status: true, message: "Calendar deleted" });
+  }
+}
+
 export async function GetUserConnectedCalendars(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
