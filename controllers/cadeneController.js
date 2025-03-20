@@ -259,7 +259,7 @@ function canRunCallsDuringDay(u, batch) {
 }
 
 //Checks whether the user can be called or not because of dnc
-async function CheckDNC(lead) {
+async function CheckDNC(lead, batch) {
   let canCall = true;
   if (lead.dncCheckPassed) {
     if (lead.dncCheckPassed == "N") {
@@ -272,6 +272,15 @@ async function CheckDNC(lead) {
     try {
       let passed = await isDncCheckPassed(lead);
       if (passed == "N") {
+        //delete leadCadence
+        try {
+          await db.LeadCadence.destroy({
+            leadId: lead.id,
+            batchId: batch.id,
+          });
+        } catch (er) {
+          console.log("Error del leadCad Check Dnc", er);
+        }
         console.log("This lead DNC Check is not passed");
         canCall = false;
       }
@@ -393,14 +402,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         if (!batch) {
           continue; // don't send cadence if not batched leadsCad calls because they were not added through assigning leads
         }
-        if (batch.dncCheck == true || batch.dncCheck == 1) {
-          let canCall = await CheckDNC(lead);
-          if (!canCall) {
-            continue;
-          }
-        } else {
-          console.log("Don't check dnc for batch", batch.id);
-        }
+
         // continue;
         //check the total number of ongoing calls atm
 
@@ -610,6 +612,14 @@ export const CronRunCadenceCallsFirstBatch = async () => {
             // );
 
             if (tries < 3) {
+              if (batch.dncCheck == true || batch.dncCheck == 1) {
+                let canCall = await CheckDNC(lead, batch);
+                if (!canCall) {
+                  continue;
+                }
+              } else {
+                console.log("Don't check dnc for batch", batch.id);
+              }
               let called = await MakeACall(leadCad, simulate, calls, batch.id);
             } else {
               //set cad errored
@@ -651,6 +661,14 @@ export const CronRunCadenceCallsFirstBatch = async () => {
           //   `Tries for ${lead.id} cad ${leadCad.id} STG ${lead.stage} for MA ${mainAgent.id} = ${tries}`
           // );
           if (tries < 3) {
+            if (batch.dncCheck == true || batch.dncCheck == 1) {
+              let canCall = await CheckDNC(lead, batch);
+              if (!canCall) {
+                continue;
+              }
+            } else {
+              console.log("Don't check dnc for batch", batch.id);
+            }
             let called = await MakeACall(leadCad, simulate, calls, batch.id);
             // WriteToFile("First Call initiated");
             if (called.status) {
