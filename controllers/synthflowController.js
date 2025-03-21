@@ -2083,7 +2083,7 @@ export const UpdateSubAgent = async (req, res) => {
         let instructions = defaultInstructionsForTransfer;
         if (liveTransferNumber) {
           if (!agent.liveTransferActionId) {
-            action = await CreateAndAttachInfoExtractor(
+            let action = await CreateAndAttachInfoExtractor(
               agent.mainAgentId,
               {
                 actionType: "live_transfer",
