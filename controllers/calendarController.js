@@ -772,7 +772,7 @@ export async function GetUserConnectedCalendars(req, res) {
             [db.Sequelize.Op.in]: teamIds,
           },
         },
-        group: ["apiKey", "eventId", "title", "timeZone"], // Group by unique apiKey and eventId
+        group: ["id", "apiKey", "eventId", "title", "timeZone"], // Group by unique apiKey and eventId
         order: [
           [db.Sequelize.fn("MAX", db.Sequelize.col("createdAt")), "DESC"],
         ], // Order by latest createdAt
