@@ -1044,7 +1044,7 @@ async function initiateCall(
         await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
         return {
           status: false,
-          message: "call is not initiated due to database error",
+          message: error.message, // "call is not initiated due to database error",
           data: error,
           callData: data,
         };
@@ -1089,7 +1089,7 @@ async function initiateCall(
 
     return {
       status: false,
-      message: "call is not initiated due to API error",
+      message: "call is not initiated ",
       data: null,
       callData: data,
     };

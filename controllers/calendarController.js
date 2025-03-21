@@ -572,6 +572,7 @@ export async function AddCalendarCalDotCom(req, res) {
         // Fetch calendars
         let apiClient = getApiClient(apiKey);
         const calendarsResponse = await apiClient.get("/calendars");
+        console.log("Calendar response", calendarsResponse);
         const calendars = calendarsResponse.data;
 
         console.log("Available Calendars:", calendars);
