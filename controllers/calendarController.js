@@ -711,7 +711,7 @@ export async function AddCalendarCalDotCom(req, res) {
         console.error("Error retrieving calendars or event types:", error);
         return res.send({
           status: false,
-          message: error.message.contains("401")
+          message: error.message.includes("401")
             ? "Invalid api key"
             : error.message,
           error: error,
