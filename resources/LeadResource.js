@@ -161,7 +161,11 @@ async function getUserData(lead, currentUser = null) {
     },
   });
   if (emails && emails.length > 0) {
-    if (leadData.email == null || leadData.email == "") {
+    if (
+      leadData.email == null ||
+      leadData.email == "" ||
+      leadData.email?.toLowerCase() == "not provided"
+    ) {
       leadData.email = emails[0].email;
       let newEmails = [];
       emails.map((item, index) => {
@@ -237,6 +241,8 @@ async function getUserData(lead, currentUser = null) {
   }
 
   // leadData.dncData = null;
+  delete leadData.dncData;
+  delete leadData.dncCheckPassed;
 
   const LeadResource = {
     ...leadData,

@@ -13,6 +13,7 @@ import {
   CreateAndAttachInfoExtractor,
   CreateInfoExtractor,
   GetInfoExtractorApiData,
+  UpdateLiveTransferAction,
 } from "./actionController.js";
 import AgentResource from "../resources/AgentResource.js";
 import LeadCadence, { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
@@ -1044,7 +1045,7 @@ async function initiateCall(
         await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
         return {
           status: false,
-          message: "call is not initiated due to database error",
+          message: error.message, // "call is not initiated due to database error",
           data: error,
           callData: data,
         };
@@ -1089,7 +1090,7 @@ async function initiateCall(
 
     return {
       status: false,
-      message: "call is not initiated due to API error",
+      message: "call is not initiated ",
       data: null,
       callData: data,
     };
@@ -1132,7 +1133,7 @@ export async function GetVoices(req, res) {
 }
 
 //user = admin of the account
-async function CreatePromptForAgent(
+export async function CreatePromptForAgent(
   user,
   mainAgent,
   name,
@@ -1267,10 +1268,11 @@ export const BuildAgent = async (req, res) => {
           mainAgentId: mainAgent.id,
         });
       }
-      if (!mainAgent) {
-        //console.log("Error creating main agent ");
-        return;
-      }
+
+      // if (!mainAgent) {
+      //   //console.log("Error creating main agent ");
+      //   return;
+      // }
 
       // let agents = await db.AgentModel.findAll({
       //   where: {
@@ -1279,26 +1281,26 @@ export const BuildAgent = async (req, res) => {
       // });
 
       try {
-        let kycTextSeller = ``;
-        let kycTextBuyer = ``;
-        let qs = await db.KycModel.findAll({
-          where: {
-            mainAgentId: mainAgent.id,
-            // type: "seller",
-          },
-        });
+        // let kycTextSeller = ``;
+        // let kycTextBuyer = ``;
+        // let qs = await db.KycModel.findAll({
+        //   where: {
+        //     mainAgentId: mainAgent.id,
+        //     // type: "seller",
+        //   },
+        // });
 
-        for (const kyc of qs) {
-          if (kyc.type == "seller") {
-            kycTextSeller = `${kycTextSeller}\n${kyc.question}`;
-          } else {
-            kycTextBuyer = `${kycTextBuyer}\n${kyc.question}`;
-          }
-        }
+        // for (const kyc of qs) {
+        //   if (kyc.type == "seller") {
+        //     kycTextSeller = `${kycTextSeller}\n${kyc.question}`;
+        //   } else {
+        //     kycTextBuyer = `${kycTextBuyer}\n${kyc.question}`;
+        //   }
+        // }
         let CUStatus = status,
           CUAddress = address;
 
-        //Create Prompt
+        // //Create Prompt
         let selectedPrompt = selectedObjective.prompt;
 
         // //console.log("Kyc ", kycTextSeller);
@@ -1320,66 +1322,69 @@ export const BuildAgent = async (req, res) => {
             // greeting_message: selectedObjective.promptInbound.greeting,
             // prompt: selectedObjective.prompt,
           };
-          let createdOutboundPrompt = await CreatePromptForAgent(
-            admin,
-            mainAgent,
-            name,
-            CUStatus,
-            CUAddress,
-            kycTextBuyer,
-            kycTextSeller,
-            "outbound",
-            selectedObjective
-          );
-          let createdInboundPrompt = await CreatePromptForAgent(
-            admin,
-            mainAgent,
-            name,
-            CUStatus,
-            CUAddress,
-            kycTextBuyer,
-            kycTextSeller,
-            "inbound",
-            selectedObjective
-          );
+
+          // let createdOutboundPrompt = await CreatePromptForAgent(
+          //   admin,
+          //   mainAgent,
+          //   name,
+          //   CUStatus,
+          //   CUAddress,
+          //   kycTextBuyer,
+          //   kycTextSeller,
+          //   "outbound",
+          //   selectedObjective
+          // );
+          // let createdInboundPrompt = await CreatePromptForAgent(
+          //   admin,
+          //   mainAgent,
+          //   name,
+          //   CUStatus,
+          //   CUAddress,
+          //   kycTextBuyer,
+          //   kycTextSeller,
+          //   "inbound",
+          //   selectedObjective
+          // );
           data.agentType = "inbound";
 
           let inboundPromptText = "";
-          if (createdInboundPrompt) {
-            inboundPromptText = await getInboudPromptText(
-              createdInboundPrompt,
-              { ...data, callbackNumber: null, liveTransferNumber: null },
-              admin
-            );
-            data.prompt = inboundPromptText; //uncomment if we want to push the prompt to synthflow
-            data.greeting_message = createdInboundPrompt.greeting; //selectedObjective.promptInbound.greeting;
-          }
-          let createdInbound = await CreateAssistantSynthflow(
-            data,
-            "inbound",
-            mainAgent,
-            user.timeZone,
-            user
-          );
+          // if (createdInboundPrompt) {
+          //   inboundPromptText = await getInboudPromptText(
+          //     createdInboundPrompt,
+          //     { ...data, callbackNumber: null, liveTransferNumber: null },
+          //     admin
+          //   );
+          //   data.prompt = inboundPromptText; //uncomment if we want to push the prompt to synthflow
+          //   data.greeting_message = createdInboundPrompt.greeting; //selectedObjective.promptInbound.greeting;
+          // }
+          let createdInbound = await db.AgentModel.create(data);
+          // let createdInbound = await CreateAssistantSynthflow(
+          //   data,
+          //   "inbound",
+          //   mainAgent,
+          //   user.timeZone,
+          //   user
+          // );
           data.agentType = "outbound";
-          if (createdOutboundPrompt) {
-            //Uncomment if we want to push the prompt to synthflow
-            // data.prompt = await getInboudPromptText(
-            //   createdOutboundPrompt,
-            //   { ...data, callbackNumber: null, liveTransferNumber: null },
-            //   user
-            // );
+          // if (createdOutboundPrompt) {
+          //   //Uncomment if we want to push the prompt to synthflow
+          //   // data.prompt = await getInboudPromptText(
+          //   //   createdOutboundPrompt,
+          //   //   { ...data, callbackNumber: null, liveTransferNumber: null },
+          //   //   user
+          //   // );
 
-            data.prompt = null;
-            data.greeting_message = createdOutboundPrompt.greeting; //selectedObjective.prompt.greeting;
-          }
-          let createdOutbound = await CreateAssistantSynthflow(
-            data,
-            "outbound",
-            mainAgent,
-            user.timeZone,
-            user
-          );
+          //   data.prompt = null;
+          //   data.greeting_message = createdOutboundPrompt.greeting; //selectedObjective.prompt.greeting;
+          // }
+          let createdOutbound = await db.AgentModel.create(data);
+          // let createdOutbound = await CreateAssistantSynthflow(
+          //   data,
+          //   "outbound",
+          //   mainAgent,
+          //   user.timeZone,
+          //   user
+          // );
         } else {
           let data = {
             userId: admin.id,
@@ -1394,46 +1399,48 @@ export const BuildAgent = async (req, res) => {
             agentObjectiveId: agentObjectiveId,
             // prompt: selectedObjective.prompt,
           };
-          let created = await CreatePromptForAgent(
-            admin,
-            mainAgent,
-            name,
-            CUStatus,
-            CUAddress,
-            kycTextBuyer,
-            kycTextSeller,
-            agentType,
-            selectedObjective
-          );
+          // let created = await CreatePromptForAgent(
+          //   admin,
+          //   mainAgent,
+          //   name,
+          //   CUStatus,
+          //   CUAddress,
+          //   kycTextBuyer,
+          //   kycTextSeller,
+          //   agentType,
+          //   selectedObjective
+          // );
           // if(createdOutbound){
           if (agentType == "inbound") {
             //only push prompt for inbound
-            console.log(
-              "This is in bound agent ",
-              selectedObjective.promptInbound.greeting
-            );
-            data.prompt = await getInboudPromptText(
-              created,
-              { ...data, callbackNumber: null, liveTransferNumber: null },
-              admin
-            );
-            data.greeting_message = created.greeting; //selectedObjective.promptInbound.greeting;
+            // console.log(
+            //   "This is in bound agent ",
+            //   selectedObjective.promptInbound.greeting
+            // );
+            // data.prompt = await getInboudPromptText(
+            //   created,
+            //   { ...data, callbackNumber: null, liveTransferNumber: null },
+            //   admin
+            // );
+            // data.greeting_message = created.greeting; //selectedObjective.promptInbound.greeting;
           } else {
-            console.log("This is out bound agent ", created.greeting);
-            data.greeting_message = selectedObjective.prompt.greeting;
+            // console.log("This is out bound agent ", created.greeting);
+            // data.greeting_message = selectedObjective.prompt.greeting;
           }
 
           // console.log("Prompt ");
           // console.log(data.prompt);
           // data.prompt = inboundPromptText;
           // }
-          let createdAgent = await CreateAssistantSynthflow(
-            data,
-            agentType,
-            mainAgent,
-            user.timeZone,
-            user
-          );
+          // let createdAgent = await CreateAssistantSynthflow(
+          //   data,
+          //   agentType,
+          //   mainAgent,
+          //   user.timeZone,
+          //   user
+          // );
+
+          let createdAgent = await db.AgentModel.create(data);
         }
 
         let agentRes = await AgentResource(mainAgent);
@@ -1454,6 +1461,249 @@ export const BuildAgent = async (req, res) => {
     }
   });
 };
+
+export async function CreateBackgroundSynthAssistant(agent) {
+  let userId = agent.userId;
+  let user = await db.User.findOne({
+    where: {
+      id: userId,
+    },
+  });
+
+  let admin = await GetTeamAdminFor(user);
+  user = admin;
+  // console.log("BuildAgent", req.body);
+
+  const name = agent.name;
+  const agentRole = agent.agentRole || "";
+  let agentObjective = agent.agentObjective;
+  let agentObjectiveId = Number(agent.agentObjectiveId);
+  const agentType = agent.agentType?.toLowerCase() || "both"; //inbound, outbound, both
+  const status = agent.status;
+  const address = agent.address;
+  const agentObjectiveDescription = agent.agentObjectiveDescription;
+
+  let selectedObjective = null;
+  if (user.userType == UserTypes.RealEstateAgent) {
+  } else {
+    agentObjective = "";
+    agentObjectiveId = 1001;
+    console.log(
+      "Other user type: So last objective is for the other user types"
+    );
+
+    // selectedObjective = AgentObjectives[AgentObjectives.length - 1];
+    // console.log(selectedObjective.prompt);
+  }
+
+  for (let i = 0; i < AgentObjectives.length; i++) {
+    console.log(`matching ${AgentObjectives[i].id} == ${agentObjectiveId} `);
+    if (
+      AgentObjectives[i].id == agentObjectiveId ||
+      AgentObjectives[i].title == agentObjective
+    ) {
+      selectedObjective = AgentObjectives[i];
+    }
+  }
+
+  let mainAgent = await db.MainAgentModel.findByPk(agent.mainAgentId);
+
+  //Create Default Guardrails
+  for (const obj of selectedObjective.objections || []) {
+    let created = await db.ObjectionAndGuradrails.create({
+      title: obj.title,
+      description: obj.description,
+      type: "objection",
+      mainAgentId: mainAgent.id,
+    });
+  }
+  for (const obj of selectedObjective.guardrails || []) {
+    let created = await db.ObjectionAndGuradrails.create({
+      title: obj.title,
+      description: obj.description,
+      type: "guardrail",
+      mainAgentId: mainAgent.id,
+    });
+  }
+
+  try {
+    let kycTextSeller = ``;
+    let kycTextBuyer = ``;
+    let qs = await db.KycModel.findAll({
+      where: {
+        mainAgentId: mainAgent.id,
+        // type: "seller",
+      },
+    });
+
+    for (const kyc of qs) {
+      if (kyc.type == "seller") {
+        kycTextSeller = `${kycTextSeller}\n${kyc.question}`;
+      } else {
+        kycTextBuyer = `${kycTextBuyer}\n${kyc.question}`;
+      }
+    }
+    let CUStatus = status,
+      CUAddress = address;
+
+    //Create Prompt
+    let selectedPrompt = selectedObjective.prompt;
+
+    // //console.log("Kyc ", kycTextSeller);
+    // return;
+    if (agentType == "both") {
+      //create Agent Sythflow
+
+      let data = {
+        agentId: agent.id,
+        userId: admin.id,
+        name: name,
+        agentRole: agentRole,
+        agentObjective,
+        agentType: "inbound",
+        status,
+        agentObjectiveDescription,
+        address,
+        mainAgentId: mainAgent.id,
+        agentObjectiveId: agentObjectiveId,
+        // greeting_message: selectedObjective.promptInbound.greeting,
+        // prompt: selectedObjective.prompt,
+      };
+      let createdOutboundPrompt = await CreatePromptForAgent(
+        admin,
+        mainAgent,
+        name,
+        CUStatus,
+        CUAddress,
+        kycTextBuyer,
+        kycTextSeller,
+        "outbound",
+        selectedObjective
+      );
+      let createdInboundPrompt = await CreatePromptForAgent(
+        admin,
+        mainAgent,
+        name,
+        CUStatus,
+        CUAddress,
+        kycTextBuyer,
+        kycTextSeller,
+        "inbound",
+        selectedObjective
+      );
+      data.agentType = "inbound";
+
+      let inboundPromptText = "";
+      if (createdInboundPrompt) {
+        inboundPromptText = await getInboudPromptText(
+          createdInboundPrompt,
+          { ...data, callbackNumber: null, liveTransferNumber: null },
+          admin
+        );
+        data.prompt = inboundPromptText; //uncomment if we want to push the prompt to synthflow
+        data.greeting_message = createdInboundPrompt.greeting; //selectedObjective.promptInbound.greeting;
+      }
+      let createdInbound = await CreateAssistantSynthflow(
+        data,
+        "inbound",
+        mainAgent,
+        user.timeZone,
+        user
+      );
+      data.agentType = "outbound";
+      if (createdOutboundPrompt) {
+        //Uncomment if we want to push the prompt to synthflow
+        // data.prompt = await getInboudPromptText(
+        //   createdOutboundPrompt,
+        //   { ...data, callbackNumber: null, liveTransferNumber: null },
+        //   user
+        // );
+
+        data.prompt = null;
+        data.greeting_message = createdOutboundPrompt.greeting; //selectedObjective.prompt.greeting;
+      }
+      let createdOutbound = await CreateAssistantSynthflow(
+        data,
+        "outbound",
+        mainAgent,
+        user.timeZone,
+        user
+      );
+    } else {
+      let data = {
+        agentId: agent.id,
+        userId: admin.id,
+        name: name,
+        agentRole: agentRole,
+        agentObjective,
+        agentType: agentType,
+        status,
+        agentObjectiveDescription,
+        address,
+        mainAgentId: mainAgent.id,
+        agentObjectiveId: agentObjectiveId,
+        // prompt: selectedObjective.prompt,
+      };
+      let created = await CreatePromptForAgent(
+        admin,
+        mainAgent,
+        name,
+        CUStatus,
+        CUAddress,
+        kycTextBuyer,
+        kycTextSeller,
+        agentType,
+        selectedObjective
+      );
+      // if(createdOutbound){
+      if (agentType == "inbound") {
+        //only push prompt for inbound
+        console.log(
+          "This is in bound agent ",
+          selectedObjective.promptInbound.greeting
+        );
+        data.prompt = await getInboudPromptText(
+          created,
+          { ...data, callbackNumber: null, liveTransferNumber: null },
+          admin
+        );
+        data.greeting_message = created.greeting; //selectedObjective.promptInbound.greeting;
+      } else {
+        console.log("This is out bound agent ", created.greeting);
+        data.greeting_message = selectedObjective.prompt.greeting;
+      }
+
+      // console.log("Prompt ");
+      // console.log(data.prompt);
+      // data.prompt = inboundPromptText;
+      // }
+      let createdAgent = await CreateAssistantSynthflow(
+        data,
+        agentType,
+        mainAgent,
+        user.timeZone,
+        user
+      );
+    }
+
+    console.log("Agent created on synthflow");
+    // let agentRes = await AgentResource(mainAgent);
+    // res.send({
+    //   status: true,
+    //   message: "Agent Created",
+    //   data: agentRes,
+    // });
+  } catch (error) {
+    console.log("error creating agent on synthflow");
+    console.log(error);
+    // res.send({
+    //   status: false,
+    //   message: error.message,
+    //   data: null,
+    //   error: error,
+    // });
+  }
+}
 
 //Updated For team flow
 export const UpdateAgent = async (req, res) => {
@@ -1828,7 +2078,40 @@ export const UpdateSubAgent = async (req, res) => {
         let liveTransferNumber = req.body.liveTransferNumber;
 
         // dataToUpdate["consent_recording"] = vs;
-
+        let defaultInstructionsForTransfer =
+          "Make the transfer if the user asks to speak to one of our team member or a live agent.";
+        let instructions = defaultInstructionsForTransfer;
+        if (liveTransferNumber) {
+          if (!agent.liveTransferActionId) {
+            let action = await CreateAndAttachInfoExtractor(
+              agent.mainAgentId,
+              {
+                actionType: "live_transfer",
+                phone: liveTransferNumber,
+                instructions: instructions,
+              },
+              agent
+            );
+            agent.liveTransferActionId = action?.action_id;
+            await agent.save();
+          } else {
+            //update IE
+            let actionId = agent.liveTransferActionId;
+            if (
+              liveTransferNumber != agent.liveTransferNumber ||
+              !agent.liveTransferNumber?.includes(liveTransferNumber)
+            ) {
+              // console.log("Update IE not implemented");
+              console.log("Update Action here");
+              let updated = await UpdateLiveTransferAction(
+                actionId,
+                liveTransferNumber
+              );
+            }
+          }
+        } else {
+          console.log("Live transfer is false");
+        }
         let updated = await db.AgentModel.update(
           {
             liveTransferNumber: liveTransferNumber,
@@ -2865,10 +3148,13 @@ export async function CreateAssistantSynthflow(
     console.log("Create Assistant Api result ", result);
 
     if (result.status == 200) {
-      let assistant = await db.AgentModel.create({
-        ...agentData,
-        modelId: result.data?.response?.model_id || null,
-      });
+      // let assistant = await db.AgentModel.create({
+      //   ...agentData,
+      //   modelId: result.data?.response?.model_id || null,
+      // });
+      let assistant = await db.AgentModel.findByPk(agentData.agentId);
+      assistant.modelId = result.data?.response?.model_id || null;
+      await assistant.save();
       if (assistant) {
         console.log("Here inside assistant");
         try {

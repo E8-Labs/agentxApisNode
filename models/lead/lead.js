@@ -81,6 +81,16 @@ const LeadModel = (sequelize, Sequelize) => {
       type: Sequelize.TEXT("medium"), // by default null, if batch has dncCheck true then this value should be true in order to be called
       allowNull: true,
     },
+    enrich: {
+      // column to track whether this lead has passed the dnc check or not
+      type: Sequelize.BOOLEAN, // by default null, if batch has dncCheck true then this value should be true in order to be called
+      defaultValue: false,
+    },
+    enrichData: {
+      // column to track whether this lead has passed the dnc check or not
+      type: Sequelize.TEXT("medium"), // by default null, if batch has dncCheck true then this value should be true in order to be called
+      allowNull: true,
+    },
   });
   LeadModel.associate = (models) => {
     LeadModel.hasMany(models.LeadCallsSent, {
@@ -92,6 +102,19 @@ const LeadModel = (sequelize, Sequelize) => {
       as: "LeadCadence",
     });
   };
+
+  LeadModel.afterCreate(async (lead, options) => {
+    console.log("Should enrich for lead", lead.firstName);
+    if (options.transaction) {
+      await options.transaction.afterCommit(async () => {});
+    } else {
+    }
+  });
+
+  LeadModel.afterBulkCreate(async (users, options) => {
+    for (const user of users) {
+    }
+  });
 
   return LeadModel;
 };

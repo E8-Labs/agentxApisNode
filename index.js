@@ -126,6 +126,17 @@ app.use("/api/kb", kbRouter);
 app.use("/api/admin", AdminRouter);
 // app.use("/api/admin", AdminRouter);
 
+import { CreateBackgroundSynthAssistant } from "./controllers/synthflowController.js";
+db.AgentModel.afterCreate(async (agent, options) => {
+  console.log("Should create agent & add custom actions, IEs", agent.name);
+  if (options.transaction) {
+    await options.transaction.afterCommit(async () => {});
+    CreateBackgroundSynthAssistant(agent);
+  } else {
+    CreateBackgroundSynthAssistant(agent);
+  }
+});
+
 const server = app.listen(process.env.Port, () => {
   console.log("Started listening on " + process.env.Port);
 });

@@ -94,7 +94,7 @@ export function GetFirstAndLastName(name) {
 
 //Updated For Team
 export const AddLeads = async (req, res) => {
-  let { sheetName, columnMappings, leads, tags } = req.body; // mainAgentId is the mainAgent id
+  let { sheetName, columnMappings, leads, tags, enrich = false } = req.body; // mainAgentId is the mainAgent id
   sheetName = sheetName.trim();
   if (req.body.mainAgentIds) {
     console.log("Main agent ids", req.body.mainAgentIds);
@@ -248,6 +248,7 @@ export const AddLeads = async (req, res) => {
                 extraColumns: JSON.stringify(extraColumns),
                 userId: admin.id,
                 sheetId: sheet.id,
+                enrich: enrich,
               });
               dbLeads.push(createdLead);
               if (tags) {

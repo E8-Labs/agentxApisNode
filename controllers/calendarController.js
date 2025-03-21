@@ -572,6 +572,7 @@ export async function AddCalendarCalDotCom(req, res) {
         // Fetch calendars
         let apiClient = getApiClient(apiKey);
         const calendarsResponse = await apiClient.get("/calendars");
+        console.log("Calendar response", calendarsResponse);
         const calendars = calendarsResponse.data;
 
         console.log("Available Calendars:", calendars);
@@ -710,12 +711,44 @@ export async function AddCalendarCalDotCom(req, res) {
         console.error("Error retrieving calendars or event types:", error);
         return res.send({
           status: false,
-          message: error.message,
+          message: error.message.includes("401")
+            ? "Invalid api key"
+            : error.message,
           error: error,
         });
       }
     }
   });
+}
+
+export async function DeleteCalendarApi(req, res) {
+  let calendarId = req.body.calendarId;
+  let calendar = await db.CalendarIntegration.findByPk(calendarId);
+  if (!calendar) {
+    return res.send({ status: false, message: "No such calendar" });
+  }
+  let data = calendar.data || null;
+  console.log("Calendar", calendarId);
+  if (data) {
+    try {
+      let actions = JSON.stringify(data);
+      console.log("Total actions ", actions.length);
+      if (actions && actions.length > 0) {
+        for (let action of actions) {
+          let del = DeleteActionSynthflow(action);
+        }
+      }
+      console.log("Del cal from db");
+      calendar.destroy();
+      return res.send({ status: true, message: "Calendar deleted" });
+    } catch (error) {
+      console.log("Error deleting calendar", error);
+      return res.send({ status: false, message: "Error deleting calendar" });
+    }
+  } else {
+    calendar.destroy();
+    return res.send({ status: true, message: "Calendar deleted" });
+  }
 }
 
 export async function GetUserConnectedCalendars(req, res) {
@@ -727,6 +760,7 @@ export async function GetUserConnectedCalendars(req, res) {
       let teamIds = await GetTeamIds(user);
       const calendars = await db.CalendarIntegration.findAll({
         attributes: [
+          "id",
           "title",
           "apiKey",
           "eventId",
@@ -741,7 +775,7 @@ export async function GetUserConnectedCalendars(req, res) {
             [db.Sequelize.Op.in]: teamIds,
           },
         },
-        group: ["apiKey", "eventId", "title", "timeZone"], // Group by unique apiKey and eventId
+        group: ["id", "apiKey", "eventId", "title", "timeZone"], // Group by unique apiKey and eventId
         order: [
           [db.Sequelize.fn("MAX", db.Sequelize.col("createdAt")), "DESC"],
         ], // Order by latest createdAt

@@ -1,3 +1,4 @@
+// import { CreateBackgroundSynthAssistant } from "../../controllers/synthflowController.js";
 const AgentModel = (sequelize, Sequelize) => {
   const AgentModel = sequelize.define("AgentModel", {
     name: {
