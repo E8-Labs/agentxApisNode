@@ -13,6 +13,7 @@ import {
   CreateAndAttachInfoExtractor,
   CreateInfoExtractor,
   GetInfoExtractorApiData,
+  UpdateLiveTransferAction,
 } from "./actionController.js";
 import AgentResource from "../resources/AgentResource.js";
 import LeadCadence, { CadenceStatus } from "../models/pipeline/LeadsCadence.js";
@@ -2077,7 +2078,40 @@ export const UpdateSubAgent = async (req, res) => {
         let liveTransferNumber = req.body.liveTransferNumber;
 
         // dataToUpdate["consent_recording"] = vs;
-
+        let defaultInstructionsForTransfer =
+          "Make the transfer if the user asks to speak to one of our team member or a live agent.";
+        let instructions = defaultInstructionsForTransfer;
+        if (liveTransferNumber) {
+          if (!agent.liveTransferActionId) {
+            action = await CreateAndAttachInfoExtractor(
+              agent.mainAgentId,
+              {
+                actionType: "live_transfer",
+                phone: liveTransferNumber,
+                instructions: instructions,
+              },
+              agent
+            );
+            agent.liveTransferActionId = action?.action_id;
+            await agent.save();
+          } else {
+            //update IE
+            let actionId = agent.liveTransferActionId;
+            if (
+              liveTransferNumber != agent.liveTransferNumber ||
+              !agent.liveTransferNumber?.includes(liveTransferNumber)
+            ) {
+              // console.log("Update IE not implemented");
+              console.log("Update Action here");
+              let updated = await UpdateLiveTransferAction(
+                actionId,
+                liveTransferNumber
+              );
+            }
+          }
+        } else {
+          console.log("Live transfer is false");
+        }
         let updated = await db.AgentModel.update(
           {
             liveTransferNumber: liveTransferNumber,

@@ -304,12 +304,20 @@ export function GetInfoExtractorApiData(kyc) {
   }
 }
 
-export async function CreateAndAttachInfoExtractor(mainAgentId, kyc) {
+//If want to attach to an individual agent then add agent
+export async function CreateAndAttachInfoExtractor(
+  mainAgentId,
+  kyc,
+  agent = null
+) {
   let assistants = await db.AgentModel.findAll({
     where: {
       mainAgentId: mainAgentId,
     },
   });
+  if (agent) {
+    assistants = [agent];
+  }
   let action = await CreateInfoExtractor(kyc);
   if (action && action.status == "success") {
     let actionId = action.response.action_id;
