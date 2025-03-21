@@ -757,6 +757,7 @@ export async function GetUserConnectedCalendars(req, res) {
       let teamIds = await GetTeamIds(user);
       const calendars = await db.CalendarIntegration.findAll({
         attributes: [
+          "id",
           "title",
           "apiKey",
           "eventId",
