@@ -275,8 +275,10 @@ async function CheckDNC(lead, batch) {
         //delete leadCadence
         try {
           await db.LeadCadence.destroy({
-            leadId: lead.id,
-            batchId: batch.id,
+            where: {
+              leadId: lead.id,
+              batchId: batch.id,
+            },
           });
         } catch (er) {
           console.log("Error del leadCad Check Dnc", er);
