@@ -23,6 +23,7 @@ import {
   GetCallLogs,
   AddMinutesToUser,
   GetScheduledCallsAdmin,
+  GetVerificationCodes,
 } from "../controllers/AdminCallAndUser.js";
 
 const uploadFiles = multer().fields([
@@ -102,6 +103,13 @@ AdminRouter.get(
   verifyJwtTokenWithTeam,
   uploadFiles,
   GetScheduledCallsAdmin
+);
+
+AdminRouter.get(
+  "/getVerificationCodes",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetVerificationCodes
 );
 
 AdminRouter.post(

@@ -144,6 +144,11 @@ db.PhoneVerificationCodeModel = PhoneVerificationCodeModel(
   sequelize,
   Sequelize
 );
+db.PhoneVerificationCodeModel.belongsTo(db.User, {
+  foreignKey: "phone",
+  targetKey: "phone", // This assumes both models share the phone field
+  constraints: false, // Important: no actual FK in DB
+});
 
 db.NotificationModel = NotificationModel(sequelize, Sequelize);
 db.DailyNotificationModel = DailyNotificationModel(sequelize, Sequelize);
