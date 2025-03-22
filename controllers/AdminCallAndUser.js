@@ -242,3 +242,54 @@ export async function AddMinutesToUser(req, res) {
     }
   });
 }
+
+export async function GetVerificationCodes(req, res) {
+  // let { name, email, phone, uniqueUrl, officeHoursUrl } = req.body;
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (error) {
+      return res.status(401).send({
+        status: false,
+        message: "Unauthorized access. Invalid token.",
+      });
+    }
+
+    if (authData) {
+      let userId = authData.user.id;
+
+      // Fetch user and check role
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access.",
+        });
+      }
+      if (user.userType !== "admin") {
+        return res.status(401).send({
+          status: false,
+          message: "Unauthorized access. Only admin can access this",
+        });
+      }
+
+      const results = await db.PhoneVerificationCodeModel.findAll({
+        order: [["createdAt", "DESC"]],
+        include: [
+          {
+            model: db.User,
+            required: false, // allows PhoneVerificationCodeModel even if User is null
+          },
+        ],
+      });
+
+      return res.send({
+        status: true,
+        data: results,
+        message: "Codes obtained",
+      });
+    }
+  });
+}
