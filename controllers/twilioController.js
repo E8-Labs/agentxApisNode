@@ -1113,3 +1113,14 @@ export const ReleaseNumberCron = async () => {
     console.error("Error during Twilio number synchronization:", error.message);
   }
 };
+
+export async function DeleteAudioRecording(recordingSid) {
+  try {
+    await twilioClient.recordings(recordingSid).remove();
+    console.log("Recording deleted from Twilio:", recordingSid);
+    return { success: true, message: "Recording deleted from Twilio" };
+  } catch (error) {
+    console.error("Failed to delete Twilio recording:", error);
+    return { success: false, message: error.message };
+  }
+}

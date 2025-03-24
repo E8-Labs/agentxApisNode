@@ -16,6 +16,7 @@ import { GetTeamIds } from "../utils/auth.js";
 import BatchResource from "../resources/BatchResource.js";
 import fs from "fs";
 import path from "path";
+import { DeleteAudioRecording } from "./twilioController.js";
 export const GetCallLogs = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -297,7 +298,7 @@ export async function GetVerificationCodes(req, res) {
 
 export async function DeleteCallAudio(req, res) {
   let url = req.body.url;
-
+  let recordingSid = req.body.recordingSid;
   try {
     const basePublicUrl =
       process.env.Environment === "Sandbox"
@@ -310,6 +311,7 @@ export async function DeleteCallAudio(req, res) {
     // Resolve to absolute path using DocsDir
     const localFilePath = path.join(process.env.DocsDir, relativePath); // e.g., /var/www/.../uploads/recordings/...
 
+    let del = await DeleteAudioRecording(recordingSid);
     if (fs.existsSync(localFilePath)) {
       fs.unlinkSync(localFilePath);
       console.log("Deleted file:", localFilePath);

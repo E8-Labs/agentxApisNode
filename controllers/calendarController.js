@@ -608,6 +608,10 @@ export async function AddCalendarCalDotCom(req, res) {
         if (eventId) {
           filter.eventId = eventId;
         }
+        filter.mainAgentId = mainAgentId;
+        if (agentId) {
+          filter.agentId = agentId;
+        }
         let cal = await db.CalendarIntegration.findOne({
           where: filter,
         });
