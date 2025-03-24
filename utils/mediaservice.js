@@ -99,40 +99,69 @@ export const generateAudioFilePath = (
   currentDate = new Date().toISOString().slice(0, 10),
   newUUID = uuidv4()
 ) => {
-  let extension = "";
-  switch (mime) {
-    case "image/jpeg":
-    case "image/jpg":
-      extension = ".jpg";
-      break;
-    case "image/png":
-      extension = ".png";
-      break;
-    case "image/gif":
-      extension = ".gif";
-      break;
-    default:
-      extension = ""; // If you want to handle more types, add cases here
-  }
+  // Get extension based on the Twilio URL or default to mp3
+  const mimeType = mime.lookup(recordingUrl) || "audio/mpeg";
+  const extension = mime.extension(mimeType) || "mp3";
 
-  // Check if the fieldname already has an extension
-  // const currentDate = new Date().toISOString().slice(0, 10); // Formats as YYYY-MM-DD
-  // const newUUID = uuidv4();
+  // Generate the final filename
+  let finalName;
   if (!path.extname(fileName)) {
-    // Append the extension if it's missing
-    fileName = `${currentDate}_${newUUID}_${fileName}${extension}`;
+    finalName = `${currentDate}_${newUUID}_${fileName}.${extension}`;
   } else {
-    fileName = `${currentDate}_${newUUID}_${fileName}`;
+    finalName = `${currentDate}_${newUUID}_${fileName}`;
   }
 
-  // const docPath = path.join(docsDir, fileName)
+  // Construct the public URL
   const BaseUrl =
-    process.env.Environment == "Sandbox"
+    process.env.Environment === "Sandbox"
       ? "https://www.blindcircle.com/agentxtest/uploads/"
       : "https://www.blindcircle.com/agentx/uploads/";
-  let path = `${BaseUrl}${folder}/${fileName}`;
-  return path;
+
+  const publicUrl = `${BaseUrl}${folder}/${finalName}`;
+  return publicUrl;
 };
+
+// export const generateAudioFilePath = (
+//   fileName = "recording",
+//   recordingUrl = "",
+//   folder = "recordings",
+//   currentDate = new Date().toISOString().slice(0, 10),
+//   newUUID = uuidv4()
+// ) => {
+//   let extension = "";
+//   switch (mime) {
+//     case "image/jpeg":
+//     case "image/jpg":
+//       extension = ".jpg";
+//       break;
+//     case "image/png":
+//       extension = ".png";
+//       break;
+//     case "image/gif":
+//       extension = ".gif";
+//       break;
+//     default:
+//       extension = ""; // If you want to handle more types, add cases here
+//   }
+
+//   // Check if the fieldname already has an extension
+//   // const currentDate = new Date().toISOString().slice(0, 10); // Formats as YYYY-MM-DD
+//   // const newUUID = uuidv4();
+//   if (!path.extname(fileName)) {
+//     // Append the extension if it's missing
+//     fileName = `${currentDate}_${newUUID}_${fileName}${extension}`;
+//   } else {
+//     fileName = `${currentDate}_${newUUID}_${fileName}`;
+//   }
+
+//   // const docPath = path.join(docsDir, fileName)
+//   const BaseUrl =
+//     process.env.Environment == "Sandbox"
+//       ? "https://www.blindcircle.com/agentxtest/uploads/"
+//       : "https://www.blindcircle.com/agentx/uploads/";
+//   let path = `${BaseUrl}${folder}/${fileName}`;
+//   return path;
+// };
 
 export const downloadAndStoreRecording = async (
   recordingUrl,
