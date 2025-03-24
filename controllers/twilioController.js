@@ -967,7 +967,8 @@ export const PhoneNumberCron = async () => {
 
 export const DeleteNumber = async (req, res) => {
   console.log("ACCOUNT SSID ", process.env.TWILIO_ACCOUNT_SID);
-  const { phone } = req.body;
+  let { phone } = req.body;
+  phone = phone.replace("+", "");
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -985,13 +986,22 @@ export const DeleteNumber = async (req, res) => {
         let phoneNumber = await db.UserPhoneNumbers.findOne({
           where: {
             userId: userId,
-            phone: phone,
+            phone: {
+              [db.Sequelize.Op.like]: `%${phone}%`,
+            },
           },
         });
         if (!phoneNumber) {
           return res.send({
             status: false,
             message: "No such phone number",
+          });
+        }
+
+        if (process.env.Environment == "Sandbox") {
+          return res.send({
+            status: false,
+            message: "Can not delete phone on test environment",
           });
         }
 
