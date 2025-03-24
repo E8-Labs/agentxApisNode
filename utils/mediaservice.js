@@ -87,6 +87,56 @@ export const uploadMedia = (
     }
   });
 };
+
+export const generateAudioFilePath = (
+  fileName = "recording",
+  recordingUrl = "",
+  folder = "recordings"
+) => {
+  const baseDir = process.env.DocsDir; // e.g., /var/www/neo/neoapis/uploads
+  const resolvedFolderPath = path.join(baseDir, folder);
+  ensureDirExists(resolvedFolderPath);
+
+  // Try to guess extension from URL
+  const mimeType = mime.lookup(recordingUrl) || "audio/mpeg";
+  const extension = mime.extension(mimeType) || "mp3";
+
+  const currentDate = new Date().toISOString().slice(0, 10);
+  const uniqueName = `${currentDate}_${uuidv4()}_${fileName}.${extension}`;
+  const fullFilePath = path.join(resolvedFolderPath, uniqueName);
+
+  return fullFilePath;
+};
+
+export const downloadAndStoreRecording = async (
+  recordingUrl,
+  fileName = "recording",
+  folder = "recordings"
+) => {
+  try {
+    // Download the recording as a buffer
+    const response = await axios.get(recordingUrl, {
+      responseType: "arraybuffer",
+    });
+    const fileContent = Buffer.from(response.data);
+
+    // Try to guess the mime type from the URL
+    let mimeType = mime.lookup(recordingUrl) || "audio/mpeg";
+
+    // You can change the folder name if needed
+    const uploadedUrl = await uploadMedia(
+      fileName,
+      fileContent,
+      mimeType,
+      folder
+    );
+
+    return uploadedUrl;
+  } catch (error) {
+    console.error("Error downloading and storing Twilio recording:", error);
+    throw error;
+  }
+};
 // DocsDir="/var/www/voiceapp/voiceapis/uploads"
 // Define __dirname
 const __filename = fileURLToPath(import.meta.url);

@@ -1035,6 +1035,7 @@ export async function ReChargeUserAccount(user) {
         // );
         user.totalSecondsAvailable += foundPlan.duration;
         await user.save();
+        UpdateOrCreateUserInGhl(user);
       }
     } else {
       // console.log("Last plan", lastPlan);
