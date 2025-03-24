@@ -740,6 +740,8 @@ export const CancelPlan = async (req, res) => {
       try {
         let userId = authData.user.id;
         let user = await db.User.findByPk(userId);
+        let admin = await GetTeamAdminFor(user);
+        user = admin;
         let plan = await db.PlanHistory.findOne({
           where: {
             userId: user.id,
@@ -811,8 +813,10 @@ export const AddCancelPlanReason = async (req, res) => {
           order: [["createdAt", "DESC"]],
         });
 
-        plan.cancelReason = reason;
-        await plan.save();
+        if (plan) {
+          plan.cancelReason = reason;
+          await plan.save();
+        }
 
         let emailNot = generateFeedbackWithSenderDetails(
           "Cancelled Feedback",
