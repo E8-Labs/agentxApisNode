@@ -1,6 +1,7 @@
 import sharp from "sharp"; // For image processing
 import fs from "fs";
 import path from "path";
+import mime from "mime-types";
 import { fileURLToPath } from "url";
 import { v4 as uuidv4 } from "uuid";
 // import { generateThumbnail } from '../utils/generateThumbnail.js';
