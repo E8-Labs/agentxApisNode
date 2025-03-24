@@ -117,7 +117,13 @@ export const WebhookSynthflow = async (req, res) => {
         currentDate,
         newUUID
       );
-      recordingUrl = generateAudioFilePath(callId, recordingUrl, "recordings");
+      recordingUrl = generateAudioFilePath(
+        callId,
+        recordingUrl,
+        "recordings",
+        currentDate,
+        newUUID
+      );
     } catch (error) {
       console.log("Error ", error);
     }
