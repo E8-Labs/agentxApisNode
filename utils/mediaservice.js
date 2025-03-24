@@ -64,6 +64,8 @@ export const uploadMedia = (
           extension = ".gif";
           break;
         case "audio/mpeg":
+          extension = ".mp3";
+          break;
         case "audio/mp3":
           extension = ".mp3";
           break;
