@@ -122,7 +122,38 @@ export const generateAudioFilePath = (
 ) => {
   // Get extension based on the Twilio URL or default to mp3
   const mimeType = mime.lookup(recordingUrl) || "audio/mpeg";
-  const extension = mime.extension(mimeType) || "mp3";
+
+  console.log("Mime is ", mimeType);
+  let extension = "";
+  switch (mimeType) {
+    case "image/jpeg":
+    case "image/jpg":
+      extension = ".jpg";
+      break;
+    case "image/png":
+      extension = ".png";
+      break;
+    case "image/gif":
+      extension = ".gif";
+      break;
+    case "audio/mpeg":
+      extension = ".mp3";
+      break;
+    case "audio/mp3":
+      extension = ".mp3";
+      break;
+    case "audio/wav":
+      extension = ".wav";
+      break;
+    case "audio/mp4":
+      extension = ".mp4";
+      break;
+    case "audio/webm":
+      extension = ".webm";
+      break;
+    default:
+      extension = ""; // fallback
+  }
 
   // Generate the final filename
   let finalName;
