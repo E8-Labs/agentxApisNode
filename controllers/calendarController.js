@@ -600,14 +600,23 @@ export async function AddCalendarCalDotCom(req, res) {
         }
 
         //check if there is already a calendar for this agent
-        let filter = { mainAgentId: mainAgentId };
-        if (agentId) {
-          filter.agentId = agentId;
+        // let filter = { mainAgentId: mainAgentId };
+        // if (agentId) {
+        //   filter.agentId = agentId;
+        // }
+        let filter = { apiKey: apiKey };
+        if (eventId) {
+          filter.eventId = eventId;
         }
         let cal = await db.CalendarIntegration.findOne({
           where: filter,
         });
         if (cal) {
+          return res.send({
+            status: false,
+            message: "Calendar with same api key and event id already exists",
+            data: cal,
+          });
           cal.eventId = eventId;
           cal.apiKey = apiKey;
           cal.timeZone = timeZone;
