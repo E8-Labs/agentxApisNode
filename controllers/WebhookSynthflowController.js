@@ -52,6 +52,7 @@ import {
   downloadAndStoreRecording,
   generateAudioFilePath,
 } from "../utils/mediaservice.js";
+import { UUIDV4 } from "sequelize";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -107,8 +108,15 @@ export const WebhookSynthflow = async (req, res) => {
 
     try {
       let twilioAudio = recordingUrl;
-
-      downloadAndStoreRecording(twilioAudio, callId);
+      const currentDate = new Date().toISOString().slice(0, 10);
+      const newUUID = UUIDV4();
+      downloadAndStoreRecording(
+        twilioAudio,
+        callId,
+        "recordings",
+        currentDate,
+        newUUID
+      );
       recordingUrl = generateAudioFilePath(callId, recordingUrl, "recordings");
     } catch (error) {
       console.log("Error ", error);
