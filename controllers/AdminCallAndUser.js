@@ -297,15 +297,25 @@ export async function GetVerificationCodes(req, res) {
 
 export async function DeleteCallAudio(req, res) {
   let url = req.body.url;
-  try {
-    // Get the relative path from the full URL
 
-    if (fs.existsSync(url)) {
-      fs.unlinkSync(url);
-      console.log("Deleted file:", url);
+  try {
+    const basePublicUrl =
+      process.env.Environment === "Sandbox"
+        ? "https://www.blindcircle.com/agentxtest/uploads/"
+        : "https://www.blindcircle.com/agentx/uploads/";
+
+    // Remove the domain part to get the relative path
+    const relativePath = url.replace(basePublicUrl, ""); // e.g., recordings/2025-03-24_uuid_filename.mp3
+
+    // Resolve to absolute path using DocsDir
+    const localFilePath = path.join(process.env.DocsDir, relativePath); // e.g., /var/www/.../uploads/recordings/...
+
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+      console.log("Deleted file:", localFilePath);
       return res.send({ status: true, message: "File deleted" });
     } else {
-      console.warn("File not found for deletion:", url);
+      console.warn("File not found for deletion:", localFilePath);
       return res.send({ status: false, message: "File not found" });
     }
   } catch (error) {
