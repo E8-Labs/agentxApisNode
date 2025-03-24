@@ -994,7 +994,7 @@ export const DeleteNumber = async (req, res) => {
         if (!phoneNumber) {
           return res.send({
             status: false,
-            message: "No such phone number",
+            message: "No such phone number:  " + phone,
           });
         }
 
