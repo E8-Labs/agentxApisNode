@@ -50,6 +50,7 @@ export const uploadMedia = (
       ensureDirExists(docsDir);
 
       // Get the appropriate file extension based on the mime type
+      console.log("Mime is ", mime);
       let extension = "";
       switch (mime) {
         case "image/jpeg":
@@ -78,6 +79,8 @@ export const uploadMedia = (
         default:
           extension = ""; // fallback
       }
+
+      console.log("Extension is ", extension);
 
       // Check if the fieldname already has an extension
       // const currentDate = new Date().toISOString().slice(0, 10); // Formats as YYYY-MM-DD
