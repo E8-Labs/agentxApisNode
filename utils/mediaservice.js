@@ -158,7 +158,7 @@ export const generateAudioFilePath = (
   // Generate the final filename
   let finalName;
   if (!path.extname(fileName)) {
-    finalName = `${currentDate}_${newUUID}_${fileName}.${extension}`;
+    finalName = `${currentDate}_${newUUID}_${fileName}${extension}`;
   } else {
     finalName = `${currentDate}_${newUUID}_${fileName}`;
   }
