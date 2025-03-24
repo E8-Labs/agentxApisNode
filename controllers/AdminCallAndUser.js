@@ -14,7 +14,8 @@ import LeadCallResource from "../resources/LeadCallResource.js";
 import LeadCallAdminResource from "../resources/LeadCallAdminResource.js";
 import { GetTeamIds } from "../utils/auth.js";
 import BatchResource from "../resources/BatchResource.js";
-
+import fs from "fs";
+import path from "path";
 export const GetCallLogs = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -292,4 +293,23 @@ export async function GetVerificationCodes(req, res) {
       });
     }
   });
+}
+
+export async function DeleteCallAudio(req, res) {
+  let url = req.body.url;
+  try {
+    // Get the relative path from the full URL
+
+    if (fs.existsSync(url)) {
+      fs.unlinkSync(url);
+      console.log("Deleted file:", url);
+      return res.send({ status: true, message: "File deleted" });
+    } else {
+      console.warn("File not found for deletion:", url);
+      return res.send({ status: false, message: "File not found" });
+    }
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    return res.send({ status: false, message: error.message });
+  }
 }
