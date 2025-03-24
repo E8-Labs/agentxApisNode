@@ -1079,17 +1079,16 @@ async function handleInfoExtractorValues(
     lead.stage = moveToStage;
 
     await lead.save();
-
-    try {
-      let user = await db.User.findByPk(pipeline?.userId || null);
-      if (user) {
-        let leadRes = await LeadResource([lead]);
-        let zapLeadRes = await ZapierLeadResource([lead]);
-        await postDataToWebhook(user, zapLeadRes, WebhookTypes.TypeStageChange);
-      }
-    } catch (error) {
-      console.log("Exception ", error);
+  }
+  try {
+    let user = await db.User.findByPk(pipeline?.userId || null);
+    if (user) {
+      // let leadRes = await LeadResource([lead]);
+      let zapLeadRes = await ZapierLeadResource([lead]);
+      await postDataToWebhook(user, zapLeadRes, WebhookTypes.TypeStageChange);
     }
+  } catch (error) {
+    console.log("Exception ", error);
   }
 }
 
