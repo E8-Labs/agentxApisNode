@@ -985,7 +985,7 @@ export const DeleteNumber = async (req, res) => {
       try {
         let phoneNumber = await db.UserPhoneNumbers.findOne({
           where: {
-            userId: userId,
+            userId: user.id,
             phone: {
               [db.Sequelize.Op.like]: `%${phone}%`,
             },
