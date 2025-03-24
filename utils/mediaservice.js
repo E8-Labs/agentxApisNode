@@ -4,6 +4,7 @@ import path from "path";
 import mime from "mime-types";
 import { fileURLToPath } from "url";
 import { v4 as uuidv4 } from "uuid";
+import axios from "axios";
 // import { generateThumbnail } from '../utils/generateThumbnail.js';
 
 export const generateThumbnail = async (buffer) => {
