@@ -106,8 +106,10 @@ export const WebhookSynthflow = async (req, res) => {
     } = extractCallData(data);
 
     try {
+      let twilioAudio = recordingUrl;
+
+      downloadAndStoreRecording(twilioAudio, callId);
       recordingUrl = generateAudioFilePath(callId, recordingUrl, "recordings");
-      downloadAndStoreRecording(recordingUrl, callId);
     } catch (error) {
       console.log("Error ", error);
     }
