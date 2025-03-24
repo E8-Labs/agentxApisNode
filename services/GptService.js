@@ -12,6 +12,7 @@ export async function CallOpenAi(data) {
   const apiUrl = "https://api.openai.com/v1/chat/completions";
   const pricePer1000Tokens = 0.003;
   const pricePer1000TokensOutput = 0.004;
+
   try {
     // Make the request to the OpenAI API
     let messages = [{ role: "system", content: data }];

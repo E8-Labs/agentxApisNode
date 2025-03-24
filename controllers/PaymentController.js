@@ -1094,6 +1094,7 @@ export async function ReChargeUserAccount(user) {
         // user.totalSecondsAvailable = 0;
       }
       await user.save();
+      UpdateOrCreateUserInGhl(user);
     }
     return null;
   } else {
