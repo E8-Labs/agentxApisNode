@@ -746,6 +746,14 @@ export const CancelPlan = async (req, res) => {
             status: "active",
           },
         });
+        if (plan) {
+        } else {
+          return res.send({
+            status: true,
+            message: "Subscription already cancelled",
+            data: null,
+          });
+        }
 
         plan.status = "cancelled";
         await plan.save();
