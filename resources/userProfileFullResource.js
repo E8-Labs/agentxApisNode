@@ -25,12 +25,14 @@ const UserProfileFullResource = async (user, currentUser = null) => {
 async function getUserData(user, currentUser = null) {
   // console.log("Type of user is ", typeof user);
   let admin = null;
+  let supportPlan = null;
   if (user.userRole == "Invitee") {
     let invite = await db.TeamModel.findOne({
       where: { invitedUserId: user.id },
     });
     if (invite) {
       admin = await db.User.findByPk(invite.invitingUserId);
+      supportPlan = admin.supportPlan;
     }
   }
   if (user.myInviteCode == null || user.myInviteCode == "") {
@@ -132,6 +134,7 @@ async function getUserData(user, currentUser = null) {
     cards: cards,
     campaignee: campaignee,
     waitlist: waitlist,
+    supportPlan: supportPlan,
     // admin: admin,
   };
 
