@@ -1465,6 +1465,7 @@ export const GetCallLogs = async (req, res) => {
           status,
           startDate,
           endDate,
+          pipelineId,
           stageIds,
           timezone = "America/Los_Angeles",
         } = req.query; // duration in seconds
@@ -1531,6 +1532,20 @@ export const GetCallLogs = async (req, res) => {
           callLogFilters.createdAt = {
             [Op.between]: [adjustedFromDate, adjustedToDate],
           };
+        }
+
+        let leadCadIdForPipelines = null;
+        if (pipelineId) {
+          let leadCad = await db.LeadCadence.findAll({
+            where: {
+              pipelineId: pipelineId,
+            },
+          });
+          leadCadIdForPipelines = [];
+          if (leadCad) {
+            leadCadIdForPipelines = leadCad.map((item) => item.id);
+          }
+          callLogFilters.leadCadenceId = { [Op.in]: leadCadIdForPipelines };
         }
 
         // Query to fetch call logs
