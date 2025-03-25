@@ -3,7 +3,7 @@ import JWT from "jsonwebtoken";
 import db from "../models/index.js";
 import mammoth from "mammoth";
 import axios from "axios";
-
+import { JSDOM } from "jsdom";
 import pdfExtract from "pdf-extraction";
 import fs from "fs";
 import path from "path";
@@ -116,6 +116,8 @@ export async function AddKnowledgebase(req, res) {
             }
           }
         }
+      } else if (type == "Url" || type == "Youtube") {
+        webUrl = kb.originalContent;
       }
 
       // if (type == "Url") {
@@ -214,9 +216,13 @@ export async function processKb(kb) {
 
   if (type == "Url") {
     let webUrl = kb.webUrl;
-    originalContent = "";
+    // originalContent = "";
+    console.log("Scrapping url ", originalContent);
+    const html = (await axios.get(originalContent)).data;
+    const dom = new JSDOM(html);
+    const textContent = dom.window.document.body.textContent;
     //process with gpt
-    let prompt = GptPrompts.WeburlPrompt;
+    let prompt = `Here is the content of a website:\n\n${textContent}\n\nCan you summarize what this website is about, what services it offers, and any key sections you noticed?`; //GptPrompts.WeburlPrompt;
     prompt = prompt.replace(new RegExp("{website}", "g"), webUrl);
     let result = await CallOpenAi(prompt);
     if (result.status) {
