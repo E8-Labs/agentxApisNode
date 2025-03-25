@@ -96,11 +96,16 @@ export const GetDashboardData = async (req, res) => {
         meetingScheduled: 0,
       };
 
+      let CallStatusFailedCall = ["Voicemail", "Busy", "Failed", "No answer"];
       // Calculate stats for current period
       for (const call of callsInCurrentPeriod) {
         stats.totalDuration += call.duration || 0;
         stats.totalCalls += 1;
-        if (call.conversation_detected == true) stats.totalCallsGt10 += 1;
+        if (
+          call.conversation_detected == true &&
+          !CallStatusFailedCall.includes(call.callOutcome)
+        )
+          stats.totalCallsGt10 += 1;
         if (call.notinterested) stats.notInterested += 1;
         if (call.hotlead) stats.hotLeads += 1;
         if (

@@ -133,11 +133,15 @@ async function getUserData(mainAgent, currentUser = null) {
         agentId: ag.id,
       },
     });
+    let CallStatusFailedCall = ["Voicemail", "Busy", "Failed", "No answer"];
     agent.calls = calls;
     let callsGt10 = await db.LeadCallsSent.count({
       where: {
         agentId: ag.id,
         conversation_detected: true,
+        callOutcome: {
+          [db.Sequelize.Op.notIn]: CallStatusFailedCall,
+        },
       },
     });
     agent.callsGt10 = callsGt10;

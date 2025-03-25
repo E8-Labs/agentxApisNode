@@ -33,8 +33,15 @@ export const GetCallLogs = async (req, res) => {
         });
       }
       try {
-        const { name, duration, status, startDate, endDate, stageIds } =
-          req.query;
+        const {
+          name,
+          duration,
+          status,
+          startDate,
+          endDate,
+          stageIds,
+          pipelineId,
+        } = req.query;
 
         // Define filters for LeadCallsSent
         const callLogFilters = {};
@@ -86,6 +93,20 @@ export const GetCallLogs = async (req, res) => {
           callLogFilters.createdAt = {
             [Op.between]: [adjustedFromDate, adjustedToDate],
           };
+        }
+
+        let leadCadIdForPipelines = null;
+        if (pipelineId) {
+          let leadCad = await db.LeadCadence.findAll({
+            where: {
+              pipelineId: pipelineId,
+            },
+          });
+          leadCadIdForPipelines = [];
+          if (leadCad) {
+            leadCadIdForPipelines = leadCad.map((item) => item.id);
+          }
+          callLogFilters.leadCadenceId = { [Op.in]: leadCadIdForPipelines };
         }
 
         // ✅ Debug: Log Applied Filters
