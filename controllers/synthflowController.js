@@ -1036,7 +1036,7 @@ async function initiateCall(
         console.log("Saved ", saved);
         return {
           status: true,
-          message: "call is initiated",
+          message: "Call is Initiated",
           data: saved,
           callData: data,
         };
