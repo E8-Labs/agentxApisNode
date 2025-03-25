@@ -804,8 +804,20 @@ export async function GetUserConnectedCalendars(req, res) {
           [db.Sequelize.fn("MAX", db.Sequelize.col("createdAt")), "DESC"],
         ], // Order by latest createdAt
       });
+      let connectedUniqueCalendars = [];
+      if (calendars && calendars.length > 0) {
+        for (const cal of calendars) {
+          let exists = connectedUniqueCalendars.some(
+            (item) => item.apiKey === cal.apiKey && item.eventId === cal.eventId
+          );
+          if (!exists) {
+            connectedUniqueCalendars.push(cal);
+          }
+        }
+      }
+
       // Return both calendars and event types
-      return res.send({ status: true, data: calendars });
+      return res.send({ status: true, data: connectedUniqueCalendars });
     } else {
       return res.send({
         status: false,

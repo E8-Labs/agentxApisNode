@@ -30,151 +30,167 @@ export async function AddKnowledgebase(req, res) {
     let user = await db.User.findByPk(userId);
     let admin = await GetTeamAdminFor(user);
     user = admin;
-    let documentName = req.body.documentName;
-    let type = req.body.type;
-    let description = req.body.description;
-    let originalContent = req.body.originalContent; // Default content from request body
-    let title = req.body.title || ""; //Name of document
-    let pdf = null;
-    let webUrl = "";
 
-    let agentId = req.body.agentId;
-    let mainAgentId = req.body.mainAgentId;
+    let createdKbs = [];
+    let kbs = req.body.kbs;
+    for (const kb of kbs) {
+      let documentName = kb.documentName;
+      let type = kb.type;
+      let description = kb.description;
+      let originalContent = kb.originalContent; // Default content from request body
+      let title = kb.title || ""; //Name of document
+      let pdf = null;
+      let webUrl = "";
 
-    let agent = await db.AgentModel.findByPk(agentId);
+      let agentId = kb.agentId;
+      let mainAgentId = kb.mainAgentId;
 
-    if (req.files && req.files.media) {
-      // console.log("Found file uploaded", req.files);
-      // Type is Document
-      let file = req.files.media[0];
+      let agent = await db.AgentModel.findByPk(agentId);
 
-      const mediaBuffer = file.buffer;
-      const mediaType = file.mimetype;
-      const mediaExt = path.extname(file.originalname);
-      const mediaFilename = `${Date.now()}${mediaExt}`;
+      if (req.files && req.files.media) {
+        // console.log("Found file uploaded", req.files);
+        // Type is Document
+        let file = req.files.media[0];
 
-      // Ensure directories exist
-      let dir = process.env.DocsDir; // e.g., /var/www/neo/neoapis/uploads
-      const docsDir = path.join(dir + "/documents");
-      ensureDirExists(docsDir);
+        const mediaBuffer = file.buffer;
+        const mediaType = file.mimetype;
+        const mediaExt = path.extname(file.originalname);
+        const mediaFilename = `${Date.now()}${mediaExt}`;
 
-      // Save the uploaded file
-      const docPath = path.join(docsDir, mediaFilename);
-      fs.writeFileSync(docPath, mediaBuffer);
-      pdf = `${
-        process.env.Environment == "Development"
-          ? "https://www.blindcircle.com/agentxtest"
-          : "https://www.blindcircle.com/agentx"
-      }/uploads/documents/${mediaFilename}`;
+        // Ensure directories exist
+        let dir = process.env.DocsDir; // e.g., /var/www/neo/neoapis/uploads
+        const docsDir = path.join(dir + "/documents");
+        ensureDirExists(docsDir);
 
-      // Extract text from the uploaded file based on its type
-      if (mediaType.includes("pdf")) {
-        try {
-          const extracted = await pdfExtract(mediaBuffer);
-          originalContent = extracted.text.trim(); // Extract and assign content from PDF
-        } catch (err) {
-          console.error("Error extracting text from PDF:", err);
-          return res
-            .status(500)
-            .send({ status: false, message: "Error processing PDF file." });
-        }
-      } else if (mediaType.includes("docx") || mediaType.includes("doc")) {
-        try {
-          const result = await mammoth.extractRawText({ buffer: mediaBuffer });
-          originalContent = result.value.trim(); // Extract and assign content from DOCX
-        } catch (err) {
-          console.error("Error extracting text from DOCX:", err);
-          return res
-            .status(500)
-            .send({ status: false, message: "Error processing DOCX file." });
-        }
-      } else if (mediaType.includes("text") || mediaExt.includes(".txt")) {
-        try {
-          originalContent = mediaBuffer.toString("utf8"); // Extract and assign content from TXT
-        } catch (err) {
-          console.error("Error reading text file:", err);
-          return res
-            .status(500)
-            .send({ status: false, message: "Error processing text file." });
+        // Save the uploaded file
+        const docPath = path.join(docsDir, mediaFilename);
+        fs.writeFileSync(docPath, mediaBuffer);
+        pdf = `${
+          process.env.Environment == "Development"
+            ? "https://www.blindcircle.com/agentxtest"
+            : "https://www.blindcircle.com/agentx"
+        }/uploads/documents/${mediaFilename}`;
+
+        // Extract text from the uploaded file based on its type
+        if (mediaType.includes("pdf")) {
+          try {
+            const extracted = await pdfExtract(mediaBuffer);
+            originalContent = extracted.text.trim(); // Extract and assign content from PDF
+          } catch (err) {
+            console.error("Error extracting text from PDF:", err);
+            // return res
+            //   .status(500)
+            //   .send({ status: false, message: "Error processing PDF file." });
+          }
+        } else if (mediaType.includes("docx") || mediaType.includes("doc")) {
+          try {
+            const result = await mammoth.extractRawText({
+              buffer: mediaBuffer,
+            });
+            originalContent = result.value.trim(); // Extract and assign content from DOCX
+          } catch (err) {
+            console.error("Error extracting text from DOCX:", err);
+            // return res
+            //   .status(500)
+            //   .send({ status: false, message: "Error processing DOCX file." });
+          }
+        } else if (mediaType.includes("text") || mediaExt.includes(".txt")) {
+          try {
+            originalContent = mediaBuffer.toString("utf8"); // Extract and assign content from TXT
+          } catch (err) {
+            console.error("Error reading text file:", err);
+            // return res
+            //   .status(500)
+            //   .send({ status: false, message: "Error processing text file." });
+          }
         }
       }
-    }
 
-    if (type == "Url") {
-      webUrl = originalContent;
-      originalContent = "";
-      //process with gpt
-      let prompt = GptPrompts.WeburlPrompt;
-      prompt = prompt.replace(new RegExp("{website}", "g"), webUrl);
-      let result = await CallOpenAi(prompt);
-      if (result.status) {
-        let totalCost = result.cost || 0;
-        let content = result.message;
-        originalContent = content;
-      } else {
-        console.log("Could not summarize web url");
-        return res.send({
-          status: false,
-          message: "Some error occurred while processing the url",
+      if (type == "Url") {
+        webUrl = originalContent;
+        originalContent = "";
+        //process with gpt
+        let prompt = GptPrompts.WeburlPrompt;
+        prompt = prompt.replace(new RegExp("{website}", "g"), webUrl);
+        let result = await CallOpenAi(prompt);
+        if (result.status) {
+          let totalCost = result.cost || 0;
+          let content = result.message;
+          originalContent = content;
+        } else {
+          console.log("Could not summarize web url");
+          // return res.send({
+          //   status: false,
+          //   message: "Some error occurred while processing the url",
+          // });
+        }
+      }
+      if (type == "Youtube") {
+        webUrl = originalContent;
+        originalContent = "";
+        let vidId = getYouTubeVideoId(webUrl);
+        let transcript = await fetchVideoCaptionsAndProcessWithPrompt(
+          vidId,
+          user
+        );
+        originalContent = transcript;
+      }
+      // else if(type == "Text"){
+      //     originalContent = req.body.originalContent;
+      // }
+
+      // Create the knowledge base entry in the database
+      try {
+        let kbcreated = await db.KnowledgeBase.create({
+          type: type,
+          originalContent: originalContent, // Use the extracted or default text content
+          webUrl: webUrl,
+          documentUrl: pdf,
+          documentName: documentName,
+          description: description,
+          userId: userId,
+          title: title,
+          mainAgentId: agent.mainAgentId,
+          agentId: agentId,
         });
-      }
-    }
-    if (type == "Youtube") {
-      webUrl = originalContent;
-      originalContent = "";
-      let vidId = getYouTubeVideoId(webUrl);
-      let transcript = await fetchVideoCaptionsAndProcessWithPrompt(
-        vidId,
-        user
-      );
-      originalContent = transcript;
-    }
-    // else if(type == "Text"){
-    //     originalContent = req.body.originalContent;
-    // }
 
-    // Create the knowledge base entry in the database
-    try {
-      let kbcreated = await db.KnowledgeBase.create({
-        type: type,
-        originalContent: originalContent, // Use the extracted or default text content
-        webUrl: webUrl,
-        documentUrl: pdf,
-        documentName: documentName,
-        description: description,
-        userId: userId,
-        title: title,
-        mainAgentId: agent.mainAgentId,
-        agentId: agentId,
-      });
-
-      let added = await addToVectorDb(originalContent, user, agent, type, {
-        mainAgentId: agent.mainAgentId,
-        date: new Date(),
-        kbId: kbcreated.id,
-      });
-
-      if (agent.actionId == null || agent.actionId == "") {
-        let action = await CreateAndAttachAction(user, "kb", agent);
-        console.log("Action ", action);
-        agent.actionId = action.response.action_id;
-        await agent.save();
-      }
-      // console.log("Vector added ", added);
-
-      if (kbcreated) {
-        return res.send({
-          status: true,
-          message: "Knowledge base added",
-          data: kbcreated,
+        createdKbs.push(kbcreated);
+        let added = await addToVectorDb(originalContent, user, agent, type, {
+          mainAgentId: agent.mainAgentId,
+          date: new Date(),
+          kbId: kbcreated.id,
         });
+
+        if (agent.actionId == null || agent.actionId == "") {
+          let action = await CreateAndAttachAction(user, "kb", agent);
+          console.log("Action ", action);
+          agent.actionId = action.response.action_id;
+          await agent.save();
+        }
+        // console.log("Vector added ", added);
+
+        if (kbcreated) {
+          // return res.send({
+          //   status: true,
+          //   message: "Knowledge base added",
+          //   data: kbcreated,
+          // });
+        }
+      } catch (dbError) {
+        console.error("Error creating KnowledgeBase entry:", dbError.message);
+        // return res
+        //   .status(500)
+        //   .send({
+        //     status: false,
+        //     message: "Error saving KnowledgeBase entry.",
+        //   });
       }
-    } catch (dbError) {
-      console.error("Error creating KnowledgeBase entry:", dbError.message);
-      return res
-        .status(500)
-        .send({ status: false, message: "Error saving KnowledgeBase entry." });
     }
+    return res.send({
+      status: true,
+      message: "Knowledge base added",
+      data: createdKbs,
+    });
   });
 }
 

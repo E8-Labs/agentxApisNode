@@ -1252,22 +1252,22 @@ export const BuildAgent = async (req, res) => {
       // });
 
       //Create Default Guardrails
-      for (const obj of selectedObjective.objections || []) {
-        let created = await db.ObjectionAndGuradrails.create({
-          title: obj.title,
-          description: obj.description,
-          type: "objection",
-          mainAgentId: mainAgent.id,
-        });
-      }
-      for (const obj of selectedObjective.guardrails || []) {
-        let created = await db.ObjectionAndGuradrails.create({
-          title: obj.title,
-          description: obj.description,
-          type: "guardrail",
-          mainAgentId: mainAgent.id,
-        });
-      }
+      // for (const obj of selectedObjective.objections || []) {
+      //   let created = await db.ObjectionAndGuradrails.create({
+      //     title: obj.title,
+      //     description: obj.description,
+      //     type: "objection",
+      //     mainAgentId: mainAgent.id,
+      //   });
+      // }
+      // for (const obj of selectedObjective.guardrails || []) {
+      //   let created = await db.ObjectionAndGuradrails.create({
+      //     title: obj.title,
+      //     description: obj.description,
+      //     type: "guardrail",
+      //     mainAgentId: mainAgent.id,
+      //   });
+      // }
 
       // if (!mainAgent) {
       //   //console.log("Error creating main agent ");
