@@ -127,6 +127,7 @@ app.use("/api/admin", AdminRouter);
 // app.use("/api/admin", AdminRouter);
 
 import { CreateBackgroundSynthAssistant } from "./controllers/synthflowController.js";
+import { processKb } from "./controllers/KbController.js";
 db.AgentModel.afterCreate(async (agent, options) => {
   console.log("Should create agent & add custom actions, IEs", agent.name);
   if (options.transaction) {
@@ -134,6 +135,17 @@ db.AgentModel.afterCreate(async (agent, options) => {
     CreateBackgroundSynthAssistant(agent);
   } else {
     CreateBackgroundSynthAssistant(agent);
+  }
+});
+
+db.KnowledgeBase.afterCreate(async (kb, options) => {
+  console.log("Should create Verctor db ", kb.title);
+  if (options.transaction) {
+    await options.transaction.afterCommit(async () => {
+      processKb(kb);
+    });
+  } else {
+    processKb(kb);
   }
 });
 
