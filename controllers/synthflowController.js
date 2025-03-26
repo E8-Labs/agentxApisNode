@@ -2702,6 +2702,18 @@ export const AddKyc = async (req, res) => {
         },
       });
 
+      if (user.userType) {
+        if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+          userId = req.body.userId;
+          console.log("This is admin adding leads for other user", userId);
+          user = await db.User.findOne({
+            where: {
+              id: userId,
+            },
+          });
+        }
+      }
+
       let admin = await GetTeamAdminFor(user);
       user = admin;
 
