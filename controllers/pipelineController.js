@@ -60,6 +60,18 @@ export const CreatePipeline = async (req, res) => {
         },
       });
 
+      if (user.userType) {
+        if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+          userId = req.body.userId;
+          console.log("This is admin adding leads for other user", userId);
+          user = await db.User.findOne({
+            where: {
+              id: userId,
+            },
+          });
+        }
+      }
+
       // let teamIds = await GetTeamIds(user)
       let created = await db.Pipeline.create({
         title: title,
@@ -152,6 +164,18 @@ export const CreatePipelineStage = async (req, res) => {
           id: userId,
         },
       });
+
+      if (user.userType) {
+        if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+          userId = req.body.userId;
+          console.log("This is admin adding leads for other user", userId);
+          user = await db.User.findOne({
+            where: {
+              id: userId,
+            },
+          });
+        }
+      }
 
       if (!color) {
         color = process.env.DefaultPipelineColor;

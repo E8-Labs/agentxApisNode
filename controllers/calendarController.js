@@ -725,7 +725,7 @@ export async function AddCalendarCalDotCom(req, res) {
         return res.send({
           status: false,
           message: error.message.includes("401")
-            ? "Invalid api key"
+            ? "Calendar has expired, add new"
             : error.message,
           error: error,
         });
