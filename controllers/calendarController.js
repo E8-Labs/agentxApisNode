@@ -569,41 +569,6 @@ export async function AddCalendarCalDotCom(req, res) {
       let mainAgent = await db.MainAgentModel.findByPk(mainAgentId);
       let title = req.body.title;
       try {
-        // Fetch calendars
-        let apiClient = getApiClient(apiKey);
-        const calendarsResponse = await apiClient.get("/calendars");
-        console.log("Calendar response", calendarsResponse);
-        const calendars = calendarsResponse.data;
-
-        console.log("Available Calendars:", calendars);
-
-        // Fetch event types
-        const eventTypesResponse = await apiClient.get("/event-types");
-        const eventTypes = eventTypesResponse.data;
-        let groups = eventTypes?.data?.eventTypeGroups || [];
-        let eventId15Min = null;
-        if (eventId) {
-          eventId15Min = eventId;
-        } else if (groups.length > 0) {
-          // get some event id from cal dot com
-          let actualEventTypes = groups[0].eventTypes || [];
-          if (actualEventTypes.length > 0) {
-            eventId15Min = actualEventTypes[0].id;
-          }
-        }
-        if (!eventId15Min) {
-          return res.send({
-            status: true,
-            message: "No event ids found",
-            data: null,
-          });
-        }
-
-        //check if there is already a calendar for this agent
-        // let filter = { mainAgentId: mainAgentId };
-        // if (agentId) {
-        //   filter.agentId = agentId;
-        // }
         let filter = { apiKey: apiKey };
         if (eventId) {
           filter.eventId = eventId;
@@ -635,6 +600,49 @@ export async function AddCalendarCalDotCom(req, res) {
             eventTypes,
           });
         }
+        cal = await db.CalendarIntegration.findOne({
+          where: {
+            apiKey: apiKey,
+            eventId: eventId,
+          },
+        });
+        // Fetch calendars
+        if (!cal) {
+          let apiClient = getApiClient(apiKey);
+          const calendarsResponse = await apiClient.get("/calendars");
+          console.log("Calendar response", calendarsResponse);
+          const calendars = calendarsResponse.data;
+
+          console.log("Available Calendars:", calendars);
+
+          // Fetch event types
+          const eventTypesResponse = await apiClient.get("/event-types");
+          const eventTypes = eventTypesResponse.data;
+          let groups = eventTypes?.data?.eventTypeGroups || [];
+          let eventId15Min = null;
+          if (eventId) {
+            eventId15Min = eventId;
+          } else if (groups.length > 0) {
+            // get some event id from cal dot com
+            let actualEventTypes = groups[0].eventTypes || [];
+            if (actualEventTypes.length > 0) {
+              eventId15Min = actualEventTypes[0].id;
+            }
+          }
+          if (!eventId15Min) {
+            return res.send({
+              status: true,
+              message: "No event ids found",
+              data: null,
+            });
+          }
+        }
+
+        //check if there is already a calendar for this agent
+        // let filter = { mainAgentId: mainAgentId };
+        // if (agentId) {
+        //   filter.agentId = agentId;
+        // }
 
         let calendar = null;
         if (agentId) {
@@ -642,7 +650,7 @@ export async function AddCalendarCalDotCom(req, res) {
             type: calendarType,
             apiKey: apiKey,
             userId: userId,
-            eventId: eventId15Min,
+            eventId: eventId,
             mainAgentId: mainAgentId,
             title: title,
             agentId: agentId,
