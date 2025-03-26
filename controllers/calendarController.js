@@ -568,6 +568,7 @@ export async function AddCalendarCalDotCom(req, res) {
       let agentId = req.body.agentId || null;
       let mainAgent = await db.MainAgentModel.findByPk(mainAgentId);
       let title = req.body.title;
+      console.log("Data is ", req.body.agentId);
 
       try {
         let agentCalendars = await db.CalendarIntegration.findAll({
