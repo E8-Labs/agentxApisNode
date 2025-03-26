@@ -719,14 +719,14 @@ export async function AddCalendarCalDotCom(req, res) {
           }
         }
 
-        console.log("Available Event Types:", eventTypes);
+        // console.log("Available Event Types:", eventTypes);
 
         // Return both calendars and event types
         return res.send({
           status: true,
           data: calendar,
-          calendars,
-          eventTypes,
+          // calendars,
+          // eventTypes,
         });
       } catch (error) {
         console.error("Error retrieving calendars or event types:", error);
