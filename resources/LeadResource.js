@@ -244,9 +244,9 @@ async function getUserData(lead, currentUser = null) {
   delete leadData.dncData;
   delete leadData.dncCheckPassed;
   delete leadData.enrich;
-  let data = leadData.sanitizeForUser();
+  // let data = leadData.sanitizeForUser();
   const LeadResource = {
-    ...data,
+    ...leadData,
     tags: tags, //{ ...tags, ...sheetTagsArray },
     kycs: kycs,
     notes: notes,
