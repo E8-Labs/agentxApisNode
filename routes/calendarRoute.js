@@ -27,29 +27,33 @@ let CalendarRouter = express.Router();
 
 CalendarRouter.post(
   "/createCalendar",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+
   AddCalendarCalDotCom
 );
 CalendarRouter.post(
   "/deleteCalendar",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+
   DeleteCalendarApi
 );
 CalendarRouter.get("/getAvailability", uploadFiles, CheckCalendarAvailability);
 CalendarRouter.post("/schedule", uploadFiles, ScheduleEvent);
 CalendarRouter.get(
   "/calendars",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+
   GetUserConnectedCalendars
 );
 
 CalendarRouter.post(
   "/getScheduleForCalendar",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+
   GetCalendarSchedule
 );
 

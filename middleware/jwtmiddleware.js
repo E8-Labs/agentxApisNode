@@ -110,7 +110,7 @@ export const verifyJwtTokenWithTeam = async (req, response, next) => {
     query: req.query || null,
     params: req.params || null,
     isMobile: isMobile,
-    req: req,
+    // req: req,
   });
   if (typeof authHeaders !== "undefined") {
     const parts = authHeaders.split(" ");
