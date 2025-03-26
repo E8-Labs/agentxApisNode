@@ -82,13 +82,11 @@ const LeadModel = (sequelize, Sequelize) => {
       allowNull: true,
     },
     enrich: {
-      // column to track whether this lead has passed the dnc check or not
-      type: Sequelize.BOOLEAN, // by default null, if batch has dncCheck true then this value should be true in order to be called
+      type: Sequelize.BOOLEAN,
       defaultValue: false,
     },
     enrichData: {
-      // column to track whether this lead has passed the dnc check or not
-      type: Sequelize.TEXT("medium"), // by default null, if batch has dncCheck true then this value should be true in order to be called
+      type: Sequelize.TEXT("medium"),
       allowNull: true,
     },
   });
@@ -116,6 +114,12 @@ const LeadModel = (sequelize, Sequelize) => {
     }
   });
 
+  LeadModel.prototype.sanitizeForUser = function () {
+    const values = { ...this.get() };
+    delete values.enrich;
+    delete values.enrichData;
+    return values;
+  };
   return LeadModel;
 };
 
