@@ -1252,22 +1252,22 @@ export const BuildAgent = async (req, res) => {
       // });
 
       //Create Default Guardrails
-      // for (const obj of selectedObjective.objections || []) {
-      //   let created = await db.ObjectionAndGuradrails.create({
-      //     title: obj.title,
-      //     description: obj.description,
-      //     type: "objection",
-      //     mainAgentId: mainAgent.id,
-      //   });
-      // }
-      // for (const obj of selectedObjective.guardrails || []) {
-      //   let created = await db.ObjectionAndGuradrails.create({
-      //     title: obj.title,
-      //     description: obj.description,
-      //     type: "guardrail",
-      //     mainAgentId: mainAgent.id,
-      //   });
-      // }
+      for (const obj of selectedObjective.objections || []) {
+        let created = await db.ObjectionAndGuradrails.create({
+          title: obj.title,
+          description: obj.description,
+          type: "objection",
+          mainAgentId: mainAgent.id,
+        });
+      }
+      for (const obj of selectedObjective.guardrails || []) {
+        let created = await db.ObjectionAndGuradrails.create({
+          title: obj.title,
+          description: obj.description,
+          type: "guardrail",
+          mainAgentId: mainAgent.id,
+        });
+      }
 
       // if (!mainAgent) {
       //   //console.log("Error creating main agent ");
@@ -1509,42 +1509,42 @@ export async function CreateBackgroundSynthAssistant(agent) {
   let mainAgent = await db.MainAgentModel.findByPk(agent.mainAgentId);
 
   //Create Default Guardrails
-  for (const obj of selectedObjective.objections || []) {
-    let exists = await db.ObjectionAndGuradrails.findOne({
-      where: {
-        mainAgentId: mainAgent.id,
-        title: obj.title,
-        type: "objection",
-      },
-    });
-    if (!exists) {
-      let created = await db.ObjectionAndGuradrails.create({
-        title: obj.title,
-        description: obj.description,
-        type: "objection",
-        mainAgentId: mainAgent.id,
-        agentId: agent.id,
-      });
-    }
-  }
-  for (const obj of selectedObjective.guardrails || []) {
-    let exists = await db.ObjectionAndGuradrails.findOne({
-      where: {
-        mainAgentId: mainAgent.id,
-        title: obj.title,
-        type: "guardrail",
-      },
-    });
-    if (!exists) {
-      let created = await db.ObjectionAndGuradrails.create({
-        title: obj.title,
-        description: obj.description,
-        type: "guardrail",
-        mainAgentId: mainAgent.id,
-        agentId: agent.id,
-      });
-    }
-  }
+  // for (const obj of selectedObjective.objections || []) {
+  //   let exists = await db.ObjectionAndGuradrails.findOne({
+  //     where: {
+  //       mainAgentId: mainAgent.id,
+  //       title: obj.title,
+  //       type: "objection",
+  //     },
+  //   });
+  //   if (!exists) {
+  //     let created = await db.ObjectionAndGuradrails.create({
+  //       title: obj.title,
+  //       description: obj.description,
+  //       type: "objection",
+  //       mainAgentId: mainAgent.id,
+  //       agentId: agent.id,
+  //     });
+  //   }
+  // }
+  // for (const obj of selectedObjective.guardrails || []) {
+  //   let exists = await db.ObjectionAndGuradrails.findOne({
+  //     where: {
+  //       mainAgentId: mainAgent.id,
+  //       title: obj.title,
+  //       type: "guardrail",
+  //     },
+  //   });
+  //   if (!exists) {
+  //     let created = await db.ObjectionAndGuradrails.create({
+  //       title: obj.title,
+  //       description: obj.description,
+  //       type: "guardrail",
+  //       mainAgentId: mainAgent.id,
+  //       agentId: agent.id,
+  //     });
+  //   }
+  // }
 
   try {
     let kycTextSeller = ``;
