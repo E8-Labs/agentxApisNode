@@ -1192,6 +1192,34 @@ export async function CreatePromptForAgent(
   }
 }
 
+export const GetAgentDetails = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let mainAgentId = req.body.mainAgentId;
+      let agent = await db.MainAgentModel.findByPk(mainAgentId);
+      if (!agent) {
+        return res.send({
+          status: false,
+          data: null,
+          message: "Agent details",
+        });
+      }
+      let resource = await AgentResource(agent);
+
+      return res.send({
+        status: true,
+        data: resource,
+        message: "Agent details",
+      });
+    }
+  });
+};
 //Updated for Team Flow
 export const BuildAgent = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
