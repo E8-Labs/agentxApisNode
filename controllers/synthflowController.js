@@ -1201,13 +1201,13 @@ export const GetAgentDetails = async (req, res) => {
           id: userId,
         },
       });
-      let mainAgentId = req.body.mainAgentId;
+      let mainAgentId = req.query.mainAgentId;
       let agent = await db.MainAgentModel.findByPk(mainAgentId);
       if (!agent) {
         return res.send({
           status: false,
           data: null,
-          message: "Agent details",
+          message: "No such agent",
         });
       }
       let resource = await AgentResource(agent);
