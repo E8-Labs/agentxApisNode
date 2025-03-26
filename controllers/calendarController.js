@@ -570,9 +570,20 @@ export async function AddCalendarCalDotCom(req, res) {
       let title = req.body.title;
 
       try {
+        let agentCalendars = await db.CalendarIntegration.findAll({
+          where: {
+            mainAgentId: mainAgentId,
+            agentId: agentId,
+          },
+        });
+        if (agentCalendars && agentCalendars.length > 0) {
+          for (const cal of agentCalendars) {
+            DeleteCalendar(cal, true); // partially delete the calendar
+          }
+        }
         await db.CalendarIntegration.update(
           {
-            mainAgent: null,
+            mainAgentId: null,
             agentId: null,
           },
           {
@@ -610,8 +621,8 @@ export async function AddCalendarCalDotCom(req, res) {
             status: true,
             message: "Calendar updated",
             data: cal,
-            calendars,
-            eventTypes,
+            // calendars,
+            // eventTypes,
           });
         }
         cal = await db.CalendarIntegration.findOne({
@@ -909,7 +920,8 @@ export async function GetCalendarSchedule(req, res) {
   });
 }
 
-export async function DeleteCalendar(calendar) {
+export async function DeleteCalendar(calendar, partial = false) {
+  //if partial then only delete the actions from the synthflow.
   let data = calendar.data || null;
   console.log("Calendar", calendar);
   if (data) {
@@ -922,7 +934,9 @@ export async function DeleteCalendar(calendar) {
         }
       }
       console.log("Del cal from db");
-      calendar.destroy();
+      if (!partial) {
+        calendar.destroy();
+      }
       return true;
     } catch (error) {
       console.log("Error deleting calendar");
