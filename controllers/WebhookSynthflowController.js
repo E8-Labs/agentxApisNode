@@ -179,7 +179,8 @@ export const WebhookSynthflow = async (req, res) => {
       );
     } else {
       console.log("Call is in the db");
-
+      dbCall.recordingUrl = recordingUrl;
+      await dbCall.save();
       const leadCadenceId = dbCall.leadCadenceId;
       const leadCadence = leadCadenceId
         ? await db.LeadCadence.findByPk(leadCadenceId)
@@ -651,6 +652,7 @@ async function processInfoExtractors(
   lead,
   dbCall,
   endCallReason
+  // recordingUrl = null
 ) {
   const pipeline = await db.Pipeline.findByPk(leadCadence?.pipelineId);
   if (jsonIE) {
@@ -1080,7 +1082,8 @@ async function handleInfoExtractorValues(
     let agent = await db.AgentModel.findByPk(dbCall.agentId);
 
     lead = await GetValidEmailIfExistsForlead(lead);
-    console.log("Sending Hotlead not");
+
+    console.log("Sending Hotlead not", dbCall.recordingUrl);
     await AddNotification(
       user,
       null,
