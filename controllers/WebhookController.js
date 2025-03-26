@@ -17,6 +17,8 @@ import UserProfileFullResource from "../resources/userProfileFullResource.js";
 export const CreateWebhook = async (req, res) => {
   let url = req.body.url;
   let action = req.body.action;
+
+  let stageIds = req.body.stageIds || null;
   if (!url || !action) {
     return res.send({
       status: false,
@@ -37,6 +39,7 @@ export const CreateWebhook = async (req, res) => {
         url: url,
         action: action,
         userId: user.id,
+        stageIds: stageIds,
       });
       return res.send({
         status: true,

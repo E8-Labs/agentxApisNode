@@ -91,13 +91,13 @@ let TestPlans = [
   },
   {
     type: PayAsYouGoPlanTypes.Plan360Min,
-    price: 270,
+    price: 299,
     oldPrice: 270,
     duration: 360 * 60,
   },
   {
     type: PayAsYouGoPlanTypes.Plan720Min,
-    price: 600,
+    price: 599,
     oldPrice: 480,
     duration: 720 * 60,
   },
@@ -118,13 +118,13 @@ let LivePlans = [
   },
   {
     type: PayAsYouGoPlanTypes.Plan360Min,
-    price: 270,
-    oldPrice: 270,
+    price: 299,
+    oldPrice: 299,
     duration: 360 * 60,
   },
   {
     type: PayAsYouGoPlanTypes.Plan720Min,
-    price: 600,
+    price: 599,
     oldPrice: 480,
     duration: 720 * 60,
   },

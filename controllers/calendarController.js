@@ -568,39 +568,38 @@ export async function AddCalendarCalDotCom(req, res) {
       let agentId = req.body.agentId || null;
       let mainAgent = await db.MainAgentModel.findByPk(mainAgentId);
       let title = req.body.title;
+      console.log("Data is ", req.body.agentId);
+
       try {
-        // Fetch calendars
-        let apiClient = getApiClient(apiKey);
-        const calendarsResponse = await apiClient.get("/calendars");
-        console.log("Calendar response", calendarsResponse);
-        const calendars = calendarsResponse.data;
-
-        console.log("Available Calendars:", calendars);
-
-        // Fetch event types
-        const eventTypesResponse = await apiClient.get("/event-types");
-        const eventTypes = eventTypesResponse.data;
-        let groups = eventTypes?.data?.eventTypeGroups || [];
-        let eventId15Min = null;
-        if (eventId) {
-          eventId15Min = eventId;
-        } else if (groups.length > 0) {
-          // get some event id from cal dot com
-          let actualEventTypes = groups[0].eventTypes || [];
-          if (actualEventTypes.length > 0) {
-            eventId15Min = actualEventTypes[0].id;
+        let agentCalendars = await db.CalendarIntegration.findAll({
+          where: {
+            mainAgentId: mainAgentId,
+            agentId: agentId,
+          },
+        });
+        if (agentCalendars && agentCalendars.length > 0) {
+          for (const cal of agentCalendars) {
+            await DeleteCalendar(cal, true); // partially delete the calendar
           }
         }
-        if (!eventId15Min) {
-          return res.send({
-            status: true,
-            message: "No event ids found",
-            data: null,
-          });
-        }
+        await db.CalendarIntegration.update(
+          {
+            mainAgentId: null,
+            agentId: null,
+          },
+          {
+            where: {
+              mainAgentId: mainAgentId,
+              agentId: agentId,
+            },
+          }
+        );
 
-        //check if there is already a calendar for this agent
-        let filter = { mainAgentId: mainAgentId };
+        let filter = { apiKey: apiKey };
+        if (eventId) {
+          filter.eventId = eventId;
+        }
+        filter.mainAgentId = mainAgentId;
         if (agentId) {
           filter.agentId = agentId;
         }
@@ -608,6 +607,11 @@ export async function AddCalendarCalDotCom(req, res) {
           where: filter,
         });
         if (cal) {
+          return res.send({
+            status: false,
+            message: "Calendar with same api key and event id already exists",
+            data: cal,
+          });
           cal.eventId = eventId;
           cal.apiKey = apiKey;
           cal.timeZone = timeZone;
@@ -618,10 +622,53 @@ export async function AddCalendarCalDotCom(req, res) {
             status: true,
             message: "Calendar updated",
             data: cal,
-            calendars,
-            eventTypes,
+            // calendars,
+            // eventTypes,
           });
         }
+        cal = await db.CalendarIntegration.findOne({
+          where: {
+            apiKey: apiKey,
+            eventId: eventId,
+          },
+        });
+        // Fetch calendars
+        if (!cal) {
+          let apiClient = getApiClient(apiKey);
+          const calendarsResponse = await apiClient.get("/calendars");
+          console.log("Calendar response", calendarsResponse);
+          const calendars = calendarsResponse.data;
+
+          console.log("Available Calendars:", calendars);
+
+          // Fetch event types
+          const eventTypesResponse = await apiClient.get("/event-types");
+          const eventTypes = eventTypesResponse.data;
+          let groups = eventTypes?.data?.eventTypeGroups || [];
+          let eventId15Min = null;
+          if (eventId) {
+            eventId15Min = eventId;
+          } else if (groups.length > 0) {
+            // get some event id from cal dot com
+            let actualEventTypes = groups[0].eventTypes || [];
+            if (actualEventTypes.length > 0) {
+              eventId15Min = actualEventTypes[0].id;
+            }
+          }
+          if (!eventId15Min) {
+            return res.send({
+              status: true,
+              message: "No event ids found",
+              data: null,
+            });
+          }
+        }
+
+        //check if there is already a calendar for this agent
+        // let filter = { mainAgentId: mainAgentId };
+        // if (agentId) {
+        //   filter.agentId = agentId;
+        // }
 
         let calendar = null;
         if (agentId) {
@@ -629,7 +676,7 @@ export async function AddCalendarCalDotCom(req, res) {
             type: calendarType,
             apiKey: apiKey,
             userId: userId,
-            eventId: eventId15Min,
+            eventId: eventId,
             mainAgentId: mainAgentId,
             title: title,
             agentId: agentId,
@@ -667,7 +714,7 @@ export async function AddCalendarCalDotCom(req, res) {
                 type: calendarType,
                 apiKey: apiKey,
                 userId: userId,
-                eventId: eventId15Min,
+                eventId: eventId,
                 mainAgentId: mainAgentId,
                 title: title,
                 agentId: agent.id,
@@ -698,21 +745,21 @@ export async function AddCalendarCalDotCom(req, res) {
           }
         }
 
-        console.log("Available Event Types:", eventTypes);
+        // console.log("Available Event Types:", eventTypes);
 
         // Return both calendars and event types
         return res.send({
           status: true,
           data: calendar,
-          calendars,
-          eventTypes,
+          // calendars,
+          // eventTypes,
         });
       } catch (error) {
         console.error("Error retrieving calendars or event types:", error);
         return res.send({
           status: false,
           message: error.message.includes("401")
-            ? "Invalid api key"
+            ? "Calendar has expired, add new"
             : error.message,
           error: error,
         });
@@ -723,32 +770,43 @@ export async function AddCalendarCalDotCom(req, res) {
 
 export async function DeleteCalendarApi(req, res) {
   let calendarId = req.body.calendarId;
-  let calendar = await db.CalendarIntegration.findByPk(calendarId);
-  if (!calendar) {
-    return res.send({ status: false, message: "No such calendar" });
-  }
-  let data = calendar.data || null;
-  console.log("Calendar", calendarId);
-  if (data) {
-    try {
-      let actions = JSON.stringify(data);
-      console.log("Total actions ", actions.length);
-      if (actions && actions.length > 0) {
-        for (let action of actions) {
-          let del = DeleteActionSynthflow(action);
+  let apiKey = req.body.apiKey;
+
+  let calendars = await db.CalendarIntegration.findAll({
+    where: {
+      apiKey: apiKey,
+    },
+  });
+  if (calendars && calendars.length > 0) {
+    for (const calendar of calendars) {
+      let data = calendar.data || null;
+      console.log("Calendar", calendarId);
+      if (data) {
+        try {
+          let actions = JSON.stringify(data);
+          console.log("Total actions ", actions.length);
+          if (actions && actions.length > 0) {
+            for (let action of actions) {
+              let del = DeleteActionSynthflow(action);
+            }
+          }
+          console.log("Del cal from db");
+          calendar.destroy();
+        } catch (error) {
+          console.log("Error deleting calendar", error);
+          // return res.send({ status: false, message: "Error deleting calendar" });
         }
+      } else {
+        calendar.destroy();
+        // return res.send({ status: true, message: "Calendar deleted" });
       }
-      console.log("Del cal from db");
-      calendar.destroy();
-      return res.send({ status: true, message: "Calendar deleted" });
-    } catch (error) {
-      console.log("Error deleting calendar", error);
-      return res.send({ status: false, message: "Error deleting calendar" });
     }
-  } else {
-    calendar.destroy();
     return res.send({ status: true, message: "Calendar deleted" });
   }
+
+  // if (!calendar) {
+  //   return res.send({ status: false, message: "No such calendar" });
+  // }
 }
 
 export async function GetUserConnectedCalendars(req, res) {
@@ -780,8 +838,20 @@ export async function GetUserConnectedCalendars(req, res) {
           [db.Sequelize.fn("MAX", db.Sequelize.col("createdAt")), "DESC"],
         ], // Order by latest createdAt
       });
+      let connectedUniqueCalendars = [];
+      if (calendars && calendars.length > 0) {
+        for (const cal of calendars) {
+          let exists = connectedUniqueCalendars.some(
+            (item) => item.apiKey === cal.apiKey && item.eventId === cal.eventId
+          );
+          if (!exists) {
+            connectedUniqueCalendars.push(cal);
+          }
+        }
+      }
+
       // Return both calendars and event types
-      return res.send({ status: true, data: calendars });
+      return res.send({ status: true, data: connectedUniqueCalendars });
     } else {
       return res.send({
         status: false,
@@ -851,7 +921,8 @@ export async function GetCalendarSchedule(req, res) {
   });
 }
 
-export async function DeleteCalendar(calendar) {
+export async function DeleteCalendar(calendar, partial = false) {
+  //if partial then only delete the actions from the synthflow.
   let data = calendar.data || null;
   console.log("Calendar", calendar);
   if (data) {
@@ -864,7 +935,9 @@ export async function DeleteCalendar(calendar) {
         }
       }
       console.log("Del cal from db");
-      calendar.destroy();
+      if (!partial) {
+        calendar.destroy();
+      }
       return true;
     } catch (error) {
       console.log("Error deleting calendar");

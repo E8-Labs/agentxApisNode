@@ -443,6 +443,17 @@ export const postDataToWebhook = async (
   // console.log("Found webhooks ", webhooks.length);
   if (webhooks && webhooks.length > 0) {
     for (const webhook of webhooks) {
+      if (webhook.type == WebhookTypes.TypeStageChange) {
+        if (webhook.stageIds != null) {
+          let stageIds = webhook.stageIds;
+
+          const stageIdsArray = stageIds.split(",").map(Number);
+          if (!stageIdsArray.includes(data.stage)) {
+            //Don't call webhook
+            continue;
+          }
+        }
+      }
       // postDataToWebhook(webhook.url, leadsRes);
       try {
         const response = await axios.post(webhook.url, data, {
@@ -1126,6 +1137,7 @@ export const GetLeads = async (req, res) => {
             "createdAt",
             "stage",
             "status",
+            "enrich",
           ];
           // delete lead.status;
           const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
@@ -1245,6 +1257,7 @@ export const GetLeadDetail = async (req, res) => {
         "updatedAt",
         "createdAt",
         "stage",
+        "enrich",
       ];
       const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
         (key) => !fixedKeys.includes(key) && lead[key] !== null
@@ -1465,6 +1478,7 @@ export const GetCallLogs = async (req, res) => {
           status,
           startDate,
           endDate,
+          pipelineId,
           stageIds,
           timezone = "America/Los_Angeles",
         } = req.query; // duration in seconds
@@ -1531,6 +1545,20 @@ export const GetCallLogs = async (req, res) => {
           callLogFilters.createdAt = {
             [Op.between]: [adjustedFromDate, adjustedToDate],
           };
+        }
+
+        let leadCadIdForPipelines = null;
+        if (pipelineId) {
+          let leadCad = await db.LeadCadence.findAll({
+            where: {
+              pipelineId: pipelineId,
+            },
+          });
+          leadCadIdForPipelines = [];
+          if (leadCad) {
+            leadCadIdForPipelines = leadCad.map((item) => item.id);
+          }
+          callLogFilters.leadCadenceId = { [Op.in]: leadCadIdForPipelines };
         }
 
         // Query to fetch call logs

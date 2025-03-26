@@ -58,6 +58,10 @@ function formatPhoneNumber(phone) {
   return phone;
 }
 export async function UpdateOrCreateUserInGhl(user) {
+  if (process.env.Environment == "Sandbox") {
+    console.log("Don't push data to ghl for test environment");
+    return;
+  }
   let phone = user.phone;
   if (!phone) {
     return;

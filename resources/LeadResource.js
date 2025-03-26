@@ -243,7 +243,8 @@ async function getUserData(lead, currentUser = null) {
   // leadData.dncData = null;
   delete leadData.dncData;
   delete leadData.dncCheckPassed;
-
+  delete leadData.enrich;
+  // let data = leadData.sanitizeForUser();
   const LeadResource = {
     ...leadData,
     tags: tags, //{ ...tags, ...sheetTagsArray },

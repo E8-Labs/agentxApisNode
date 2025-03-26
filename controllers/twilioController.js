@@ -967,7 +967,8 @@ export const PhoneNumberCron = async () => {
 
 export const DeleteNumber = async (req, res) => {
   console.log("ACCOUNT SSID ", process.env.TWILIO_ACCOUNT_SID);
-  const { phone } = req.body;
+  let { phone } = req.body;
+  phone = phone.replace("+", "");
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
@@ -984,14 +985,23 @@ export const DeleteNumber = async (req, res) => {
       try {
         let phoneNumber = await db.UserPhoneNumbers.findOne({
           where: {
-            userId: userId,
-            phone: phone,
+            userId: user.id,
+            phone: {
+              [db.Sequelize.Op.like]: `%${phone}%`,
+            },
           },
         });
         if (!phoneNumber) {
           return res.send({
             status: false,
-            message: "No such phone number",
+            message: "No such phone number:  " + phone,
+          });
+        }
+
+        if (process.env.Environment == "Sandbox") {
+          return res.send({
+            status: false,
+            message: "Can not delete phone on test environment",
           });
         }
 
@@ -1113,3 +1123,14 @@ export const ReleaseNumberCron = async () => {
     console.error("Error during Twilio number synchronization:", error.message);
   }
 };
+
+export async function DeleteAudioRecording(recordingSid) {
+  try {
+    await twilioClient.recordings(recordingSid).remove();
+    console.log("Recording deleted from Twilio:", recordingSid);
+    return { success: true, message: "Recording deleted from Twilio" };
+  } catch (error) {
+    console.error("Failed to delete Twilio recording:", error);
+    return { success: false, message: error.message };
+  }
+}

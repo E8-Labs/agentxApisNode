@@ -15,7 +15,10 @@ export async function CallOpenAi(data) {
 
   try {
     // Make the request to the OpenAI API
-    let messages = [{ role: "system", content: data }];
+    let messages = [
+      { role: "system", content: "You are a website content analyst." },
+      { role: "user", content: data },
+    ];
     const response = await fetch(apiUrl, {
       method: "POST",
       headers: {
@@ -34,7 +37,7 @@ export async function CallOpenAi(data) {
     const result = await response.json();
 
     // Extract tokens used and summary from the response
-    // console.log("GPT Response ", JSON.stringify(result));
+    console.log("GPT Response ", JSON.stringify(result));
     const mess = result.choices[0].message;
     let summary = mess.content;
     const tokensUsed = result.usage.total_tokens;

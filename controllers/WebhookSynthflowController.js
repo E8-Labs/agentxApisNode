@@ -48,6 +48,11 @@ import { generateFailedOrCallVoilationEmail } from "../emails/system/FailedOrCal
 import { SendEmail } from "../services/MailService.js";
 import ZapierLeadResource from "../resources/ZapierLeadResource.js";
 import { formatDateMMDDYYYY } from "../utils/dateutil.js";
+import {
+  downloadAndStoreRecording,
+  generateAudioFilePath,
+} from "../utils/mediaservice.js";
+import { UUIDV4 } from "sequelize";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -90,7 +95,7 @@ export const WebhookSynthflow = async (req, res) => {
     logWebhookData(data, dataString);
 
     let modelId = null;
-    const {
+    let {
       callId,
       // modelId,
       status,
@@ -100,6 +105,28 @@ export const WebhookSynthflow = async (req, res) => {
       endCallReason,
       actions,
     } = extractCallData(data);
+
+    try {
+      let twilioAudio = recordingUrl;
+      const currentDate = new Date().toISOString().slice(0, 10);
+      const newUUID = UUIDV4();
+      downloadAndStoreRecording(
+        twilioAudio,
+        callId,
+        "recordings",
+        currentDate,
+        newUUID
+      );
+      recordingUrl = generateAudioFilePath(
+        callId,
+        recordingUrl,
+        "recordings",
+        currentDate,
+        newUUID
+      );
+    } catch (error) {
+      console.log("Error ", error);
+    }
 
     let mainAgentId = req.query.mainAgentId || null;
     let type = req.query.type || null;

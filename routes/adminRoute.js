@@ -24,6 +24,7 @@ import {
   AddMinutesToUser,
   GetScheduledCallsAdmin,
   GetVerificationCodes,
+  DeleteCallAudio,
 } from "../controllers/AdminCallAndUser.js";
 
 const uploadFiles = multer().fields([
@@ -117,6 +118,13 @@ AdminRouter.post(
   verifyJwtTokenWithTeam,
   uploadFiles,
   AddMinutesToUser
+);
+
+AdminRouter.post(
+  "/deleteAudioCallRecording",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  DeleteCallAudio
 );
 
 AdminRouter.get(

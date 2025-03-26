@@ -14,7 +14,9 @@ import LeadCallResource from "../resources/LeadCallResource.js";
 import LeadCallAdminResource from "../resources/LeadCallAdminResource.js";
 import { GetTeamIds } from "../utils/auth.js";
 import BatchResource from "../resources/BatchResource.js";
-
+import fs from "fs";
+import path from "path";
+import { DeleteAudioRecording } from "./twilioController.js";
 export const GetCallLogs = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -31,8 +33,15 @@ export const GetCallLogs = async (req, res) => {
         });
       }
       try {
-        const { name, duration, status, startDate, endDate, stageIds } =
-          req.query;
+        const {
+          name,
+          duration,
+          status,
+          startDate,
+          endDate,
+          stageIds,
+          pipelineId,
+        } = req.query;
 
         // Define filters for LeadCallsSent
         const callLogFilters = {};
@@ -84,6 +93,20 @@ export const GetCallLogs = async (req, res) => {
           callLogFilters.createdAt = {
             [Op.between]: [adjustedFromDate, adjustedToDate],
           };
+        }
+
+        let leadCadIdForPipelines = null;
+        if (pipelineId) {
+          let leadCad = await db.LeadCadence.findAll({
+            where: {
+              pipelineId: pipelineId,
+            },
+          });
+          leadCadIdForPipelines = [];
+          if (leadCad) {
+            leadCadIdForPipelines = leadCad.map((item) => item.id);
+          }
+          callLogFilters.leadCadenceId = { [Op.in]: leadCadIdForPipelines };
         }
 
         // ✅ Debug: Log Applied Filters
@@ -292,4 +315,34 @@ export async function GetVerificationCodes(req, res) {
       });
     }
   });
+}
+
+export async function DeleteCallAudio(req, res) {
+  let url = req.body.url;
+  let recordingSid = req.body.recordingSid;
+  try {
+    const basePublicUrl =
+      process.env.Environment === "Sandbox"
+        ? "https://www.blindcircle.com/agentxtest/uploads/"
+        : "https://www.blindcircle.com/agentx/uploads/";
+
+    // Remove the domain part to get the relative path
+    const relativePath = url.replace(basePublicUrl, ""); // e.g., recordings/2025-03-24_uuid_filename.mp3
+
+    // Resolve to absolute path using DocsDir
+    const localFilePath = path.join(process.env.DocsDir, relativePath); // e.g., /var/www/.../uploads/recordings/...
+
+    let del = await DeleteAudioRecording(recordingSid);
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+      console.log("Deleted file:", localFilePath);
+      return res.send({ status: true, message: "File deleted" });
+    } else {
+      console.warn("File not found for deletion:", localFilePath);
+      return res.send({ status: false, message: "File not found" });
+    }
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    return res.send({ status: false, message: error.message });
+  }
 }

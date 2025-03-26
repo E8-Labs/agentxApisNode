@@ -29,7 +29,7 @@ import BatchResource from "../resources/BatchResource.js";
 import { BatchStatus } from "../models/pipeline/CadenceBatchModel.js";
 import { pipeline } from "stream";
 import PipelineStages from "../models/pipeline/pipelineStages.js";
-import { UserRole } from "../models/user/userModel.js";
+import { UserRole, UserTypes } from "../models/user/userModel.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import LeadLiteResource from "../resources/LeadLiteResource.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
@@ -59,6 +59,18 @@ export const CreatePipeline = async (req, res) => {
           id: userId,
         },
       });
+
+      if (user.userType) {
+        if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+          userId = req.body.userId;
+          console.log("This is admin adding leads for other user", userId);
+          user = await db.User.findOne({
+            where: {
+              id: userId,
+            },
+          });
+        }
+      }
 
       // let teamIds = await GetTeamIds(user)
       let created = await db.Pipeline.create({
@@ -152,6 +164,18 @@ export const CreatePipelineStage = async (req, res) => {
           id: userId,
         },
       });
+
+      if (user.userType) {
+        if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+          userId = req.body.userId;
+          console.log("This is admin adding leads for other user", userId);
+          user = await db.User.findOne({
+            where: {
+              id: userId,
+            },
+          });
+        }
+      }
 
       if (!color) {
         color = process.env.DefaultPipelineColor;

@@ -1036,7 +1036,7 @@ async function initiateCall(
         console.log("Saved ", saved);
         return {
           status: true,
-          message: "call is initiated",
+          message: "Call Initiated",
           data: saved,
           callData: data,
         };
@@ -1192,6 +1192,34 @@ export async function CreatePromptForAgent(
   }
 }
 
+export const GetAgentDetails = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let mainAgentId = req.query.mainAgentId;
+      let agent = await db.MainAgentModel.findByPk(mainAgentId);
+      if (!agent) {
+        return res.send({
+          status: false,
+          data: null,
+          message: "No such agent",
+        });
+      }
+      let resource = await AgentResource(agent);
+
+      return res.send({
+        status: true,
+        data: resource,
+        message: "Agent details",
+      });
+    }
+  });
+};
 //Updated for Team Flow
 export const BuildAgent = async (req, res) => {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
@@ -1509,22 +1537,42 @@ export async function CreateBackgroundSynthAssistant(agent) {
   let mainAgent = await db.MainAgentModel.findByPk(agent.mainAgentId);
 
   //Create Default Guardrails
-  for (const obj of selectedObjective.objections || []) {
-    let created = await db.ObjectionAndGuradrails.create({
-      title: obj.title,
-      description: obj.description,
-      type: "objection",
-      mainAgentId: mainAgent.id,
-    });
-  }
-  for (const obj of selectedObjective.guardrails || []) {
-    let created = await db.ObjectionAndGuradrails.create({
-      title: obj.title,
-      description: obj.description,
-      type: "guardrail",
-      mainAgentId: mainAgent.id,
-    });
-  }
+  // for (const obj of selectedObjective.objections || []) {
+  //   let exists = await db.ObjectionAndGuradrails.findOne({
+  //     where: {
+  //       mainAgentId: mainAgent.id,
+  //       title: obj.title,
+  //       type: "objection",
+  //     },
+  //   });
+  //   if (!exists) {
+  //     let created = await db.ObjectionAndGuradrails.create({
+  //       title: obj.title,
+  //       description: obj.description,
+  //       type: "objection",
+  //       mainAgentId: mainAgent.id,
+  //       agentId: agent.id,
+  //     });
+  //   }
+  // }
+  // for (const obj of selectedObjective.guardrails || []) {
+  //   let exists = await db.ObjectionAndGuradrails.findOne({
+  //     where: {
+  //       mainAgentId: mainAgent.id,
+  //       title: obj.title,
+  //       type: "guardrail",
+  //     },
+  //   });
+  //   if (!exists) {
+  //     let created = await db.ObjectionAndGuradrails.create({
+  //       title: obj.title,
+  //       description: obj.description,
+  //       type: "guardrail",
+  //       mainAgentId: mainAgent.id,
+  //       agentId: agent.id,
+  //     });
+  //   }
+  // }
 
   try {
     let kycTextSeller = ``;
@@ -2682,6 +2730,18 @@ export const AddKyc = async (req, res) => {
         },
       });
 
+      if (user.userType) {
+        if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+          userId = req.body.userId;
+          console.log("This is admin adding leads for other user", userId);
+          user = await db.User.findOne({
+            where: {
+              id: userId,
+            },
+          });
+        }
+      }
+
       let admin = await GetTeamAdminFor(user);
       user = admin;
 
@@ -2862,6 +2922,17 @@ export const UpdateKyc = async (req, res) => {
           id: userId,
         },
       });
+      if (user.userType) {
+        if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+          userId = req.body.userId;
+          console.log("This is admin adding leads for other user", userId);
+          user = await db.User.findOne({
+            where: {
+              id: userId,
+            },
+          });
+        }
+      }
       let admin = await GetTeamAdminFor(user);
       user = admin;
 
