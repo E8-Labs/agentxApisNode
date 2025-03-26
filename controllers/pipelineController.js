@@ -29,7 +29,7 @@ import BatchResource from "../resources/BatchResource.js";
 import { BatchStatus } from "../models/pipeline/CadenceBatchModel.js";
 import { pipeline } from "stream";
 import PipelineStages from "../models/pipeline/pipelineStages.js";
-import { UserRole } from "../models/user/userModel.js";
+import { UserRole, UserTypes } from "../models/user/userModel.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import LeadLiteResource from "../resources/LeadLiteResource.js";
 import LeadCallResource from "../resources/LeadCallResource.js";

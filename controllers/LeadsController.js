@@ -443,6 +443,17 @@ export const postDataToWebhook = async (
   // console.log("Found webhooks ", webhooks.length);
   if (webhooks && webhooks.length > 0) {
     for (const webhook of webhooks) {
+      if (webhook.type == WebhookTypes.TypeStageChange) {
+        if (webhook.stageIds != null) {
+          let stageIds = webhook.stageIds;
+
+          const stageIdsArray = stageIds.split(",").map(Number);
+          if (!stageIdsArray.includes(data.stage)) {
+            //Don't call webhook
+            continue;
+          }
+        }
+      }
       // postDataToWebhook(webhook.url, leadsRes);
       try {
         const response = await axios.post(webhook.url, data, {

@@ -12,6 +12,10 @@ const WebhookModel = (sequelize, Sequelize) => {
     userId: {
       type: Sequelize.INTEGER,
     },
+    stageIds: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return WebhookModel;
