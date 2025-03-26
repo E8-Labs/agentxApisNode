@@ -23,6 +23,16 @@ const ObjectionAndGuradrails = (sequelize, Sequelize) => {
       onDelete: "CASCADE",
       onUpdate: "CASCADE",
     },
+    agentId: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+      references: {
+        model: "AgentModels",
+        key: "id",
+      },
+      onDelete: "CASCADE",
+      onUpdate: "CASCADE",
+    },
   });
 
   return ObjectionAndGuradrails;

@@ -1510,20 +1510,40 @@ export async function CreateBackgroundSynthAssistant(agent) {
 
   //Create Default Guardrails
   for (const obj of selectedObjective.objections || []) {
-    let created = await db.ObjectionAndGuradrails.create({
-      title: obj.title,
-      description: obj.description,
-      type: "objection",
-      mainAgentId: mainAgent.id,
+    let exists = await db.ObjectionAndGuradrails.findOne({
+      where: {
+        mainAgentId: mainAgent.id,
+        title: obj.title,
+        type: "objection",
+      },
     });
+    if (!exists) {
+      let created = await db.ObjectionAndGuradrails.create({
+        title: obj.title,
+        description: obj.description,
+        type: "objection",
+        mainAgentId: mainAgent.id,
+        agentId: agent.id,
+      });
+    }
   }
   for (const obj of selectedObjective.guardrails || []) {
-    let created = await db.ObjectionAndGuradrails.create({
-      title: obj.title,
-      description: obj.description,
-      type: "guardrail",
-      mainAgentId: mainAgent.id,
+    let exists = await db.ObjectionAndGuradrails.findOne({
+      where: {
+        mainAgentId: mainAgent.id,
+        title: obj.title,
+        type: "guardrail",
+      },
     });
+    if (!exists) {
+      let created = await db.ObjectionAndGuradrails.create({
+        title: obj.title,
+        description: obj.description,
+        type: "guardrail",
+        mainAgentId: mainAgent.id,
+        agentId: agent.id,
+      });
+    }
   }
 
   try {
