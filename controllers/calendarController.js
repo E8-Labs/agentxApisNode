@@ -578,7 +578,7 @@ export async function AddCalendarCalDotCom(req, res) {
         });
         if (agentCalendars && agentCalendars.length > 0) {
           for (const cal of agentCalendars) {
-            DeleteCalendar(cal, true); // partially delete the calendar
+            await DeleteCalendar(cal, true); // partially delete the calendar
           }
         }
         await db.CalendarIntegration.update(
