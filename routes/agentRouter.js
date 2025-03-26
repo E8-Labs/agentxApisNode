@@ -21,6 +21,7 @@ import {
   GenerateFirstAINotification,
   UpdateSubAgent,
   GetVoicemailMessage,
+  GetAgentDetails,
 } from "../controllers/synthflowController.js";
 
 import {
@@ -59,6 +60,13 @@ AgentRouter.get(
   verifyJwtTokenWithTeam,
   uploadFiles,
   GetDashboardData
+);
+
+AgentRouter.get(
+  "/getAgentDetails",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetAgentDetails
 );
 
 AgentRouter.post(
