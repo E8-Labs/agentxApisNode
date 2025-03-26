@@ -103,13 +103,14 @@ export const verifyJwtTokenWithTeam = async (req, response, next) => {
   const authHeaders = req.headers["authorization"];
   const apiKeyHeaders = req.headers["x-api-key"];
   console.log("Auth headers");
-  console.log("data ", req.body);
+  console.log("data ", req);
   console.log(authHeaders);
   let data = JSON.stringify({
     body: req.body || null,
     query: req.query || null,
     params: req.params || null,
     isMobile: isMobile,
+    req: req,
   });
   if (typeof authHeaders !== "undefined") {
     const parts = authHeaders.split(" ");
