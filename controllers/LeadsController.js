@@ -1137,6 +1137,7 @@ export const GetLeads = async (req, res) => {
             "createdAt",
             "stage",
             "status",
+            "enrich",
           ];
           // delete lead.status;
           const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
@@ -1256,6 +1257,7 @@ export const GetLeadDetail = async (req, res) => {
         "updatedAt",
         "createdAt",
         "stage",
+        "enrich",
       ];
       const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
         (key) => !fixedKeys.includes(key) && lead[key] !== null
