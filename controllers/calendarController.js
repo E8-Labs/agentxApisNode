@@ -714,7 +714,7 @@ export async function AddCalendarCalDotCom(req, res) {
                 type: calendarType,
                 apiKey: apiKey,
                 userId: userId,
-                eventId: eventId15Min,
+                eventId: eventId,
                 mainAgentId: mainAgentId,
                 title: title,
                 agentId: agent.id,

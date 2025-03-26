@@ -57,144 +57,164 @@ let AgentRouter = express.Router();
 
 AgentRouter.get(
   "/dashboard",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+
   GetDashboardData
 );
 
 AgentRouter.get(
   "/getAgentDetails",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   GetAgentDetails
 );
 
 AgentRouter.post(
   "/buildAgent",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   BuildAgent
 );
 AgentRouter.post(
   "/transferNumber",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   TransferNumber
 );
 AgentRouter.post(
   "/reattachNumbers",
+  uploadFiles,
   verifyJwtTokenWithTeam,
   ReattachNumbersToAgents
 );
 AgentRouter.post(
   "/updateAgent",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   UpdateAgent
 );
 AgentRouter.post(
   "/updateSubAgent",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   UpdateSubAgent
 );
 AgentRouter.post(
   "/updateAgentProfileImage",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   UploadAgentImage
 );
 AgentRouter.post(
   "/deleteAgent",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   DeleteAgent
 );
 
 AgentRouter.post("/testAi", verifyJwtTokenWithTeam, uploadFiles, TestAI);
 AgentRouter.post(
   "/sendTestAiNotification",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   GenerateFirstAINotification
 );
 
 AgentRouter.get("/getAgents", verifyJwtTokenWithTeam, uploadFiles, GetAgents);
 AgentRouter.get(
   "/getAgentCallActivity",
+  uploadFiles,
   verifyJwtTokenWithTeam,
   GetAgentCallActivity
 );
 
 AgentRouter.get(
   "/findPhoneNumbers",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   ListAvailableNumbers
 );
 AgentRouter.get(
   "/listUsersAvailablePhoneNumbers",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   ListUsersAvailablePhoneNumbers
 );
 AgentRouter.get("/voices", uploadFiles, GetVoices);
 AgentRouter.post(
   "/purchasePhone",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   PurchasePhoneNumber
 );
 AgentRouter.post(
   "/assignPhoneNumber",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   AssignPhoneNumber
 );
 
 AgentRouter.post(
   "/releasePhoneNumber",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   ReleasePhoneNumber
 );
 
 AgentRouter.post(
   "/deletePhoneNumber",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+  // uploadFiles,
   DeleteNumber
 );
 
 //Kycs
-AgentRouter.get("/getKycs", verifyJwtTokenWithTeam, uploadFiles, GetKyc);
+AgentRouter.get("/getKycs", uploadFiles, verifyJwtTokenWithTeam, GetKyc);
 //Add Kyc
-AgentRouter.post("/addKyc", verifyJwtTokenWithTeam, uploadFiles, AddKyc);
+AgentRouter.post("/addKyc", uploadFiles, verifyJwtTokenWithTeam, AddKyc);
 //Update Kyc
-AgentRouter.post("/updateKyc", verifyJwtTokenWithTeam, uploadFiles, UpdateKyc);
+AgentRouter.post("/updateKyc", uploadFiles, verifyJwtTokenWithTeam, UpdateKyc);
 
-AgentRouter.post("/deleteKyc", verifyJwtTokenWithTeam, uploadFiles, DeleteKyc);
+AgentRouter.post("/deleteKyc", uploadFiles, verifyJwtTokenWithTeam, DeleteKyc);
 
 AgentRouter.post("/updateCallStatusForAll", SetOutcomeforpreviousCalls);
 
 AgentRouter.post(
   "/addObjectionGuardRail",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+
   AddObjectionOrGuardrail
 );
 
 AgentRouter.post(
   "/deleteObjectionGuardRail",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+
   DeleteObjectionOrGuardrail
 );
 
 AgentRouter.get(
   "/getObjectionsAndGuardrails",
-  verifyJwtTokenWithTeam,
   uploadFiles,
+  verifyJwtTokenWithTeam,
+
   GetObjectionsAndGuardrails
 );
 
