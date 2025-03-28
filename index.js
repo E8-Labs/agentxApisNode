@@ -128,6 +128,7 @@ app.use("/api/admin", AdminRouter);
 
 import { CreateBackgroundSynthAssistant } from "./controllers/synthflowController.js";
 import { processKb } from "./controllers/KbController.js";
+import { fetchLeadDetailsFromPerplexity } from "./controllers/lead/LeadHelperController.js";
 db.AgentModel.afterCreate(async (agent, options) => {
   console.log("Should create agent & add custom actions, IEs", agent.name);
   if (options.transaction) {
@@ -146,6 +147,17 @@ db.KnowledgeBase.afterCreate(async (kb, options) => {
     });
   } else {
     processKb(kb);
+  }
+});
+
+db.LeadModel.afterCreate(async (lead, options) => {
+  console.log("Should enrich for lead", lead.firstName);
+  if (options.transaction) {
+    await options.transaction.afterCommit(async () => {
+      fetchLeadDetailsFromPerplexity(lead);
+    });
+  } else {
+    fetchLeadDetailsFromPerplexity(lead);
   }
 });
 
