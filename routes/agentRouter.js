@@ -41,6 +41,7 @@ import {
 } from "../controllers/twilioController.js";
 
 import { GetDashboardData } from "../controllers/DashboardController.js";
+import { SetVoicemailMessage } from "../controllers/agent/AgentHelperController.js";
 // import { verify } from "jsonwebtoken";
 
 const uploadFiles = multer().fields([
@@ -208,6 +209,13 @@ AgentRouter.post(
   verifyJwtTokenWithTeam,
 
   DeleteObjectionOrGuardrail
+);
+
+AgentRouter.post(
+  "/setVoicemail",
+  uploadFiles,
+  verifyJwtTokenWithTeam,
+  SetVoicemailMessage
 );
 
 AgentRouter.get(

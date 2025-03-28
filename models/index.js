@@ -67,6 +67,7 @@ import PaymentMethod from "./user/payment/paymentMethod.js";
 import PaymentMethodFails from "./user/payment/PaymentFails.js";
 import KnowledgeBase from "./user/knowlegebase/Knowledgebase.js";
 import UserSelectedIndustryModel from "./user/UserSelectedIndustry.js";
+import AgentVoicemailModel from "./user/AgentVoicemailModel.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -158,6 +159,8 @@ db.AgentPromptModel = AgentPromptModel(sequelize, Sequelize);
 db.AgentModel = AgentModel(sequelize, Sequelize);
 db.User.hasMany(db.AgentModel, { foreignKey: "userId", as: "agents" });
 db.AgentModel.belongsTo(db.User, { foreignKey: "userId", as: "user" });
+
+db.AgentVoicemailModel = AgentVoicemailModel(sequelize, Sequelize);
 
 db.KycModel = KycModel(sequelize, Sequelize);
 db.KycExampleModel = KycExampleModel(sequelize, Sequelize);
