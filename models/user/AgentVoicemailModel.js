@@ -1,6 +1,6 @@
 const AgentVoicemailModel = (sequelize, Sequelize) => {
   const AgentVoicemailModel = sequelize.define("AgentVoicemailModel", {
-    voiceName: {
+    voiceId: {
       //Event id is the meeting event on cal.com
       type: Sequelize.STRING, //Ava or Axel
       allowNull: true,

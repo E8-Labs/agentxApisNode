@@ -22,12 +22,12 @@ export const SetVoicemailMessage = async (req, res) => {
       }
       let message = req.body.message;
       let agentType = req.body.agentType;
-      let voice = req.body.voice || "Ava";
+      let voice = req.body.voice || "SJzBm6fWJCplrpPNzyCV"; //voice id default to AVA
 
       let created = await db.AgentVoicemailModel.create({
         message: message,
         agentId: agent.id,
-        voiceName: voice,
+        voiceId: voice,
         agentType: agentType,
       });
 
@@ -38,4 +38,26 @@ export const SetVoicemailMessage = async (req, res) => {
       });
     }
   });
+};
+
+export const SendVoicemail = async (agent, toPhone) => {
+  let key = process.env.VoiceDropVoicemail;
+  const url = "https://api.voicedrop.ai/v1/ringless_voicemail";
+
+  let voicemail = await db.AgentVoicemailModel.findOne({
+    where: {
+      agentId: agent.id,
+    },
+    order: [["createdAt", "DESC"]],
+  });
+  if (!voicemail) {
+    return res.send({
+      message: "No voicemail configured",
+      status: false,
+    });
+  }
+
+  let message = voicemail.message;
+  let voice = voicemail.voiceId;
+  let fromPhone = agent.phoneNumber;
 };
