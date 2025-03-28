@@ -53,6 +53,7 @@ import {
   generateAudioFilePath,
 } from "../utils/mediaservice.js";
 import { UUIDV4 } from "sequelize";
+import { SendVoicemail } from "./agent/AgentHelperController.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -157,6 +158,9 @@ export const WebhookSynthflow = async (req, res) => {
 
     if (assistant) {
       SendNotificaitonFor1KOr2KCalls(assistant);
+      if (data.status == "hangup_on_voicemail") {
+        SendVoicemail(assistant, data?.lead?.phone_number || "");
+      }
     }
     let dbCall = await db.LeadCallsSent.findOne({
       where: { synthflowCallId: callId },

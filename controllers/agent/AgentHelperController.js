@@ -41,23 +41,61 @@ export const SetVoicemailMessage = async (req, res) => {
 };
 
 export const SendVoicemail = async (agent, toPhone) => {
-  let key = process.env.VoiceDropVoicemail;
-  const url = "https://api.voicedrop.ai/v1/ringless_voicemail";
+  try {
+    console.log("Trying to send voicemail");
+    const key = process.env.VoiceDropVoicemail;
+    const url = "https://api.voicedrop.ai/v1/ringless_voicemail";
 
-  let voicemail = await db.AgentVoicemailModel.findOne({
-    where: {
-      agentId: agent.id,
-    },
-    order: [["createdAt", "DESC"]],
-  });
-  if (!voicemail) {
-    return res.send({
-      message: "No voicemail configured",
-      status: false,
+    const voicemail = await db.AgentVoicemailModel.findOne({
+      where: { agentId: agent.id },
+      order: [["createdAt", "DESC"]],
     });
-  }
 
-  let message = voicemail.message;
-  let voice = voicemail.voiceId;
-  let fromPhone = agent.phoneNumber;
+    if (!voicemail) {
+      return {
+        status: false,
+        message: "No voicemail configured",
+      };
+    }
+
+    const payload = {
+      voice_clone_id: voicemail.voiceId,
+      script: voicemail.message,
+      from: agent.phoneNumber,
+      to: toPhone,
+      // Optionally add a webhook if you want status callbacks
+      // send_status_to_webhook: 'https://yourdomain.com/webhook'
+    };
+
+    const response = await axios.post(url, payload, {
+      headers: {
+        "auth-key": key,
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = response.data;
+    console.log("Respone of voicemail is ", response);
+    if (data.status === "success") {
+      return {
+        status: true,
+        message: data.message,
+      };
+    } else {
+      return {
+        status: false,
+        message: data.message || "Failed to send voicemail",
+      };
+    }
+  } catch (error) {
+    console.error(
+      "SendVoicemail Error:",
+      error.response?.data || error.message
+    );
+    return {
+      status: false,
+      message: "An error occurred while sending voicemail",
+      error: error.response?.data || error.message,
+    };
+  }
 };

@@ -74,6 +74,8 @@ export const ChargeTypes = {
   PhonePurchase: "PhonePurchase",
   SupportPlan: "SupportPlan",
   DNCCheck: "DNCCheck",
+  LeadEnrichmentBatch: "LeadEnrichmentBatch",
+  LeadEnrichmentBundle: "LeadEnrichmentBundle",
 };
 
 let TestPlans = [

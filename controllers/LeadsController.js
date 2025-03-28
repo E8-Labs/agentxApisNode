@@ -27,6 +27,7 @@ import ZapierLeadResource from "../resources/ZapierLeadResource.js";
 import { time } from "console";
 import { DateTime } from "luxon";
 import { UserRole, UserTypes } from "../models/user/userModel.js";
+import { ChargeTypes } from "../models/user/payment/paymentPlans.js";
 const limit = 30;
 /**
  * Check for stage conflicts among agents.
@@ -134,6 +135,37 @@ export const AddLeads = async (req, res) => {
               id: userId,
             },
           });
+        }
+      }
+
+      if (enrich) {
+        //charge for enrich
+        let amount = 100; //cents
+        if (leads.length > 10) {
+          amount = 10 * leads.length; // 10 cents per lead
+        }
+
+        let charge = await chargeUser(
+          user.id,
+          amount,
+          `Lead Enrichment payment`,
+          ChargeTypes.LeadEnrichmentBatch,
+          false,
+          req
+        );
+        if (charge && charge.status) {
+          console.log("Enrichment payment Success: ", amount / 100);
+          let historyCreated = await db.PaymentHistory.create({
+            title: `Lead Enrichment`,
+            description: `Lead Enrichment Payment for ${leads.length} leads`,
+            type: ChargeTypes.LeadEnrichmentBatch,
+            price: amount / 100,
+            userId: user.id,
+            environment: process.env.Environment,
+            transactionId: charge.paymentIntent.id,
+          });
+        } else {
+          enrich = false;
         }
       }
       let leadsCountBefore = await db.LeadModel.count({
