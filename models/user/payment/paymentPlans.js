@@ -19,6 +19,8 @@ const PaymentHistory = (sequelize, Sequelize) => {
         "Plan720",
         ChargeTypes.SupportPlan,
         ChargeTypes.DNCCheck,
+        ChargeTypes.LeadEnrichmentBatch,
+        ChargeTypes.LeadEnrichmentBundle,
       ],
       defaultValue: "PhonePurchase",
     },
