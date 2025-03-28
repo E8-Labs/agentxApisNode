@@ -231,7 +231,7 @@ async function getUserData(lead, currentUser = null) {
         // leadData.codeOk = false;
         // ✅ 4. Check if lead is on any DNC list
         if (code == "-1" || code == "invalid-phone") {
-          console.log("DNC CHECK: Invalid phone number");
+          // console.log("DNC CHECK: Invalid phone number");
         }
       }
     } catch (error) {
@@ -267,9 +267,9 @@ import moment from "moment-timezone";
 import { capitalize } from "../utils/StringUtility.js";
 
 const convertTimeFormat = (timeString) => {
-  console.log("TIme to be converted is ", timeString);
+  // console.log("TIme to be converted is ", timeString);
   let time = moment(timeString, "HH:mm").format("h:mm A");
-  console.log("TIme converted is ", time);
+  // console.log("TIme converted is ", time);
   return time;
 };
 
@@ -285,7 +285,7 @@ const fetchFutureBookings = async (lead) => {
       },
     });
 
-    console.log("Total bookings ", bookings?.length || 0);
+    // console.log("Total bookings ", bookings?.length || 0);
 
     // console.log(
     //   "=======================================Bookings=======================================\n\n\n"

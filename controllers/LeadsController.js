@@ -154,6 +154,7 @@ export const AddLeads = async (req, res) => {
           false,
           req
         );
+        console.log("Charge is ", charge);
         if (charge && charge.status) {
           console.log("Enrichment payment Success: ", amount / 100);
           let historyCreated = await db.PaymentHistory.create({
