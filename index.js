@@ -154,10 +154,14 @@ db.LeadModel.afterCreate(async (lead, options) => {
   console.log("Should enrich for lead", lead.firstName);
   if (options.transaction) {
     await options.transaction.afterCommit(async () => {
-      fetchLeadDetailsFromPerplexity(lead);
+      if (lead.enrich == true || lead.enrich == 1) {
+        fetchLeadDetailsFromPerplexity(lead);
+      }
     });
   } else {
-    fetchLeadDetailsFromPerplexity(lead);
+    if (lead.enrich == true || lead.enrich == 1) {
+      fetchLeadDetailsFromPerplexity(lead);
+    }
   }
 });
 
