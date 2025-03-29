@@ -40,8 +40,46 @@ export const SetVoicemailMessage = async (req, res) => {
   });
 };
 
+export async function SetAgentPhoneToVoiceDrop(agent) {
+  const Url = "https://api.voicedrop.ai/v1/sender-numbers/verify/twilio";
+  const key = process.env.VoiceDropVoicemail;
+  const payload = {
+    phone_number: agent.phoneNumber,
+  };
+
+  const response = await axios.post(Url, payload, {
+    headers: {
+      "auth-key": key,
+      "Content-Type": "application/json",
+    },
+  });
+  const data = response.data;
+
+  if (data.status === "success") {
+    return {
+      status: true,
+      message: data.message,
+    };
+  } else {
+    return {
+      status: false,
+      message: data.message || "Failed to send voicemail",
+    };
+  }
+}
+
 export const SendVoicemail = async (agent, toPhone) => {
   try {
+    try {
+      let phoneAttached = await SetAgentPhoneToVoiceDrop(agent);
+      console.log("Phone attached to voice drop ", phoneAttached);
+    } catch (err) {
+      console.log(
+        "Attach VoiceDrop Error: ",
+        err.response?.data || err.message
+      );
+    }
+
     console.log("Trying to send voicemail");
     const key = process.env.VoiceDropVoicemail;
     const url = "https://api.voicedrop.ai/v1/ringless_voicemail";
