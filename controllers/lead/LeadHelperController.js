@@ -83,6 +83,7 @@ export const EnrichLead = async (req, res) => {
         });
         if (user.enrichCredits == 0) {
           //buy more credits
+          let amount = 10 * 100; // 1000cents = $10
           let charge = await chargeUser(
             user.id,
             amount,
