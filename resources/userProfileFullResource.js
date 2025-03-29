@@ -135,6 +135,7 @@ async function getUserData(user, currentUser = null) {
     campaignee: campaignee,
     waitlist: waitlist,
     supportPlan: supportPlan,
+    enrichCredits: admin.enrichCredits,
     // admin: admin,
   };
 
