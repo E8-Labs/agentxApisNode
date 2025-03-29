@@ -100,7 +100,7 @@ export const EnrichLead = async (req, res) => {
               environment: process.env.Environment,
               transactionId: charge.paymentIntent.id,
             });
-            user.enrichCredits = 10;
+            user.enrichCredits = 100;
             await user.save();
           } else {
             // enrich = false;
