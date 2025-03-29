@@ -40,6 +40,40 @@ export const SetVoicemailMessage = async (req, res) => {
   });
 };
 
+export const UpdateVoicemailMessage = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let voicemailId = req.body.voicemailId;
+      let voicemail = await db.AgentVoicemailModel.findByPk(voicemailId);
+      if (!voicemail) {
+        return res.send({
+          status: false,
+          data: null,
+          message: "No such voicemail",
+        });
+      }
+      let message = req.body.message;
+      let voice = req.body.voice || "SJzBm6fWJCplrpPNzyCV"; //voice id default to AVA
+
+      voicemail.message = message;
+      voicemail.voiceId = voice;
+      await voicemail.save();
+
+      return res.send({
+        status: true,
+        data: voicemail,
+        message: "Voicemail message updated",
+      });
+    }
+  });
+};
+
 export async function SetAgentPhoneToVoiceDrop(agent) {
   const Url = "https://api.voicedrop.ai/v1/sender-numbers/verify/twilio";
   const key = process.env.VoiceDropVoicemail;
