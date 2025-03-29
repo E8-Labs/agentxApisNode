@@ -3,6 +3,7 @@ import JWT from "jsonwebtoken";
 import db from "../../models/index.js";
 import { ChargeTypes } from "../../models/user/payment/paymentPlans.js";
 import LeadResource from "../../resources/LeadResource.js";
+import { chargeUser } from "../../utils/stripe.js";
 
 export const fetchLeadDetailsFromPerplexity = async (lead) => {
   try {
