@@ -122,7 +122,10 @@ export const EnrichLead = async (req, res) => {
         //enrich here
         let response = await fetchLeadDetailsFromPerplexity(lead);
         if (response.status) {
+          user.enrichCredits = user.enrichCredits - 1;
+          await user.save();
           let leadRes = await LeadResource(lead);
+
           return res.send({
             status: true,
             message: "Lead Enriched",
