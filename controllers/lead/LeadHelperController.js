@@ -116,7 +116,7 @@ export const EnrichLead = async (req, res) => {
           }
         }
 
-        if (enrichCredits == 0) {
+        if (user.enrichCredits == 0) {
           return res.send({
             status: false,
             message: "Lead enrichment failed",
@@ -145,11 +145,11 @@ export const EnrichLead = async (req, res) => {
       }
     });
 
-    return {
-      success: true,
-      data: parsedResult,
-      raw: contentString, // Optional: return the raw text too
-    };
+    // return {
+    //   success: true,
+    //   data: parsedResult,
+    //   raw: contentString, // Optional: return the raw text too
+    // };
   } catch (error) {
     console.error("Some error:", error.response?.data || error.message);
     return {
