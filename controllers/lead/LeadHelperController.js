@@ -4,6 +4,7 @@ import db from "../../models/index.js";
 import { ChargeTypes } from "../../models/user/payment/paymentPlans.js";
 import LeadResource from "../../resources/LeadResource.js";
 import { chargeUser } from "../../utils/stripe.js";
+import { GetTeamAdminFor } from "../../utils/auth.js";
 
 export const fetchLeadDetailsFromPerplexity = async (lead) => {
   try {
@@ -81,6 +82,8 @@ export const EnrichLead = async (req, res) => {
             id: userId,
           },
         });
+        let admin = await GetTeamAdminFor(user);
+        user = admin;
         if (user.enrichCredits == 0) {
           //buy more credits
           let amount = 10 * 100; // 1000cents = $10
