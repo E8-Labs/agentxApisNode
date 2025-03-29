@@ -19,6 +19,7 @@ import {
   DeleteLead,
   GetUniqueTags,
 } from "../controllers/LeadsController.js";
+import { EnrichLead } from "../controllers/lead/LeadHelperController.js";
 
 const uploadFiles = multer().fields([
   { name: "media", maxCount: 1 },
@@ -33,6 +34,7 @@ const uploadMedia = multer().fields([
 let LeadRouter = express.Router();
 
 LeadRouter.post("/addLeads", verifyJwtTokenWithTeam, AddLeads);
+LeadRouter.post("/enrichLead", verifyJwtTokenWithTeam, uploadFiles, EnrichLead);
 LeadRouter.post("/deleteLead", verifyJwtTokenWithTeam, DeleteLead);
 LeadRouter.post("/updateLeadStage", verifyJwtTokenWithTeam, UpdateLeadStage);
 LeadRouter.get("/leadDetail", verifyJwtTokenWithTeam, GetLeadDetail);

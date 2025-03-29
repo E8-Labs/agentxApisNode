@@ -485,6 +485,12 @@ export const postDataToWebhook = async (
           let stageIds = webhook.stageIds;
 
           const stageIdsArray = stageIds.split(",").map(Number);
+          if (webhook.sheetId != null) {
+            //check if lead is in the same sheet that webhook udpates the data for
+            if (webhook.sheetId != data.sheetId) {
+              continue;
+            }
+          }
           if (!stageIdsArray.includes(data.stage)) {
             //Don't call webhook
             continue;

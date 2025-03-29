@@ -1,4 +1,6 @@
 import axios from "axios";
+import { ChargeTypes } from "../../models/user/payment/paymentPlans.js";
+import LeadResource from "../../resources/LeadResource.js";
 
 export const fetchLeadDetailsFromPerplexity = async (lead) => {
   try {
@@ -56,6 +58,93 @@ export const fetchLeadDetailsFromPerplexity = async (lead) => {
       "Perplexity API error:",
       error.response?.data || error.message
     );
+    return {
+      success: false,
+      error: error.response?.data || error.message,
+    };
+  }
+};
+
+export const EnrichLead = async (req, res) => {
+  try {
+    JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+      if (authData) {
+        let leadId = req.body.leadId;
+        let lead = await db.LeadModel.findByPk(leadId);
+        let userId = authData.user.id;
+        //   if(userId == null)
+        let user = await db.User.findOne({
+          where: {
+            id: userId,
+          },
+        });
+        if (user.enrichCredits == 0) {
+          //buy more credits
+          let charge = await chargeUser(
+            user.id,
+            amount,
+            `Lead Enrichment payment`,
+            ChargeTypes.LeadEnrichmentBundle,
+            false,
+            req
+          );
+          console.log("Charge is ", charge);
+          if (charge && charge.status) {
+            console.log("Enrichment payment Success: ", amount / 100);
+            let historyCreated = await db.PaymentHistory.create({
+              title: `Lead Enrichment`,
+              description: `Lead Enrichment Payment for bundle`,
+              type: ChargeTypes.LeadEnrichmentBundle,
+              price: amount / 100,
+              userId: user.id,
+              environment: process.env.Environment,
+              transactionId: charge.paymentIntent.id,
+            });
+            user.enrichCredits = 10;
+            await user.save();
+          } else {
+            // enrich = false;
+            return res.send({
+              status: false,
+              message: "Lead enrichment failed because of payment",
+              data: null,
+            });
+          }
+        }
+
+        if (enrichCredits == 0) {
+          return res.send({
+            status: false,
+            message: "Lead enrichment failed",
+            data: null,
+          });
+        }
+        //enrich here
+        let response = await fetchLeadDetailsFromPerplexity(lead);
+        if (response.status) {
+          let leadRes = await LeadResource(lead);
+          return res.send({
+            status: true,
+            message: "Lead Enriched",
+            data: leadRes,
+          });
+        } else {
+          return res.send({
+            status: false,
+            message: "Lead enrichment failed",
+            data: null,
+          });
+        }
+      }
+    });
+
+    return {
+      success: true,
+      data: parsedResult,
+      raw: contentString, // Optional: return the raw text too
+    };
+  } catch (error) {
+    console.error("Some error:", error.response?.data || error.message);
     return {
       success: false,
       error: error.response?.data || error.message,

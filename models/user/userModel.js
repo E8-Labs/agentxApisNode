@@ -210,6 +210,10 @@ const User = (sequelize, Sequelize) => {
       defaultValue: "active",
       allowNull: false,
     },
+    enrichCredits: {
+      type: Sequelize.INTEGER,
+      defaultValue: 0,
+    },
   });
 
   return User;
