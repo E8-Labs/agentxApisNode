@@ -724,6 +724,7 @@ async function extractIEAndStoreKycs(
           "meetingscheduled",
           "callbackrequested",
           "notinterested",
+          "wrongnumber",
           "humancalldrop",
           "voicemail",
           "livetransfer",

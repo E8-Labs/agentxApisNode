@@ -45,10 +45,31 @@ async function getLatestAndUniqueKycs(leadId) {
       callId: latestCallId,
     },
   });
-
+  let defKycs = [
+    "emailprovided",
+    "dnd",
+    "hotlead",
+    "meetingscheduled",
+    "callbackrequested",
+    "notinterested",
+    "wrongnumber",
+    "humancalldrop",
+    "voicemail",
+    "livetransfer",
+    "Busycallback",
+    "nodecisionmaker",
+    "conversation_detected",
+    "call_violation_detected",
+    "ai_non_responsive_detected",
+  ];
   // Fetch all KYCs for the `leadId`
   const allKycs = await db.LeadKycsExtracted.findAll({
-    where: { leadId },
+    where: {
+      leadId: leadId,
+      question: {
+        [db.Sequelize.Op.notIn]: defKycs,
+      },
+    },
     order: [["updatedAt", "DESC"]], // Ensure the latest entries come first
   });
 
