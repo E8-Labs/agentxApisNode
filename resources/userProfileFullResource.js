@@ -32,7 +32,7 @@ async function getUserData(user, currentUser = null) {
     });
     if (invite) {
       admin = await db.User.findByPk(invite.invitingUserId);
-      supportPlan = admin.supportPlan;
+      supportPlan = admin?.supportPlan;
     }
   }
   if (user.myInviteCode == null || user.myInviteCode == "") {
@@ -110,7 +110,7 @@ async function getUserData(user, currentUser = null) {
   } else {
     if (user.userRole == "Invitee") {
       let admin = await GetTeamAdminFor(user);
-      if (admin.userType == UserTypes.WebsiteAgent) {
+      if (admin?.userType == UserTypes.WebsiteAgent) {
         waitlist = true;
       }
     }
@@ -135,7 +135,7 @@ async function getUserData(user, currentUser = null) {
     campaignee: campaignee,
     waitlist: waitlist,
     supportPlan: supportPlan,
-    enrichCredits: admin.enrichCredits,
+    enrichCredits: admin?.enrichCredits,
     // admin: admin,
   };
 
