@@ -17,6 +17,7 @@ import {
   GetUsersWithLeads,
   GetUsersWithCalendars,
   GetUsersWithTeams,
+  CheckAffiliateUrl,
 } from "../controllers/adminController.js";
 
 import {
@@ -57,6 +58,13 @@ AdminRouter.post(
   verifyJwtTokenWithTeam,
   uploadFiles,
   DeleteAnAffiliate
+);
+
+AdminRouter.post(
+  "/checkAffiliateUrl",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  CheckAffiliateUrl
 );
 AdminRouter.get(
   "/getAffiliates",
