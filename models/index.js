@@ -68,6 +68,7 @@ import PaymentMethodFails from "./user/payment/PaymentFails.js";
 import KnowledgeBase from "./user/knowlegebase/Knowledgebase.js";
 import UserSelectedIndustryModel from "./user/UserSelectedIndustry.js";
 import AgentVoicemailModel from "./user/AgentVoicemailModel.js";
+import AffiliatePayout from "./user/campaign/AffiliatePayouts.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -96,6 +97,8 @@ db.sequelize = sequelize;
 // Define models
 
 db.CampaigneeModel = CampaigneeModel(sequelize, Sequelize);
+db.AffiliatePayout = AffiliatePayout(sequelize, Sequelize);
+
 db.TestNumbers = TestNumbers(sequelize, Sequelize);
 db.UserIndustry = UserIndustry(sequelize, Sequelize);
 db.AreaOfFocus = AreaOfFocus(sequelize, Sequelize);
