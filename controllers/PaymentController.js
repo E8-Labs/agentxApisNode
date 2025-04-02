@@ -62,6 +62,7 @@ import {
   trackAddPaymentInfo,
   trackStartTrialEvent,
 } from "../services/facebookConversionsApi.js";
+import { DeleteAllNumbersForUser } from "./twilioController.js";
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
 // import { admin } from "../services/firebase-admin.js";
@@ -759,6 +760,7 @@ export const CancelPlan = async (req, res) => {
 
         plan.status = "cancelled";
         await plan.save();
+        await DeleteAllNumbersForUser(user);
 
         //If On Trial, Cancel Deduct The Trial Minutes
         if (user.isTrial) {
