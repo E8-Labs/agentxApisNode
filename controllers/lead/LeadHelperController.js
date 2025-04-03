@@ -56,6 +56,7 @@ export const fetchLeadDetailsFromPerplexity = async (lead) => {
       // await lead.save();
     } catch (parseError) {
       console.error("Failed to parse content string as JSON:", contentString);
+      console.log("Error", parseError);
       return {
         success: false,
         message: "Response content could not be parsed",
