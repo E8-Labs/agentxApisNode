@@ -21,7 +21,7 @@ Rules:
 - Include multiple profiles if found, each with their own confidence_score.
 - If no data is found, return an empty JSON object: {}
 
-JSON Structure example:
+Strictly follow this JSON Structure. All the keys should be same.:
 {
   "summary": "400 word description of the profile",
   "profiles": [
