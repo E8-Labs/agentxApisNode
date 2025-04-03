@@ -23,7 +23,7 @@ Rules:
 
 JSON Structure example:
 {
-  "summary": "Andres Gonzales, also known as 'Andres the Designer,' is a versatile professional based in Los Angeles, California...",
+  "summary": "400 word description of the profile",
   "profiles": [
     {
       "name": "LinkedIn",
@@ -33,9 +33,15 @@ JSON Structure example:
       "confidence_score": 0.9
     }
   ],
-  "citations": [],
-  "images": [],
-  "videos": []
+  "citations": [{
+      "name": "LinkedIn",
+      "description": "Professional networking and portfolio",
+      "icon": "linkedin",
+      "url": "https://www.linkedin.com/in/andresthedesigner",
+      "confidence_score": 0.9
+    }],
+  "images": [{"url": "https://www.instagram.com/andresthedesigner/reel/C8FjG_GSs8a"}],
+  "videos": [{"url": "https://www.instagram.com/andresthedesigner/reel/C8FjG_GSs8a"}]
 }`;
 
 export const fetchLeadDetailsFromPerplexity = async (lead) => {
