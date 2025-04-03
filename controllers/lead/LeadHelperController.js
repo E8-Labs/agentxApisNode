@@ -6,51 +6,58 @@ import LeadResource from "../../resources/LeadResource.js";
 import { chargeUser } from "../../utils/stripe.js";
 import { GetTeamAdminFor } from "../../utils/auth.js";
 
-const PerplexityPrompt = `You are a web research assistant designed for identity resolution and public information aggregation.
-Given identifying personal information (name, email, phone number, address), return all publicly available data about the individual.
+const PerplexityPrompt = `You are an identity resolution assistant.
 
-Return a structured JSON object with the following fields:
-- summary: a one-paragraph overview of the individual, keep it within 400 words.
-- profiles: array of known social, professional, or publication profiles with a 5 word description, social icon and the best possible url of the following : LinkedIn, Twitter, Instagram, Facebook, personal website), each with a confidence_score (0–1)
-- citations: array of known citations that don’t exist in the list of profiles, include a 5 word description, social icon, and best possible url for the citations with a confidence_score (0–1)
-- images: array of sources for specifically Facebook, Linkedin, or any online publication URLs. These should be viewable images not profile urls.
-- videos: array sources for specifically Facebook, Linkedin, Youtube or any online video URLs
-
-Rules:
-- Output only the final result in valid JSON. No commentary or explanation.
-- Include multiple profiles if found, each with their own confidence_score.
-- If no data is found, return an empty JSON object: {}
-
-Strictly follow this JSON Structure. All the keys should be same.:
+Return a valid JSON object in the following exact structure:
 {
-  "summary": "400 word description of the profile",
+  "summary": "...",
   "profiles": [
     {
-      "name": "LinkedIn",
-      "description": "Professional networking and portfolio",
-      "icon": "linkedin",
-      "url": "https://www.linkedin.com/in/andresthedesigner",
-      "confidence_score": 0.9
+      "name": "Platform name (e.g. LinkedIn)",
+      "description": "5 word summary",
+      "icon": "platform icon",
+      "url": "https://...",
+      "confidence_score": 0.9,
+      "metadata": {
+        "title": "...",
+        "company": "...",
+        "location": "...",
+        "education": ["..."],
+        "work_history": ["..."]
+      }
     }
   ],
-  "citations": [{
-      "name": "LinkedIn",
-      "description": "Professional networking and portfolio",
-      "icon": "linkedin",
-      "url": "https://www.linkedin.com/in/andresthedesigner",
-      "confidence_score": 0.9
-    }],
-  "images": [{"url": "https://www.instagram.com/andresthedesigner/reel/C8FjG_GSs8a"}],
-  "videos": [{"url": "https://www.instagram.com/andresthedesigner/reel/C8FjG_GSs8a"}]
-}`;
+  "citations": [
+    {
+      "name": "Site name",
+      "description": "5 word citation summary",
+      "icon": "site",
+      "url": "https://...",
+      "confidence_score": 0.8
+    }
+  ],
+  "images": [{"url": "https://..."}],
+  "videos": [{"url": "https://..."}]
+}
+
+Rules:
+- Only return JSON, no text or explanation.
+- All keys must match exactly.
+- If data is missing (e.g. education), omit that field from metadata.
+- If no data is found, return: {}
+
+
+`;
 
 export const fetchLeadDetailsFromPerplexity = async (lead) => {
   try {
     const apiKey = process.env.PERPLEXITY_API_KEY;
 
-    const prompt = `Find the details of this user (${lead.firstName} ${
-      lead.lastName || ""
-    }, ${lead.email || "N/A"}, ${lead.phone}, ${lead.address || "N/A"})`;
+    const prompt = `Find the details of this user {firstName" ${
+      lead.firstName
+    }, lastName: ${lead.lastName || ""}, Email: ${
+      lead.email || "N/A"
+    }, Phone: ${lead.phone}, Address: ${lead.address || "N/A"}}`;
 
     const response = await axios.post(
       "https://api.perplexity.ai/chat/completions",
@@ -59,7 +66,7 @@ export const fetchLeadDetailsFromPerplexity = async (lead) => {
         messages: [
           {
             role: "system",
-            content: `You are a highly capable AI assistant designed to perform online data aggregation and identity resolution. Objective: Using the personal data provided (Name, email, Phone Number, Address), search the web to find and aggregate all relevant information about this individual, including but not limited to: LinkedIn profile Twitter (X) profile Personal or business website Online publications, articles, or mentions Other relevant social media or professional profiles Rules & Constraints: Return results in JSON format only. Do not include any intermediate steps or explanations. Only output the final aggregated data. Each discovered data point should include a confidence score (between 0 and 1) indicating the likelihood that the information belongs to the given individual. Give us a one paragraph summary of who this person is. If multiple profiles are found, return them all with respective confidence scores. Also find any images or videos related to the person if possible. If no results are found, return an empty JSON object {}. Structure the json properly. Profiles should go in the profiles array. Images should go into their own array. Videos into separate.`,
+            content: PerplexityPrompt, //`You are a highly capable AI assistant designed to perform online data aggregation and identity resolution. Objective: Using the personal data provided (Name, email, Phone Number, Address), search the web to find and aggregate all relevant information about this individual, including but not limited to: LinkedIn profile Twitter (X) profile Personal or business website Online publications, articles, or mentions Other relevant social media or professional profiles Rules & Constraints: Return results in JSON format only. Do not include any intermediate steps or explanations. Only output the final aggregated data. Each discovered data point should include a confidence score (between 0 and 1) indicating the likelihood that the information belongs to the given individual. Give us a one paragraph summary of who this person is. If multiple profiles are found, return them all with respective confidence scores. Also find any images or videos related to the person if possible. If no results are found, return an empty JSON object {}. Structure the json properly. Profiles should go in the profiles array. Images should go into their own array. Videos into separate.`,
           },
           {
             role: "user",
