@@ -42,18 +42,19 @@ export const fetchLeadDetailsFromPerplexity = async (lead) => {
 
     let parsedResult = {};
     try {
+      // Step 1: Clean triple backticks and optional `json` tag
       contentString = contentString.trim();
-      let raw = contentString;
-      if (raw.startsWith('"') && raw.endsWith('"')) {
-        raw = raw.slice(1, -1);
-      }
-      lead.enrichData = raw;
-      await lead.save();
+      contentString = contentString
+        .replace(/^```json\s*/, "")
+        .replace(/```$/, "")
+        .trim();
 
-      // 2. Replace escaped characters
-      const cleaned = raw.replace(/\\n/g, "\n").replace(/\\"/g, '"');
-      parsedResult = JSON.parse(cleaned);
-      // await lead.save();
+      // Step 2: Parse cleaned JSON string
+      parsedResult = JSON.parse(contentString);
+
+      // Optional: Save cleaned version
+      lead.enrichData = contentString;
+      await lead.save();
     } catch (parseError) {
       console.error("Failed to parse content string as JSON:", contentString);
       console.log("Error", parseError);
