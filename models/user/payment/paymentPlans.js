@@ -56,6 +56,10 @@ const PaymentHistory = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    connectedAccountId: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return PaymentHistory;

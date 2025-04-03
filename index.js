@@ -122,6 +122,7 @@ app.use("/api/leads", LeadRouter);
 app.use("/api/calendar", CalendarRouter);
 app.use("/api/team", teamRouter);
 app.use("/api/kb", kbRouter);
+app.use("/api/agency", agencyRouter);
 
 app.use("/api/admin", AdminRouter);
 // app.use("/api/admin", AdminRouter);
@@ -129,6 +130,7 @@ app.use("/api/admin", AdminRouter);
 import { CreateBackgroundSynthAssistant } from "./controllers/synthflowController.js";
 import { processKb } from "./controllers/KbController.js";
 import { fetchLeadDetailsFromPerplexity } from "./controllers/lead/LeadHelperController.js";
+import agencyRouter from "./routes/agencyRoute.js";
 db.AgentModel.afterCreate(async (agent, options) => {
   console.log("Should create agent & add custom actions, IEs", agent.name);
   if (options.transaction) {

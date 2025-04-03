@@ -26,7 +26,7 @@ let environment = process.env.Environment;
  * Get Stripe client based on environment
  * @param {string} environment - Either "Sandbox" or "Production".
  */
-const getStripeClient = () => {
+export const getStripeClient = () => {
   //   //let environment = process.env.Environment;
   return environment === "Sandbox" ? stripeTest : stripeLive;
 };
@@ -405,19 +405,61 @@ async function TryAndChargePayment(
 ) {
   let plan = FindPlanWithPrice(amount / 100);
   try {
-    const paymentIntent = await stripe.paymentIntents.create({
+    let agency = null;
+    if (user.agencyId) {
+      agency = await db.User.findByPk(user.agencyId);
+    }
+
+    let paymentIntentPayload = {
       amount,
       currency: "usd",
       customer: stripeCustomerId,
       payment_method: paymentMethodId,
       description,
-      capture_method: "automatic", // Authorize only, do not capture
+      capture_method: "automatic",
       confirm: true,
       payment_method_types: ["card"],
       automatic_payment_methods: {
-        enabled: false, // Enable automatic payment method handling
+        enabled: false,
       },
-    });
+    };
+
+    // 💸 Add transfer logic BEFORE creation
+    if (agency && agency.connectedAccountId) {
+      const platformFee = Math.round(amount * 0.2); // 20%
+      paymentIntentPayload.transfer_data = {
+        destination: agency.connectedAccountId,
+      };
+      paymentIntentPayload.application_fee_amount = platformFee;
+    }
+
+    let paymentIntent = await stripe.paymentIntents.create(
+      paymentIntentPayload
+    );
+
+    // let paymentIntent = await stripe.paymentIntents.create({
+    //   amount,
+    //   currency: "usd",
+    //   customer: stripeCustomerId,
+    //   payment_method: paymentMethodId,
+    //   description,
+    //   capture_method: "automatic", // Authorize only, do not capture
+    //   confirm: true,
+    //   payment_method_types: ["card"],
+    //   automatic_payment_methods: {
+    //     enabled: false, // Enable automatic payment method handling
+    //   },
+    // });
+    if (agency && agency.connectedAccountId) {
+      const platformFee = Math.round(amount * 0.2); // 20%
+      const transferAmount = Math.round(amount * 0.8); // 80%
+      // if (connectedAccountId) {
+      paymentIntent.transfer_data = {
+        destination: agency.connectedAccountId,
+      };
+      paymentIntent.application_fee_amount = platformFee;
+      // }
+    }
 
     if (paymentIntent && paymentIntent.status === "succeeded") {
       // Payment succeeded
@@ -665,6 +707,7 @@ export const chargeUser = async (
 
   try {
     let user = await db.User.findByPk(userId);
+
     // Get the customer's Stripe customer ID
     const stripeCustomerId = await getStripeCustomerId(userId);
 

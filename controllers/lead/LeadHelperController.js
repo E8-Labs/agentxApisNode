@@ -10,7 +10,9 @@ export const fetchLeadDetailsFromPerplexity = async (lead) => {
   try {
     const apiKey = process.env.PERPLEXITY_API_KEY;
 
-    const prompt = `Find the details of this user (${lead.firstName}, ${lead.email}, ${lead.phone}, ${lead.address})`;
+    const prompt = `Find the details of this user (${lead.firstName} ${
+      lead.lastName || ""
+    }, ${lead.email || "N/A"}, ${lead.phone}, ${lead.address || "N/A"})`;
 
     const response = await axios.post(
       "https://api.perplexity.ai/chat/completions",
@@ -40,9 +42,18 @@ export const fetchLeadDetailsFromPerplexity = async (lead) => {
 
     let parsedResult = {};
     try {
-      parsedResult = JSON.parse(contentString);
-      lead.enrichData = contentString;
+      contentString = contentString.trim();
+      let raw = contentString;
+      if (raw.startsWith('"') && raw.endsWith('"')) {
+        raw = raw.slice(1, -1);
+      }
+      lead.enrichData = raw;
       await lead.save();
+
+      // 2. Replace escaped characters
+      const cleaned = raw.replace(/\\n/g, "\n").replace(/\\"/g, '"');
+      parsedResult = JSON.parse(cleaned);
+      // await lead.save();
     } catch (parseError) {
       console.error("Failed to parse content string as JSON:", contentString);
       return {
