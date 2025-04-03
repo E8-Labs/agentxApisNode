@@ -38,7 +38,7 @@ export const fetchLeadDetailsFromPerplexity = async (lead) => {
       }
     );
 
-    const contentString = response.data?.choices?.[0]?.message?.content;
+    let contentString = response.data?.choices?.[0]?.message?.content;
 
     let parsedResult = {};
     try {
