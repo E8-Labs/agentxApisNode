@@ -19,6 +19,8 @@ const PaymentHistory = (sequelize, Sequelize) => {
         "Plan720",
         ChargeTypes.SupportPlan,
         ChargeTypes.DNCCheck,
+        ChargeTypes.LeadEnrichmentBatch,
+        ChargeTypes.LeadEnrichmentBundle,
       ],
       defaultValue: "PhonePurchase",
     },
@@ -54,6 +56,10 @@ const PaymentHistory = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    connectedAccountId: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
   });
 
   return PaymentHistory;
@@ -74,6 +80,8 @@ export const ChargeTypes = {
   PhonePurchase: "PhonePurchase",
   SupportPlan: "SupportPlan",
   DNCCheck: "DNCCheck",
+  LeadEnrichmentBatch: "LeadEnrichmentBatch",
+  LeadEnrichmentBundle: "LeadEnrichmentBundle",
 };
 
 let TestPlans = [

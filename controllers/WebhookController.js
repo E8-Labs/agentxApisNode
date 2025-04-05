@@ -19,6 +19,7 @@ export const CreateWebhook = async (req, res) => {
   let action = req.body.action;
 
   let stageIds = req.body.stageIds || null;
+  let sheetId = req.body.sheetId || null;
   if (!url || !action) {
     return res.send({
       status: false,
@@ -40,6 +41,7 @@ export const CreateWebhook = async (req, res) => {
         action: action,
         userId: user.id,
         stageIds: stageIds,
+        sheetId: sheetId,
       });
       return res.send({
         status: true,

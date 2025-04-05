@@ -45,10 +45,31 @@ async function getLatestAndUniqueKycs(leadId) {
       callId: latestCallId,
     },
   });
-
+  let defKycs = [
+    "emailprovided",
+    "dnd",
+    "hotlead",
+    "meetingscheduled",
+    "callbackrequested",
+    "notinterested",
+    "wrongnumber",
+    "humancalldrop",
+    "voicemail",
+    "livetransfer",
+    "Busycallback",
+    "nodecisionmaker",
+    "conversation_detected",
+    "call_violation_detected",
+    "ai_non_responsive_detected",
+  ];
   // Fetch all KYCs for the `leadId`
   const allKycs = await db.LeadKycsExtracted.findAll({
-    where: { leadId },
+    where: {
+      leadId: leadId,
+      question: {
+        [db.Sequelize.Op.notIn]: defKycs,
+      },
+    },
     order: [["updatedAt", "DESC"]], // Ensure the latest entries come first
   });
 
@@ -231,7 +252,7 @@ async function getUserData(lead, currentUser = null) {
         // leadData.codeOk = false;
         // ✅ 4. Check if lead is on any DNC list
         if (code == "-1" || code == "invalid-phone") {
-          console.log("DNC CHECK: Invalid phone number");
+          // console.log("DNC CHECK: Invalid phone number");
         }
       }
     } catch (error) {
@@ -243,7 +264,7 @@ async function getUserData(lead, currentUser = null) {
   // leadData.dncData = null;
   delete leadData.dncData;
   delete leadData.dncCheckPassed;
-  delete leadData.enrich;
+  // delete leadData.enrich;
   // let data = leadData.sanitizeForUser();
   const LeadResource = {
     ...leadData,
@@ -267,9 +288,9 @@ import moment from "moment-timezone";
 import { capitalize } from "../utils/StringUtility.js";
 
 const convertTimeFormat = (timeString) => {
-  console.log("TIme to be converted is ", timeString);
+  // console.log("TIme to be converted is ", timeString);
   let time = moment(timeString, "HH:mm").format("h:mm A");
-  console.log("TIme converted is ", time);
+  // console.log("TIme converted is ", time);
   return time;
 };
 
@@ -285,7 +306,7 @@ const fetchFutureBookings = async (lead) => {
       },
     });
 
-    console.log("Total bookings ", bookings?.length || 0);
+    // console.log("Total bookings ", bookings?.length || 0);
 
     // console.log(
     //   "=======================================Bookings=======================================\n\n\n"

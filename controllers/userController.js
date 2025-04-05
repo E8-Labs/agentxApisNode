@@ -41,6 +41,7 @@ import { DeleteCalendar } from "./calendarController.js";
 import { findOrCreateTwilioSubAccount } from "./twilioController.js";
 import { constants } from "../constants/constants.js";
 import { generateNewAccountEmail } from "../emails/system/NewAccountEmail.js";
+import { createConnectedAccount } from "../utils/stripeconnect.js";
 
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
@@ -55,7 +56,7 @@ const authToken = process.env.TWILIO_AUTH_TOKEN; // Store in environment variabl
 
 // Initialize the Twilio client
 
-const SignUser = async (user) => {
+export const SignUser = async (user) => {
   return new Promise((resolve, reject) => {
     JWT.sign(
       { user },
@@ -224,6 +225,7 @@ export const RegisterUser = async (req, res) => {
   const farm = req.body.farm || "";
   const email = req.body.email;
   const userType = req.body.userType;
+  const userRole = req.body.userRole || UserRole.AgentX;
   let phone = req.body.phone;
 
   let firmOrCompanyAffiliation =
@@ -349,6 +351,7 @@ export const RegisterUser = async (req, res) => {
   let userDataRegisteration = {
     email: email,
     userType: userType,
+    userRole: userRole,
     name: name,
     phone: phone,
     averageTransactionPerYear: averageTransactionPerYear,
@@ -375,6 +378,20 @@ export const RegisterUser = async (req, res) => {
       JSON.stringify(collectionStrategies);
   }
   let user = await db.User.create(userDataRegisteration);
+
+  try {
+    if (userRole == UserRole.Agency) {
+      let created = await createConnectedAccount(user);
+      console.log("Result connected account ", created);
+      if (created.status) {
+        let account = created.data;
+        user.connectedAccountId = account.id;
+        await user.save();
+      }
+    }
+  } catch (error) {
+    console.log("Error creating connected account");
+  }
 
   let emailNot = generateNewAccountEmail({
     Sender_Name: user?.name,

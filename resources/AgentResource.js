@@ -202,6 +202,15 @@ async function getUserData(mainAgent, currentUser = null) {
       order: [["id", "DESC"]],
     });
     agent.calendar = calendar;
+
+    let voicemail = await db.AgentVoicemailModel.findOne({
+      where: {
+        agentId: agent.id,
+      },
+      order: [["createdAt", "DESC"]],
+    });
+    agent.voicemail = voicemail;
+
     agentRes.push(agent);
   }
 

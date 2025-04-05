@@ -101,18 +101,18 @@ const LeadModel = (sequelize, Sequelize) => {
     });
   };
 
-  LeadModel.afterCreate(async (lead, options) => {
-    console.log("Should enrich for lead", lead.firstName);
-    if (options.transaction) {
-      await options.transaction.afterCommit(async () => {});
-    } else {
-    }
-  });
+  // LeadModel.afterCreate(async (lead, options) => {
+  //   console.log("Should enrich for lead", lead.firstName);
+  //   if (options.transaction) {
+  //     await options.transaction.afterCommit(async () => {});
+  //   } else {
+  //   }
+  // });
 
-  LeadModel.afterBulkCreate(async (users, options) => {
-    for (const user of users) {
-    }
-  });
+  // LeadModel.afterBulkCreate(async (users, options) => {
+  //   for (const user of users) {
+  //   }
+  // });
 
   LeadModel.prototype.sanitizeForUser = function () {
     const values = { ...this.get() };

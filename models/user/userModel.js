@@ -44,7 +44,7 @@ const User = (sequelize, Sequelize) => {
       defaultValue: UserTypes.RealEstateAgent,
     },
     userRole: {
-      // Main AgentX account, Invitee
+      // Main AgentX account, Invitee, Agency, AgencySubAccount
       type: Sequelize.STRING,
       allowNull: false,
       defaultValue: UserRole.AgentX,
@@ -210,6 +210,19 @@ const User = (sequelize, Sequelize) => {
       defaultValue: "active",
       allowNull: false,
     },
+    enrichCredits: {
+      type: Sequelize.INTEGER,
+      defaultValue: 0,
+    },
+
+    connectedAccountId: {
+      type: Sequelize.STRING,
+      allowNull: true,
+    },
+    agencyId: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
   });
 
   return User;
@@ -234,6 +247,8 @@ export const UserTypes = {
 };
 
 export const UserRole = {
+  Agency: "Agency",
+  AgencySubAccount: "AgencySubAccount",
   AgentX: "AgentX",
   Invitee: "Invitee",
   Admin: "Admin",

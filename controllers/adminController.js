@@ -1432,6 +1432,23 @@ export async function GetAffiliates(req, res) {
   });
 }
 
+export const CheckAffiliateUrl = async (req, res) => {
+  let uniqueUrl = req.body.uniqueUrl;
+  // let code = req.body.code;
+
+  let user = await db.CampaigneeModel.findOne({
+    where: {
+      uniqueUrl: uniqueUrl,
+    },
+  });
+
+  if (user) {
+    res.send({ status: false, data: null, message: "Taken" });
+  } else {
+    res.send({ status: true, data: null, message: "Available" });
+  }
+};
+
 export async function AddAnAffiliate(req, res) {
   let { name, email, phone, uniqueUrl, officeHoursUrl } = req.body;
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {

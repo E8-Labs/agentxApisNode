@@ -158,8 +158,8 @@ const CronCallOutcome = nodeCron.schedule(
 );
 CronCallOutcome.start();
 
-// Release Number cron
-// const CronReleaseNumber = nodeCron.schedule("*/10 * * * *", ReleaseNumberCron);
+// // Release Number cron
+// const CronReleaseNumber = nodeCron.schedule("*/1 * * * *", ReleaseNumberCron);
 // CronReleaseNumber.start();
 
 const NotificationSendingCron = nodeCron.schedule(

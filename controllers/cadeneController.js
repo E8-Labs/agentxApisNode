@@ -280,6 +280,8 @@ async function CheckDNC(lead, batch) {
               batchId: batch.id,
             },
           });
+          lead.stage = null;
+          await lead.save();
         } catch (er) {
           console.log("Error del leadCad Check Dnc", er);
         }

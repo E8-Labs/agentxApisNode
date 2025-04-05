@@ -122,12 +122,15 @@ app.use("/api/leads", LeadRouter);
 app.use("/api/calendar", CalendarRouter);
 app.use("/api/team", teamRouter);
 app.use("/api/kb", kbRouter);
+app.use("/api/agency", agencyRouter);
 
 app.use("/api/admin", AdminRouter);
 // app.use("/api/admin", AdminRouter);
 
 import { CreateBackgroundSynthAssistant } from "./controllers/synthflowController.js";
 import { processKb } from "./controllers/KbController.js";
+import { fetchLeadDetailsFromPerplexity } from "./controllers/lead/LeadHelperController.js";
+import agencyRouter from "./routes/agencyRoute.js";
 db.AgentModel.afterCreate(async (agent, options) => {
   console.log("Should create agent & add custom actions, IEs", agent.name);
   if (options.transaction) {
@@ -146,6 +149,21 @@ db.KnowledgeBase.afterCreate(async (kb, options) => {
     });
   } else {
     processKb(kb);
+  }
+});
+
+db.LeadModel.afterCreate(async (lead, options) => {
+  console.log("Should enrich for lead", lead.firstName);
+  if (options.transaction) {
+    await options.transaction.afterCommit(async () => {
+      if (lead.enrich == true || lead.enrich == 1) {
+        fetchLeadDetailsFromPerplexity(lead);
+      }
+    });
+  } else {
+    if (lead.enrich == true || lead.enrich == 1) {
+      fetchLeadDetailsFromPerplexity(lead);
+    }
   }
 });
 

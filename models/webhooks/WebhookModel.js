@@ -16,6 +16,10 @@ const WebhookModel = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    sheetId: {
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
   });
 
   return WebhookModel;

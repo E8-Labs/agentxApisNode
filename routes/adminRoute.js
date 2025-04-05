@@ -17,6 +17,7 @@ import {
   GetUsersWithLeads,
   GetUsersWithCalendars,
   GetUsersWithTeams,
+  CheckAffiliateUrl,
 } from "../controllers/adminController.js";
 
 import {
@@ -26,6 +27,10 @@ import {
   GetVerificationCodes,
   DeleteCallAudio,
 } from "../controllers/AdminCallAndUser.js";
+import {
+  GetAffiliatePayouts,
+  PayoutAffiliate,
+} from "../controllers/admin/AdminHelperController.js";
 
 const uploadFiles = multer().fields([
   { name: "media", maxCount: 1 },
@@ -58,11 +63,32 @@ AdminRouter.post(
   uploadFiles,
   DeleteAnAffiliate
 );
+
+AdminRouter.post(
+  "/checkAffiliateUrl",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  CheckAffiliateUrl
+);
 AdminRouter.get(
   "/getAffiliates",
   verifyJwtTokenWithTeam,
   uploadFiles,
   GetAffiliates
+);
+
+AdminRouter.post(
+  "/payAffiliate",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  PayoutAffiliate
+);
+
+AdminRouter.get(
+  "/getAffiliatePayouts",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetAffiliatePayouts
 );
 
 AdminRouter.get(

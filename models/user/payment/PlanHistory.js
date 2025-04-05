@@ -30,6 +30,12 @@ const PlanHistory = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       defaultValue: "Sandbox",
     },
+    planId: {
+      //AgencyHostedPlans
+      //Plans from agencies
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
   });
 
   return PlanHistory;

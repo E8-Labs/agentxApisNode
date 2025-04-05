@@ -1076,6 +1076,57 @@ export const DeleteNumber = async (req, res) => {
   });
 };
 
+export const DeleteAllNumbersForUser = async (user) => {
+  try {
+    // Fetch all active phone numbers for the user
+    let numbers = await db.UserPhoneNumbers.findAll({
+      where: {
+        userId: user.id,
+        phoneStatus: "active",
+      },
+    });
+
+    // If no active numbers found, exit early
+    if (!numbers || numbers.length === 0) {
+      console.log("No active numbers found for user.");
+      return;
+    }
+
+    // Iterate over each phone number and delete
+    for (let num of numbers) {
+      try {
+        // Remove phone number from Twilio
+        const del = await twilioClient
+          .incomingPhoneNumbers(num.phoneSid)
+          .remove();
+        console.log("Released number from Twilio: ", del);
+
+        // Mark number as inactive in your database
+        num.status = "inactive";
+        await num.save();
+
+        // Update the agent model if necessary
+        await db.AgentModel.update(
+          {
+            phoneNumber: "", // Clear the phone number field in AgentModel
+          },
+          {
+            where: {
+              phoneNumber: num.phone,
+            },
+          }
+        );
+      } catch (error) {
+        // Log and continue with the next number if deletion fails for one
+        console.error(`Failed to delete number ${num.phone}:`, error.message);
+        // Optionally handle the error or continue to the next phone number
+      }
+    }
+  } catch (error) {
+    console.error("Error deleting numbers for user:", error.message);
+  }
+};
+
 export const ReleaseNumberCron = async () => {
   console.log("Starting Twilio number synchronization...");
 
@@ -1096,6 +1147,7 @@ export const ReleaseNumberCron = async () => {
     const databasePhoneSids = databaseNumbers.map((num) => ({
       id: num.id,
       phoneSid: num.phoneSid,
+      phone: num.phone,
     }));
 
     console.log(
@@ -1115,7 +1167,17 @@ export const ReleaseNumberCron = async () => {
         { phoneStatus: "inactive" },
         { where: { id: dbNum.id } }
       );
-      console.log(`Set phone number with SID ${dbNum.phoneSid} to inactive.`);
+      let phoneNumber = dbNum.phone.replace("+", "");
+      await db.AgentModel.update(
+        { phoneNumber: "" },
+        {
+          where: {
+            phoneNumber: phoneNumber,
+          },
+        }
+      );
+
+      console.log(`Set phone number with SID ${dbNum.phone} to inactive.`);
     }
 
     console.log("Twilio number synchronization completed.");

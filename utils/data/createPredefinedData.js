@@ -1,5 +1,5 @@
 import { ckb } from "date-fns/locale";
-import { UserTypes } from "../models/user/userModel.js";
+import { UserTypes } from "../../models/user/userModel.js";
 
 function AddArrayToData(data, array, type, start) {
   for (const ser of array) {

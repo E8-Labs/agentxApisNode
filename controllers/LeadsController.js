@@ -27,6 +27,8 @@ import ZapierLeadResource from "../resources/ZapierLeadResource.js";
 import { time } from "console";
 import { DateTime } from "luxon";
 import { UserRole, UserTypes } from "../models/user/userModel.js";
+import { ChargeTypes } from "../models/user/payment/paymentPlans.js";
+import { chargeUser } from "../utils/stripe.js";
 const limit = 30;
 /**
  * Check for stage conflicts among agents.
@@ -123,6 +125,9 @@ export const AddLeads = async (req, res) => {
           id: userId,
         },
       });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
+      let teamIds = await GetTeamIds(user);
 
       console.log("User role ", user.userRole);
       if (user.userType) {
@@ -136,13 +141,45 @@ export const AddLeads = async (req, res) => {
           });
         }
       }
+
+      if (enrich) {
+        //charge for enrich
+        let amount = 100; //cents
+        if (leads.length > 10) {
+          amount = 10 * leads.length; // 10 cents per lead
+        }
+
+        let charge = await chargeUser(
+          user.id,
+          amount,
+          `Lead Enrichment payment`,
+          ChargeTypes.LeadEnrichmentBatch,
+          false,
+          req
+        );
+        console.log("Charge is ", charge);
+        if (charge && charge.status) {
+          console.log("Enrichment payment Success: ", amount / 100);
+          let historyCreated = await db.PaymentHistory.create({
+            title: `Lead Enrichment`,
+            description: `Lead Enrichment Payment for ${leads.length} leads`,
+            type: ChargeTypes.LeadEnrichmentBatch,
+            price: amount / 100,
+            userId: user.id,
+            environment: process.env.Environment,
+            transactionId: charge.paymentIntent.id,
+          });
+        } else {
+          enrich = false;
+        }
+      }
       let leadsCountBefore = await db.LeadModel.count({
         where: {
           userId: user.id,
         },
       });
-      let admin = await GetTeamAdminFor(user);
-      let teamIds = await GetTeamIds(user);
+      // let admin = await GetTeamAdminFor(user);
+      // let teamIds = await GetTeamIds(user);
       user = admin;
       let sheet = await db.LeadSheetModel.findOne({
         where: {
@@ -448,6 +485,12 @@ export const postDataToWebhook = async (
           let stageIds = webhook.stageIds;
 
           const stageIdsArray = stageIds.split(",").map(Number);
+          if (webhook.sheetId != null) {
+            //check if lead is in the same sheet that webhook udpates the data for
+            if (webhook.sheetId != data.sheetId) {
+              continue;
+            }
+          }
           if (!stageIdsArray.includes(data.stage)) {
             //Don't call webhook
             continue;
@@ -1138,6 +1181,7 @@ export const GetLeads = async (req, res) => {
             "stage",
             "status",
             "enrich",
+            "enrichData",
           ];
           // delete lead.status;
           const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
@@ -1258,6 +1302,7 @@ export const GetLeadDetail = async (req, res) => {
         "createdAt",
         "stage",
         "enrich",
+        "enrichData",
       ];
       const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
         (key) => !fixedKeys.includes(key) && lead[key] !== null
