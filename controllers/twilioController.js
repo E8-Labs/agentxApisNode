@@ -1172,7 +1172,9 @@ export const ReleaseNumberCron = async () => {
         { phoneNumber: "" },
         {
           where: {
-            phoneNumber: phoneNumber,
+            phoneNumber: {
+              [db.Sequelize.Op.like]: `%${phoneNumber}%`,
+            },
           },
         }
       );
