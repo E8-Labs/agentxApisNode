@@ -14,7 +14,7 @@ import {
   createAgentDefaultRoles,
   addDefaultStages,
   createAgentDefaultIndustry,
-} from "../utils/createPredefinedData.js";
+} from "../utils/data/createPredefinedData.js";
 
 import CampaigneeModel from "./user/campaign/campaigneeModel.js";
 import AgentRole from "./user/agentRole.js";
@@ -69,6 +69,9 @@ import KnowledgeBase from "./user/knowlegebase/Knowledgebase.js";
 import UserSelectedIndustryModel from "./user/UserSelectedIndustry.js";
 import AgentVoicemailModel from "./user/AgentVoicemailModel.js";
 import AffiliatePayout from "./user/campaign/AffiliatePayouts.js";
+import AgencyHostedPlans from "./user/agency/AgencyHostedPlans.js";
+import PlanForAgency from "./user/agency/PlanForAgency.js";
+import { CreatePlansForAgency } from "../utils/data/createPlansForAgency.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -359,9 +362,16 @@ await createAgentServices(db);
 models["AgentRole"] = db.AgentRole;
 await createAgentDefaultRoles(db);
 models["Stages"] = db.Stages;
+
+db.AgencyHostedPlans = AgencyHostedPlans(sequelize, Sequelize);
+
+db.PlanForAgency = PlanForAgency(sequelize, Sequelize);
+
 await addDefaultStages(db);
 
 await createAgentDefaultIndustry(db);
+
+await CreatePlansForAgency(db);
 
 // Model associations
 Object.keys(models).forEach((modelName) => {
