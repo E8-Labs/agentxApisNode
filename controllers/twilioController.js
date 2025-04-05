@@ -1167,6 +1167,16 @@ export const ReleaseNumberCron = async () => {
         { phoneStatus: "inactive" },
         { where: { id: dbNum.id } }
       );
+      let phoneNumber = dbNum.phone.replace("+", "");
+      await db.AgentModel.update(
+        { phoneNumber: "" },
+        {
+          where: {
+            phoneNumber: phoneNumber,
+          },
+        }
+      );
+
       console.log(`Set phone number with SID ${dbNum.phone} to inactive.`);
     }
 
