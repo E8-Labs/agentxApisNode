@@ -1166,7 +1166,7 @@ export const ReleaseNumberCron = async () => {
       //   { phoneStatus: "inactive" },
       //   { where: { id: dbNum.id } }
       // );
-      console.log(`Set phone number with SID ${dbNum.phone} to inactive.`);
+      console.log(`Set phone number with SID ${dbNum.phoneSid} to inactive.`);
     }
 
     console.log("Twilio number synchronization completed.");
