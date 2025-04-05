@@ -1147,6 +1147,7 @@ export const ReleaseNumberCron = async () => {
     const databasePhoneSids = databaseNumbers.map((num) => ({
       id: num.id,
       phoneSid: num.phoneSid,
+      phone: num.phone,
     }));
 
     console.log(
@@ -1162,11 +1163,11 @@ export const ReleaseNumberCron = async () => {
 
     // Step 4: Update the status of numbers not in Twilio to "inactive"
     for (const dbNum of numbersNotInTwilio) {
-      // await db.UserPhoneNumbers.update(
-      //   { phoneStatus: "inactive" },
-      //   { where: { id: dbNum.id } }
-      // );
-      console.log(`Set phone number with SID ${dbNum.phoneSid} to inactive.`);
+      await db.UserPhoneNumbers.update(
+        { phoneStatus: "inactive" },
+        { where: { id: dbNum.id } }
+      );
+      console.log(`Set phone number with SID ${dbNum.phone} to inactive.`);
     }
 
     console.log("Twilio number synchronization completed.");
