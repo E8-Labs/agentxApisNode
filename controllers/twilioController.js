@@ -1176,8 +1176,10 @@ export const ReleaseNumberCron = async () => {
           },
         }
       );
-
-      console.log(`Set phone number with SID ${dbNum.phone} to inactive.`);
+      // pm2 stop twilioCron
+      console.log(
+        `Set phone number with SID ${dbNum.phoneSid} | ${dbNum.phone} to inactive.`
+      );
     }
 
     console.log("Twilio number synchronization completed.");
