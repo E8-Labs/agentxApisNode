@@ -14,6 +14,7 @@ import { generateFailedTwilioTransactionEmail } from "../emails/system/FailedTwi
 import { SendEmail } from "../services/MailService.js";
 import { constants } from "../constants/constants.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
+import { UserTypes } from "../models/user/userModel.js";
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -103,6 +104,19 @@ export const ListUsersAvailablePhoneNumbers = async (req, res) => {
       if (user) {
         let admin = await GetTeamAdminFor(user);
         user = admin;
+
+        console.log("User role ", user.userRole);
+        if (user.userType) {
+          if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+            userId = req.query.userId;
+            console.log("This is admin adding leads for other user", userId);
+            user = await db.User.findOne({
+              where: {
+                id: userId,
+              },
+            });
+          }
+        }
         let teamIds = await GetTeamIds(user);
         try {
           const phoneNumbers = await db.UserPhoneNumbers.findAll({
