@@ -158,9 +158,6 @@ export const WebhookSynthflow = async (req, res) => {
 
     if (assistant) {
       SendNotificaitonFor1KOr2KCalls(assistant);
-      if (data.status == "hangup_on_voicemail") {
-        SendVoicemail(assistant, data?.lead?.phone_number || "");
-      }
     }
     let dbCall = await db.LeadCallsSent.findOne({
       where: { synthflowCallId: callId },
@@ -195,6 +192,9 @@ export const WebhookSynthflow = async (req, res) => {
 
       console.log("Lead is ", lead);
       if (lead) {
+        if (data.status == "hangup_on_voicemail" && dbCall.batchId) {
+          SendVoicemail(assistant, lead, dbCall.batchId);
+        }
         jsonIE = await extractIEAndStoreKycs(
           actions,
           lead,

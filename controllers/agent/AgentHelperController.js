@@ -102,11 +102,26 @@ export async function SetAgentPhoneToVoiceDrop(agent) {
   }
 }
 
-export const SendVoicemail = async (agent, toPhone) => {
+export const SendVoicemail = async (agent, lead, batchId) => {
+  const toPhone = lead.phone;
+  let alreadySent = await db.LeadVoicedropModel.findOne({
+    where: {
+      leadId: lead.id,
+      batchId: batchId,
+    },
+  });
+  if (alreadySent) {
+    console.log("Voicemail already sent for this batch to this lead.");
+    return;
+  }
   try {
     try {
       let phoneAttached = await SetAgentPhoneToVoiceDrop(agent);
       console.log("Phone attached to voice drop ", phoneAttached);
+      let sent = await db.LeadVoicedropModel.create({
+        leadId: lead.id,
+        batchId: batchId,
+      });
     } catch (err) {
       console.log(
         "Attach VoiceDrop Error: ",
