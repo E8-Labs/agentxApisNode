@@ -147,6 +147,7 @@ export async function fetchUserStats(
   const totalUsers = await db.User.count({
     where: {
       userRole: "AgentX",
+      profile_status: "active",
       createdAt: { [Op.between]: [startDate, endDate] },
     },
   });
