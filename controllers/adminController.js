@@ -1407,14 +1407,18 @@ export async function GetAffiliates(req, res) {
           [
             db.Sequelize.literal(`(
               SELECT COALESCE(SUM(price), 0) FROM PaymentHistories 
-              WHERE userId IN (SELECT id FROM Users WHERE campaigneeId = CampaigneeModel.id) AND type != ${ChargeTypes.SupportPlan}
+              WHERE userId IN (SELECT id FROM Users WHERE campaigneeId = CampaigneeModel.id) AND type != ${db.Sequelize.escape(
+                ChargeTypes.SupportPlan
+              )}
             )`),
             "Revenue",
           ],
           [
             db.Sequelize.literal(`(
               SELECT COALESCE(SUM(price), 0) FROM PaymentHistories 
-              WHERE userId IN (SELECT id FROM Users WHERE campaigneeId = CampaigneeModel.id) AND type = ${ChargeTypes.SupportPlan}
+              WHERE userId IN (SELECT id FROM Users WHERE campaigneeId = CampaigneeModel.id) AND type = ${db.Sequelize.escape(
+                ChargeTypes.SupportPlan
+              )}
             )`),
             "XBarRevenue",
           ],
