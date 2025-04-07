@@ -228,6 +228,8 @@ export const RegisterUser = async (req, res) => {
   const userRole = req.body.userRole || UserRole.AgentX;
   let phone = req.body.phone;
 
+  let agencyId = req.body.agencyId || null;
+
   let firmOrCompanyAffiliation =
     req.body.firmOrCompanyAffiliation || req.body.businessAffiliation; //businessAffiliation might not be needed
   let territory = req.body.territory;
@@ -373,6 +375,11 @@ export const RegisterUser = async (req, res) => {
     caseVolume: caseVolume,
     consultationFormat: consultationFormat,
   };
+
+  if (agencyId) {
+    userDataRegisteration.userRole = UserRole.AgencySubAccount;
+    userDataRegisteration.agencyId = agencyId;
+  }
   if (collectionStrategies) {
     userDataRegisteration.collectionStrategies =
       JSON.stringify(collectionStrategies);
