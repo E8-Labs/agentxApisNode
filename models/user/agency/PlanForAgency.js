@@ -51,6 +51,11 @@ const PlanForAgency = (sequelize, Sequelize) => {
       type: Sequelize.INTEGER,
       allowNull: true,
     },
+    duration: {
+      type: Sequelize.STRING,
+      allowNull: false,
+      defaultValue: "monthly", //yearly, quarterly
+    },
   });
 
   return PlanForAgency;
