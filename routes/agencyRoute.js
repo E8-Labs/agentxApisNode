@@ -11,6 +11,7 @@ import {
   GetAgencyHostedPlans,
   LoadPlansForAgencies,
   SubscribeAgencyPlan,
+  SubscribePlan,
 } from "../controllers/agency/AgencyPaymentPlansController.js";
 let agencyRouter = express.Router();
 
@@ -46,6 +47,6 @@ agencyRouter.post(
   "/subscribeAgencyPlan",
   verifyJwtTokenWithTeam,
   uploadFiles,
-  SubscribeAgencyPlan
+  SubscribePlan
 );
 export default agencyRouter;

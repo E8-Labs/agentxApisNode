@@ -346,6 +346,18 @@ export const SubscribePayasyougoPlan = async (req, res) => {
           id: userId,
         },
       });
+      console.log("User role ", user.userRole);
+      if (user.userType) {
+        if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+          userId = req.body.userId;
+          console.log("This is admin Subscribing for user", userId);
+          user = await db.User.findOne({
+            where: {
+              id: userId,
+            },
+          });
+        }
+      }
 
       let admin = await GetTeamAdminFor(user);
       user = admin;

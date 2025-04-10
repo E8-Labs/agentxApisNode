@@ -566,6 +566,7 @@ export const GetPipelines = async (req, res) => {
       });
 
       let teamIds = await GetTeamIds(user);
+      console.log("Team Ids GetPipeline", teamIds);
       let pipelines = await db.Pipeline.findAll({
         where: {
           userId: {

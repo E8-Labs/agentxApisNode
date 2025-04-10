@@ -138,11 +138,12 @@ export async function SubscribePlan(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
       let userId = authData.user.id;
-      let plan = req.body.plan;
-
+      let planId = req.body.planId;
+      console.log("Plan Id is ", planId);
+      // return;
       let user = await db.User.findByPk(userId);
       if (user.userRole == UserRole.Agency) {
-        let res = await SubscribeAgencyPlan(user, plan);
+        let res = await SubscribeAgencyPlan(user, planId);
         if (res.status) {
           return res.send({
             status: true,
@@ -164,7 +165,11 @@ export async function SubscribePlan(req, res) {
 }
 
 export async function SubscribeAgencyPlan(user, planId) {
-  let plan = await db.PlanForAgency.findByPk(planId);
+  let plan = await db.PlanForAgency.findOne({
+    where: {
+      id: planId,
+    },
+  });
   if (!plan) {
     return {
       status: false,
@@ -209,6 +214,18 @@ export async function SubscribeAgencyPlan(user, planId) {
       "SubscribeFunc: Receiving user seconds Before ",
       user.totalSecondsAvailable
     );
+
+    let monthsToAdd = 1;
+    if (plan.duration == "quarterly") {
+      monthsToAdd = 4;
+    } else if (plan.duration == "yearly") {
+      monthsToAdd = 12;
+    }
+
+    let dateAfter30Days = new Date();
+    dateAfter30Days.setMonth(dateAfter30Days.getMonth() + monthsToAdd);
+    user.nextChargeDate = dateAfter30Days;
+    await user.save();
     return {
       status: true,
       message: "Plan subscribed",

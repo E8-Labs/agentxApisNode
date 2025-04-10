@@ -125,9 +125,6 @@ export const AddLeads = async (req, res) => {
           id: userId,
         },
       });
-      let admin = await GetTeamAdminFor(user);
-      user = admin;
-      let teamIds = await GetTeamIds(user);
 
       console.log("User role ", user.userRole);
       if (user.userType) {
@@ -141,6 +138,9 @@ export const AddLeads = async (req, res) => {
           });
         }
       }
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
+      let teamIds = await GetTeamIds(user);
 
       if (enrich) {
         //charge for enrich

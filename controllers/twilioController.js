@@ -497,9 +497,21 @@ export const PurchasePhoneNumber = async (req, res) => {
     }
 
     try {
-      const userId = authData.user.id;
+      let userId = authData.user.id;
       let user = await db.User.findByPk(userId);
 
+      console.log("User role ", user.userRole);
+      if (user.userType) {
+        if (user.userType.toLowerCase() == UserTypes.Admin.toLowerCase()) {
+          userId = req.body.userId;
+          console.log("This is admin Purchasing Number for other user", userId);
+          user = await db.User.findOne({
+            where: {
+              id: userId,
+            },
+          });
+        }
+      }
       if (!user) {
         return res.send({ status: false, message: "User doesn't exist" });
       }
