@@ -3,11 +3,12 @@ import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
 import { UserRole } from "../models/user/userModel.js";
 
 export async function GetTeamIds(user) {
+  let admin = await GetTeamAdminFor(user);
   let teams = await db.TeamModel.findAll({
     where: {
       [db.Sequelize.Op.or]: {
-        invitingUserid: user.id,
-        invitedUserid: user.id,
+        invitingUserid: admin.id,
+        // invitedUserid: admin.id,
       },
     },
   });
