@@ -170,6 +170,16 @@ export const AddPaymentMethod = async (req, res) => {
             environment: process.env.Environment,
           });
 
+          const paymentIntent = await stripe.paymentIntents.create({
+            amount: 100, // $1
+            currency: "usd",
+            customer: customerId,
+            payment_method: source,
+            confirm: true,
+            setup_future_usage: "off_session",
+          });
+          await stripe.paymentIntents.cancel(paymentIntent.id);
+
           return res.json({
             status: true,
             message: "Card saved successfully.",
