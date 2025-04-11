@@ -456,6 +456,7 @@ async function TryAndChargePayment(
       paymentIntentPayload.application_fee_amount = platformFee;
     }
 
+    console.log("PI Payload ", paymentIntentPayload);
     let paymentIntent = await stripe.paymentIntents.create(
       paymentIntentPayload
     );
