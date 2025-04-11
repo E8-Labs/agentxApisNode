@@ -35,6 +35,7 @@ import {
   chargeUser,
   CreateSetupIntent,
   getPaymentMethods,
+  getStripeCustomerId,
   RedeemGiftOnAbortPlanCancellation,
   SetDefaultCard,
 } from "../utils/stripe.js";
@@ -110,6 +111,109 @@ export const SetupPaymentIntent = async (req, res) => {
 };
 
 export const AddPaymentMethod = async (req, res) => {
+  let { source, inviteCode } = req.body; // mainAgentId is the mainAgent id
+  console.log("Source is ", source);
+  if (!source) {
+    return res.send({
+      status: false,
+      message: "Missing required parameter: source",
+      data: null,
+    });
+  }
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
+
+      try {
+        // let added = await addPaymentMethod(user, source);
+        // console.log("Added", added);
+        try {
+          let customerId = await getStripeCustomerId(user.id);
+          let attached = await stripe.paymentMethods.attach(source, {
+            customer: customerId,
+          });
+          if (inviteCode && user.inviteCodeUsed == null) {
+            user.inviteCodeUsed = inviteCode;
+            await user.save();
+          }
+          await trackAddPaymentInfo(
+            { status: true, data: source },
+            user.get(),
+            req,
+            "ai.myagentx.com",
+            "website"
+          );
+          await db.User.update(
+            { lastPaymentMethodAddedAt: new Date() },
+            { where: { id: user.id } }
+          );
+
+          // Set as default if needed
+          // await stripe.customers.update(customerId, {
+          //   invoice_settings: {
+          //     default_payment_method: source,
+          //   },
+          // });
+
+          res.json({ status: true, message: "Card saved successfully." });
+        } catch (error) {
+          console.error("Saving card failed:", error.message);
+          res.status(400).json({ status: false, message: error.message });
+        }
+        // if (added.status) {
+        //   await db.PaymentMethod.create({
+        //     paymentMethodId: added.data.id,
+        //     userId: user.id,
+        //     status: "Active",
+        //     environment: process.env.Environment,
+        //   });
+        // }
+
+        if (inviteCode && user.inviteCodeUsed == null) {
+          user.inviteCodeUsed = inviteCode;
+          await user.save();
+        }
+        await trackAddPaymentInfo(
+          added.data,
+          user.get(),
+          req,
+          "ai.myagentx.com",
+          "website"
+        );
+        await db.User.update(
+          { lastPaymentMethodAddedAt: new Date() },
+          { where: { id: user.id } }
+        );
+        return res.send({
+          status: added.status,
+          message: added.status ? "Payment method added" : added.error,
+          data: added.data,
+        });
+      } catch (error) {
+        console.log("Error ", error);
+        return res.send({
+          status: false,
+          message: error.message,
+          data: null,
+        });
+      }
+    } else {
+      return res.send({
+        status: false,
+        message: "Error adding card",
+        data: null,
+      });
+    }
+  });
+};
+export const AddPaymentMethodOld = async (req, res) => {
   let { source, inviteCode } = req.body; // mainAgentId is the mainAgent id
   console.log("Source is ", source);
   if (!source) {
