@@ -417,7 +417,8 @@ async function TryAndChargePayment(
   type,
   subscribe = false, //If user is subscribing then this will be true
   req = null,
-  stripe
+  stripe,
+  offSession = false
 ) {
   let plan = FindPlanWithPrice(amount / 100);
   try {
@@ -426,6 +427,10 @@ async function TryAndChargePayment(
       agency = await db.User.findByPk(user.agencyId);
     }
 
+    let session = { off_session: true };
+    if (!offSession) {
+      session = { setup_future_usage: "off_session" };
+    }
     let paymentIntentPayload = {
       amount,
       currency: "usd",
@@ -434,7 +439,8 @@ async function TryAndChargePayment(
       description,
       capture_method: "automatic",
       confirm: true,
-      off_session: true,
+      // off_session: offSession ? true,
+      ...session,
       payment_method_types: ["card"],
       automatic_payment_methods: {
         enabled: false,
@@ -718,7 +724,8 @@ export const chargeUser = async (
   description,
   type = "PhonePurchase",
   subscribe = false, //If user is subscribing then this will be true
-  req = null
+  req = null,
+  offSession = false
 ) => {
   const stripe = getStripeClient();
 
@@ -765,7 +772,8 @@ export const chargeUser = async (
         type,
         subscribe,
         req,
-        stripe
+        stripe,
+        offSession
       );
       if (res && res.status) {
         console.log("Charge succeded");
