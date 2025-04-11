@@ -35,6 +35,7 @@ import {
   chargeUser,
   CreateSetupIntent,
   getPaymentMethods,
+  getStripeClient,
   getStripeCustomerId,
   RedeemGiftOnAbortPlanCancellation,
   SetDefaultCard,
@@ -135,6 +136,7 @@ export const AddPaymentMethod = async (req, res) => {
         // let added = await addPaymentMethod(user, source);
         // console.log("Added", added);
         try {
+          const stripe = await getStripeClient();
           let customerId = await getStripeCustomerId(user.id);
           let attached = await stripe.paymentMethods.attach(source, {
             customer: customerId,
