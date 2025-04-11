@@ -82,6 +82,22 @@ export const getStripeCustomerId = async (userId) => {
   return user[stripeCustomerIdKey];
 };
 
+export async function CreateSetupIntent(user) {
+  try {
+    const stripe = getStripeClient();
+    const customerId = await getStripeCustomerId(user.id);
+    const setupIntent = await stripe.setupIntents.create({
+      customer: customerId,
+      usage: "off_session",
+    });
+
+    return { data: setupIntent.client_secret, status: true };
+  } catch (error) {
+    console.error("Failed to create SetupIntent:", error.message);
+    return { error: error, status: false, message: error.message };
+  }
+}
+
 /**
  * Add a payment method for a user using a token
  * @param {Object} user - The user object from the database.
@@ -401,7 +417,8 @@ async function TryAndChargePayment(
   type,
   subscribe = false, //If user is subscribing then this will be true
   req = null,
-  stripe
+  stripe,
+  offSession = false
 ) {
   let plan = FindPlanWithPrice(amount / 100);
   try {
@@ -410,6 +427,10 @@ async function TryAndChargePayment(
       agency = await db.User.findByPk(user.agencyId);
     }
 
+    let session = { off_session: true };
+    // if (!offSession) {
+    //   session = { setup_future_usage: "off_session" };
+    // }
     let paymentIntentPayload = {
       amount,
       currency: "usd",
@@ -418,6 +439,8 @@ async function TryAndChargePayment(
       description,
       capture_method: "automatic",
       confirm: true,
+      // off_session: offSession ? true,
+      ...session,
       payment_method_types: ["card"],
       automatic_payment_methods: {
         enabled: false,
@@ -433,6 +456,7 @@ async function TryAndChargePayment(
       paymentIntentPayload.application_fee_amount = platformFee;
     }
 
+    console.log("PI Payload ", paymentIntentPayload);
     let paymentIntent = await stripe.paymentIntents.create(
       paymentIntentPayload
     );
@@ -701,7 +725,8 @@ export const chargeUser = async (
   description,
   type = "PhonePurchase",
   subscribe = false, //If user is subscribing then this will be true
-  req = null
+  req = null,
+  offSession = false
 ) => {
   const stripe = getStripeClient();
 
@@ -748,7 +773,8 @@ export const chargeUser = async (
         type,
         subscribe,
         req,
-        stripe
+        stripe,
+        offSession
       );
       if (res && res.status) {
         console.log("Charge succeded");

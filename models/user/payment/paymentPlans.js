@@ -60,6 +60,16 @@ const PaymentHistory = (sequelize, Sequelize) => {
       type: Sequelize.STRING,
       allowNull: true,
     },
+    planId: {
+      // if agency subscribed a plan or agency subaccount subscribed a plan
+      type: Sequelize.INTEGER,
+      allowNull: true,
+    },
+    // agencySubAccountPlanId: {
+    //   // if agency subaccount subscribed a plan
+    //   type: Sequelize.INTEGER,
+    //   allowNull: true,
+    // },
   });
 
   return PaymentHistory;
@@ -82,6 +92,8 @@ export const ChargeTypes = {
   DNCCheck: "DNCCheck",
   LeadEnrichmentBatch: "LeadEnrichmentBatch",
   LeadEnrichmentBundle: "LeadEnrichmentBundle",
+  AgencySubscription: "AgencySubscription",
+  SubaccountSubscription: "SubaccountSubscription",
 };
 
 let TestPlans = [

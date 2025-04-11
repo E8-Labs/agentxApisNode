@@ -72,6 +72,7 @@ import AffiliatePayout from "./user/campaign/AffiliatePayouts.js";
 import AgencyHostedPlans from "./user/agency/AgencyHostedPlans.js";
 import PlanForAgency from "./user/agency/PlanForAgency.js";
 import { CreatePlansForAgency } from "../utils/data/createPlansForAgency.js";
+import LeadVoicedropModel from "./lead/LeadVoiceDrop.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -308,6 +309,8 @@ db.CadenceBatchModel.belongsTo(db.Pipeline, {
 db.Pipeline.hasMany(db.CadenceBatchModel, {
   foreignKey: "pipelineId",
 });
+
+db.LeadVoicedropModel = LeadVoicedropModel(sequelize, Sequelize);
 
 db.CadenceCalls = CadenceCalls(sequelize, Sequelize);
 

@@ -8,7 +8,10 @@ const limit = 30;
 import { UserRole, UserTypes } from "../models/user/userModel.js";
 import AffilitateResource from "../resources/AffiliateResource.js";
 import UserProfileAdminResource from "../resources/UserProfileAdminResource.js";
-import { PayAsYouGoPlanTypes } from "../models/user/payment/paymentPlans.js";
+import {
+  ChargeTypes,
+  PayAsYouGoPlanTypes,
+} from "../models/user/payment/paymentPlans.js";
 import { getEngagementsData } from "./AdminEngagements.js";
 import LeadCallResource from "../resources/LeadCallResource.js";
 import LeadCallAdminResource from "../resources/LeadCallAdminResource.js";
@@ -144,6 +147,7 @@ export async function fetchUserStats(
   const totalUsers = await db.User.count({
     where: {
       userRole: "AgentX",
+      profile_status: "active",
       createdAt: { [Op.between]: [startDate, endDate] },
     },
   });
@@ -1380,6 +1384,9 @@ export async function GetAffiliates(req, res) {
       let minUsers = Number(req.query.minUsers || 0);
       let maxUsers = Number(req.query.maxUsers || Number.MAX_SAFE_INTEGER);
 
+      let minxBar = Number(req.query.minxBar || 0);
+      let maxxBar = Number(req.query.maxxBar || Number.MAX_SAFE_INTEGER);
+
       let whereCondition = {}; // No base condition, as we are filtering based on calculated data
 
       // **SQL Filtering for Revenue and Users Signed Up**
@@ -1401,15 +1408,27 @@ export async function GetAffiliates(req, res) {
           [
             db.Sequelize.literal(`(
               SELECT COALESCE(SUM(price), 0) FROM PaymentHistories 
-              WHERE userId IN (SELECT id FROM Users WHERE campaigneeId = CampaigneeModel.id)
+              WHERE userId IN (SELECT id FROM Users WHERE campaigneeId = CampaigneeModel.id) AND type != ${db.sequelize.escape(
+                ChargeTypes.SupportPlan
+              )}
             )`),
             "Revenue",
+          ],
+          [
+            db.Sequelize.literal(`(
+              SELECT COALESCE(SUM(price), 0) FROM PaymentHistories 
+              WHERE userId IN (SELECT id FROM Users WHERE campaigneeId = CampaigneeModel.id) AND type = ${db.sequelize.escape(
+                ChargeTypes.SupportPlan
+              )}
+            )`),
+            "XBarRevenue",
           ],
         ],
         having: db.Sequelize.and(
           db.Sequelize.literal(
             `Revenue BETWEEN ${minRevenue} AND ${maxRevenue}`
           ),
+          db.Sequelize.literal(`XBarRevenue BETWEEN ${minxBar} AND ${maxxBar}`),
           db.Sequelize.literal(
             `UsersSignedUp BETWEEN ${minUsers} AND ${maxUsers}`
           )

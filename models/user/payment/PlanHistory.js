@@ -31,6 +31,7 @@ const PlanHistory = (sequelize, Sequelize) => {
       defaultValue: "Sandbox",
     },
     planId: {
+      //Plans for Agencies or
       //AgencyHostedPlans
       //Plans from agencies
       type: Sequelize.INTEGER,
