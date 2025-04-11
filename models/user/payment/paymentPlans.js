@@ -132,7 +132,7 @@ let LivePlans = [
   },
   {
     type: PayAsYouGoPlanTypes.Plan120Min,
-    price: 1,
+    price: 99,
     oldPrice: 99,
     duration: 120 * 60,
   },
