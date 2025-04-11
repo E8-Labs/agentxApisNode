@@ -428,9 +428,9 @@ async function TryAndChargePayment(
     }
 
     let session = { off_session: true };
-    if (!offSession) {
-      session = { setup_future_usage: "off_session" };
-    }
+    // if (!offSession) {
+    //   session = { setup_future_usage: "off_session" };
+    // }
     let paymentIntentPayload = {
       amount,
       currency: "usd",
