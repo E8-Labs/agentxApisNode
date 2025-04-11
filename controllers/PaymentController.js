@@ -170,19 +170,19 @@ export const AddPaymentMethod = async (req, res) => {
             environment: process.env.Environment,
           });
 
-          const paymentIntent = await stripe.paymentIntents.create({
-            amount: 100, // $1
-            currency: "usd",
-            customer: customerId,
-            payment_method: source,
-            confirm: true,
-            setup_future_usage: "off_session",
-            automatic_payment_methods: {
-              enabled: true,
-              allow_redirects: "never",
-            },
-          });
-          await stripe.paymentIntents.cancel(paymentIntent.id);
+          // const paymentIntent = await stripe.paymentIntents.create({
+          //   amount: 100, // $1
+          //   currency: "usd",
+          //   customer: customerId,
+          //   payment_method: source,
+          //   confirm: true,
+          //   setup_future_usage: "off_session",
+          //   automatic_payment_methods: {
+          //     enabled: true,
+          //     allow_redirects: "never",
+          //   },
+          // });
+          // await stripe.paymentIntents.cancel(paymentIntent.id);
 
           return res.json({
             status: true,
