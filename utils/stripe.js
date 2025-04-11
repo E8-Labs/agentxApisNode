@@ -82,6 +82,22 @@ export const getStripeCustomerId = async (userId) => {
   return user[stripeCustomerIdKey];
 };
 
+export async function CreateSetupIntent(user) {
+  try {
+    const stripe = getStripeClient();
+    const customerId = await getStripeCustomerId(user.id);
+    const setupIntent = await stripe.setupIntents.create({
+      customer: customerId,
+      usage: "off_session",
+    });
+
+    return { data: setupIntent.client_secret, status: true };
+  } catch (error) {
+    console.error("Failed to create SetupIntent:", error.message);
+    return { error: error, status: false, message: error.message };
+  }
+}
+
 /**
  * Add a payment method for a user using a token
  * @param {Object} user - The user object from the database.
@@ -418,6 +434,7 @@ async function TryAndChargePayment(
       description,
       capture_method: "automatic",
       confirm: true,
+      off_session: true,
       payment_method_types: ["card"],
       automatic_payment_methods: {
         enabled: false,

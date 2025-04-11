@@ -47,6 +47,7 @@ import {
   RedeemAbortCancellationReward,
   GetPaymentmethodsAllUsers,
   PurchaseSupportPlan,
+  SetupPaymentIntent,
 } from "../controllers/PaymentController.js";
 
 import { GenerateApiKey, GetMyApiKeys } from "../controllers/apiController.js";
@@ -118,6 +119,11 @@ UserRouter.post("/checkEmailExists", NoAuthMiddleware, CheckEmailExists);
 // UserRouter.post("/verifyEmail", VerifyEmailCode);
 
 //Payment
+UserRouter.post(
+  "/createSetupIntent",
+  verifyJwtTokenWithTeam,
+  SetupPaymentIntent
+);
 UserRouter.post("/addPaymentMethod", verifyJwtTokenWithTeam, AddPaymentMethod);
 UserRouter.post(
   "/subscribePlan",

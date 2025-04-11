@@ -33,6 +33,7 @@ import PipelineStages from "../models/pipeline/pipelineStages.js";
 import {
   addPaymentMethod,
   chargeUser,
+  CreateSetupIntent,
   getPaymentMethods,
   RedeemGiftOnAbortPlanCancellation,
   SetDefaultCard,
@@ -73,6 +74,39 @@ const Op = db.Sequelize.Op;
 
 export const GetTitleForPlan = (plan) => {
   return plan.duration / 60 + " Mins Purchased";
+};
+
+export const SetupPaymentIntent = async (req, res) => {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+      if (req.query.userId) {
+        userId = req.query.userId;
+      }
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      let admin = await GetTeamAdminFor(user);
+      user = admin;
+
+      let paymentIntent = await CreateSetupIntent(user);
+      if (paymentIntent.status) {
+        return res.send({
+          status: true,
+          data: paymentIntent.data,
+          message: "Intent created",
+        });
+      } else {
+        return res.send({
+          status: false,
+          data: null,
+          message: "Intent not created",
+        });
+      }
+    }
+  });
 };
 
 export const AddPaymentMethod = async (req, res) => {
