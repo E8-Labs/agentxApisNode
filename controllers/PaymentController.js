@@ -136,7 +136,7 @@ export const AddPaymentMethod = async (req, res) => {
         // let added = await addPaymentMethod(user, source);
         // console.log("Added", added);
         try {
-          const stripe = await getStripeClient();
+          const stripe = getStripeClient();
           let customerId = await getStripeCustomerId(user.id);
           let attached = await stripe.paymentMethods.attach(source, {
             customer: customerId,
@@ -163,6 +163,12 @@ export const AddPaymentMethod = async (req, res) => {
           //     default_payment_method: source,
           //   },
           // });
+          await db.PaymentMethod.create({
+            paymentMethodId: source,
+            userId: user.id,
+            status: "Active",
+            environment: process.env.Environment,
+          });
 
           return res.json({
             status: true,
