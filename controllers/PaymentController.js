@@ -162,10 +162,15 @@ export const AddPaymentMethod = async (req, res) => {
           //   },
           // });
 
-          res.json({ status: true, message: "Card saved successfully." });
+          return res.json({
+            status: true,
+            message: "Card saved successfully.",
+          });
         } catch (error) {
           console.error("Saving card failed:", error.message);
-          res.status(400).json({ status: false, message: error.message });
+          return res
+            .status(400)
+            .json({ status: false, message: error.message });
         }
         // if (added.status) {
         //   await db.PaymentMethod.create({
@@ -180,21 +185,21 @@ export const AddPaymentMethod = async (req, res) => {
           user.inviteCodeUsed = inviteCode;
           await user.save();
         }
-        await trackAddPaymentInfo(
-          added.data,
-          user.get(),
-          req,
-          "ai.myagentx.com",
-          "website"
-        );
+        // await trackAddPaymentInfo(
+        //   added.data,
+        //   user.get(),
+        //   req,
+        //   "ai.myagentx.com",
+        //   "website"
+        // );
         await db.User.update(
           { lastPaymentMethodAddedAt: new Date() },
           { where: { id: user.id } }
         );
         return res.send({
-          status: added.status,
-          message: added.status ? "Payment method added" : added.error,
-          data: added.data,
+          status: true,
+          message: "Payment method added",
+          data: source,
         });
       } catch (error) {
         console.log("Error ", error);
