@@ -16,7 +16,10 @@ const LeadSheetModel = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: "general", //inbound
     },
-
+    enrich: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+    },
     userId: {
       type: Sequelize.INTEGER,
       allowNull: true,

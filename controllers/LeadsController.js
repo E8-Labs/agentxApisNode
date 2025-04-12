@@ -534,7 +534,7 @@ export const postDataToWebhook = async (
 
 //Or sheet: Updated For Team
 export const AddSmartList = async (req, res) => {
-  let { sheetName, columns, tags, inbound } = req.body; // mainAgentId is the mainAgent id
+  let { sheetName, columns, tags, inbound, enrich = false } = req.body; // mainAgentId is the mainAgent id
 
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {
@@ -564,6 +564,7 @@ export const AddSmartList = async (req, res) => {
         sheetName: sheetName,
         userId: admin.id,
         type: inbound ? "inbound" : "general",
+        enrich: enrich,
       });
 
       if (tags) {

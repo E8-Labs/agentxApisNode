@@ -156,12 +156,25 @@ db.LeadModel.afterCreate(async (lead, options) => {
   console.log("Should enrich for lead", lead.firstName);
   if (options.transaction) {
     await options.transaction.afterCommit(async () => {
-      if (lead.enrich == true || lead.enrich == 1) {
+      const sheet = await db.LeadSheetModel.findByPk(lead.sheetId);
+
+      if (
+        lead.enrich == true ||
+        lead.enrich == 1 ||
+        sheet.enrich == 1 ||
+        sheet.enrich == true
+      ) {
         fetchLeadDetailsFromPerplexity(lead);
       }
     });
   } else {
-    if (lead.enrich == true || lead.enrich == 1) {
+    const sheet = await db.LeadSheetModel.findByPk(lead.sheetId);
+    if (
+      lead.enrich == true ||
+      lead.enrich == 1 ||
+      sheet.enrich == 1 ||
+      sheet.enrich == true
+    ) {
       fetchLeadDetailsFromPerplexity(lead);
     }
   }
