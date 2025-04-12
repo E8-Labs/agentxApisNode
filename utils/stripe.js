@@ -794,6 +794,7 @@ export const chargeUser = async (
         }
       }
     }
+
     WriteToFile("Here all tries done ", JSON.stringify(result));
     let added = await db.PaymentMethodFails.create({
       userId: user.id,

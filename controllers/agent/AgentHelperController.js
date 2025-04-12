@@ -103,6 +103,7 @@ export async function SetAgentPhoneToVoiceDrop(agent) {
 }
 
 export const SendVoicemail = async (agent, lead, batchId) => {
+  console.log("Sending voice mail");
   const toPhone = lead.phone;
   let alreadySent = await db.LeadVoicedropModel.findOne({
     where: {
