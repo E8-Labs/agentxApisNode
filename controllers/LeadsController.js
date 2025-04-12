@@ -30,6 +30,26 @@ import { UserRole, UserTypes } from "../models/user/userModel.js";
 import { ChargeTypes } from "../models/user/payment/paymentPlans.js";
 import { chargeUser } from "../utils/stripe.js";
 const limit = 30;
+const fixedKeys = [
+  "firstName",
+  "lastName",
+  "email",
+  "phone",
+  "id",
+  "userId",
+  "sheetId",
+  "extraColumns",
+  "columnMappings",
+  "updatedAt",
+  "createdAt",
+  "stage",
+  "status",
+  "enrich",
+  "enrichData",
+  "DncCheckPassed",
+  "DncData",
+];
+
 /**
  * Check for stage conflicts among agents.
  * @param {Array<number>} mainAgentIds - Array of agent IDs to check.
@@ -1166,23 +1186,25 @@ export const GetLeads = async (req, res) => {
             cadenceStatus: cadence ? cadence.status : null, // Cadence status or null
           });
 
-          const fixedKeys = [
-            "firstName",
-            "lastName",
-            "email",
-            "phone",
-            "id",
-            "userId",
-            "sheetId",
-            "extraColumns",
-            "columnMappings",
-            "updatedAt",
-            "createdAt",
-            "stage",
-            "status",
-            "enrich",
-            "enrichData",
-          ];
+          // const fixedKeys = [
+          //   "firstName",
+          //   "lastName",
+          //   "email",
+          //   "phone",
+          //   "id",
+          //   "userId",
+          //   "sheetId",
+          //   "extraColumns",
+          //   "columnMappings",
+          //   "updatedAt",
+          //   "createdAt",
+          //   "stage",
+          //   "status",
+          //   "enrich",
+          //   "enrichData",
+          //   "DncCheckPassed",
+          //   "DncData",
+          // ];
           // delete lead.status;
           const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
             (key) => !fixedKeys.includes(key) && lead[key] !== null
@@ -1288,22 +1310,6 @@ export const GetLeadDetail = async (req, res) => {
       console.log("Lead ", lead);
       delete lead.extraColumns;
 
-      const fixedKeys = [
-        "firstName",
-        "lastName",
-        "email",
-        "phone",
-        "id",
-        "userId",
-        "sheetId",
-        "extraColumns",
-        "columnMappings",
-        "updatedAt",
-        "createdAt",
-        "stage",
-        "enrich",
-        "enrichData",
-      ];
       const dynamicKeysWithNonNullValues = Object.keys(lead).filter(
         (key) => !fixedKeys.includes(key) && lead[key] !== null
       );
