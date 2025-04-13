@@ -868,6 +868,25 @@ export const DeleteUserProfileTemporary = async (req, res) => {
   }
 };
 
+export const PauseUserProfile = async (req, res) => {
+  let userId = req.body.userId;
+  let user = await db.User.findByPk(userId);
+  if (!user) {
+    return res.send({ status: false, message: "No such user" });
+  }
+  //delete all agents
+  try {
+    // await deleteAllAgents(user);
+    // await deleteKycs(user);
+    // await deleteCalendars(user);
+    user.profile_status = "paused";
+    await user.save();
+    return res.send({ status: true, message: "Profile paused" });
+  } catch (error) {
+    return res.send({ status: false, message: error.message, data: error });
+  }
+};
+
 export function AddTestNumber(req, res) {
   let numbers = req.body.numbers;
   console.log("Numbers ", numbers);

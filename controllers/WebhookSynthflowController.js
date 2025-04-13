@@ -108,23 +108,32 @@ export const WebhookSynthflow = async (req, res) => {
     } = extractCallData(data);
 
     try {
-      let twilioAudio = recordingUrl;
-      const currentDate = new Date().toISOString().slice(0, 10);
-      const newUUID = UUIDV4();
-      downloadAndStoreRecording(
-        twilioAudio,
-        callId,
-        "recordings",
-        currentDate,
-        newUUID
-      );
-      recordingUrl = generateAudioFilePath(
-        callId,
-        recordingUrl,
-        "recordings",
-        currentDate,
-        newUUID
-      );
+      if (
+        data.status == "failed" ||
+        data.status == "no-answer" ||
+        recordingUrl == null ||
+        recordingUrl == ""
+      ) {
+        //don't download
+      } else {
+        let twilioAudio = recordingUrl;
+        const currentDate = new Date().toISOString().slice(0, 10);
+        const newUUID = UUIDV4();
+        downloadAndStoreRecording(
+          twilioAudio,
+          callId,
+          "recordings",
+          currentDate,
+          newUUID
+        );
+        recordingUrl = generateAudioFilePath(
+          callId,
+          recordingUrl,
+          "recordings",
+          currentDate,
+          newUUID
+        );
+      }
     } catch (error) {
       console.log("Error ", error);
     }
@@ -192,7 +201,12 @@ export const WebhookSynthflow = async (req, res) => {
 
       console.log("Lead is ", lead);
       if (lead) {
-        if (data.status == "hangup_on_voicemail" && dbCall.batchId) {
+        if (
+          (data.status == "hangup_on_voicemail" ||
+            data.status == "busy" ||
+            data.status == "no-answer") &&
+          dbCall.batchId
+        ) {
           SendVoicemail(assistant, lead, dbCall.batchId);
         }
         jsonIE = await extractIEAndStoreKycs(

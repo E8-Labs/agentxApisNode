@@ -75,6 +75,17 @@ async function getUserData(call, currentUser = null) {
     callData.callStage = callStage;
   }
 
+  let recordingUrl = callData.recordingUrl;
+  if (
+    callData.status == "failed" ||
+    callData.status == "no-answer" ||
+    callData.recordingUrl == null ||
+    callData.recordingUrl == ""
+  ) {
+    //don't download
+    callData.recordingUrl = null;
+  }
+
   const LeadCallResource = callData;
 
   return LeadCallResource;
