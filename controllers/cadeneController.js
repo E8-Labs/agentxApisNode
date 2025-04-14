@@ -949,17 +949,17 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           },
           order: [["createdAt", "ASC"]],
         });
-        // WriteToFile(
-        //   `CronRunCadenceCallsSubsequentStages:Calls for ${leadCad.id} at stage ${lead.stage}`,
-        //   calls.length
-        // );
+        WriteToFile(
+          `CronRunCadenceCallsSubsequentStages:Calls for ${leadCad.id} at stage ${lead.stage}`,
+          calls.length
+        );
 
         if (calls && calls.length > 0) {
           let lastCall = calls[calls.length - 1];
-          // WriteToFile(
-          //   "CronRunCadenceCallsSubsequentStages: Calls sent to this lead ",
-          //   calls.length
-          // );
+          WriteToFile(
+            "CronRunCadenceCallsSubsequentStages: Calls sent to this lead ",
+            calls.length
+          );
           if (lastCall.status == null || lastCall.duration == null) {
             // WriteToFile(
             //   "CronRunCadenceCallsSubsequentStages:Last call is not complete so not placing next call"
