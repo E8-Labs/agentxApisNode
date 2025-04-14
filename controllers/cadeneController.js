@@ -449,6 +449,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         // if(user.totalSecondsAvailable)
       }
 
+      console.log("Checking if can run calls First Batch");
       const canRun = canRunCallsDuringDay(user, batch);
       // continue;
       if (!canRun) {
@@ -865,6 +866,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
 
       let batch = await db.CadenceBatchModel.findByPk(leadCad.batchId);
       let user = await db.User.findByPk(batch.userId);
+      console.log("Checking if can run calls Subsequent Calls");
       const canRun = canRunCallsDuringDay(user, batch);
       if (!canRun) {
         continue;
