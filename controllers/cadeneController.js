@@ -1036,10 +1036,17 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               // WriteToFile(
               //   "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
               // );
-              // WriteToFile(`Last Call ID ", ${lastCall.id}`);
+              WriteToFile(`Last Call ID ", ${lastCall.id}`);
+              WriteToFile(
+                `Total Calls sent on Stage ${lead.stage} cad ${leadCad.id}`,
+                callsOnThisStage.length
+              );
               if (cadence.moveToStage != null) {
+                WriteToFile("Can move to next stage");
                 lead.stage = cadence.moveToStage;
                 let saved = await lead.save();
+              } else {
+                WriteToFile("Can not move to next stage");
               }
               // WriteToFile(
               //   "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
@@ -1130,16 +1137,27 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               //   stage: leadCad.stage,
               //   status: "",
               // });
-              //+ 1 because one new call is sent just now
-              if (calls.length + 1 == callCadence.length) {
+              //+ 1 because one new call is sent just now. Removed calls.length + 1 == callCadence.length for now
+              if (calls.length == callCadence.length) {
                 // we will not move the lead to new stage after we setup webhook from synthflow.
                 //There we will add this logic. This is just for testing now.
                 // WriteToFile(
                 //   "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
                 // );
+                WriteToFile(`Last Call ID ", ${lastCall.id}`);
+                WriteToFile(
+                  `Total Calls sent on Stage ${lead.stage} cad ${leadCad.id}`,
+                  callsOnThisStage.length
+                );
                 if (cadence.moveToStage != null) {
+                  WriteToFile("Can move to next stage ", cadence.moveToStage);
                   lead.stage = cadence.moveToStage;
                   let saved = await lead.save();
+                } else {
+                  WriteToFile(
+                    "Can not move to next stage ",
+                    cadence.moveToStage
+                  );
                 }
                 // WriteToFile(
                 //   "CronRunCadenceCallsSubsequentStages: Moved one lead to new stage "
