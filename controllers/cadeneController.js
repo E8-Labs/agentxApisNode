@@ -961,9 +961,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             calls.length
           );
           if (lastCall.status == null || lastCall.duration == null) {
-            // WriteToFile(
-            //   "CronRunCadenceCallsSubsequentStages:Last call is not complete so not placing next call"
-            // );
+            WriteToFile(
+              "CronRunCadenceCallsSubsequentStages:Last call is not complete so not placing next call"
+            );
             continue;
           }
           //
@@ -975,14 +975,15 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
           ];
 
           if (lastCall.status == "completed") {
+            console.log("Last call completed");
             // last call completed with status completed
             //but didn't move the lead to any stage so should call again
             if (lead.stage != lastCall.stage) {
               //last call moved the lead to new stage
-              // WriteToFile(
-              //   "CronRunCadenceCallsSubsequentStages:last call moved the lead to new stage",
-              //   lastCall.movedToStage
-              // );
+              WriteToFile(
+                "CronRunCadenceCallsSubsequentStages:last call moved the lead to new stage",
+                lastCall.movedToStage
+              );
             }
             if (lastCall.movedToStage == null) {
             }
@@ -990,10 +991,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             else if (lastCall.movedToStage != null) {
             }
           } else if (!callsStatusesToRecall.includes(lastCall.status)) {
-            // WriteToFile(
-            //   "CronRunCadenceCallsSubsequentStages:Last call completed with status",
-            //   lastCall.status
-            // );
+            WriteToFile(
+              "CronRunCadenceCallsSubsequentStages:Last call completed with status",
+              lastCall.status
+            );
             // console.log("So recalling")
             continue;
           }
@@ -1010,10 +1011,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               stage: lead.stage,
             },
           });
-          // WriteToFile(
-          //   `CronRunCadenceCallsSubsequentStages:Total Cals ",
-          //   ${calls.length}`
-          // );
+          WriteToFile(
+            `CronRunCadenceCallsSubsequentStages:Total Cals ",
+            ${calls.length}`
+          );
           // WriteToFile(
           //   `CronRunCadenceCallsSubsequentStages:Calls on ${lead.stage} ${callsOnThisStage.length}`
           // );
@@ -1022,9 +1023,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             //All calls are sent to this lead already so we have to determine whether we push it to the next stage or do what?
             //We can either move the lead cadence to the next stage or leave it to the outcome of the call.
             //If we want the outcome to be determined based on call log first then wait for call log else
-            // WriteToFile(
-            //   "CronRunCadenceCallsSubsequentStages: Don't send calls. Already sent calls for this lead cadence"
-            // );
+            WriteToFile(
+              "CronRunCadenceCallsSubsequentStages: Don't send calls. Already sent calls for this lead cadence"
+            );
             let diff = calculateDifferenceInMinutes(lastCall.createdAt); // in minutes
             // WriteToFile(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
             if (
@@ -1035,9 +1036,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               //60 * 24
               // greater than total minutes in a day = 60 * 24
               //move to next stage for now
-              // WriteToFile(
-              //   "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
-              // );
+              WriteToFile(
+                "CronRunCadenceCallsSubsequentStages: Moving lead to new stage | last call duration exceeded. "
+              );
               WriteToFile(`Last Call ID ", ${lastCall.id}`);
               WriteToFile(
                 `Total Calls sent on Stage ${lead.stage} cad ${leadCad.id}`,
@@ -1057,10 +1058,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             // return;
           } else {
             //Get the next call from callCadence to be sent
-            // WriteToFile(
-            //   "CronRunCadenceCallsSubsequentStages: Next call to be sent is ",
-            //   calls.length + 1
-            // );
+            WriteToFile(
+              "CronRunCadenceCallsSubsequentStages: Next call to be sent is ",
+              calls.length + 1
+            );
 
             let nextCadenceCall = callCadence[callsOnThisStage.length];
 
@@ -1075,10 +1076,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             let diff = calculateDifferenceInMinutes(lastCall.createdAt); // in minutes
             // WriteToFile(`CronRunCadenceCallsSubsequentStages: Diff is ${diff}`);
             if (diff * 60 >= waitTime * 60 - 5) {
-              // WriteToFile(
-              //   "CronRunCadenceCallsSubsequentStages: Next call should be placed for",
-              //   leadCad.id
-              // );
+              WriteToFile(
+                "CronRunCadenceCallsSubsequentStages: Next call should be placed for",
+                leadCad.id
+              );
               let agent = await db.AgentModel.findOne({
                 where: {
                   mainAgentId: leadCad.mainAgentId,
@@ -1124,10 +1125,10 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
                 //if you want to simulate
                 //let called = await MakeACall(leadCad, true, calls);
               } catch (error) {
-                // WriteToFile(
-                //   `CronRunCadenceCallsSubsequentStages:Error Sending Call ",
-                //   ${error}`
-                // );
+                WriteToFile(
+                  `CronRunCadenceCallsSubsequentStages:Error Sending Call ",
+                  ${error}`
+                );
               }
               // let sent = await db.LeadCallsSent.create({
               //   leadId: leadCad.leadId,
@@ -1143,9 +1144,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               if (calls.length == callCadence.length) {
                 // we will not move the lead to new stage after we setup webhook from synthflow.
                 //There we will add this logic. This is just for testing now.
-                // WriteToFile(
-                //   "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
-                // );
+                WriteToFile(
+                  "CronRunCadenceCallsSubsequentStages: Moving lead to new stage "
+                );
                 WriteToFile(`Last Call ID ", ${lastCall.id}`);
                 WriteToFile(
                   `Total Calls sent on Stage ${lead.stage} cad ${leadCad.id}`,
@@ -1166,9 +1167,9 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
                 // );
               }
             } else {
-              // WriteToFile(
-              //   "CronRunCadenceCallsSubsequentStages: Difference is small so next call can not be placed"
-              // );
+              WriteToFile(
+                "CronRunCadenceCallsSubsequentStages: Difference is small so next call can not be placed"
+              );
             }
           }
         } else {
