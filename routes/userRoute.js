@@ -21,6 +21,7 @@ import {
   DeleteUserProfile,
   DeleteUserProfileTemporary,
   GetProfileById,
+  PauseUserProfile,
 } from "../controllers/userController.js";
 
 import {
@@ -99,6 +100,8 @@ UserRouter.get(
 
 UserRouter.post("/deleteProfile", verifyJwtToken, DeleteUserProfileTemporary);
 UserRouter.post("/deleteProfilePermanent", verifyJwtToken, DeleteUserProfile);
+UserRouter.post("/pauseProfile", verifyJwtToken, PauseUserProfile);
+
 UserRouter.post(
   "/sendFeedback",
   verifyJwtTokenWithTeam,

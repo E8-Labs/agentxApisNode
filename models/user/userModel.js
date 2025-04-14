@@ -206,7 +206,7 @@ const User = (sequelize, Sequelize) => {
     },
     profile_status: {
       type: Sequelize.ENUM,
-      values: ["active", "deleted"],
+      values: ["active", "deleted", "paused"],
       defaultValue: "active",
       allowNull: false,
     },
