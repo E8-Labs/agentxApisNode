@@ -1141,7 +1141,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
               //   status: "",
               // });
               //+ 1 because one new call is sent just now. Removed calls.length + 1 == callCadence.length for now
-              if (calls.length == callCadence.length) {
+              if (callsOnThisStage.length == callCadence.length) {
                 // we will not move the lead to new stage after we setup webhook from synthflow.
                 //There we will add this logic. This is just for testing now.
                 WriteToFile(
