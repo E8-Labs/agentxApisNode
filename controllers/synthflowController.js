@@ -372,9 +372,9 @@ async function GetCompletePromptTextFrom(
   }
 
   extraColumns = extraColumsDic;
-  console.log("Data json");
-  console.log(extraColumns);
-  console.log("Gr÷eeting before replacing is ", greeting);
+  // console.log("Data json");
+  // console.log(extraColumns);
+  // console.log("Gr÷eeting before replacing is ", greeting);
   for (const key of keys) {
     // console.log(`Replacing key ${key} `);
     if (extraColumns) {
@@ -969,7 +969,7 @@ async function initiateCall(
   meeting = null
 ) {
   console.log("IS call test ", test);
-  console.log("Data ", data);
+  // console.log("Data ", data);
   // if (!data.phone.startsWith("+1") && !data.phone.startsWith("1")) {
   //   return { status: false, data: null, message: "Not a US/CAN number" }; // Number is NOT from the US or Canada
   // }
@@ -993,11 +993,11 @@ async function initiateCall(
     let json = response.data;
 
     // console.log(json);
-    console.log("Call data ", json);
+    // console.log("Call data ", json);
     if (typeof json == "string") {
       // json = JSON.parse(json);
       let sanitizedJSON = sanitizeJSONString(json);
-      console.log("Sanitized json String ", sanitizedJSON);
+      // console.log("Sanitized json String ", sanitizedJSON);
       json = JSON.parse(sanitizedJSON);
     }
 
