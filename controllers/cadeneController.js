@@ -1466,5 +1466,5 @@ async function CheckAndTryToPlaceCall(
 
 // CadenceBookedCalls();
 
-// CronRunCadenceCallsFirstBatch();
-// CronRunCadenceCallsSubsequentStages();
+CronRunCadenceCallsFirstBatch();
+CronRunCadenceCallsSubsequentStages();
