@@ -11,6 +11,8 @@ export const constants = {
   Feedback: "https://ai.myagentx.com/dashboard/myAccount?tab=5",
   BillingPage: "https://ai.myagentx.com/dashboard/myAccount?tab=2",
 
+  AgencyOneTimeFee: 2000, //$2000
+
   InboudLeadSheetName: "Inbound Leads",
 
   LiveTransferInstruction: `Title: Don’t Transfer Calls

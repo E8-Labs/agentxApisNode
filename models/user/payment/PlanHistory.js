@@ -1,10 +1,20 @@
 // Record the history of user's plans. The last one would be current plan
 
+// import { ChargeTypes } from "./paymentPlans";
+
 const PlanHistory = (sequelize, Sequelize) => {
   const PlanHistory = sequelize.define("PlanHistory", {
     type: {
-      type: Sequelize.ENUM,
-      values: ["Plan30", "Plan120", "Plan360", "Plan720"],
+      type: Sequelize.STRING,
+      // values: [
+      //   "Plan30",
+      //   "Plan120",
+      //   "Plan360",
+      //   "Plan720",
+      //   ChargeTypes.AgencySubscription,
+      //   ChargeTypes.AgencySubscriptionOneTimeFee,
+      //   ChargeTypes.SubaccountSubscription,
+      // ],
       defaultValue: "Plan30",
     },
     price: {

@@ -21,6 +21,9 @@ const PaymentHistory = (sequelize, Sequelize) => {
         ChargeTypes.DNCCheck,
         ChargeTypes.LeadEnrichmentBatch,
         ChargeTypes.LeadEnrichmentBundle,
+        ChargeTypes.AgencySubscription,
+        ChargeTypes.AgencySubscriptionOneTimeFee,
+        ChargeTypes.SubaccountSubscription,
       ],
       defaultValue: "PhonePurchase",
     },
@@ -93,6 +96,7 @@ export const ChargeTypes = {
   LeadEnrichmentBatch: "LeadEnrichmentBatch",
   LeadEnrichmentBundle: "LeadEnrichmentBundle",
   AgencySubscription: "AgencySubscription",
+  AgencySubscriptionOneTimeFee: "AgencySubscriptionOneTimeFee",
   SubaccountSubscription: "SubaccountSubscription",
 };
 
