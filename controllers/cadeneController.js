@@ -587,7 +587,10 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         let nextCadenceCall = callCadence[calls.length];
         console.log("All cadence ", callCadence);
 
-        console.log(`nextCallCadence ${calls.length}`, nextCadenceCall);
+        console.log(
+          `nextCallCadence ${calls.length} cadence length ${callCadence.length}`,
+          nextCadenceCall
+        );
         let waitTime =
           Number(nextCadenceCall.waitTimeDays) * 24 * 60 +
           Number(nextCadenceCall.waitTimeHours) * 60 +
