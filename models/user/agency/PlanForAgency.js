@@ -56,6 +56,14 @@ const PlanForAgency = (sequelize, Sequelize) => {
       allowNull: false,
       defaultValue: "monthly", //yearly, quarterly
     },
+    ratePerMin: {
+      type: Sequelize.DOUBLE,
+      defaultValue: 0.25,
+    },
+    fee: {
+      type: Sequelize.DOUBLE,
+      defaultValue: 15,
+    },
   });
 
   return PlanForAgency;
