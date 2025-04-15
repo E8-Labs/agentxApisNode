@@ -569,6 +569,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
       let calls = await db.LeadCallsSent.findAll({
         where: {
           leadCadenceId: leadCad.id,
+          batchId: batch.id,
         },
         order: [["createdAt", "ASC"]],
       });
@@ -588,7 +589,7 @@ export const CronRunCadenceCallsFirstBatch = async () => {
         // console.log("All cadence ", callCadence);
 
         console.log(
-          `nextCallCadence ${calls.length} cadence length ${callCadence.length}`,
+          `nextCallCadence LeadCad:${leadCad.id}  calls: ${calls.length} cadence length ${callCadence.length}`,
           nextCadenceCall
         );
         let waitTime =
@@ -950,6 +951,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
         let calls = await db.LeadCallsSent.findAll({
           where: {
             leadCadenceId: leadCad.id,
+            batchId: batch.id,
             // stage: lead.stage,
           },
           order: [["createdAt", "ASC"]],
@@ -1014,6 +1016,7 @@ export const CronRunCadenceCallsSubsequentStages = async () => {
             where: {
               leadCadenceId: leadCad.id,
               stage: lead.stage,
+              batchId: batch.id,
             },
           });
           WriteToFile(
