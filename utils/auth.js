@@ -31,7 +31,7 @@ export async function GetTeamIds(user) {
 
 export async function GetTeamAdminFor(user) {
   let admin = user;
-  if (user.userRole == UserRole.Invitee) {
+  if (user?.userRole == UserRole.Invitee) {
     let invite = await db.TeamModel.findOne({
       where: { invitedUserId: user.id },
     });

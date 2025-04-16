@@ -8,7 +8,9 @@ const uploadFiles = multer().fields([{ name: "media", maxCount: 1 }]);
 import { CreateAgencyAccountOnboardingLink } from "../controllers/agency/agencyController.js";
 import {
   CreateAgencyHostedPlan,
+  CreateAgencyHostedXbarPlan,
   GetAgencyHostedPlans,
+  GetAgencyHostedXbarPlans,
   LoadPlansForAgencies,
   SubscribeAgencyPlan,
   SubscribePlan,
@@ -33,6 +35,19 @@ agencyRouter.get(
   verifyJwtTokenWithTeam,
   uploadFiles,
   GetAgencyHostedPlans
+);
+
+agencyRouter.post(
+  "/createAgencyXbarPlan",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  CreateAgencyHostedXbarPlan
+);
+agencyRouter.get(
+  "/getAgencyXbarPlansList",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetAgencyHostedXbarPlans
 );
 
 //Plans that agencies pay for

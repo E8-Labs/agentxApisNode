@@ -3332,7 +3332,7 @@ export async function DeleteActionSynthflow(actionId) {
   try {
     let result = await axios.request(options);
     //console.log("Inside 3");
-    // console.log("Delete Action Api result ", result);
+    console.log("Delete Action Api result ", actionId);
 
     if (result.status == 200) {
       return true;

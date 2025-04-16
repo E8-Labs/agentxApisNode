@@ -73,6 +73,7 @@ import AgencyHostedPlans from "./user/agency/AgencyHostedPlans.js";
 import PlanForAgency from "./user/agency/PlanForAgency.js";
 import { CreatePlansForAgency } from "../utils/data/createPlansForAgency.js";
 import LeadVoicedropModel from "./lead/LeadVoiceDrop.js";
+import AgencyHostedXbarPlans from "./user/agency/AgencyHostedXbarPlans.js";
 
 const sequelize = new Sequelize(
   dbConfig.MYSQL_DB,
@@ -367,6 +368,7 @@ await createAgentDefaultRoles(db);
 models["Stages"] = db.Stages;
 
 db.AgencyHostedPlans = AgencyHostedPlans(sequelize, Sequelize);
+db.AgencyHostedXbarPlans = AgencyHostedXbarPlans(sequelize, Sequelize);
 
 db.PlanForAgency = PlanForAgency(sequelize, Sequelize);
 

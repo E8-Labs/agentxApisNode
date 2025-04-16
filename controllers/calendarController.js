@@ -582,6 +582,7 @@ export async function AddCalendarCalDotCom(req, res) {
             await DeleteCalendar(cal, true); // partially delete the calendar
           }
         }
+        // return;
         await db.CalendarIntegration.update(
           {
             mainAgentId: null,
@@ -924,10 +925,10 @@ export async function GetCalendarSchedule(req, res) {
 export async function DeleteCalendar(calendar, partial = false) {
   //if partial then only delete the actions from the synthflow.
   let data = calendar.data || null;
-  console.log("Calendar", calendar);
+  console.log("Del Calendar", calendar);
   if (data) {
     try {
-      let actions = JSON.stringify(data);
+      let actions = JSON.parse(data);
       console.log("Total actions ", actions.length);
       if (actions && actions.length > 0) {
         for (let action of actions) {
