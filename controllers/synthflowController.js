@@ -484,7 +484,8 @@ export async function addCallTry(
   calls = [],
   batchId = null,
   status = "success",
-  callId = null
+  callId = null,
+  reason = "some error"
 ) {
   try {
     console.log("Line 390", {
@@ -510,6 +511,7 @@ export async function addCallTry(
       stage: lead.stage,
       status: status,
       batchId: batchId,
+      reason: reason,
     });
     console.log("Line 406", callTry);
     return callTry;
@@ -597,7 +599,16 @@ export const MakeACall = async (
   let canMakeCalls = await CanMakeCalls(user);
   if (canMakeCalls.status == false) {
     console.log("User can not make calls", canMakeCalls);
-    await addCallTry(leadCadence, lead, assistant, calls, batchId, "error"); //errored
+    await addCallTry(
+      leadCadence,
+      lead,
+      assistant,
+      calls,
+      batchId,
+      "error",
+      null,
+      "User can not make calls. Either the plan is inactive or payment method could not be charged"
+    ); //errored
 
     return { status: false, data: null };
   }
@@ -631,6 +642,21 @@ export const MakeACall = async (
       // data: modelId,
       reason: "no_such_assistant",
     };
+  }
+  if (assistant.phoneNumber == "" || assistant.phoneNumber == null) {
+    // console.log("User can not make calls", canMakeCalls);
+    await addCallTry(
+      leadCadence,
+      lead,
+      assistant,
+      calls,
+      batchId,
+      "error",
+      null,
+      "No phone number attached"
+    ); //errored
+
+    return { status: false, data: null };
   }
 
   // let user = await db.User.findByPk(mainAgentModel.userId);
@@ -1042,7 +1068,16 @@ async function initiateCall(
         };
       } catch (error) {
         console.log("Error Call ", error);
-        await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
+        await addCallTry(
+          leadCadence,
+          lead,
+          assistant,
+          calls,
+          batchId,
+          "error",
+          null,
+          error.message
+        );
         return {
           status: false,
           message: error.message, // "call is not initiated due to database error",
@@ -1056,7 +1091,16 @@ async function initiateCall(
         let answer = json.response?.answer;
         console.log("Adding call try error ");
 
-        await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
+        await addCallTry(
+          leadCadence,
+          lead,
+          assistant,
+          calls,
+          batchId,
+          "error",
+          null,
+          answer || "Error adding call"
+        );
         sendFailedCallEmail(
           lead,
           assistant,
@@ -1085,7 +1129,16 @@ async function initiateCall(
       };
     }
   } catch (error) {
-    await addCallTry(leadCadence, lead, assistant, calls, batchId, "error");
+    await addCallTry(
+      leadCadence,
+      lead,
+      assistant,
+      calls,
+      batchId,
+      "error",
+      null,
+      error.message
+    );
     console.log("Error during Sending Call API call: ", error);
 
     return {
@@ -3234,11 +3287,11 @@ export async function CreateAssistantSynthflow(
             return item.actionId;
           });
 
-          let action = await CreateAndAttachAction(
-            user,
-            "voicemail",
-            assistant
-          );
+          // let action = await CreateAndAttachAction(
+          //   user,
+          //   "voicemail",
+          //   assistant
+          // );
 
           let kbAction = await CreateAndAttachAction(user, "kb", assistant);
           assistant.actionId = kbAction.response.action_id;
