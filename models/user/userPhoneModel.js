@@ -26,6 +26,10 @@ const UserPhoneNumbers = (sequelize, Sequelize) => {
       values: ["pending", "success", "failed"],
       defaultValue: "success",
     },
+    cancelAtPeriodEnd: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+    },
     userId: {
       type: Sequelize.INTEGER,
       allowNull: false,

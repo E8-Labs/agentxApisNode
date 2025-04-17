@@ -48,6 +48,12 @@ const LeadCallTriesModel = (sequelize, Sequelize) => {
       allowNull: false,
     },
 
+    reason: {
+      type: Sequelize.STRING,
+      default: "",
+      allowNull: true,
+    },
+
     agentId: {
       type: Sequelize.INTEGER,
       allowNull: true,

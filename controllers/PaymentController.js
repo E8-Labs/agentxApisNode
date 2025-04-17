@@ -65,7 +65,10 @@ import {
   trackAddPaymentInfo,
   trackStartTrialEvent,
 } from "../services/facebookConversionsApi.js";
-import { DeleteAllNumbersForUser } from "./twilioController.js";
+import {
+  DeleteAllNumbersForUser,
+  MarkAllNumbersToDeleteAtPeriodEndForUser,
+} from "./twilioController.js";
 // lib/firebase-admin.js
 // const admin = require('firebase-admin');
 // import { admin } from "../services/firebase-admin.js";
@@ -858,6 +861,7 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             let TotalSeconds = foundPlan.duration;
             user.totalSecondsAvailable += TotalSeconds;
             console.log("Plan subscribed and aadded 362 ", TotalSeconds);
+
             let saved = await user.save();
             let historyCreated = await db.PaymentHistory.create({
               title: GetTitleForPlan(foundPlan),
@@ -868,12 +872,25 @@ export const SubscribePayasyougoPlan = async (req, res) => {
               environment: process.env.Environment,
             });
             UpdateOrCreateUserInGhl(user);
+            //set the user phone numbers to not cancel at period end
+            await db.UserPhoneNumbers.update(
+              { cancelAtPeriodEnd: false },
+              {
+                where: {
+                  userId: user.id, // replace this with actual userId
+                  nextBillingDate: {
+                    [Op.gt]: new Date(), // only future billing dates
+                  },
+                },
+              }
+            );
             return res.send({
               status: true,
               message: "Plan subscribed " + foundPlan.type,
               data: historyCreated,
             });
           }
+
           return res.send({
             status: false,
             message: charge?.message || "Some error occurred ",
@@ -937,7 +954,8 @@ export const CancelPlan = async (req, res) => {
 
         plan.status = "cancelled";
         await plan.save();
-        await DeleteAllNumbersForUser(user);
+        await MarkAllNumbersToDeleteAtPeriodEndForUser(user);
+        // await DeleteAllNumbersForUser(user);
 
         //If On Trial, Cancel Deduct The Trial Minutes
         if (user.isTrial) {

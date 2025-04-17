@@ -916,59 +916,81 @@ export const PhoneNumberCron = async () => {
           );
           continue;
         }
-
-        // Charge the user (example: $10 per month in cents)
-        const amountToCharge = PhoneNumberPrice * 100; // $10 in cents
-        const chargeResult = await chargeUser(
-          user.id,
-          amountToCharge,
-          `Monthly charge for phone number ${phoneNumber.phone}`
-        );
-
-        if (chargeResult.status) {
-          let planHistory = await db.PaymentHistory.create({
-            title: `${phoneNumber.phone} Purchased`,
-            description: `Monthly charge for phone number ${phoneNumber.phone}`,
-            userId: phoneNumber.userId,
-            type: "PhonePurchase",
-            price: PhoneNumberPrice,
-            transactionId: chargeResult.paymentIntent.id,
-            environment: process.env.Environment,
-          });
-          UpdateOrCreateUserInGhl(user);
-          // Successful charge: update the next billing date
-          phoneNumber.nextBillingDate = new Date(
-            new Date().setMonth(new Date().getMonth() + 1)
-          );
-          phoneNumber.phoneStatus = "active";
+        let activePlan = await db.PlanHistory.findOne({
+          where: {
+            userId: user.id,
+            status: "active",
+          },
+        });
+        //if user doesn't have active plan then cancel the phone number and don't update
+        if (!activePlan) {
+          //(phoneNumber.cancelAtPeriodEnd) {
+          //This number should not be charged
+          await twilioClient
+            .incomingPhoneNumbers(phoneNumber.phoneSid)
+            .remove();
+          phoneNumber.phoneStatus = "released";
           await phoneNumber.save();
-
           console.log(
-            `Successfully charged user ${user.id} for phone number ${phoneNumber.phone}`
+            "Phone number released because it was marked to be released at period's end"
           );
         } else {
-          phoneNumber.phoneStatus = "released";
-          await phoneNumber.save();
-          await twilioClient
-            .incomingPhoneNumbers(phoneNumber.phoneSid)
-            .remove();
-
-          // Failed charge: mark the phone number as released and release it from Twilio
-          console.warn(
-            `Failed to charge user ${user.id} for phone number ${phoneNumber.phone}. Releasing phone number.`
+          // continue;
+          // Charge the user (example: $10 per month in cents)
+          const amountToCharge = PhoneNumberPrice * 100; // $10 in cents
+          const chargeResult = await chargeUser(
+            user.id,
+            amountToCharge,
+            `Monthly charge for phone number ${phoneNumber.phone}`
           );
 
-          await twilioClient
-            .incomingPhoneNumbers(phoneNumber.phoneSid)
-            .remove();
+          if (chargeResult.status) {
+            let planHistory = await db.PaymentHistory.create({
+              title: `${phoneNumber.phone} Purchased`,
+              description: `Monthly charge for phone number ${phoneNumber.phone}`,
+              userId: phoneNumber.userId,
+              type: "PhonePurchase",
+              price: PhoneNumberPrice,
+              transactionId: chargeResult.paymentIntent.id,
+              environment: process.env.Environment,
+            });
+            UpdateOrCreateUserInGhl(user);
+            // Successful charge: update the next billing date
+            phoneNumber.nextBillingDate = new Date(
+              new Date().setMonth(new Date().getMonth() + 1)
+            );
+            phoneNumber.cancelAtPeriodEnd = false;
+            phoneNumber.phoneStatus = "active";
+            await phoneNumber.save();
 
-          phoneNumber.phoneStatus = "released";
-          await phoneNumber.save();
+            console.log(
+              `Successfully charged user ${user.id} for phone number ${phoneNumber.phone}`
+            );
+          } else {
+            phoneNumber.phoneStatus = "released";
+            await phoneNumber.save();
+            await twilioClient
+              .incomingPhoneNumbers(phoneNumber.phoneSid)
+              .remove();
 
-          console.log(`Phone number ${phoneNumber.phone} has been released.`);
+            // Failed charge: mark the phone number as released and release it from Twilio
+            console.warn(
+              `Failed to charge user ${user.id} for phone number ${phoneNumber.phone}. Releasing phone number.`
+            );
+
+            await twilioClient
+              .incomingPhoneNumbers(phoneNumber.phoneSid)
+              .remove();
+
+            phoneNumber.phoneStatus = "released";
+            await phoneNumber.save();
+
+            console.log(`Phone number ${phoneNumber.phone} has been released.`);
+          }
         }
       } catch (chargeError) {
-        await twilioClient.incomingPhoneNumbers(phoneNumber.phoneSid).remove();
+        //I will activate the line below. Just commented it for testing something on April 17, 2025
+        // await twilioClient.incomingPhoneNumbers(phoneNumber.phoneSid).remove();
 
         phoneNumber.phoneStatus = "released";
         await phoneNumber.save();
@@ -1142,6 +1164,44 @@ export const DeleteAllNumbersForUser = async (user) => {
             },
           }
         );
+      } catch (error) {
+        // Log and continue with the next number if deletion fails for one
+        console.error(`Failed to delete number ${num.phone}:`, error.message);
+        // Optionally handle the error or continue to the next phone number
+      }
+    }
+  } catch (error) {
+    console.error("Error deleting numbers for user:", error.message);
+  }
+};
+
+export const MarkAllNumbersToDeleteAtPeriodEndForUser = async (user) => {
+  try {
+    // Fetch all active phone numbers for the user
+    let numbers = await db.UserPhoneNumbers.findAll({
+      where: {
+        userId: user.id,
+        phoneStatus: "active",
+      },
+    });
+
+    // If no active numbers found, exit early
+    if (!numbers || numbers.length === 0) {
+      console.log("No active numbers found for user.");
+      return;
+    }
+
+    // Iterate over each phone number and delete
+    for (let num of numbers) {
+      try {
+        console.log("marked to be deleted from Twilio: ");
+
+        // Mark number as inactive in your database
+        // num.status = "inactive";
+        num.cancelAtPeriodEnd = true;
+        await num.save();
+
+        // Update the agent model if necessary
       } catch (error) {
         // Log and continue with the next number if deletion fails for one
         console.error(`Failed to delete number ${num.phone}:`, error.message);
