@@ -108,6 +108,7 @@ export const WebhookSynthflow = async (req, res) => {
     } = extractCallData(data);
 
     try {
+      const originalRecordingUrl = recordingUrl;
       if (
         data.status == "failed" ||
         data.status == "no-answer" ||
@@ -190,6 +191,7 @@ export const WebhookSynthflow = async (req, res) => {
     } else {
       console.log("Call is in the db");
       dbCall.recordingUrl = recordingUrl;
+      // dbCall.originalRecordingUrl = originalRecordingUrl;
       await dbCall.save();
       const leadCadenceId = dbCall.leadCadenceId;
       const leadCadence = leadCadenceId

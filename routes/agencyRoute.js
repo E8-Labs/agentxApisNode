@@ -5,7 +5,11 @@ import multer from "multer";
 import { verifyJwtTokenWithTeam } from "../middleware/jwtmiddleware.js";
 const uploadFiles = multer().fields([{ name: "media", maxCount: 1 }]);
 
-import { CreateAgencyAccountOnboardingLink } from "../controllers/agency/agencyController.js";
+import {
+  CreateAgencyAccountOnboardingLink,
+  CreateSubaccount,
+  GetAgencySubAccounts,
+} from "../controllers/agency/agencyController.js";
 import {
   CreateAgencyHostedPlan,
   CreateAgencyHostedXbarPlan,
@@ -64,4 +68,19 @@ agencyRouter.post(
   uploadFiles,
   SubscribePlan
 );
+
+agencyRouter.post(
+  "/createSubAccount",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  CreateSubaccount
+);
+
+agencyRouter.get(
+  "/getSubAccounts",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetAgencySubAccounts
+);
+
 export default agencyRouter;
