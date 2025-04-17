@@ -959,6 +959,7 @@ export const PhoneNumberCron = async () => {
             phoneNumber.nextBillingDate = new Date(
               new Date().setMonth(new Date().getMonth() + 1)
             );
+            phoneNumber.cancelAtPeriodEnd = false;
             phoneNumber.phoneStatus = "active";
             await phoneNumber.save();
 
