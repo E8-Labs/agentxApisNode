@@ -15,6 +15,11 @@ import { SendEmail } from "../services/MailService.js";
 import { constants } from "../constants/constants.js";
 import { GetTeamAdminFor, GetTeamIds } from "../utils/auth.js";
 import { UserTypes } from "../models/user/userModel.js";
+import {
+  downloadAndStoreRecording,
+  generateAudioFilePath,
+} from "../utils/mediaservice.js";
+import { UUIDV4 } from "sequelize";
 const twilioClient = twilio(
   process.env.TWILIO_ACCOUNT_SID,
   process.env.TWILIO_AUTH_TOKEN
@@ -1286,4 +1291,71 @@ export async function DeleteAudioRecording(recordingSid) {
     return { success: false, message: error.message };
   }
 }
+
+export async function DownloadAndSaveCallRecordings() {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const Op = db.Sequelize.Op;
+
+  const calls = await db.LeadCallsSent.findAll({
+    where: {
+      callData: {
+        [Op.and]: [{ [Op.not]: null }, { [Op.ne]: "" }],
+      },
+      createdAt: {
+        [Op.gt]: today,
+      },
+      callRecordingDownloaded: false,
+    },
+  });
+
+  if (calls && calls.length > 0) {
+    console.log(`Found  ${calls.length} calls to download recording`);
+    for (const call of calls) {
+      try {
+        let data = call.callData;
+        data = JSON.parse(data);
+        console.log("Json data ", data);
+        let recordingUrl = data.call.recording_url;
+        const originalRecordingUrl = recordingUrl;
+        if (
+          data.status == "failed" ||
+          data.status == "no-answer" ||
+          recordingUrl == null ||
+          recordingUrl == ""
+        ) {
+          //don't download
+        } else {
+          let twilioAudio = recordingUrl;
+          const currentDate = new Date().toISOString().slice(0, 10);
+          const newUUID = UUIDV4();
+
+          const callId = call.synthflowCallId;
+          downloadAndStoreRecording(
+            twilioAudio,
+            callId,
+            "recordings",
+            currentDate,
+            newUUID,
+            call.synthflowCallId
+          );
+          // recordingUrl = generateAudioFilePath(
+          //   callId,
+          //   recordingUrl,
+          //   "recordings",
+          //   currentDate,
+          //   newUUID
+          // );
+          // console.log("Downloaded audio and saved", recordingUrl);
+          // call.recordingUrl = recordingUrl;
+          // await call.save();
+        }
+      } catch (error) {
+        console.log("Error ", error);
+      }
+    }
+  }
+}
+// DownloadAndSaveCallRecordings();
 // PhoneNumberCron();

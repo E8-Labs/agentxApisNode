@@ -5,6 +5,7 @@ import mime from "mime-types";
 import { fileURLToPath } from "url";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
+import db from "../models/index.js";
 // import { generateThumbnail } from '../utils/generateThumbnail.js';
 
 export const generateThumbnail = async (buffer) => {
@@ -178,13 +179,16 @@ export const downloadAndStoreRecording = async (
   fileName = "recording",
   folder = "recordings",
   currentDate = new Date().toISOString().slice(0, 10),
-  newUUID = uuidv4()
+  newUUID = uuidv4(),
+  callId
 ) => {
   try {
+    console.log("Started downloading");
     // Download the recording as a buffer
     const response = await axios.get(recordingUrl, {
       responseType: "arraybuffer",
     });
+    console.log("Downloaded audio");
     const fileContent = Buffer.from(response.data);
 
     // Try to guess the mime type from the URL
@@ -199,7 +203,16 @@ export const downloadAndStoreRecording = async (
       currentDate,
       newUUID
     );
+    console.log("Downloaded audio url ", uploadedUrl);
 
+    let call = await db.LeadCallsSent.findOne({
+      where: {
+        synthflowCallId: callId,
+      },
+    });
+    call.recordingUrl = uploadedUrl;
+    call.callRecordingDownloaded = true;
+    await call.save();
     return uploadedUrl;
   } catch (error) {
     console.error("Error downloading and storing Twilio recording:", error);

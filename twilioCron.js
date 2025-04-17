@@ -15,7 +15,10 @@ import {
   CronRunCadenceCallsFirstBatch,
   CronRunCadenceCallsSubsequentStages,
 } from "./controllers/cadeneController.js";
-import { PhoneNumberCron } from "./controllers/twilioController.js";
+import {
+  DownloadAndSaveCallRecordings,
+  PhoneNumberCron,
+} from "./controllers/twilioController.js";
 import { SetOutcomeforpreviousCalls } from "./controllers/WebhookSynthflowController.js";
 
 import { ReleaseNumberCron } from "./controllers/twilioController.js";
@@ -35,3 +38,9 @@ import { ProcessTypes } from "./models/webhooks/cronLock.js";
 // Release Number cron
 const CronReleaseNumber = nodeCron.schedule("*/1 * * * *", ReleaseNumberCron);
 CronReleaseNumber.start();
+
+const CronDownloadAudioUrl = nodeCron.schedule(
+  "*/5 * * * *",
+  DownloadAndSaveCallRecordings
+);
+CronDownloadAudioUrl.start();

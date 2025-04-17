@@ -88,6 +88,11 @@ const LeadCallsSent = (sequelize, Sequelize) => {
       type: Sequelize.TEXT("medium"),
       allowNull: true,
     },
+    originalRecordingUrl: {
+      type: Sequelize.TEXT("medium"),
+      // defaultValue: "",
+      allowNull: true,
+    },
 
     recordingUrl: {
       type: Sequelize.TEXT("medium"),
@@ -208,6 +213,11 @@ const LeadCallsSent = (sequelize, Sequelize) => {
     ai_non_responsive_detected: {
       type: Sequelize.BOOLEAN,
       allowNull: true,
+    },
+    callRecordingDownloaded: {
+      type: Sequelize.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
     },
   });
   LeadCallsSent.associate = (models) => {

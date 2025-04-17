@@ -873,17 +873,17 @@ export const SubscribePayasyougoPlan = async (req, res) => {
             });
             UpdateOrCreateUserInGhl(user);
             //set the user phone numbers to not cancel at period end
-            await db.UserPhoneNumbers.update(
-              { cancelAtPeriodEnd: false },
-              {
-                where: {
-                  userId: user.id, // replace this with actual userId
-                  nextBillingDate: {
-                    [Op.gt]: new Date(), // only future billing dates
-                  },
-                },
-              }
-            );
+            // await db.UserPhoneNumbers.update(
+            //   { cancelAtPeriodEnd: false },
+            //   {
+            //     where: {
+            //       userId: user.id, // replace this with actual userId
+            //       nextBillingDate: {
+            //         [Op.gt]: new Date(), // only future billing dates
+            //       },
+            //     },
+            //   }
+            // );
             return res.send({
               status: true,
               message: "Plan subscribed " + foundPlan.type,
