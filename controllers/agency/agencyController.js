@@ -44,8 +44,12 @@ export async function CreateSubaccount(req, res) {
       let name = req.body.name;
       let phone = req.body.phone;
       let email = req.body.email;
+      let userType = req.body.userType;
 
       let teamMembers = req.body.teams;
+
+      let plans = req.body.monthlyPlans;
+      let xbarPlans = req.body.xbarPlans;
 
       console.log("Update User ", user.userRole);
       // console.log("Update data ", req);
@@ -59,6 +63,7 @@ export async function CreateSubaccount(req, res) {
           email: email,
           userRole: UserRole.AgencySubAccount,
           agencyId: user.id,
+          userType: userType,
         });
         if (teamMembers && teamMembers.length > 0) {
           for (const team of teamMembers) {
@@ -68,6 +73,7 @@ export async function CreateSubaccount(req, res) {
               phone: team.phone,
               email: team.email,
               invitingUserId: subAccountUser.id,
+
               status: "Pending",
             });
 
@@ -90,6 +96,26 @@ export async function CreateSubaccount(req, res) {
               name: team.name,
               phone: team.phone,
               userRole: UserRole.Invitee,
+              userType: userType,
+            });
+          }
+        }
+
+        if (plans && plans.length > 0) {
+          for (const p of plans) {
+            let created = await db.AgencyPlanForSubaccount.create({
+              userId: subAccountUser.id,
+              planId: p,
+              xbar: false,
+            });
+          }
+        }
+        if (xbarPlans && xbarPlans.length > 0) {
+          for (const p of xbarPlans) {
+            let created = await db.AgencyPlanForSubaccount.create({
+              userId: subAccountUser.id,
+              planId: p,
+              xbar: true,
             });
           }
         }

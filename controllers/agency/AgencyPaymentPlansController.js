@@ -135,6 +135,78 @@ export async function GetAgencyHostedPlans(req, res) {
   });
 }
 
+export async function GetAgencyHostedPlansForSubaccount(req, res) {
+  JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
+    if (authData) {
+      let userId = authData.user.id;
+
+      let user = await db.User.findByPk(userId);
+
+      let monthlyPlansForSubaccount = await db.AgencyPlanForSubaccount.findAll({
+        where: {
+          userId: user.id,
+          xbar: false,
+        },
+      });
+
+      let monthlyPlanIds = [];
+      if (monthlyPlansForSubaccount && monthlyPlansForSubaccount.length > 0) {
+        monthlyPlansForSubaccount.map((item) => {
+          monthlyPlanIds.push(item.planId);
+        });
+      }
+
+      let xbarPlansForSubaccount = await db.AgencyPlanForSubaccount.findAll({
+        where: {
+          userId: user.id,
+          xbar: true,
+        },
+      });
+
+      let xbarPlanIds = [];
+      if (xbarPlansForSubaccount && xbarPlansForSubaccount.length > 0) {
+        xbarPlansForSubaccount.map((item) => {
+          xbarPlanIds.push(item.planId);
+        });
+      }
+
+      let monthlyPlans = await db.AgencyHostedPlans.findAll({
+        where: {
+          id: {
+            [db.Sequelize.Op.in]: monthlyPlanIds,
+          },
+        },
+      });
+
+      let xbarPlans = await db.AgencyHostedXbarPlans.findAll({
+        where: {
+          id: {
+            [db.Sequelize.Op.in]: xbarPlanIds,
+          },
+        },
+      });
+
+      let plans = await db.AgencyHostedPlans.findAll({
+        where: {
+          userId: user.id,
+        },
+      });
+
+      return res.send({
+        status: true,
+        data: { monthlyPlans: monthlyPlans, xbarPlans: xbarPlans },
+        message: "Plan obtained",
+      });
+    } else {
+      return res.send({
+        status: false,
+        data: null,
+        message: "Unauthenticated user",
+      });
+    }
+  });
+}
+
 export async function CreateAgencyHostedXbarPlan(req, res) {
   JWT.verify(req.token, process.env.SecretJwtKey, async (error, authData) => {
     if (authData) {

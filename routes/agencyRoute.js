@@ -14,6 +14,7 @@ import {
   CreateAgencyHostedPlan,
   CreateAgencyHostedXbarPlan,
   GetAgencyHostedPlans,
+  GetAgencyHostedPlansForSubaccount,
   GetAgencyHostedXbarPlans,
   LoadPlansForAgencies,
   SubscribeAgencyPlan,
@@ -81,6 +82,14 @@ agencyRouter.get(
   verifyJwtTokenWithTeam,
   uploadFiles,
   GetAgencySubAccounts
+);
+
+//GetAgencyHostedPlansForSubaccount
+agencyRouter.get(
+  "/getPlansForSubaccount",
+  verifyJwtTokenWithTeam,
+  uploadFiles,
+  GetAgencyHostedPlansForSubaccount
 );
 
 export default agencyRouter;
