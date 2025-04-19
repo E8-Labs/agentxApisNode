@@ -134,6 +134,17 @@ async function getUserData(user, currentUser = null) {
     },
   });
 
+  let lastRequest = await db.UserActivityModel.findOne({
+    where: {
+      userId: user.id,
+    },
+    order: [["createdAt", "DESC"]],
+  });
+  let lastActive = null;
+  if (lastRequest) {
+    lastActive = lastRequest.createdAt;
+  }
+
   const UserFullResource = {
     ...user.get(),
     userType: admin ? admin.userType : user.userType,
@@ -157,6 +168,7 @@ async function getUserData(user, currentUser = null) {
     amountSpent: totalAmountSpent,
     totalLeads: totalLeads,
     teamMembers: teamMembers,
+    lastActive: lastActive,
     // admin: admin,
   };
 
