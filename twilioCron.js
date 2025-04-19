@@ -28,10 +28,7 @@ import {
   NotificationCron,
 } from "./controllers/NotificationController.js";
 import { NotificationTypes } from "./models/user/NotificationModel.js";
-import {
-  RechargeFunction,
-  ReChargeUserAccount,
-} from "./controllers/PaymentController.js";
+import { ReChargeUserAccount } from "./controllers/PaymentController.js";
 import { RemoveLock, TryToLockFile } from "./services/FileService.js";
 import { ProcessTypes } from "./models/webhooks/cronLock.js";
 

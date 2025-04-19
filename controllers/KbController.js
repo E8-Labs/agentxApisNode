@@ -40,10 +40,10 @@ export async function AddKnowledgebase(req, res) {
       return res.send({ status: false, message: "Invalid kbs format." });
     }
     for (const kb of kbs) {
-      let documentName = kb.documentName;
+      let documentName = kb.documentName.trim();
       let type = kb.type;
-      let description = kb.description;
-      let originalContent = kb.originalContent; // Default content from request body
+      let description = kb.description.trim();
+      let originalContent = kb.originalContent.trim(); // Default content from request body
       let title = kb.title || ""; //Name of document
       let pdf = null;
       let webUrl = "";
@@ -117,7 +117,7 @@ export async function AddKnowledgebase(req, res) {
           }
         }
       } else if (type == "Url" || type == "Youtube") {
-        webUrl = kb.originalContent;
+        webUrl = kb.originalContent?.trim();
       }
 
       // if (type == "Url") {
@@ -158,12 +158,12 @@ export async function AddKnowledgebase(req, res) {
         let kbcreated = await db.KnowledgeBase.create({
           type: type,
           originalContent: originalContent, // Use the extracted or default text content
-          webUrl: webUrl,
+          webUrl: webUrl?.trim(),
           documentUrl: pdf,
-          documentName: documentName,
-          description: description,
+          documentName: documentName?.trim(),
+          description: description?.trim(),
           userId: userId,
-          title: title,
+          title: title?.trim(),
           mainAgentId: agent.mainAgentId,
           agentId: agentId,
         });

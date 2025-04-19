@@ -116,6 +116,24 @@ async function getUserData(user, currentUser = null) {
     }
   }
 
+  let totalAmountSpent = await db.PaymentHistory.sum("price", {
+    where: {
+      userId: user.id,
+    },
+  });
+
+  let totalLeads = await db.LeadModel.count({
+    where: {
+      userId: user.id,
+    },
+  });
+
+  let teamMembers = await db.TeamModel.count({
+    where: {
+      invitingUserId: user.id,
+    },
+  });
+
   const UserFullResource = {
     ...user.get(),
     userType: admin ? admin.userType : user.userType,
@@ -136,6 +154,9 @@ async function getUserData(user, currentUser = null) {
     waitlist: waitlist,
     supportPlan: supportPlan,
     enrichCredits: admin?.enrichCredits || 0,
+    amountSpent: totalAmountSpent,
+    totalLeads: totalLeads,
+    teamMembers: teamMembers,
     // admin: admin,
   };
 
